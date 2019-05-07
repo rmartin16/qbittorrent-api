@@ -23,7 +23,7 @@ https://pypi.org/project/qbittorrent-api/
 
 You can install *qbittorrentapi* using one of the following techniques:
 
-- Use pip: `pip install qbittorrentapi`
+- Use pip: `pip install qbittorrent-api`
 - Download the .zip or .tar.gz file from PyPI and install
 - Download the source from Github and install
 
