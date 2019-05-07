@@ -1,4 +1,5 @@
-#qBittorrent Web API v2 Client
+qBittorrent Web API v2 Client
+========
 Python client implementation for qBittorrent Web API v2 first available in qBittorrent v4.1.
 
 API Documentation: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation
