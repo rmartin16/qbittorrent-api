@@ -1,0 +1,5 @@
+Version 0.1.1
+- Remove "tests module" from pip package
+
+Version 0.1
+- Complete implementation of qBittorrent WebUI API 2.2. Each API endpoint is available via the Client class. Automatic re-login is supported in the event of login expiration.

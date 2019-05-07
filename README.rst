@@ -6,7 +6,7 @@ API Documentation: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Docum
 
 Change Log
 --------
-* Version 0.1
+* Version 0.1.1
    * Complete implementation of each endpoint for qBittorrent Web API v2
    
 TO DO

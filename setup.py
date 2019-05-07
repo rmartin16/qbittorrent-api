@@ -7,7 +7,7 @@ with open("README.rst", "r") as fh:
 setup(
     name='qbittorrent-api',
     version=VERSION,
-    packages=find_packages(),
+    packages=find_packages(exclude=('tests',)),
     install_requires=('attrdict', 'requests'),
     url='https://github.com/rmartin16/qbittorrent-api',
     license='GPL-3',
