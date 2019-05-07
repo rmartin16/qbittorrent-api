@@ -1,0 +1,3 @@
+attrdict==2.0.1
+pprint==0.1
+requests==2.21.0
