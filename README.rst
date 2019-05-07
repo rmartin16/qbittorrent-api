@@ -19,7 +19,7 @@ Installation
 
 *qbittorrent* is available on the Python Package Index(PyPI).
 
-https://pypi.python.org/pypi/qbittorrentapi
+https://pypi.org/project/qbittorrent-api/
 
 You can install *qbittorrentapi* using one of the following techniques:
 
