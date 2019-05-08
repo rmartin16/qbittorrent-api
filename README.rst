@@ -17,11 +17,11 @@ TO DO
 Installation
 ------------
 
-*qbittorrent* is available on the Python Package Index(PyPI).
+*qbittorrent-api* is available on the Python Package Index(PyPI).
 
 https://pypi.org/project/qbittorrent-api/
 
-You can install *qbittorrentapi* using one of the following techniques:
+You can install *qbittorrent-api* using one of the following techniques:
 
 - Use pip: :code:`pip install qbittorrent-api`
 - Download the .zip or .tar.gz file from PyPI and install

@@ -1,0 +1,7 @@
+include AUTHORS.rst
+include CHANGELOG.txt
+include CONTRIBUTING.rst
+include LICENSE
+include README.rst
+
+global-exclude *.py[cod] __pycache__ *.so
