@@ -1,7 +1,7 @@
 import requests
 import logging
 from json import loads, dumps
-from os import path
+from os import path, environ
 from functools import wraps
 from pkg_resources import parse_version
 
@@ -438,10 +438,6 @@ class Client(object):
         self.username = username
         self._password = password
 
-        assert self.host
-        if self.username != "":
-            assert self._password
-
         # defaults that should not change
         self._URL_API_PATH = "api"
         self._URL_API_VERSION = "v2"
@@ -467,8 +463,33 @@ class Client(object):
         self._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS = kwargs.pop('RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS', False)
         self._PRINT_STACK_FOR_EACH_REQUEST = kwargs.pop("PRINT_STACK_FOR_EACH_REQUEST", False)
 
+        if kwargs.pop("DISABLE_LOGGING_DEBUG_OUTPUT"):
+            logging.getLogger('qbittorrentapi').setLevel(logging.INFO)
+            logging.getLogger('requests').setLevel(logging.INFO)
+            logging.getLogger('urllib3').setLevel(logging.INFO)
+
+        # Environment variables have lowest priority
+        if self.host == '' and environ.get('PYTHON_QBITTORRENTAPI_HOST') is not None:
+            logger.debug("Using PYTHON_QBITTORRENTAPI_HOST for qBittorrent hostname")
+            self.host = environ['PYTHON_QBITTORRENTAPI_HOST']
+        if self.username == '' and environ.get('PYTHON_QBITTORRENTAPI_USERNAME') is not None:
+            logger.debug("Using PYTHON_QBITTORRENTAPI_USERNAME env variable for username")
+            self.username = environ['PYTHON_QBITTORRENTAPI_USERNAME']
+
+        if self._password == '' and environ.get('PYTHON_QBITTORRENTAPI_PASSWORD') is not None:
+            logger.debug("Using PYTHON_QBITTORRENTAPI_PASSWORD env variable for password")
+            self._password = environ['PYTHON_QBITTORRENTAPI_PASSWORD']
+
+        if self._VERIFY_WEBUI_CERTIFICATE is True and environ.get('PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE') is not None:
+            self._VERIFY_WEBUI_CERTIFICATE = False
+
         # Mocking variables until better unit testing exists
         self._MOCK_WEB_API_VERSION = kwargs.pop('MOCK_WEB_API_VERSION', None)
+
+        # Ensure we got everything we need
+        assert self.host
+        if self.username != "":
+            assert self._password
 
     ##########################################################################
     # Authorization
@@ -1856,6 +1877,16 @@ class Client(object):
         for loop_count in range(1, (max_retries + 1)):
             try:
                 return self._request(http_method, relative_path_list, **kwargs)
+            except requests.exceptions.SSLError as errssl:
+                if loop_count == max_retries:
+                    error_message = "Falied to connect to qBittorrent. This is likely due to using a self-signed " \
+                                    "certificate for HTTPS WebUI. To suppress this error (and skip certificate " \
+                                    "verification consequently exposing the HTTPS connection to man-in-the-middle " \
+                                    "attacks, set  VERIFY_WEBUI_CERTIFICATE=True when instantiating Client or set " \
+                                    "environment variable PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE " \
+                                    "to a non-null value. SSL Error: %s" % repr(errssl)
+                    logger.debug(error_message)  # , exc_info=True)
+                    raise APIConnectionError(error_message)
             except requests.exceptions.HTTPError as errh:
                 if loop_count == max_retries:
                     error_message = "Failed to connect to qBittorrent. Invalid HTTP Reponse: %s" % repr(errh)
@@ -1925,8 +1956,10 @@ class Client(object):
         # include the SID auth cookie unless we're trying to log in and get a SID
         cookies = {'SID': self._SID if "auth/login" not in url.path else ''}
 
+        # turn off console-printed warnings about SSL certificate issues (e.g. untrusted since it is self-signed)
         if not self._VERIFY_WEBUI_CERTIFICATE:
             disable_warnings(InsecureRequestWarning)
+
         response = requests.request(http_method,
                                     url.geturl(),
                                     headers=headers,

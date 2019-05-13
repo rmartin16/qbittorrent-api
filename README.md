@@ -15,7 +15,7 @@ https://pypi.org/project/qbittorrent-api/
 
 You can install *qbittorrent-api* using one of the following techniques:
 
-- Use pip: :code:`pip install qbittorrent-api`
+- Use pip: ```pip install qbittorrent-api```
 - Download the .zip or .tar.gz file from PyPI and install
 - Download the source from Github and install
 
@@ -23,7 +23,7 @@ https://github.com/rmartin16/qbittorrent-api
 
 Be sure to also install requests and attrdict.
 
-Ensure that the WebUI is enabled in qBittorrent: Tools -> Preferences -> Web UI
+Ensure that WebUI is enabled in qBittorrent: Tools -> Preferences -> Web UI
 
 Getting Started
 ---------------
@@ -33,6 +33,24 @@ client = Client(host='localhost:8080', username='admin', password='adminadmin')
 print("qBittorrent Version: %s" % client.app_version())
 help(Client)
 ```
+
+Configuration
+-------------
+* Using an untrusted certificate (eg one that is self-signed) for HTTPS WebUI
+  * Either set `VERIFY_WEBUI_CERTIFICATE=True` when instantiating Client or set environment variable `PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE` to a non-null value.
+  * Failure to do this will cause connections to qBittorrent to fail.
+  * As a word of caution, doing this actually does turn off certificate verification. Therefore, for instance, potential man-in-the-middle attacks will not be detected and reported (since the error is suppressed). However, the connection will remain encrypted.
+* Host, Username and password Defaults
+  * These can be provided when instantiating Client or calling `client.auth_log_in(username='...', password='...')`.
+  * Alternatively, set environment variables `PYTHON_QBITTORRENTAPI_HOST`, `PYTHON_QBITTORRENTAPI_USERNAME` and `PYTHON_QBITTORRENTAPI_PASSWORD`.
+* API Endpoints Not Yet Implemented in the qBittorerent Host
+  * By default, if a call is made to endpoint that doesn't yet exist on the host (eg the Seach endpoints APIv2.1.1), there's a debug logger output and None is returned.
+  * Instaniate Client with `RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True` to raise UnimplementedError instead.
+* Disable Logging Debug Output
+  * Set `DISABLE_LOGGING_DEBUG_OUTPUT=True` when instaniating Client or disable logging mnaually:
+    * ```logging.getLogger('qbittorrentapi').setLevel(logging.INFO) ```
+    * ```logging.getLogger('requests').setLevel(logging.INFO) ```
+    * ```logging.getLogger('urllib3').setLevel(logging.INFO) ```
 
 Direct API Endpoint Access
 --------------------------
@@ -260,6 +278,10 @@ Interaction Layer Details
     * results
     * status
     * delete
+
+Exceptions
+----------
+TODO
 
 Change Log
 ----------

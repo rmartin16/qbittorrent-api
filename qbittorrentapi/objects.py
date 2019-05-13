@@ -116,7 +116,8 @@ class InteractionLayer(object):
             super(InteractionLayer, self).__setattr__(key, value)
         else:
             # TODO: remove this
-            logging.getLogger(__name__).debug("WARNING: Interaction layer '%s' did not set attribute '%s' to value '%s'" % (self.__class__.__name__, key, value))
+            if attribute not in self._attrs_that_trigger_api_update:
+                logging.getLogger(__name__).debug("WARNING: Interaction layer '%s' did not set attribute '%s' to value '%s'" % (self.__class__.__name__, key, value))
 
     def __getattribute__(self, item, *args, **kwargs):
         """
@@ -506,11 +507,11 @@ class Torrent(InteractionLayer):
         >>> torrent.pause()
         >>> torrent.recheck()
         >>> torrent.torrents_top_priority()
-        >>> torrent.set_location(location='/home/user/torrents/')
-        >>> torrent.set_category(category='video')
+        >>> torrent.setLocation(location='/home/user/torrents/')
+        >>> torrent.setCategory(category='video')
         >>> # or set them via assignment
-        >>> torrent.set_location = '/home/user/torrents/'
-        >>> torrent.set_category = 'video'
+        >>> torrent.set_location = '/home/user/torrents/' #can use setLocation as well
+        >>> torrent.set_category = 'video' #can use setCacation as well
     """
 
     _client_method_name = "torrents"
@@ -585,7 +586,7 @@ class Torrent(InteractionLayer):
     __getitem__ = __getattr__
 
     def __repr__(self):
-        self._add_attribute('_info', self.info)
+        # self._add_attribute('_info', self.info)
         return "Torrent hash: %s\n%s" % (self._hash, dict(self._info))
 
     def __str__(self):
@@ -597,7 +598,16 @@ class Torrent(InteractionLayer):
             # torrents_info returns a TorrentInfoList
             info = super(Torrent._Info, self).__call__(*args, **kwargs)
             if len(info) == 1:
-                return info[0]._info
+                # double check the returned torrent is the expected one
+                if info[0]._info.hash == self._default_API_params['hashes']:
+                    return info[0]._info
+            elif len(info) > 1:
+                try:
+                    # since torrents_info() endpoint didn't always support 'hashes', manually find
+                    #  the torrent by hash when multiple torrents are returned.
+                    return [torrent for torrent in info if torrent._info.hash == self._default_API_params['hashes']][0]._info
+                except (AttributeError, KeyError):
+                    pass
             return {}
 
     class _MultipleTorrentsAction(InteractionLayerMethodOverride):
