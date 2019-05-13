@@ -1,2 +1,2 @@
 attrdict==2.0.1
-requests==2.21.0
+requests>=2.16.0,<=2.21.0

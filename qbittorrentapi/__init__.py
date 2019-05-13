@@ -1,4 +1,6 @@
-VERSION = "0.1.3"
-name = "qbittorrentapi"
+
 
 from .client import Client
+
+VERSION = "0.2"
+name = "qbittorrentapi"
