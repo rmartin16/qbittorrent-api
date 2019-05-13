@@ -45,6 +45,7 @@ The API is separated in to eight namespaces for the API endpoints:
 * Torrent Management (torrents)
 * RSS (rss)
 * Search (search)
+
 To use this package to directly access those endpoints:
 
 ```python
