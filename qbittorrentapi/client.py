@@ -8,6 +8,8 @@ from pkg_resources import parse_version
 from urllib3 import disable_warnings
 from urllib3.exceptions import InsecureRequestWarning
 
+from qbittorrentapi.exceptions import *
+from qbittorrentapi.objects import APINames
 from qbittorrentapi.objects import (
     ApplicationPreferencesDict,
     BuildInfoDict,
@@ -86,89 +88,9 @@ API Peculiarities
 
 
 ##########################################################################
-# Exception Classes
-##########################################################################
-class APIError(Exception):
-    pass
-
-
-class LoginFailed(APIError):
-    pass
-
-
-class APIConnectionError(APIError):
-    pass
-
-
-class HTTPError(APIError):
-    pass
-
-
-class HTTP400Error(HTTPError):
-    pass
-
-
-class HTTP401Error(HTTPError):
-    pass
-
-
-class HTTP403Error(HTTPError):
-    pass
-
-
-class HTTP404Error(HTTPError):
-    pass
-
-
-class HTTP409Error(HTTPError):
-    pass
-
-
-class HTTP415Error(HTTPError):
-    pass
-
-
-class HTTP500Error(HTTPError):
-    pass
-
-
-class MissingRequiredParameters400Error(HTTP400Error):
-    pass
-
-
-class InvalidRequest400Error(HTTP400Error):
-    pass
-
-
-class Unauthorized401Error(HTTP401Error):
-    pass
-
-
-class Forbidden403Error(HTTP403Error):
-    pass
-
-
-class NotFound404Error(HTTP404Error):
-    pass
-
-
-class Conflict409Error(HTTP409Error):
-    pass
-
-
-class UnsupportedMediaType415Error(HTTP415Error):
-    pass
-
-
-class InternalServerError500Error(HTTP500Error):
-    pass
-
-
-##########################################################################
 # Decorators
 ##########################################################################
-# noinspection PyPep8Naming
-class alias(object):
+class Alias(object):
     """
     Alias class that can be used as a decorator for making methods callable
     through other names (or "aliases").
@@ -197,7 +119,6 @@ class alias(object):
         return f
 
 
-# noinspection PyProtectedMember
 def aliased(aliased_class):
     """
     Decorator function that *must* be used in combination with @alias
@@ -224,6 +145,7 @@ def aliased(aliased_class):
         if hasattr(method, '_aliases'):
             # Add the aliases for 'method', but don't override any
             # previously-defined attribute of 'aliased_class'
+            # noinspection PyProtectedMember
             for method_alias in method._aliases - set(original_methods):
                 setattr(aliased_class, method_alias, method)
     return aliased_class
@@ -344,30 +266,10 @@ def version_implemented(version_introduced, endpoint, end_point_params=None):
 ##########################################################################
 # API Helpers
 ##########################################################################
-class APINames:
-    """
-    API names for API endpoints
-
-    e.g 'torrents' in http://localhost:8080/api/v2/torrents/addTrackers
-    """
-
-    def __init__(self):
-        pass
-
-    Blank = ''
-    Authorization = "auth"
-    Application = "app"
-    Log = "log"
-    Sync = "sync"
-    Transfer = "transfer"
-    Torrents = "torrents"
-    RSS = "rss"
-    Search = "search"
-
-
 def list2string(input_list=None, delimiter="|"):
     """
     Converted entries in a list to a concatenated string
+
     :param input_list: list to convert
     :param delimiter: delimiter for concatenation
     :return: if input is a list, concatenated string...else whatever the input was
@@ -474,7 +376,7 @@ class Client(object):
 
         # Environment variables have lowest priority
         if self.host == '' and environ.get('PYTHON_QBITTORRENTAPI_HOST') is not None:
-            logger.debug("Using PYTHON_QBITTORRENTAPI_HOST for qBittorrent hostname")
+            logger.debug("Using PYTHON_QBITTORRENTAPI_HOST env variable for qBittorrent hostname")
             self.host = environ['PYTHON_QBITTORRENTAPI_HOST']
         if self.username == '' and environ.get('PYTHON_QBITTORRENTAPI_USERNAME') is not None:
             logger.debug("Using PYTHON_QBITTORRENTAPI_USERNAME env variable for username")
@@ -654,7 +556,7 @@ class Client(object):
         self._cached_web_api_version = self.app_web_api_version()
         return self._cached_web_api_version
 
-    @alias('app_webapiVersion')
+    @Alias('app_webapiVersion')
     @response_text(str)
     @login_required
     def app_web_api_version(self, **kwargs):
@@ -669,7 +571,7 @@ class Client(object):
 
     @version_implemented('2.3.0', 'app/buildInfo')
     @response_json(BuildInfoDict)
-    @alias('app_buildInfo')
+    @Alias('app_buildInfo')
     @login_required
     def app_build_info(self, **kwargs):
         """
@@ -696,7 +598,7 @@ class Client(object):
         """
         return self._get(_name=APINames.Application, _method='preferences', **kwargs)
 
-    @alias('app_setPreferences')
+    @Alias('app_setPreferences')
     @login_required
     def app_set_preferences(self, prefs=None, **kwargs):
         """
@@ -708,7 +610,7 @@ class Client(object):
         data = {'json': dumps(prefs)}
         return self._post(_name=APINames.Application, _method='setPreferences', data=data, **kwargs)
 
-    @alias('app_defaultSavePath')
+    @Alias('app_defaultSavePath')
     @response_text(str)
     @login_required
     def app_default_save_path(self, **kwargs):
@@ -771,7 +673,7 @@ class Client(object):
         parameters = {'rid': rid}
         return self._get(_name=APINames.Sync, _method='maindata', data=parameters, **kwargs)
 
-    @alias('sync_torrentPeers')
+    @Alias('sync_torrentPeers')
     @response_json(SyncTorrentPeersDict)
     @login_required
     def sync_torrent_peers(self, hash=None, rid=None, **kwargs):
@@ -804,7 +706,7 @@ class Client(object):
         """
         return self._get(_name=APINames.Transfer, _method='info', **kwargs)
 
-    @alias('transfer_speedLimitsMode')
+    @Alias('transfer_speedLimitsMode')
     @response_text(str)
     @login_required
     def transfer_speed_limits_mode(self, **kwargs):
@@ -815,7 +717,7 @@ class Client(object):
         """
         return self._get(_name=APINames.Transfer, _method='speedLimitsMode', **kwargs)
 
-    @alias('transfer_toggleSpeedLimitsMode')
+    @Alias('transfer_toggleSpeedLimitsMode')
     @login_required
     def transfer_toggle_speed_limits_mode(self, intended_state=None, **kwargs):
         """
@@ -828,7 +730,7 @@ class Client(object):
         if (self.transfer_speed_limits_mode() == '1') is not intended_state or intended_state is None:
             self._post(_name=APINames.Transfer, _method='toggleSpeedLimitsMode', **kwargs)
 
-    @alias('transfer_downloadLimit')
+    @Alias('transfer_downloadLimit')
     @response_text(int)
     @login_required
     def transfer_download_limit(self, **kwargs):
@@ -839,7 +741,7 @@ class Client(object):
         """
         return self._get(_name=APINames.Transfer, _method='downloadLimit', **kwargs)
 
-    @alias('transfer_uploadLimit')
+    @Alias('transfer_uploadLimit')
     @response_text(int)
     @login_required
     def transfer_upload_limit(self, **kwargs):
@@ -850,7 +752,7 @@ class Client(object):
         """
         return self._get(_name=APINames.Transfer, _method='uploadLimit', **kwargs)
 
-    @alias('transfer_setDownloadLimit')
+    @Alias('transfer_setDownloadLimit')
     @login_required
     def transfer_set_download_limit(self, limit=None, **kwargs):
         """
@@ -862,7 +764,7 @@ class Client(object):
         data = {'limit': limit}
         self._post(_name=APINames.Transfer, _method='setDownloadLimit', data=data, **kwargs)
 
-    @alias('transfer_setUploadLimit')
+    @Alias('transfer_setUploadLimit')
     @login_required
     def transfer_set_upload_limit(self, limit=None, **kwargs):
         """
@@ -996,7 +898,7 @@ class Client(object):
         data = {'hash': hash}
         return self._post(_name=APINames.Torrents, _method='files', data=data, **kwargs)
 
-    @alias('torrents_pieceStates')
+    @Alias('torrents_pieceStates')
     @response_json(TorrentPieceInfoList)
     @login_required
     def torrents_piece_states(self, hash=None, **kwargs):
@@ -1012,7 +914,7 @@ class Client(object):
         data = {'hash': hash}
         return self._post(_name=APINames.Torrents, _method='pieceStates', data=data, **kwargs)
 
-    @alias('torrents_pieceHashes')
+    @Alias('torrents_pieceHashes')
     @response_json(TorrentPieceInfoList)
     @login_required
     def torrents_piece_hashes(self, hash=None, **kwargs):
@@ -1028,7 +930,7 @@ class Client(object):
         data = {'hash': hash}
         return self._post(_name=APINames.Torrents, _method='pieceHashes', data=data, **kwargs)
 
-    @alias('torrents_addTrackers')
+    @Alias('torrents_addTrackers')
     @login_required
     def torrents_add_trackers(self, hash=None, urls=None, **kwargs):
         """
@@ -1046,7 +948,7 @@ class Client(object):
         self._post(_name=APINames.Torrents, _method='addTrackers', data=data, **kwargs)
 
     @version_implemented('2.2.0', 'torrents/editTracker')
-    @alias('torrents_editTracker')
+    @Alias('torrents_editTracker')
     @login_required
     def torrents_edit_tracker(self, hash=None, original_url=None, new_url=None, **kwargs):
         """
@@ -1068,7 +970,7 @@ class Client(object):
         self._post(_name=APINames.Torrents, _method='editTracker', data=data, **kwargs)
 
     @version_implemented('2.2', 'torrents/removeTrackers')
-    @alias('torrents_removeTrackers')
+    @Alias('torrents_removeTrackers')
     @login_required
     def torrents_remove_trackers(self, hash=None, urls=None, **kwargs):
         """
@@ -1086,7 +988,7 @@ class Client(object):
                 'urls': list2string(urls, '|')}
         self._post(_name=APINames.Torrents, _method='removeTrackers', data=data, **kwargs)
 
-    @alias('torrents_filePrio')
+    @Alias('torrents_filePrio')
     @login_required
     def torrents_file_priority(self, hash=None, file_ids=None, priority=None, **kwargs):
         """
@@ -1212,7 +1114,7 @@ class Client(object):
         data = {'hashes': list2string(hashes, '|')}
         self._post(_name=APINames.Torrents, _method='reannounce', data=data, **kwargs)
 
-    @alias('torrents_increasePrio')
+    @Alias('torrents_increasePrio')
     @login_required
     def torrents_increase_priority(self, hashes=None, **kwargs):
         """
@@ -1227,7 +1129,7 @@ class Client(object):
         data = {'hashes': list2string(hashes, '|')}
         self._post(_name=APINames.Torrents, _method='increasePrio', data=data, **kwargs)
 
-    @alias('torrents_decreasePrio')
+    @Alias('torrents_decreasePrio')
     @login_required
     def torrents_decrease_priority(self, hashes=None, **kwargs):
         """
@@ -1242,7 +1144,7 @@ class Client(object):
         data = {'hashes': list2string(hashes, '|')}
         self._post(_name=APINames.Torrents, _method='decreasePrio', data=data, **kwargs)
 
-    @alias('torrents_topPrio')
+    @Alias('torrents_topPrio')
     @login_required
     def torrents_top_priority(self, hashes=None, **kwargs):
         """
@@ -1257,7 +1159,7 @@ class Client(object):
         data = {'hashes': list2string(hashes, '|')}
         self._post(_name=APINames.Torrents, _method='topPrio', data=data, **kwargs)
 
-    @alias('torrents_bottomPrio')
+    @Alias('torrents_bottomPrio')
     @login_required
     def torrents_bottom_priority(self, hashes=None, **kwargs):
         """
@@ -1272,7 +1174,7 @@ class Client(object):
         data = {'hashes': list2string(hashes, '|')}
         self._post(_name=APINames.Torrents, _method='bottomPrio', data=data, **kwargs)
 
-    @alias('torrents_downloadLimit')
+    @Alias('torrents_downloadLimit')
     @response_json(TorrentLimitsDict)
     @login_required
     def torrents_download_limit(self, hashes=None, **kwargs):
@@ -1284,7 +1186,7 @@ class Client(object):
         data = {'hashes': list2string(hashes, "|")}
         return self._post(_name=APINames.Torrents, _method='downloadLimit', data=data, **kwargs)
 
-    @alias('torrents_setDownloadLimit')
+    @Alias('torrents_setDownloadLimit')
     @login_required
     def torrents_set_download_limit(self, limit=None, hashes=None, **kwargs):
         """
@@ -1299,7 +1201,7 @@ class Client(object):
         self._post(_name=APINames.Torrents, _method='setDownloadLimit', data=data, **kwargs)
 
     @version_implemented('2.0.1', 'torrents/setShareLimits')
-    @alias('torrents_setShareLimits')
+    @Alias('torrents_setShareLimits')
     @login_required
     def torrents_set_share_limits(self, ratio_limit=None, seeding_time_limit=None, hashes=None, **kwargs):
         """
@@ -1315,7 +1217,7 @@ class Client(object):
                 'seedingTimeLimit': seeding_time_limit}
         self._post(_name=APINames.Torrents, _method='setShareLimits', data=data, **kwargs)
 
-    @alias('torrents_uploadLimit')
+    @Alias('torrents_uploadLimit')
     @response_json(TorrentLimitsDict)
     @login_required
     def torrents_upload_limit(self, hashes=None, **kwargs):
@@ -1328,7 +1230,7 @@ class Client(object):
         data = {'hashes': list2string(hashes, '|')}
         return self._post(_name=APINames.Torrents, _method='uploadLimit', data=data, **kwargs)
 
-    @alias('torrents_setUploadLimit')
+    @Alias('torrents_setUploadLimit')
     @login_required
     def torrents_set_upload_limit(self, limit=None, hashes=None, **kwargs):
         """
@@ -1342,7 +1244,7 @@ class Client(object):
                 'limit': limit}
         self._post(_name=APINames.Torrents, _method='setUploadLimit', data=data, **kwargs)
 
-    @alias('torrents_setLocation')
+    @Alias('torrents_setLocation')
     @login_required
     def torrents_set_location(self, location=None, hashes=None, **kwargs):
         """
@@ -1360,7 +1262,7 @@ class Client(object):
                 'location': location}
         self._post(_name=APINames.Torrents, _method='setLocation', data=data, **kwargs)
 
-    @alias('torrents_setCategory')
+    @Alias('torrents_setCategory')
     @login_required
     def torrents_set_category(self, category=None, hashes=None, **kwargs):
         """
@@ -1377,7 +1279,7 @@ class Client(object):
                 'category': category}
         self._post(_name=APINames.Torrents, _method='setCategory', data=data, **kwargs)
 
-    @alias('torrents_setAutoManagement')
+    @Alias('torrents_setAutoManagement')
     @login_required
     def torrents_set_auto_management(self, enable=None, hashes=None, **kwargs):
         """
@@ -1391,7 +1293,7 @@ class Client(object):
                 'enable': enable}
         self._post(_name=APINames.Torrents, _method='setAutoManagement', data=data, **kwargs)
 
-    @alias('torrents_toggleSequentialDownload')
+    @Alias('torrents_toggleSequentialDownload')
     @login_required
     def torrents_toggle_sequential_download(self, hashes=None, **kwargs):
         """
@@ -1403,7 +1305,7 @@ class Client(object):
         data = {'hashes': list2string(hashes)}
         self._post(_name=APINames.Torrents, _method='toggleSequentialDownload', data=data, **kwargs)
 
-    @alias('torrents_toggleFirstLastPiecePrio')
+    @Alias('torrents_toggleFirstLastPiecePrio')
     @login_required
     def torrents_toggle_first_last_piece_priority(self, hashes=None, **kwargs):
         """
@@ -1414,7 +1316,7 @@ class Client(object):
         data = {'hashes': list2string(hashes, '|')}
         self._post(_name=APINames.Torrents, _method='toggleFirstLastPiecePrio', data=data, **kwargs)
 
-    @alias('torrents_setForceStart')
+    @Alias('torrents_setForceStart')
     @login_required
     def torrents_set_force_start(self, enable=None, hashes=None, **kwargs):
         """
@@ -1428,7 +1330,7 @@ class Client(object):
                 'value': enable}
         self._post(_name=APINames.Torrents, _method='setForceStart', data=data, **kwargs)
 
-    @alias('torrents_setSuperSeeding')
+    @Alias('torrents_setSuperSeeding')
     @login_required
     def torrents_set_super_seeding(self, enable=None, hashes=None, **kwargs):
         """
@@ -1455,7 +1357,7 @@ class Client(object):
         """
         return self._get(_name=APINames.Torrents, _method='categories', **kwargs)
 
-    @alias('torrents_createCategory')
+    @Alias('torrents_createCategory')
     @version_implemented('2.1.0', 'torrents/createCategory', ('save_path', 'savePath'))
     @login_required
     def torrents_create_category(self, name=None, save_path=None, **kwargs):
@@ -1476,7 +1378,7 @@ class Client(object):
         self._post(_name=APINames.Torrents, _method='createCategory', data=data, **kwargs)
 
     @version_implemented('2.1.0', 'torrents/editCategory', {'save_path': 'savePath'})
-    @alias('torrents_editCategory')
+    @Alias('torrents_editCategory')
     @login_required
     def torrents_edit_category(self, name=None, save_path=None, **kwargs):
         """
@@ -1495,7 +1397,7 @@ class Client(object):
                 'savePath': save_path}
         self._post(_name=APINames.Torrents, _method='editCategory', data=data, **kwargs)
 
-    @alias('torrents_removeCategories')
+    @Alias('torrents_removeCategories')
     @login_required
     def torrents_remove_categories(self, categories=None, **kwargs):
         """
@@ -1510,7 +1412,7 @@ class Client(object):
     ##########################################################################
     # RSS
     ##########################################################################
-    @alias('rss_addFolder')
+    @Alias('rss_addFolder')
     @login_required
     def rss_add_folder(self, folder_path=None, **kwargs):
         """
@@ -1525,7 +1427,7 @@ class Client(object):
         data = {'path': folder_path}
         self._post(_name=APINames.RSS, _method='addFolder', data=data, **kwargs)
 
-    @alias('rss_addFeed')
+    @Alias('rss_addFeed')
     @login_required
     def rss_add_feed(self, url=None, item_path=None, **kwargs):
         """
@@ -1542,7 +1444,7 @@ class Client(object):
                 'path': item_path}
         self._post(_name=APINames.RSS, _method='addFeed', data=data, **kwargs)
 
-    @alias('rss_removeItem')
+    @Alias('rss_removeItem')
     @login_required
     def rss_remove_item(self, item_path=None, **kwargs):
         """
@@ -1559,7 +1461,7 @@ class Client(object):
         data = {'path': item_path}
         self._post(_name=APINames.RSS, _method='removeItem', data=data, **kwargs)
 
-    @alias('rss_moveItem')
+    @Alias('rss_moveItem')
     @login_required
     def rss_move_item(self, orig_item_path=None, new_item_path=None, **kwargs):
         """
@@ -1588,7 +1490,7 @@ class Client(object):
         params = {'withData': include_feed_data}
         return self._get(_name=APINames.RSS, _method='items', params=params, **kwargs)
 
-    @alias('rss_setRule')
+    @Alias('rss_setRule')
     @login_required
     def rss_set_rule(self, rule_name=None, rule_def=None, **kwargs):
         """
@@ -1603,7 +1505,7 @@ class Client(object):
                 'ruleDef': dumps(rule_def)}
         self._post(_name=APINames.RSS, _method='setRule', data=data, **kwargs)
 
-    @alias('rss_renameRule')
+    @Alias('rss_renameRule')
     @login_required
     def rss_rename_rule(self, orig_rule_name=None, new_rule_name=None, **kwargs):
         """
@@ -1617,7 +1519,7 @@ class Client(object):
                 'newRuleName': new_rule_name}
         self._post(_name=APINames.RSS, _method='renameRule', data=data, **kwargs)
 
-    @alias('rss_removeRule')
+    @Alias('rss_removeRule')
     @login_required
     def rss_remove_rule(self, rule_name=None, **kwargs):
         """
@@ -1757,7 +1659,7 @@ class Client(object):
         return self._get(_name=APINames.Search, _method='plugins', **kwargs)
 
     @version_implemented('2.1.1', 'search/installPlugin')
-    @alias('search_installPlugin')
+    @Alias('search_installPlugin')
     @login_required
     def search_install_plugin(self, sources=None, **kwargs):
         """
@@ -1770,7 +1672,7 @@ class Client(object):
         self._post(_name=APINames.Search, _method='installPlugin', data=data, **kwargs)
 
     @version_implemented('2.1.1', 'search/uninstallPlugin')
-    @alias('search_uninstallPlugin')
+    @Alias('search_uninstallPlugin')
     @login_required
     def search_uninstall_plugin(self, sources=None, **kwargs):
         """
@@ -1783,7 +1685,7 @@ class Client(object):
         self._post(_name=APINames.Search, _method='uninstallPlugin', data=data, **kwargs)
 
     @version_implemented('2.1.1', 'search/enablePlugin')
-    @alias('search_enablePlugin')
+    @Alias('search_enablePlugin')
     @login_required
     def search_enable_plugin(self, plugins=None, enable=None, **kwargs):
         """
@@ -1798,7 +1700,7 @@ class Client(object):
         self._post(_name=APINames.Search, _method='enablePlugin', data=data, **kwargs)
 
     @version_implemented('2.1.1', 'search/updatePlugin')
-    @alias('search_updatePlugins')
+    @Alias('search_updatePlugins')
     @login_required
     def search_update_plugins(self, **kwargs):
         """
@@ -1821,7 +1723,6 @@ class Client(object):
                                      relative_path_list=[_name, _method],
                                      **kwargs)
 
-    # noinspection PyProtectedMember
     @staticmethod
     def _build_url(url_without_path=urlparse(''), host="", api_path_list=None):
         """
@@ -1843,11 +1744,13 @@ class Client(object):
             # URLs such as 'localhost:8080' are interpreted as all path
             #  so, assume the path is the host if no host found
             if url_without_path.netloc == "":
+                # noinspection PyProtectedMember
                 url_without_path = url_without_path._replace(netloc=url_without_path.path, path='')
 
             # detect supported scheme for URL
             logger.debug("Detecting scheme for URL...")
             try:
+                # noinspection PyProtectedMember
                 tmp_url = url_without_path._replace(scheme='http')
                 r = requests.head(tmp_url.geturl(), allow_redirects=True)
                 # if WebUI supports sending a redirect from HTTP to HTTPS eventually, using the scheme
@@ -1862,16 +1765,17 @@ class Client(object):
 
             # use detected scheme
             logger.debug("Using %s scheme" % scheme.upper())
+            # noinspection PyProtectedMember
             url_without_path = url_without_path._replace(scheme=scheme)
 
             logger.debug("Base URL: %s" % url_without_path.geturl())
 
         # add the full API path to complete the URL
+        # noinspection PyProtectedMember
         url = url_without_path._replace(path=full_api_path)
 
         return url
 
-    # noinspection PyTypeChecker
     def _request_wrapper(self, http_method, relative_path_list, **kwargs):
         """Wrapper to manage requests retries."""
 

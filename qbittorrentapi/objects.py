@@ -29,6 +29,27 @@ def suppress_context(exc):
 ##########################################################################
 # Application Objects
 ##########################################################################
+class APINames(object):
+    """
+    API names for API endpoints
+
+    e.g 'torrents' in http://localhost:8080/api/v2/torrents/addTrackers
+    """
+
+    Blank = ''
+    Authorization = "auth"
+    Application = "app"
+    Log = "log"
+    Sync = "sync"
+    Transfer = "transfer"
+    Torrents = "torrents"
+    RSS = "rss"
+    Search = "search"
+
+    def __init__(self):
+        super(APINames, self).__init__()
+
+
 class InteractionLayer(object):
     # _real_attrs = ['_client']
     """Set of attrs that are that not being inherited from Client and aren't already
@@ -244,7 +265,7 @@ class Application(InteractionLayer):
         >>> client.application.shutdown()
     """
 
-    _client_method_name = "app"
+    _client_method_name = APINames.Application
 
     _attrs_that_trigger_api_update = {'app_preferences': 'app_set_preferences'}
 
@@ -275,7 +296,7 @@ class Log(InteractionLayer):
         >>> log_info = client.log.main.info(last_known_id='...')
         >>> log_warning = client.log.main.warning(last_known_id='...')
     """
-    _client_method_name = "log"
+    _client_method_name = APINames.Log
 
     _attrs_that_trigger_api_update = {}
 
@@ -318,7 +339,7 @@ class Sync(InteractionLayer):
         >>> torrentPeers= client.application.torrentPeers(hash="...'", rid='...')
         >>> torrent_peers = client.application.torrent_peers(hash="...'", rid='...')
     """
-    _client_method_name = "sync"
+    _client_method_name = APINames.Sync
 
     _attrs_that_trigger_api_update = {}
 
@@ -345,7 +366,7 @@ class Transfer(InteractionLayer):
         >>> # update speed limits mode to alternate or not
         >>> client.transfer.speedLimitsMode = True
     """
-    _client_method_name = "transfer"
+    _client_method_name = APINames.Transfer
 
     _attrs_that_trigger_api_update = {'transfer_speed_limits_mode': 'wrap_toggle_speed_limits_mode',
                                       'transfer_speedLimitsMode': 'wrap_toggle_speed_limits_mode',
@@ -389,7 +410,7 @@ class Torrents(InteractionLayer):
         >>> client.torrents.downloadLimit(hashes=['...', '...'])
     """
 
-    _client_method_name = "torrents"
+    _client_method_name = APINames.Torrents
 
     _attrs_that_trigger_api_update = {}
 
@@ -483,7 +504,6 @@ class Torrents(InteractionLayer):
             return self._api_call(hashes='all', *args, **kwargs)
 
 
-# noinspection PyProtectedMember
 class Torrent(InteractionLayer):
     """
     Alows interaction with individual torrents via the "Torrents" API endpoints.
@@ -514,7 +534,7 @@ class Torrent(InteractionLayer):
         >>> torrent.set_category = 'video' #can use setCacation as well
     """
 
-    _client_method_name = "torrents"
+    _client_method_name = APINames.Torrents
 
     _attrs_that_trigger_api_update = {'torrents_download_limit': 'torrents_setDownloadLimit',
                                       'torrents_downloadLimit': 'torrents_setDownloadLimit',
@@ -545,8 +565,10 @@ class Torrent(InteractionLayer):
                                         'torrents_upload_limit',
                                         'torrents_uploadLimit']
 
+    # noinspection PyProtectedMember
     _client_methods_for_single_torrent = Torrents._client_methods_for_single_torrent
 
+    # noinspection PyProtectedMember
     _client_methods_for_multiple_torrents = Torrents._client_methods_for_multiple_torrents
 
     def __init__(self, data, client):
@@ -636,7 +658,7 @@ class TorrentCategories(InteractionLayer):
         >>> client.torrent_categories.removeCategories(categories=['Audio', "ISOs"])
     """
 
-    _client_method_name = "torrents"
+    _client_method_name = APINames.Torrents
 
     _attrs_that_trigger_api_update = {}
 
@@ -661,7 +683,7 @@ class RSS(InteractionLayer):
         >>> client.rss.remove_item(item_path="TPB") # deletes TPB and Top100
         >>> client.rss.set_rule(rule_name="...", rule_def={...})
     """
-    _client_method_name = "rss"
+    _client_method_name = APINames.RSS
 
     _attrs_that_trigger_api_update = {}
 
@@ -696,7 +718,7 @@ class Search(InteractionLayer):
         >>> client.search.install_plugin(sources='...')
         >>> client.search.update_plugins()
     """
-    _client_method_name = "search"
+    _client_method_name = APINames.Search
 
     _attrs_that_trigger_api_update = {}
 
@@ -708,17 +730,16 @@ class Search(InteractionLayer):
 ##########################################################################
 # Base Objects
 ##########################################################################
-class APIDict(AttrDict):
-
+class Dict(AttrDict):
     def __init__(self, data=None, client=None):
         self._client = client
-        super(APIDict, self).__init__(data if data is not None else {})
+        super(Dict, self).__init__(data if data is not None else {})
 
 
-class ListEntry(APIDict):
+class ListEntry(Dict):
     def __init__(self, data=None, client=None, **kwargs):
         self._client = client
-        super(ListEntry, self).__init__(data if data is not None else {}, **kwargs)
+        super(ListEntry, self).__init__(data, **kwargs)
 
 
 class List(UserList):
@@ -737,45 +758,45 @@ class List(UserList):
 ##########################################################################
 # Dictionary Objects
 ##########################################################################
-class TorrentPropertiesDict(APIDict):
+class TorrentPropertiesDict(Dict):
     pass
 
 
-class TransferInfoDict(APIDict):
+class TransferInfoDict(Dict):
     pass
 
 
-class SyncMainDataDict(APIDict):
+class SyncMainDataDict(Dict):
     pass
 
 
-class SyncTorrentPeersDict(APIDict):
+class SyncTorrentPeersDict(Dict):
     pass
 
 
-class ApplicationPreferencesDict(APIDict):
+class ApplicationPreferencesDict(Dict):
 
     def __setattr__(self, key, value):
         if key != '_client':
             if key not in self or self[key] != value:
                 self._client.app_set_preferences(prefs={key: value})
 
-        super(APIDict, self).__setattr__(key, value)
+        super(Dict, self).__setattr__(key, value)
 
 
-class BuildInfoDict(APIDict):
+class BuildInfoDict(Dict):
     pass
 
 
-class RssitemsDict(APIDict):
+class RssitemsDict(Dict):
     pass
 
 
-class RSSRulesDict(APIDict):
+class RSSRulesDict(Dict):
     pass
 
 
-class SearchJobDict(APIDict):
+class SearchJobDict(Dict):
     def __init__(self, data, client):
         if 'id' in data:
             self._search_job_id = data['id']
@@ -794,15 +815,15 @@ class SearchJobDict(APIDict):
         self._client.search.delete(search_id=self._search_job_id, *args, **kwargs)
 
 
-class SearchResultsDict(APIDict):
+class SearchResultsDict(Dict):
     pass
 
 
-class TorrentLimitsDict(APIDict):
+class TorrentLimitsDict(Dict):
     pass
 
 
-class TorrentCategoriesDict(APIDict):
+class TorrentCategoriesDict(Dict):
     pass
 
 
