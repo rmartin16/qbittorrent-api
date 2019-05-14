@@ -578,7 +578,7 @@ class Torrent(InteractionLayer):
     def __getattr__(self, item):
         """ensures 'info' access still works if calling client.torrents_info()"""
         try:
-            return self.info[item]
+            return self._info[item]
         except (KeyError, AttributeError):
             pass
         return super(Torrent, self).__getattribute__(item)

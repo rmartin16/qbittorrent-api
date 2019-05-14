@@ -44,10 +44,10 @@ Configuration
   * These can be provided when instantiating Client or calling `client.auth_log_in(username='...', password='...')`.
   * Alternatively, set environment variables `PYTHON_QBITTORRENTAPI_HOST`, `PYTHON_QBITTORRENTAPI_USERNAME` and `PYTHON_QBITTORRENTAPI_PASSWORD`.
 * API Endpoints Not Yet Implemented in the qBittorerent Host
-  * By default, if a call is made to endpoint that doesn't yet exist on the host (eg the Seach endpoints APIv2.1.1), there's a debug logger output and None is returned.
-  * Instaniate Client with `RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True` to raise UnimplementedError instead.
+  * By default, if a call is made to endpoint that doesn't yet exist on the host (eg the Search endpoints API v2.1.1), there's a debug logger output and None is returned.
+  * Instantiate Client with `RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True` to raise UnimplementedError instead.
 * Disable Logging Debug Output
-  * Set `DISABLE_LOGGING_DEBUG_OUTPUT=True` when instaniating Client or disable logging mnaually:
+  * Set `DISABLE_LOGGING_DEBUG_OUTPUT=True` when instantiating Client or disable logging manually:
     * ```logging.getLogger('qbittorrentapi').setLevel(logging.INFO) ```
     * ```logging.getLogger('requests').setLevel(logging.INFO) ```
     * ```logging.getLogger('urllib3').setLevel(logging.INFO) ```
@@ -81,7 +81,7 @@ The responses from the API calls will be strings or a dedicated object for the e
 
 Interaction Layer Usage
 -----------------------
-The package also contains more robust interfaces to the API endpoints. For each of the eight namespaces, there is an interface to the relavant API endpoints.
+The package also contains more robust interfaces to the API endpoints. For each of the eight namespaces, there is an interface to the relevant API endpoints.
 
 An example for the Application namespace:
 ```Python
@@ -141,7 +141,7 @@ torrent.set_category(category='video')
 torrent.set_location = '/home/user/torrents/'
 torrent.set_category = 'video'
 ```
-This continues for all endpoints avaliable to the namespace.
+This continues for all endpoints available to the namespace.
 
 Search also have extended usage.
 ```python

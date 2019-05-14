@@ -425,6 +425,10 @@ class Client(object):
                                   for instance, if the connection is using a self-signed certificate.
                                   Not setting this to False for self-signed certs will cause a
                                   APIConnectionError exception to be raised.
+        _RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS: Some Endpoints may not be implemented in older versions of
+                                                                   qBittorrent. Setting this to True will raise a UnimplementedError
+                                                                   instead of just returning None.
+        DISABLE_LOGGING_DEBUG_OUTPUT: Turn off debug output from logging for this package as well as Requests & urllib3.
 
     :param host: hostname of qBittorrent client (eg http://localhost:8080)
     :param username: user name for qBittorrent client
@@ -463,7 +467,7 @@ class Client(object):
         self._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS = kwargs.pop('RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS', False)
         self._PRINT_STACK_FOR_EACH_REQUEST = kwargs.pop("PRINT_STACK_FOR_EACH_REQUEST", False)
 
-        if kwargs.pop("DISABLE_LOGGING_DEBUG_OUTPUT"):
+        if kwargs.pop("DISABLE_LOGGING_DEBUG_OUTPUT", False):
             logging.getLogger('qbittorrentapi').setLevel(logging.INFO)
             logging.getLogger('requests').setLevel(logging.INFO)
             logging.getLogger('urllib3').setLevel(logging.INFO)
@@ -1879,10 +1883,10 @@ class Client(object):
                 return self._request(http_method, relative_path_list, **kwargs)
             except requests.exceptions.SSLError as errssl:
                 if loop_count == max_retries:
-                    error_message = "Falied to connect to qBittorrent. This is likely due to using a self-signed " \
+                    error_message = "Failed to connect to qBittorrent. This is likely due to using a self-signed " \
                                     "certificate for HTTPS WebUI. To suppress this error (and skip certificate " \
                                     "verification consequently exposing the HTTPS connection to man-in-the-middle " \
-                                    "attacks, set  VERIFY_WEBUI_CERTIFICATE=True when instantiating Client or set " \
+                                    "attacks, set VERIFY_WEBUI_CERTIFICATE=True when instantiating Client or set " \
                                     "environment variable PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE " \
                                     "to a non-null value. SSL Error: %s" % repr(errssl)
                     logger.debug(error_message)  # , exc_info=True)
