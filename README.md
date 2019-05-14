@@ -54,6 +54,8 @@ Configuration
 
 Direct API Endpoint Access
 --------------------------
+**The interface to the direct API endpoints is stable and backwards compatibility is expected.**
+
 The API is separated in to eight namespaces for the API endpoints:
 * Authentication (auth)
 * Application (app)
@@ -79,8 +81,10 @@ torrent_list = client.torrents_info(status_filter='active')
 The responses from the API calls will be strings or a dedicated object for the endpoint. In general, the non-string responses are extend Dictionaries and Lists.
 
 
-Interaction Layer Usage
------------------------
+Interaction Layer Usage (experimental)
+--------------------------------------
+**The interaction layer is still undergoing changes. Backwards compatibility will not be guaranteed.**
+
 The package also contains more robust interfaces to the API endpoints. For each of the eight namespaces, there is an interface to the relevant API endpoints.
 
 An example for the Application namespace:
