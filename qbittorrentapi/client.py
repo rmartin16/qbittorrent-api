@@ -671,7 +671,7 @@ class Client(object):
             Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-main-data
         """
         parameters = {'rid': rid}
-        return self._get(_name=APINames.Sync, _method='maindata', data=parameters, **kwargs)
+        return self._get(_name=APINames.Sync, _method='maindata', params=parameters, **kwargs)
 
     @Alias('sync_torrentPeers')
     @response_json(SyncTorrentPeersDict)
@@ -1790,7 +1790,7 @@ class Client(object):
                     error_message = "Failed to connect to qBittorrent. This is likely due to using a self-signed " \
                                     "certificate for HTTPS WebUI. To suppress this error (and skip certificate " \
                                     "verification consequently exposing the HTTPS connection to man-in-the-middle " \
-                                    "attacks, set VERIFY_WEBUI_CERTIFICATE=True when instantiating Client or set " \
+                                    "attacks), set VERIFY_WEBUI_CERTIFICATE=False when instantiating Client or set " \
                                     "environment variable PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE " \
                                     "to a non-null value. SSL Error: %s" % repr(errssl)
                     logger.debug(error_message)  # , exc_info=True)
@@ -1861,7 +1861,7 @@ class Client(object):
         headers['Origin'] = self._URL_WITHOUT_PATH.geturl()
         # headers['X-Requested-With'] = "XMLHttpRequest"
 
-        # include the SID auth cookie unless we're trying to log in and get a SID
+        # include the SID auth cookie unless we're trying to log in     and get a SID
         cookies = {'SID': self._SID if "auth/login" not in url.path else ''}
 
         # turn off console-printed warnings about SSL certificate issues (e.g. untrusted since it is self-signed)
