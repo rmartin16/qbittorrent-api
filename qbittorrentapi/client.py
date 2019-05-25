@@ -822,16 +822,17 @@ class Client(object):
                 'dlLimit': (None, download_limit),
                 'useAutoTMM': (None, use_auto_torrent_management),
                 'sequentialDownload': (None, is_sequential_download),
-                'firstLastPiecePrio': (None, is_first_last_piece_priority)}
+                'firstLastPiecePrio': (None, is_first_last_piece_priority)
+                }
 
         if torrent_files:
             if isinstance(torrent_files, str):
                 torrent_files = [torrent_files]
-            torrent_files = [(path.basename(torrent_file), open(torrent_file, 'rb')) for torrent_file in
-                             [path.abspath(path.realpath(path.expanduser(torrent_file))) for torrent_file in
-                              torrent_files]]
+            t_files = [(path.basename(torrent_file), open(torrent_file, 'rb'))
+                             for torrent_file in [path.abspath(path.realpath(path.expanduser(torrent_file)))
+                                                  for torrent_file in torrent_files]]
 
-        return self._post(_name=APINames.Torrents, _method='add', data=data, files=torrent_files, **kwargs)
+        return self._post(_name=APINames.Torrents, _method='add', data=data, files=t_files, **kwargs)
 
     # INDIVIDUAL TORRENT ENDPOINTS
     @response_json(TorrentPropertiesDict)
@@ -1850,6 +1851,7 @@ class Client(object):
         # support for custom params to API
         data = kwargs.pop('data', {})
         params = kwargs.pop('params', {})
+        files = kwargs.pop('files', {})
         if http_method == 'get':
             params.update(kwargs)
         if http_method == 'post':
@@ -1875,6 +1877,7 @@ class Client(object):
                                     verify=self._VERIFY_WEBUI_CERTIFICATE,
                                     data=data,
                                     params=params,
+                                    files=files,
                                     **requests_params)
 
         resp_logger = logger.debug
