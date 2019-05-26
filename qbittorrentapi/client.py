@@ -828,11 +828,11 @@ class Client(object):
         if torrent_files:
             if isinstance(torrent_files, str):
                 torrent_files = [torrent_files]
-            t_files = [(path.basename(torrent_file), open(torrent_file, 'rb'))
+            torrent_files = [(path.basename(torrent_file), open(torrent_file, 'rb'))
                              for torrent_file in [path.abspath(path.realpath(path.expanduser(torrent_file)))
                                                   for torrent_file in torrent_files]]
 
-        return self._post(_name=APINames.Torrents, _method='add', data=data, files=t_files, **kwargs)
+        return self._post(_name=APINames.Torrents, _method='add', data=data, files=torrent_files, **kwargs)
 
     # INDIVIDUAL TORRENT ENDPOINTS
     @response_json(TorrentPropertiesDict)
