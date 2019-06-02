@@ -2,7 +2,7 @@ qBittorrent v4.1+ Web API Client
 ================================
 Python client implementation for qBittorrent Web API.
 
-qBittorrent v4.1.0 and later is supported. This client interacts with qBittorrent's Web API v2.2+.
+qBittorrent v4.1.0 and later is supported. This client interacts with qBittorrent's Web API v2.2 and later.
 
 [qBittorrent Web API specification](https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation)
 
@@ -83,17 +83,15 @@ The responses from the API calls will be strings or a dedicated object for the e
 
 Interaction Layer Usage (experimental)
 --------------------------------------
-**The interaction layer is still undergoing changes. Backwards compatibility will not be guaranteed.**
-
 The package also contains more robust interfaces to the API endpoints. For each of the eight namespaces, there is an interface to the relevant API endpoints.
 
 An example for the Application namespace:
 ```Python
-ver = client.application.version
-api_ver = client.application.api_web_version
-prefs = client.application.preferences
+ver = client.app.version
+api_ver = client.app.api_web_version
+prefs = client.app.preferences
 is_dht_enabled = client.application.preferences.dht
-client.application.preferences.dht = not is_dht_enabled
+client.application.preferences = dict(dht=(not is_dht_enabled))
 ```
 For each namespace, any endpoints without parameters or a return value is implemented as a property. All other endpoints are implemented as methods; some of the methods have extended usage as well.
 
@@ -141,9 +139,6 @@ torrent.recheck()
 torrent.torrents_top_priority()
 torrent.set_location(location='/home/user/torrents/')
 torrent.set_category(category='video')
-# or set them via assignment
-torrent.set_location = '/home/user/torrents/'
-torrent.set_category = 'video'
 ```
 This continues for all endpoints available to the namespace.
 
@@ -196,6 +191,7 @@ Interaction Layer Details
     * toggle_speed_limits_mode
 * Torrents
   * Methods
+    * info
     * resume
     * pause
     * delete
@@ -235,11 +231,11 @@ Interaction Layer Details
     * file_priority
     * filePrio
     * rename
-    * set_location (supports assignment)
-    * set_category (supports assignment)
-    * set_auto_management (supports assignment)
-    * set_force_feeding (supports assignment)
-    * set_super_seeding (supports assignment)
+    * set_location
+    * set_category
+    * set_auto_management
+    * set_force_feeding
+    * set_super_seeding
     * AND all the Torrents methods above
 * Torrent Categories
   * Properties
@@ -251,14 +247,14 @@ Interaction Layer Details
 * RSS
   * Properties
     * rules
-    * items_without_data
-    * items_with_data
   * Methods
     * add_folder
     * add_feed
     * remove_item
     * move_item
     * items
+    * items.without_data
+    * items.woth_data
     * set_rule
     * rename_rule
     * remove_rule
@@ -285,11 +281,77 @@ Interaction Layer Details
 
 Exceptions
 ----------
-TODO
+class APIError(Exception):
+    pass
 
-Change Log
-----------
-* Version 0.2
-   * Introduced the "interaction layer" for transparent interaction with the qBittorrent API.
-* Version 0.1.1
-   * Complete implementation of each endpoint for qBittorrent Web API v2
+
+class LoginFailed(APIError):
+    pass
+
+
+class APIConnectionError(APIError):
+    pass
+
+
+class HTTPError(APIError):
+    pass
+
+
+class HTTP400Error(HTTPError):
+    pass
+
+
+class HTTP401Error(HTTPError):
+    pass
+
+
+class HTTP403Error(HTTPError):
+    pass
+
+
+class HTTP404Error(HTTPError):
+    pass
+
+
+class HTTP409Error(HTTPError):
+    pass
+
+
+class HTTP415Error(HTTPError):
+    pass
+
+
+class HTTP500Error(HTTPError):
+    pass
+
+
+class MissingRequiredParameters400Error(HTTP400Error):
+    pass
+
+
+class InvalidRequest400Error(HTTP400Error):
+    pass
+
+
+class Unauthorized401Error(HTTP401Error):
+    pass
+
+
+class Forbidden403Error(HTTP403Error):
+    pass
+
+
+class NotFound404Error(HTTP404Error):
+    pass
+
+
+class Conflict409Error(HTTP409Error):
+    pass
+
+
+class UnsupportedMediaType415Error(HTTP415Error):
+    pass
+
+
+class InternalServerError500Error(HTTP500Error):
+    pass

@@ -5,25 +5,66 @@ except ImportError:
     # noinspection PyCompatibility,PyUnresolvedReferences
     from UserList import UserList
 
-import logging
 
-
-def suppress_context(exc):
+class Alias(object):
     """
-    This is used to mask an exception with another one.
+    Alias class that can be used as a decorator for making methods callable
+    through other names (or "aliases").
+    Note: This decorator must be used inside an @aliased -decorated class.
+    For example, if you want to make the method shout() be also callable as
+    yell() and scream(), you can use alias like this:
 
-    For instance, below, the devide by zero error is masked by the CustomException.
-        try:
-            1/0
-        except ZeroDivisionError:
-            raise suppress_context(CustomException())
-
-    Note: In python 3, the last line would simply be raise CustomException() from None
-    :param exc: new Exception that will be raised
-    :return: Exception to be raised
+        @alias('yell', 'scream')
+        def shout(message):
+            # ....
     """
-    exc.__cause__ = None
-    return exc
+
+    def __init__(self, *aliases):
+        """Constructor."""
+        self.aliases = set(aliases)
+
+    def __call__(self, f):
+        """
+        Method call wrapper. As this decorator has arguments, this method will
+        only be called once as a part of the decoration process, receiving only
+        one argument: the decorated function ('f'). As a result of this kind of
+        decorator, this method must return the callable that will wrap the
+        decorated function.
+        """
+        f._aliases = self.aliases
+        return f
+
+
+def aliased(aliased_class):
+    """
+    Decorator function that *must* be used in combination with @alias
+    decorator. This class will make the magic happen!
+    @aliased classes will have their aliased method (via @alias) actually
+    aliased.
+    This method simply iterates over the member attributes of 'aliased_class'
+    seeking for those which have an '_aliases' attribute and then defines new
+    members in the class using those aliases as mere pointer functions to the
+    original ones.
+
+    Usage:
+        @aliased
+        class MyClass(object):
+            @alias('coolMethod', 'myKinkyMethod')
+            def boring_method():
+                # ...
+
+        i = MyClass()
+        i.coolMethod() # equivalent to i.myKinkyMethod() and i.boring_method()
+    """
+    original_methods = aliased_class.__dict__.copy()
+    for name, method in original_methods.items():
+        if hasattr(method, '_aliases'):
+            # Add the aliases for 'method', but don't override any
+            # previously-defined attribute of 'aliased_class'
+            # noinspection PyProtectedMember
+            for method_alias in method._aliases - set(original_methods):
+                setattr(aliased_class, method_alias, method)
+    return aliased_class
 
 
 ##########################################################################
@@ -50,195 +91,14 @@ class APINames(object):
         super(APINames, self).__init__()
 
 
+@aliased
 class InteractionLayer(object):
-    # _real_attrs = ['_client']
-    """Set of attrs that are that not being inherited from Client and aren't already
-    part of the sets below. Effectively 'normal and real attrs."""
-
-    _client_method_name = ""
-    """API name for methods in Client. For instance, 'app' for Application API methods."""
-
-    _attrs_that_trigger_api_update = {}
-    """When a particular attr is set, which API method should be triggered with the value.
-    For instance, when client.application.preferences is set to a value, that value should
-    be sent to qBittorrent via the app_set_preferences method.
-    For this example, {'app_preferences': 'app_set_preferences'}.
-    Additionally, the method to trigger can be specified locally to wrap the API method in Client."""
-
-    _client_attributes_to_cache = []
-    """Client methods whose API repsonses shall be cached. This should include methods
-    whose responses are static over time like app_version."""
-
-    _client_attributes_as_properties = []
-    """List of attributes that should be treated as properties.
-    For instance, client.application.version as opposed to client.transfer.set_upload_limit()"""
-
-    def __init__(self, client=None):
-        # all 'real' attrs are assumed to start with an underscore
-        self._add_attribute('_client', client)
-
+    def __init__(self, client):
         super(InteractionLayer, self).__init__()
-
-    def _add_attribute(self, attr_name, attr_value):
-        self.__setattr__(attr_name, attr_value, force=True)
-
-    def _get_attribute_name(self, item):
-        """
-        Normalize attribute handling for getting and setting.
-
-        Cases for item:
-            1. Calling with naked endpoint name:
-                item = webapiVersion:
-                        attribute: app_webapiVersion
-            2. Calling with already formatted attribute
-                item = app_webapiVersion:
-                    attribute = app_webapiVersion
-            3. Calling with a 'real' attribute:
-                item = _client:
-                    attribute: _client
-        :param item: attribute for getting or setting
-        :return: normalized forrmatting attribute of InteractionLayer or Client
-        """
-        attribute = ''
-        if item:
-            # assumes default is Case 2 or 3
-            attribute = item
-            # don't change attributes starting with an underscore (like _client)
-            #  but ensure all others start with the name of the API for Client
-            if item[0] != "_" and item[0:len(self._client_method_name)] != self._client_method_name:
-                attribute = "%s_%s" % (self._client_method_name, item)
-
-        return attribute
-
-    def __setattr__(self, key, value, force=False):
-        """
-        Send values to qBittorrent if necessary and store 'real' attrs and cached API responses.
-
-        :param key: attr
-        :param value: attr value
-        :param force: True from __getattr__; False anywhere else. Allows caching of API responses
-                      while preventing developers from cloberring the internal data structure.
-        :return: None
-        """
-        attribute = self._get_attribute_name(key)
-
-        # update preferences in qBittorrent
-        if attribute in self._attrs_that_trigger_api_update:
-            try:
-                # check if the method to trigger is specified locally
-                #  e.g. client.transfer.speedLimitsMode = True triggers client.transfer.wrap_toggle_speed_limits_mode
-                getattr(self, self._attrs_that_trigger_api_update[attribute])(value)
-            except AttributeError:
-                # else go find the method to trigger in Client
-                getattr(self._client, self._attrs_that_trigger_api_update[attribute])(value)
-
-        # set attribute
-        if force:
-            super(InteractionLayer, self).__setattr__(key, value)
-        else:
-            # TODO: remove this
-            if attribute not in self._attrs_that_trigger_api_update:
-                logging.getLogger(__name__).debug("WARNING: Interaction layer '%s' did not set attribute '%s' to value '%s'" % (self.__class__.__name__, key, value))
-
-    def __getattribute__(self, item, *args, **kwargs):
-        """
-        Retrieve attribute value (may be a method)
-
-        Hierarchy to find return value:
-            1) return value from raw provided attribute
-            2) return value from cached attribute result
-            3) value from formatted attribute (i.e. if provided input is 'version', formatted attr is 'app_version'
-            4) value from interaction layer method override
-            5) value from Client
-
-            if the attribute is specified in _client_attributes_as_properties, the attribute will be invoked
-             and the return value sent back
-            if the attribute is specifed in _client_attributes_to_cache, the attribute value is cached
-
-        :param item: attr
-        :return: attr value
-        """
-        attribute = item
-        attribute_value = None
-        try:
-            # first, check if the un-formatted input exists as an attribute.
-            #  Otherwise, stuck in a infinite loop since _get_attribute_name invokes this method (ie __getattribute__)
-            result = super(InteractionLayer, self).__getattribute__(attribute)
-            # attributes that require special handling shall not start with an underscore
-            if attribute[0] == '_':
-                return result
-        except AttributeError:
-            attribute = self._get_attribute_name(item)
-            try:
-                # check if the attribute value is cached
-                return super(InteractionLayer, self).__getattribute__(self._interaction_layer_cached_attibute_name(attribute))
-            except AttributeError:
-                try:
-                    #  check if the attribute exists locally. These can be properties or methods.
-                    #  One, this allows for overriding or amending Client method behavior here in the interaction layer.
-                    #  Two, this allows for entirely new methods that don't exist in Client
-                    #  for instance, client.rss.items_with_data
-                    result = super(InteractionLayer, self).__getattribute__(attribute)
-                except AttributeError:
-                    try:
-                        # check if a InteractionLayerMethodOverride is specified for the attribute
-                        result = super(InteractionLayer, self).__getattribute__(self._interaction_layer_method_override_attribute_name(attribute))
-                    except AttributeError:
-                        try:
-                            # Finally, request it from Client (and ultimately through the API most likely)
-                            result = getattr(self._client, attribute)
-                        except AttributeError:
-                            # mask the intermediate AttributeErrors
-                            # raise suppress_context(AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, item)))
-                            raise AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, item))
-
-        if result is not None:
-            # all attributes should be methods, so call it to return the value
-            if attribute in self._client_attributes_as_properties:
-                attribute_value = result()
-            else:
-                attribute_value = result
-            # cache if successful
-            if result is not None and attribute in self._client_attributes_to_cache:
-                self.__setattr__(self._interaction_layer_cached_attibute_name(attribute), attribute_value, force=True)
-        return attribute_value
-
-    def _add_client_method(self, endpoint, method_class, *args, **kwargs):
-        api_name_len = len(self._client_method_name)
-        api_entry = getattr(self._client, endpoint)
-        api_method = method_class(client=self._client, api_entry=api_entry, *args, **kwargs)
-        self._add_attribute(self._interaction_layer_method_override_attribute_name(endpoint), api_method)
-        self._add_attribute(self._interaction_layer_method_override_attribute_name(endpoint[api_name_len+1:]), api_method)
-
-    @staticmethod
-    def _interaction_layer_method_override_attribute_name(attribute):
-        return "override_%s" % attribute
-
-    @staticmethod
-    def _interaction_layer_cached_attibute_name(attribute):
-        return "cached_%s" % attribute
-
-
-class InteractionLayerMethodOverride(object):
-    def __init__(self, client=None, api_entry=None, **kwargs):
         self._client = client
-        self._api_entry = api_entry
-        self._default_API_params = kwargs if kwargs is not None else {}
-
-    def __call__(self, *args, **kwargs):
-        return self._api_call(*args, **kwargs)
-
-    def _api_call(self, *args, **kwargs):
-        merged_kwargs = self._default_API_params.copy()
-        merged_kwargs.update(kwargs)
-        return self._api_entry(*args, **merged_kwargs)
-
-    def __getattr__(self, item):
-        return self.__call__()[item]
-
-    __getitem__ = __getattr__
 
 
+@aliased
 class Application(InteractionLayer):
     """
     Allows interaction with "Application" API endpoints.
@@ -253,32 +113,47 @@ class Application(InteractionLayer):
         >>> app_web_api_version = client.application.app_web_api_version
         >>> # access and set preferences as attributes
         >>> is_dht_enabled = client.application.preferences.dht
-        >>> # this updates qBittorrent in real-time
-        >>> client.application.preferences.dht = not is_dht_enabled
         >>> # supports sending a just subset of preferences to update
-        >>> client.application.preferences = {'dht': True}
+        >>> client.application.preferences = dict(dht=(not is_dht_enabled))
         >>> prefs = client.application.preferences
         >>> prefs['web_ui_clickjacking_protection_enabled'] = True
-        >>> # or send all preferences back
-        >>> client.application.preferences = prefs
+        >>> client.app.preferences = prefs
         >>>
         >>> client.application.shutdown()
     """
+    @property
+    def version(self):
+        return self._client.app_version()
 
-    _client_method_name = APINames.Application
+    @property
+    def web_api_version(self):
+        return self._client.app_web_api_version()
+    webapiVersion = web_api_version
 
-    _attrs_that_trigger_api_update = {'app_preferences': 'app_set_preferences'}
+    @property
+    def build_info(self):
+        return self._client.app_build_info()
+    buildInfo = build_info
 
-    _client_attributes_to_cache = ['app_version',
-                                   'app_web_api_version',
-                                   'app_webapiVersion',
-                                   'app_build_info',
-                                   'app_buildInfo',
-                                   'app_default_save_path',
-                                   'app_defaultSavePath']
+    @property
+    def shutdown(self):
+        return self._client.app_shutdown()
 
-    _client_attributes_as_properties = ['app_preferences']
-    _client_attributes_as_properties.extend(_client_attributes_to_cache)
+    @property
+    def preferences(self):
+        return self._client.app_preferences()
+
+    @preferences.setter
+    def preferences(self, v: dict):
+        self.set_preferences(prefs=v)
+
+    @Alias("setPreferences")
+    def set_preferences(self, prefs: dict = None, **kwargs):
+        return self._client.app_set_preferences(prefs=prefs, **kwargs)
+
+    @property
+    def default_save_path(self, **kwargs): return self._client.app_default_save_path(**kwargs)
+    defaultSavePath = default_save_path
 
 
 class Log(InteractionLayer):
@@ -296,34 +171,34 @@ class Log(InteractionLayer):
         >>> log_info = client.log.main.info(last_known_id='...')
         >>> log_warning = client.log.main.warning(last_known_id='...')
     """
-    _client_method_name = APINames.Log
-
-    _attrs_that_trigger_api_update = {}
-
-    _client_attributes_to_cache = []
-
-    _client_attributes_as_properties = []
-
-    # For Log, the log_main API method in Client is effectively overridden below with
-    # class _Main since the local attribute main is assigned. The __call__ function in
-    # _Main ensure that client.log.main() still works.
 
     def __init__(self, client):
-        super(Log, self).__init__(client=client)
-        self._add_client_method(endpoint="log_main", method_class=Log._Main)
+        super(Log, self).__init__(client)
+        self.main = Log._Main(client)
 
-    class _Main(InteractionLayerMethodOverride):
-        def info(self, *args, **kwargs):
-            return self._api_call(*args, **kwargs)
+    def peers(self, last_known_id=None, **kwargs):
+        return self._client.log_peers(last_known_id=last_known_id, **kwargs)
 
-        def normal(self, *args, **kwargs):
-            return self._api_call(info=False, *args, **kwargs)
+    class _Main(InteractionLayer):
+        def _api_call(self, normal=None, info=None, warning=None, critical=None, last_known_id=None, **kwargs):
+            return self._client.log_main(normal=normal, info=info, warning=warning, critical=critical,
+                                         last_known_id=last_known_id, **kwargs)
 
-        def warning(self, *args, **kwargs):
-            return self._api_call(info=False, normal=False, *args, **kwargs)
+        def __call__(self, normal=None, info=None, warning=None, critical=None, last_known_id=None, **kwargs):
+            return self._api_call(normal=normal, info=info, warning=warning, critial=critical,
+                                  last_known_id=last_known_id, **kwargs)
 
-        def critical(self, *args, **kwargs):
-            return self._api_call(info=False, normal=False, warning=False, *args, **kwargs)
+        def info(self, last_known_id=None, **kwargs):
+            return self._api_call(last_known_id=last_known_id, **kwargs)
+
+        def normal(self, last_known_id=None, **kwargs):
+            return self._api_call(info=False, last_known_id=last_known_id, **kwargs)
+
+        def warning(self, last_known_id=None, **kwargs):
+            return self._api_call(info=False, normal=False, last_known_id=last_known_id, **kwargs)
+
+        def critical(self, last_known_id=None, **kwargs):
+            return self._api_call(info=False, normal=False, warning=False, last_known_id=last_known_id, **kwargs)
 
 
 class Sync(InteractionLayer):
@@ -336,18 +211,18 @@ class Sync(InteractionLayer):
         >>> # this are all the same attributes that are available as named in the
         >>> #  endpoints or the more pythonic names in Client (with or without 'sync_' prepended)
         >>> maindata = client.sync.maindata(rid="...")
-        >>> torrentPeers= client.application.torrentPeers(hash="...'", rid='...')
-        >>> torrent_peers = client.application.torrent_peers(hash="...'", rid='...')
+        >>> torrentPeers= client.sync.torrentPeers(hash="...'", rid='...')
+        >>> torrent_peers = client.sync.torrent_peers(hash="...'", rid='...')
     """
-    _client_method_name = APINames.Sync
+    def maindata(self, rid=None, **kwargs):
+        return self._client.sync_maindata(rid=rid, **kwargs)
 
-    _attrs_that_trigger_api_update = {}
-
-    _client_attributes_to_cache = []
-
-    _client_attributes_as_properties = []
+    @Alias('torrentPeers')
+    def torrent_peers(self, hash=None, rid=None, **kwargs):
+        return self._client.sync_torrent_peers(hash=hash, rid=rid, **kwargs)
 
 
+@aliased
 class Transfer(InteractionLayer):
     """
     Alows interaction with the "Transfer" API endpoints.
@@ -357,8 +232,7 @@ class Transfer(InteractionLayer):
         >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
         >>> # this are all the same attributes that are available as named in the
         >>> #  endpoints or the more pythonic names in Client (with or without 'transfer_' prepended)
-        >>> transfer_info = client.transfer_info
-        >>> info = client.application.info
+        >>> transfer_info = client.transfer.info
         >>> # access and set download/upload limits as attributes
         >>> dl_limit = client.transfer.download_limit
         >>> # this updates qBittorrent in real-time
@@ -366,28 +240,59 @@ class Transfer(InteractionLayer):
         >>> # update speed limits mode to alternate or not
         >>> client.transfer.speedLimitsMode = True
     """
-    _client_method_name = APINames.Transfer
 
-    _attrs_that_trigger_api_update = {'transfer_speed_limits_mode': 'wrap_toggle_speed_limits_mode',
-                                      'transfer_speedLimitsMode': 'wrap_toggle_speed_limits_mode',
-                                      'transfer_download_limit': 'transfer_set_download_limit',
-                                      'transfer_upload_limit': 'transfer_set_upload_limit',
-                                      'transfer_uploadLimit': 'transfer_set_upload_limit'}
+    @property
+    def info(self):
+        return self._client.transfer_info()
 
-    _client_attributes_as_properties = ['transfer_speed_limits_mode',
-                                        'transfer_speedLimitsMode',
-                                        'transfer_info',
-                                        'transfer_download_limit',
-                                        'transfer_downloadLimit',
-                                        'transfer_upload_limit',
-                                        'transfer_uploadLimit']
+    @property
+    def speed_limits_mode(self):
+        return self._client.transfer_speed_limits_mode()
+    speedLimitsMode = speed_limits_mode
 
-    _client_attributes_to_cache = []
+    @speedLimitsMode.setter
+    def speedLimitsMode(self, v: bool): self.speed_limits_mode = v
+    @speed_limits_mode.setter
+    def speed_limits_mode(self, v: bool):
+        self.toggle_speed_limits_mode(intended_state=v)
 
-    def wrap_toggle_speed_limits_mode(self, intended_state):
-        self._client.transfer_toggle_speed_limits_mode(intended_state=intended_state)
+    @Alias('toggleSpeedLimitsMode')
+    def toggle_speed_limits_mode(self, intended_state=None, **kwargs):
+        return self._client.transfer_toggle_speed_limits_mode(intended_state=intended_state, **kwargs)
+
+    @property
+    def download_limit(self):
+        return self._client.transfer_download_limit()
+    downloadLimit = download_limit
+
+    @downloadLimit.setter
+    def downloadLimit(self, v: int): self.download_limit = v
+    @download_limit.setter
+    @Alias('downloadLimit')
+    def download_limit(self, v: int):
+        self.set_download_limit(limit=v)
+
+    @property
+    def upload_limit(self):
+        return self._client.transfer_upload_limit()
+    uploadLimit = upload_limit
+
+    @uploadLimit.setter
+    def uploadLimit(self, v: int): self.upload_limit = v
+    @upload_limit.setter
+    def upload_limit(self, v: int):
+        self.set_upload_limit(limit=v)
+
+    @Alias('setDownloadLimit')
+    def set_download_limit(self, limit=None, **kwargs):
+        return self._client.transfer_set_download_limit(limit=limit, **kwargs)
+
+    @Alias('setUploadLimit')
+    def set_upload_limit(self, limit=None, **kwargs):
+        return self._client.transfer_set_upload_limit(limit=limit, **kwargs)
 
 
+@aliased
 class Torrents(InteractionLayer):
     """
     Alows interaction with the "Torrents" API endpoints.
@@ -409,237 +314,129 @@ class Torrents(InteractionLayer):
         >>> # or specify the individual hashes
         >>> client.torrents.downloadLimit(hashes=['...', '...'])
     """
-
-    _client_method_name = APINames.Torrents
-
-    _attrs_that_trigger_api_update = {}
-
-    _client_attributes_to_cache = []
-
-    _client_attributes_as_properties = []
-
-    _client_methods_for_single_torrent = ['torrents_trackers',
-                                          'torrents_webseeds',
-                                          'torrents_files',
-                                          'torrents_piece_states',
-                                          'torrents_pieceStates',
-                                          'torrents_piece_hashes',
-                                          'torrents_pieceHashes',
-                                          'torrents_addTrackers',
-                                          'torrents_add_trackers',
-                                          'torrents_addTrackers',
-                                          'torrents_edit_tracker',
-                                          'torrents_editTracker',
-                                          'torrents_remove_trackers',
-                                          'torrents_removeTrackers',
-                                          'torrents_file_priority',
-                                          'torrents_filePrio',
-                                          'torrents_rename']
-
-    _client_methods_for_multiple_torrents = ['torrents_resume',
-                                             'torrents_pause',
-                                             'torrents_delete',
-                                             'torrents_recheck',
-                                             'torrents_reannounce',
-                                             'torrents_increase_priority',
-                                             'torrents_increasePrio',
-                                             'torrents_decrease_priority',
-                                             'torrents_decreasePrio',
-                                             'torrents_top_priority',
-                                             'torrents_topPrio',
-                                             'torrents_bottom_priority',
-                                             'torrents_bottomPrio',
-                                             'torrents_download_limit',
-                                             'torrents_downloadLimit',
-                                             'torrents_set_download_limit',
-                                             'torrents_setDownloadLimit',
-                                             'torrents_set_share_limits',
-                                             'torrents_setShareLimits',
-                                             'torrents_upload_limit',
-                                             'torrents_uploadLimit',
-                                             'torrents_set_upload_limit',
-                                             'torrents_setUploadLimit',
-                                             'torrents_set_location',
-                                             'torrents_setLocation',
-                                             'torrents_set_category',
-                                             'torrents_setCategory',
-                                             'torrents_set_auto_management',
-                                             'torrents_setAutoManagement',
-                                             'torrents_toggle_sequential_download',
-                                             'torrents_toggleSequentialDownload',
-                                             'torrents_toggle_first_last_piece_priority',
-                                             'torrents_toggleFirstLastPiecePrio',
-                                             'torrents_set_force_start',
-                                             'torrents_setForceStart',
-                                             'torrents_set_super_seeding',
-                                             'torrents_setSuperSeeding']
-
     def __init__(self, client):
-        super(Torrents, self).__init__(client=client)
+        super(Torrents, self).__init__(client)
+        self.info = self._Info(client)
+        self.resume = self._ActionForAllTorrents(client, func=client.torrents_resume)
+        self.pause = self._ActionForAllTorrents(client, func=client.torrents_pause)
+        self.delete = self._ActionForAllTorrents(client, func=client.torrents_delete)
+        self.recheck = self._ActionForAllTorrents(client, func=client.torrents_recheck)
+        self.reannounce = self._ActionForAllTorrents(client, func=client.torrents_reannounce)
+        self.increase_priority = self._ActionForAllTorrents(client, func=client.torrents_increase_priority)
+        self.increasePrio = self.increase_priority
+        self.decrease_priority = self._ActionForAllTorrents(client, func=client.torrents_decrease_priority)
+        self.decreasePrio = self.decrease_priority
+        self.top_priority = self._ActionForAllTorrents(client, func=client.torrents_top_priority)
+        self.topPrio = self.top_priority
+        self.bottom_priority = self._ActionForAllTorrents(client, func=client.torrents_bottom_priority)
+        self.bottomPrio = self.bottom_priority
+        self.set_download_limit = self._ActionForAllTorrents(client, func=client.torrents_set_download_limit)
+        self.setDownloadLimit = self.set_download_limit
+        self.set_share_limits = self._ActionForAllTorrents(client, func=client.torrents_set_share_limits)
+        self.setShareLimits = self.set_share_limits
+        self.set_upload_limit = self._ActionForAllTorrents(client, func=client.torrents_set_upload_limit)
+        self.setUploadLimit = self.set_upload_limit
+        self.set_location = self._ActionForAllTorrents(client, func=client.torrents_set_location)
+        self.setLocation = self.set_location
+        self.set_category = self._ActionForAllTorrents(client, func=client.torrents_set_category)
+        self.setCategory = self.set_category
+        self.set_auto_management = self._ActionForAllTorrents(client, func=client.torrents_set_auto_management)
+        self.setAutoManagemnt = self.set_auto_management
+        self.toggle_sequential_download = self._ActionForAllTorrents(client, func=client.torrents_toggle_sequential_download)
+        self.toggleSequentialDownload = self.toggle_sequential_download
+        self.toggle_first_last_piece_priority = self._ActionForAllTorrents(client, func=client.torrents_toggle_first_last_piece_priority)
+        self.toggleFirstLastPiecePrio = self.toggle_first_last_piece_priority
+        self.set_force_start = self._ActionForAllTorrents(client, func=client.torrents_set_force_start)
+        self.setForceStart = self.set_force_start
+        self.set_super_seeding = self._ActionForAllTorrents(client, func=client.torrents_set_super_seeding)
+        self.setSuperSeeding = self.set_super_seeding
 
-        for endpoint in self._client_methods_for_multiple_torrents:
-            self._add_client_method(endpoint=endpoint, method_class=Torrents._MultipleTorrentsAction)
+    @property
+    def download_limit(self):
+        return self._ActionForAllTorrents(self._client, func=self._client.torrents_download_limit)
+    downloadLimit = download_limit
 
-        self._add_client_method(endpoint='torrents_info', method_class=Torrents._Info)
+    @download_limit.setter
+    def download_limit(self, v: dict):
+        self.set_download_limit(**v)
 
-    class _Info(InteractionLayerMethodOverride):
-        """Overrides torrents_info from Client."""
-        def __getattr__(self, item):
-            try:
-                options = {'downloading': {'status_filter': 'downloading'},
-                           'completed': {'status_filter': 'compelted'},
-                           'paused': {'status_filter': 'paused'},
-                           'active': {'status_filter': 'active'},
-                           'inactive': {'status_filter': 'inactive'},
-                           'resumed': {'status_filter': 'resumed'}}
-                kwargs = options[item]
-                return InteractionLayerMethodOverride(client=self._client,
-                                                      api_entry=getattr(self._client, 'torrents_info'),
-                                                      **kwargs)
-            except KeyError:
-                return super(Torrents._Info, self).__getattr__(item)
+    @property
+    def upload_limit(self):
+        return self._ActionForAllTorrents(self._client, func=self.client.torrents_upload_limit)
+    uploadLimit = upload_limit
 
-    class _MultipleTorrentsAction(InteractionLayerMethodOverride):
-        def all(self, *args, **kwargs):
-            return self._api_call(hashes='all', *args, **kwargs)
+    @upload_limit.setter
+    def upload_limit(self, v: dict):
+        self.set_upload_limit(**v)
 
+    class _ActionForAllTorrents(InteractionLayer):
+        def __init__(self, client, func):
+            super(Torrents._ActionForAllTorrents, self).__init__(client)
+            self.func = func
 
-class Torrent(InteractionLayer):
-    """
-    Alows interaction with individual torrents via the "Torrents" API endpoints.
+        def __call__(self, hashes=None, **kwargs):
+            return self.func(hashes=hashes, **kwargs)
 
-    Usage:
-        >>> from qbittorrentapi import Client
-        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
-        >>> # this are all the same attributes that are available as named in the
-        >>> #  endpoints or the more pythonic names in Client (with or without 'transfer_' prepended)
-        >>> torrent = client.torrents.info()[0]
-        >>> hash = torrent.info.hash
-        >>> # Attributes without inputs and a return value are properties
-        >>> properties = torrent.properties
-        >>> trackers = torrent.trackers
-        >>> files = torrent.files
-        >>> # Action methods
-        >>> torrent.edit_tracker(original_url="...", new_url="...")
-        >>> torrent.remove_trackers(urls='http://127.0.0.2/')
-        >>> torrent.rename(new_torrent_name="...")
-        >>> torrent.resume()
-        >>> torrent.pause()
-        >>> torrent.recheck()
-        >>> torrent.torrents_top_priority()
-        >>> torrent.setLocation(location='/home/user/torrents/')
-        >>> torrent.setCategory(category='video')
-        >>> # or set them via assignment
-        >>> torrent.set_location = '/home/user/torrents/' #can use setLocation as well
-        >>> torrent.set_category = 'video' #can use setCacation as well
-    """
+        def all(self):
+            return self.func(hashes='all')
 
-    _client_method_name = APINames.Torrents
+    class _Info(InteractionLayer):
+        def __call__(self, status_filter=None, category=None, sort=None, reverse=None, limit=None, offset=None,
+                     hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter=status_filter, category=category, sort=sort,
+                                              reverse=reverse, limit=limit, offset=offset,
+                                              hashes=hashes, **kwargs)
 
-    _attrs_that_trigger_api_update = {'torrents_download_limit': 'torrents_setDownloadLimit',
-                                      'torrents_downloadLimit': 'torrents_setDownloadLimit',
-                                      'torrents_upload_limit': 'torrents_set_upload_limit',
-                                      'torrents_uploadLimit': 'torrents_set_upload_limit',
-                                      'torrents_set_location': 'torrents_set_location',
-                                      'torrents_setLocation': 'torrents_set_location',
-                                      'torrents_set_category': 'torrents_set_category',
-                                      'torrents_setCategory': 'torrents_set_category',
-                                      'torrents_set_auto_management': 'torrents_set_auto_management',
-                                      'torrents_setAutoManagement': 'torrents_set_auto_management',
-                                      'torrents_set_force_start': 'torrents_set_force_start',
-                                      'torrents_set_super_seeding': 'torrents_set_super_seeding'}
+        def all(self, category=None, sort=None, reverse=None, limit=None, offset=None,
+                hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='all', category=category, sort=sort, reverse=reverse,
+                                              limit=limit, offset=offset,
+                                              hashes=hashes, **kwargs)
 
-    _client_attributes_to_cache = []
+        def downloading(self, category=None, sort=None, reverse=None, limit=None, offset=None,
+                        hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='downloading', category=category, sort=sort,
+                                              reverse=reverse,
+                                              limit=limit, offset=offset,
+                                              hashes=hashes, **kwargs)
 
-    _client_attributes_as_properties = ['torrents_info',
-                                        'torrents_properties',
-                                        'torrents_trackers',
-                                        'torrents_webseeds',
-                                        'torrents_files',
-                                        'torrents_piece_states',
-                                        'torrents_pieceStates',
-                                        'torrents_piece_hashes',
-                                        'torrents_pieceHashes',
-                                        'torrents_download_limit',
-                                        'torrents_downloadLimit',
-                                        'torrents_upload_limit',
-                                        'torrents_uploadLimit']
+        def completed(self, category=None, sort=None, reverse=None, limit=None, offset=None,
+                      hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='completed', category=category, sort=sort,
+                                              reverse=reverse,
+                                              limit=limit, offset=offset,
+                                              hashes=hashes, **kwargs)
 
-    # noinspection PyProtectedMember
-    _client_methods_for_single_torrent = Torrents._client_methods_for_single_torrent
+        def paused(self, category=None, sort=None, reverse=None, limit=None, offset=None,
+                   hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='paused', category=category, sort=sort,
+                                              reverse=reverse,
+                                              limit=limit, offset=offset,
+                                              hashes=hashes, **kwargs)
 
-    # noinspection PyProtectedMember
-    _client_methods_for_multiple_torrents = Torrents._client_methods_for_multiple_torrents
+        def active(self, category=None, sort=None, reverse=None, limit=None, offset=None,
+                   hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='active', category=category, sort=sort,
+                                              reverse=reverse,
+                                              limit=limit, offset=offset,
+                                              hashes=hashes, **kwargs)
 
-    def __init__(self, data, client):
-        super(Torrent, self).__init__(client=client)
-        # do not reference '_info' directly outside of __init__ unless it is immediately
-        # after Torrent is instantiated. instead, make getattr() calls to self.
-        # That way, a new API call is made and stale data is not used.
-        self._add_attribute('_info', AttrDict(data))
-        self._add_attribute('_hash', self._info['hash'])
+        def ianvtive(self, category=None, sort=None, reverse=None, limit=None, offset=None,
+                     hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='inactive', category=category, sort=sort,
+                                              reverse=reverse,
+                                              limit=limit, offset=offset,
+                                              hashes=hashes, **kwargs)
 
-        self._add_client_method(endpoint='torrents_info',
-                                method_class=Torrent._Info,
-                                hashes=self._hash)
-
-        self._add_client_method(endpoint='torrents_properties',
-                                method_class=InteractionLayerMethodOverride,
-                                hash=self._hash)
-
-        for endpoint in self._client_methods_for_single_torrent:
-            self._add_client_method(endpoint=endpoint,
-                                    method_class=InteractionLayerMethodOverride,
-                                    hash=self._hash)
-
-        for endpoint in self._client_methods_for_multiple_torrents:
-            self._add_client_method(endpoint=endpoint,
-                                    method_class=Torrent._MultipleTorrentsAction,
-                                    hashes=self._hash)
-
-    def __getattr__(self, item):
-        """ensures 'info' access still works if calling client.torrents_info()"""
-        try:
-            return self._info[item]
-        except (KeyError, AttributeError):
-            pass
-        return super(Torrent, self).__getattribute__(item)
-
-    __getitem__ = __getattr__
-
-    def __repr__(self):
-        # self._add_attribute('_info', self.info)
-        return "Torrent hash: %s\n%s" % (self._hash, dict(self._info))
-
-    def __str__(self):
-        return str(dict(self.info))
-
-    # noinspection PyProtectedMember
-    class _Info(InteractionLayerMethodOverride):
-        def __call__(self, *args, **kwargs):
-            # torrents_info returns a TorrentInfoList
-            info = super(Torrent._Info, self).__call__(*args, **kwargs)
-            if len(info) == 1:
-                # double check the returned torrent is the expected one
-                if info[0]._info.hash == self._default_API_params['hashes']:
-                    return info[0]._info
-            elif len(info) > 1:
-                try:
-                    # since torrents_info() endpoint didn't always support 'hashes', manually find
-                    #  the torrent by hash when multiple torrents are returned.
-                    return [torrent for torrent in info if torrent._info.hash == self._default_API_params['hashes']][0]._info
-                except (AttributeError, KeyError):
-                    pass
-            return {}
-
-    class _MultipleTorrentsAction(InteractionLayerMethodOverride):
-        def __call__(self, *args, **kwargs):
-            multiple_torrent_response = super(Torrent._MultipleTorrentsAction, self).__call__(*args, **kwargs)
-            if multiple_torrent_response is not None:
-                return multiple_torrent_response[self._default_API_params['hashes']]
+        def resumed(self, category=None, sort=None, reverse=None, limit=None, offset=None,
+                    hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='resumed', category=category, sort=sort,
+                                              reverse=reverse,
+                                              limit=limit, offset=offset,
+                                              hashes=hashes, **kwargs)
 
 
-# TODO: consider api triggering by setting client.torrent_categories.categories...need to handle both add and create
+@aliased
 class TorrentCategories(InteractionLayer):
     """
     Alows interaction with torrent categories within the "Torrents" API endpoints.
@@ -653,21 +450,38 @@ class TorrentCategories(InteractionLayer):
         >>> # create or edit categories
         >>> client.torrent_categories.create_category(name='Video', save_path='/home/user/torrents/Video')
         >>> client.torrent_categories.edit_category(name='Video', save_path='/data/torrents/Video')
+        >>> # edit or create new by assignment
+        >>> client.torrent_categories.categories = dict(name='Video', save_path='/hone/user/')
         >>> # delete categories
         >>> client.torrent_categories.removeCategories(categories='Video')
         >>> client.torrent_categories.removeCategories(categories=['Audio', "ISOs"])
     """
 
-    _client_method_name = APINames.Torrents
+    @property
+    def categories(self):
+        return self._client.torrents_categories()
 
-    _attrs_that_trigger_api_update = {}
+    @categories.setter
+    def categories(self, v: dict):
+        if v.get('name', '') in self.categories:
+            self.edit_category(**v)
+        else:
+            self.create_category(**v)
 
-    _client_attributes_to_cache = []
+    @Alias('createCategory')
+    def create_category(self, name=None, save_path=None, **kwargs):
+        return self._client.torrents_create_category(name=name, save_path=save_path, **kwargs)
 
-    _client_attributes_as_properties = ['torrents_categories']
+    @Alias('editCategory')
+    def edit_category(self, name=None, save_path=None, **kwargs):
+        return self._client.torrents_edit_category(name=name, save_path=save_path, **kwargs)
+
+    @Alias('removeCategories')
+    def remove_categories(self, categories=None, **kwargs):
+        return self._client.torrents_remove_categories(categories=categories, **kwargs)
 
 
-# TODO: consider trigger API methods
+@aliased
 class RSS(InteractionLayer):
     """
     Allows interaction with "RSS" API endpoints.
@@ -682,22 +496,59 @@ class RSS(InteractionLayer):
         >>> client.rss.addFeed(url='...', item_path="TPB\\Top100")
         >>> client.rss.remove_item(item_path="TPB") # deletes TPB and Top100
         >>> client.rss.set_rule(rule_name="...", rule_def={...})
+        >>> client.rss.items.with_data
+        >>> client.rss.items.without_data
     """
-    _client_method_name = APINames.RSS
+    def __init__(self, client):
+        super(RSS, self).__init__(client)
+        self.items = RSS._Items(client)
 
-    _attrs_that_trigger_api_update = {}
+    @Alias('addFolder')
+    def add_folder(self, folder_path=None, **kwargs):
+        return self._client.rss_add_folder(folder_path=folder_path, **kwargs)
 
-    _client_attributes_to_cache = []
+    @Alias('addFeed')
+    def add_feed(self, url=None, item_path=None, **kwargs):
+        return self._client.rss_add_feed(url=url, item_path=item_path, **kwargs)
 
-    _client_attributes_as_properties = ['rss_rules']
+    @Alias('removeItem')
+    def remove_item(self, item_path=None, **kwargs):
+        return self._client.rss_remove_item(item_path=item_path, **kwargs)
 
-    def rss_items_without_data(self):
-        return self._client.rss_items(include_feed_data=False)
+    @Alias('moveItem')
+    def move_item(self, orig_item_path=None, new_item_path=None, **kwargs):
+        return self._client.rss_move_item(orig_item_path=orig_item_path, new_item_path=new_item_path, **kwargs)
 
-    def rss_items_with_data(self):
-        return self._client.rss_items(include_feed_data=True)
+    @Alias('setRule')
+    def set_rule(self, rule_name=None, rule_def=None, **kwargs):
+        return self._client.rss_set_rule(rule_name=rule_name, rule_def=rule_def, **kwargs)
+
+    @Alias('renameRule')
+    def rename_rule(self, orig_rule_name=None, new_rule_name=None, **kwargs):
+        return self._client.rss_rename_rule(orig_rule_name=orig_rule_name, new_rule_name=new_rule_name, **kwargs)
+
+    @Alias('removeRule')
+    def remove_rule(self, rule_name=None, **kwargs):
+        return self._client.rss_remove_rule(rule_name=rule_name, **kwargs)
+
+    @property
+    def rules(self):
+        return self._client.rss_rules()
+
+    class _Items(InteractionLayer):
+        def __call__(self, include_feed_data=None, **kwargs):
+            return self._client.rss_items(include_feed_data=include_feed_data, **kwargs)
+
+        @property
+        def without_data(self):
+            return self._client.rss_items(include_feed_data=False)
+
+        @property
+        def with_data(self):
+            return self._client.rss_items(include_feed_data=True)
 
 
+@aliased
 class Search(InteractionLayer):
     """
     Allows interaction with "Search" API endpoints.
@@ -713,18 +564,48 @@ class Search(InteractionLayer):
         >>> results = search_job.result()
         >>> search_job.delete()
         >>> # inspect and manage plugins
-        >>> plugins = client.search_plugins
-        >>> cats = client.search_categories(plugin_name='...')
+        >>> plugins = client.search.plugins
+        >>> cats = client.search.categories(plugin_name='...')
         >>> client.search.install_plugin(sources='...')
         >>> client.search.update_plugins()
     """
-    _client_method_name = APINames.Search
+    def start(self, pattern=None, plugins=None, category=None, **kwargs):
+        return self._client.search_start(pattern=pattern, plugins=plugins, category=category, **kwargs)
 
-    _attrs_that_trigger_api_update = {}
+    def stop(self, search_id=None, **kwargs):
+        return self._client.search_stop(search_id=search_id, **kwargs)
 
-    _client_attributes_to_cache = []
+    def status(self, search_id=None, **kwargs):
+        return self._client.search_status(search_id=search_id, **kwargs)
 
-    _client_attributes_as_properties = ['search_plugins']
+    def results(self, search_id=None, limit=None, offset=None, **kwargs):
+        return self._client.search_results(search_id=search_id, limit=limit, offset=offset, **kwargs)
+
+    def delete(self, search_id=None, **kwargs):
+        return self._client.search_delete(search_id=search_id, **kwargs)
+
+    def categories(self, plugin_name=None, **kwargs):
+        return self._client.search_plugins(plugin_name=plugin_name, **kwargs)
+
+    @property
+    def plugins(self):
+        return self._client.search_plugins()
+
+    @Alias('installPlugin')
+    def install_plugin(self, sources=None, **kwargs):
+        return self._client.search_install_plugins(sources=sources, **kwargs)
+
+    @Alias('uninstallPlugin')
+    def uninstall_plugin(self, sources=None, **kwargs):
+        return self._client.search_uninstall_plugin(sources=sources, **kwargs)
+
+    @Alias('enablePlugin')
+    def enable_plugin(self, plugins=None, enable=None, **kwargs):
+        return self._client.search_enable_plugin(plugins=plugins, enable=enable, **kwargs)
+
+    @Alias('updatePlugins')
+    def update_plugins(self, **kwargs):
+        return self._client.search_update_plugins(**kwargs)
 
 
 ##########################################################################
@@ -733,7 +614,7 @@ class Search(InteractionLayer):
 class Dict(AttrDict):
     def __init__(self, data=None, client=None):
         self._client = client
-        super(Dict, self).__init__(data if data is not None else {})
+        super(Dict, self).__init__(data if data is not None else dict())
 
 
 class ListEntry(Dict):
@@ -758,6 +639,203 @@ class List(UserList):
 ##########################################################################
 # Dictionary Objects
 ##########################################################################
+class SearchJobDict(Dict):
+    def __init__(self, data, client):
+        if 'id' in data:
+            self._search_job_id = data['id']
+        super(SearchJobDict, self).__init__(data=data, client=client)
+
+    def stop(self, **kwargs):
+        self._client.search.stop(search_id=self._search_job_id, **kwargs)
+
+    def status(self, **kwargs):
+        return self._client.search.status(search_id=self._search_job_id, **kwargs)
+
+    def results(self, limit=None, offset=None, **kwargs):
+        return self._client.search.results(search_id=self._search_job_id, limit=limit, offset=offset, **kwargs)
+
+    def delete(self, **kwargs):
+        self._client.search.delete(search_id=self._search_job_id, **kwargs)
+
+
+@aliased
+class TorrentDict(Dict):
+    """
+    Alows interaction with individual torrents via the "Torrents" API endpoints.
+
+    Usage:
+        >>> from qbittorrentapi import Client
+        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> # this are all the same attributes that are available as named in the
+        >>> #  endpoints or the more pythonic names in Client (with or without 'transfer_' prepended)
+        >>> torrent = client.torrents.info()[0]
+        >>> hash = torrent.info.hash
+        >>> # Attributes without inputs and a return value are properties
+        >>> properties = torrent.properties
+        >>> trackers = torrent.trackers
+        >>> files = torrent.files
+        >>> # Action methods
+        >>> torrent.edit_tracker(original_url="...", new_url="...")
+        >>> torrent.remove_trackers(urls='http://127.0.0.2/')
+        >>> torrent.rename(new_torrent_name="...")
+        >>> torrent.resume()
+        >>> torrent.pause()
+        >>> torrent.recheck()
+        >>> torrent.torrents_top_priority()
+        >>> torrent.setLocation(location='/home/user/torrents/')
+        >>> torrent.setCategory(category='video')
+    """
+    def __init__(self, data, client):
+        self._torrent_hash = data.get('hash', None)
+        super(TorrentDict, self).__init__(data, client)
+
+    @property
+    def info(self):
+        return self._client.torrents_info(hashes=self._torrent_hash)
+
+    def resume(self, **kwargs):
+        return self._client.torrents_resume(hashes=self._torrent_hash, **kwargs)
+
+    def pause(self, **kwargs):
+        return self._client.torrents_pause(hashes=self._torrent_hash, **kwargs)
+
+    def delete(self, **kwargs):
+        return self._client.torrents_delete(hashes=self._torrent_hash, **kwargs)
+
+    def recheck(self, **kwargs):
+        return self._client.torrents_recheck(hashes=self._torrent_hash, **kwargs)
+
+    def reannounce(self, **kwargs):
+        return self._client.torrents_reannounce(hashes=self._torrent_hash, **kwargs)
+
+    @Alias('increasePrio')
+    def increase_priority(self, **kwargs):
+        return self._client.torrents_increase_priority(hashes=self._torrent_hash, **kwargs)
+
+    @Alias('decreasePrio')
+    def decrease_priority(self, **kwargs):
+        return self._client.torrents_decrease_priority(hashes=self._torrent_hash, **kwargs)
+
+    @Alias('topPrio')
+    def top_priority(self, **kwargs):
+        return self._client.torrents_top_priority(hashes=self._torrent_hash, **kwargs)
+
+    @Alias('bottomPrio')
+    def bottom_priority(self, **kwargs):
+        return self._client.torrents_bottom_priority(hashes=self._torrent_hash, **kwargs)
+
+    @Alias('setShareLimits')
+    def set_share_limits(self, ratio_limit=None, seeding_time_limit=None, **kwargs):
+        return self._client.torrents_set_share_limits(hashes=self._torrent_hash, ratio_limit=ratio_limit, seeding_time_limit=seeding_time_limit, **kwargs)
+
+    @property
+    def download_limit(self, **kwargs):
+        return self._client.torrents_download_limit(hashes=self._torrent_hash, **kwargs)
+    downloadLimit = download_limit
+
+    @downloadLimit.setter
+    def downloadLimit(self, v: int): self.download_limit(limit=v)
+    @download_limit.setter
+    def download_limit(self, v: int):
+        self.set_download_limit(limit=v)
+
+    @Alias('setDownloadLimit')
+    def set_download_limit(self, limit=None, **kwargs):
+        return self._client.torrents_set_download_limit(hashes=self._torrent_hash, limit=limit, **kwargs)
+
+    @property
+    def upload_limit(self, **kwargs):
+        return self._client.torrents_set_upload_limit(hashes=self._torrent_hash, **kwargs)
+    uploadLimit = upload_limit
+
+    @uploadLimit.setter
+    def uploadLimit(self, v: int): self.set_upload_limit(limit=v)
+    @upload_limit.setter
+    def upload_limit(self, v: int):
+        self.set_upload_limit(limit=v)
+
+    @Alias('setUploadLimit')
+    def set_upload_limit(self, limit=None, **kwargs):
+        return self._client.torrents_set_upload_limit(hashes=self._torrent_hash, limit=limit, **kwargs)
+
+    @Alias('setLocation')
+    def set_location(self, location=None, **kwargs):
+        return self._client.torrents_set_location(location=location, hashes=self._torrent_hash, **kwargs)
+
+    @Alias('setCategory')
+    def set_category(self, category=None, **kwargs):
+        return self._client.torrents_set_category(category=category, hashes=self._torrent_hash, **kwargs)
+
+    @Alias('setAutoManagemnt')
+    def set_auto_management(self, enable=None, **kwargs):
+        return self._client.torrents_set_auto_management(hashes=self._torrent_hash, enable=enable, **kwargs)
+
+    @Alias('toggleSequentialDownload')
+    def toggle_sequential_download(self, **kwargs):
+        return self._client.torrents_toggle_sequential_download(hashes=self._torrent_hash, **kwargs)
+
+    @Alias('toggleFirstLastPiecePrio')
+    def toggle_first_last_piece_priority(self, **kwargs):
+        return self._client.torrents_toggle_first_last_piece_priority(hashes=self._torrent_hash, **kwargs)
+
+    @Alias('setForceStart')
+    def set_force_start(self, enable=None, **kwargs):
+        return self._client.torrents_set_force_start(hashes=self._torrent_hash, enable=enable, **kwargs)
+
+    @Alias('setSuperSeeding')
+    def set_super_seeding(self, enable=None, **kwargs):
+        return self._client.torrents_set_super_seeding(hashes=self._torrent_hash, enable=enable, **kwargs)
+
+    @property
+    def properties(self):
+        return self._client.torrents_properties(hash=self._torrent_hash)
+
+    @property
+    def trackers(self):
+        return self._client.torrents_trackers(hash=self._torrent_hash)
+
+    @trackers.setter
+    def trackers(self, v: list):
+        self.add_trackers(urls=v)
+
+    @property
+    def webseeds(self):
+        return self._client.torrents_webseeds(hash=self._torrent_hash)
+
+    @property
+    def files(self):
+        return self._client.torrents_files(hash=self._torrent_hash)
+
+    @property
+    def piece_states(self):
+        return self._client.torrents_piece_states(hash=self._torrent_hash)
+    pieceStates = piece_states
+
+    @property
+    def piece_hashes(self):
+        return self._client.torrents_piece_hashes(hash=self._torrent_hash)
+    pieceHashes = piece_hashes
+
+    @Alias('addTrackers')
+    def add_trackers(self, urls=None, **kwargs):
+        return self._client.torrents_add_trackers(hash=self._torrent_hash, urls=urls, **kwargs)
+
+    @Alias('editTracker')
+    def edit_tracker(self, orig_url=None, new_url=None, **kwargs):
+        return self._client.torrents_edit_tracker(hash=self._torrent_hash, original_url=orig_url, new_url=new_url, **kwargs)
+
+    @Alias('removeTrackers')
+    def remove_trackers(self, urls=None, **kwargs):
+        return self._client.torrents_remove_trackers(hash=self._torrent_hash, urls=urls, **kwargs)
+
+    @Alias('filePriority')
+    def file_priority(self, file_ids=None, priority=None, **kwargs):
+        return self._client.torrents_file_priority(hash=self._torrent_hash, file_ids=file_ids, priority=priority, **kwargs)
+
+    def rename(self, new_name=None, **kwargs):
+        return self._client.torrents_rename(hash=self._torrent_hash, new_torrent_name=new_name, **kwargs)
+
+
 class TorrentPropertiesDict(Dict):
     pass
 
@@ -775,13 +853,7 @@ class SyncTorrentPeersDict(Dict):
 
 
 class ApplicationPreferencesDict(Dict):
-
-    def __setattr__(self, key, value):
-        if key != '_client':
-            if key not in self or self[key] != value:
-                self._client.app_set_preferences(prefs={key: value})
-
-        super(Dict, self).__setattr__(key, value)
+    pass
 
 
 class BuildInfoDict(Dict):
@@ -794,25 +866,6 @@ class RssitemsDict(Dict):
 
 class RSSRulesDict(Dict):
     pass
-
-
-class SearchJobDict(Dict):
-    def __init__(self, data, client):
-        if 'id' in data:
-            self._search_job_id = data['id']
-        super(SearchJobDict, self).__init__(data=data, client=client)
-
-    def stop(self, *args, **kwargs):
-        self._client.search.stop(search_id=self._search_job_id, *args, **kwargs)
-
-    def status(self, *args, **kwargs):
-        return self._client.search.status(search_id=self._search_job_id, *args, **kwargs)
-
-    def results(self, *args, **kwargs):
-        return self._client.search.results(search_id=self._search_job_id, *args, **kwargs)
-
-    def delete(self, *args, **kwargs):
-        self._client.search.delete(search_id=self._search_job_id, *args, **kwargs)
 
 
 class SearchResultsDict(Dict):
@@ -859,7 +912,7 @@ class Tracker(ListEntry):
 
 class TorrentInfoList(List):
     def __init__(self, list_entiries=None, client=None):
-        super(TorrentInfoList, self).__init__(list_entiries, entry_class=Torrent, client=client)
+        super(TorrentInfoList, self).__init__(list_entiries, entry_class=TorrentDict, client=client)
 
 
 class LogPeersList(List):

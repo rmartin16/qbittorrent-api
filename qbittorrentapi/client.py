@@ -463,6 +463,10 @@ class Client(object):
     # Interaction Layer Properties
     ##########################################################################
     @property
+    def app(self):
+        return self.application
+
+    @property
     def application(self):
         """
         Allows for transparent interaction with Application endpoints.
@@ -534,7 +538,6 @@ class Client(object):
             self._search = Search(self)
         return self._search
 
-    # TODO: consider routing methods through Application to take advantage of caching
     ##########################################################################
     # Application
     ##########################################################################
@@ -600,7 +603,7 @@ class Client(object):
 
     @Alias('app_setPreferences')
     @login_required
-    def app_set_preferences(self, prefs=None, **kwargs):
+    def app_set_preferences(self, prefs: dict = None, **kwargs):
         """
         Set one or more preferences in qBittorrent application. (alias: app_setPreferences)
 
@@ -1030,7 +1033,8 @@ class Client(object):
     @response_json(TorrentInfoList)
     @version_implemented('2.0.1', 'torrents/info', ('hashes', 'hashes'))
     @login_required
-    def torrents_info(self, status_filter=None, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
+    def torrents_info(self, status_filter=None, category=None, sort=None, reverse=None, limit=None, offset=None,
+                      hashes=None, **kwargs):
         """
         Retrieves list of info for torrents.
 
