@@ -81,7 +81,7 @@ torrent_list = client.torrents_info(status_filter='active')
 The responses from the API calls will be strings or a dedicated object for the endpoint. In general, the non-string responses are extend Dictionaries and Lists.
 
 
-Interaction Layer Usage (experimental)
+Interaction Layer Usage
 --------------------------------------
 The package also contains more robust interfaces to the API endpoints. For each of the eight namespaces, there is an interface to the relevant API endpoints.
 
