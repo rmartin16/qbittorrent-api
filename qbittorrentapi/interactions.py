@@ -1,96 +1,11 @@
-from attrdict import AttrDict
-try:
-    from collections import UserList
-except ImportError:
-    # noinspection PyCompatibility,PyUnresolvedReferences
-    from UserList import UserList
+from qbittorrentapi.decorators import Alias
+from qbittorrentapi.decorators import aliased
 
 
-class Alias(object):
-    """
-    Alias class that can be used as a decorator for making methods callable
-    through other names (or "aliases").
-    Note: This decorator must be used inside an @aliased -decorated class.
-    For example, if you want to make the method shout() be also callable as
-    yell() and scream(), you can use alias like this:
-
-        @alias('yell', 'scream')
-        def shout(message):
-            # ....
-    """
-
-    def __init__(self, *aliases):
-        """Constructor."""
-        self.aliases = set(aliases)
-
-    def __call__(self, f):
-        """
-        Method call wrapper. As this decorator has arguments, this method will
-        only be called once as a part of the decoration process, receiving only
-        one argument: the decorated function ('f'). As a result of this kind of
-        decorator, this method must return the callable that will wrap the
-        decorated function.
-        """
-        f._aliases = self.aliases
-        return f
-
-
-def aliased(aliased_class):
-    """
-    Decorator function that *must* be used in combination with @alias
-    decorator. This class will make the magic happen!
-    @aliased classes will have their aliased method (via @alias) actually
-    aliased.
-    This method simply iterates over the member attributes of 'aliased_class'
-    seeking for those which have an '_aliases' attribute and then defines new
-    members in the class using those aliases as mere pointer functions to the
-    original ones.
-
-    Usage:
-        @aliased
-        class MyClass(object):
-            @alias('coolMethod', 'myKinkyMethod')
-            def boring_method():
-                # ...
-
-        i = MyClass()
-        i.coolMethod() # equivalent to i.myKinkyMethod() and i.boring_method()
-    """
-    original_methods = aliased_class.__dict__.copy()
-    for name, method in original_methods.items():
-        if hasattr(method, '_aliases'):
-            # Add the aliases for 'method', but don't override any
-            # previously-defined attribute of 'aliased_class'
-            # noinspection PyProtectedMember
-            for method_alias in method._aliases - set(original_methods):
-                setattr(aliased_class, method_alias, method)
-    return aliased_class
-
-
+# TODO: these should probably be properly incorporated in to Client...
 ##########################################################################
 # Application Objects
 ##########################################################################
-class APINames(object):
-    """
-    API names for API endpoints
-
-    e.g 'torrents' in http://localhost:8080/api/v2/torrents/addTrackers
-    """
-
-    Blank = ''
-    Authorization = "auth"
-    Application = "app"
-    Log = "log"
-    Sync = "sync"
-    Transfer = "transfer"
-    Torrents = "torrents"
-    RSS = "rss"
-    Search = "search"
-
-    def __init__(self):
-        super(APINames, self).__init__()
-
-
 @aliased
 class InteractionLayer(object):
     def __init__(self, client):
@@ -211,15 +126,35 @@ class Sync(InteractionLayer):
         >>> # this are all the same attributes that are available as named in the
         >>> #  endpoints or the more pythonic names in Client (with or without 'sync_' prepended)
         >>> maindata = client.sync.maindata(rid="...")
+        >>> # for looping
+        >>> md = client.sync.maindata.delta()
+        >>> #
         >>> torrentPeers= client.sync.torrentPeers(hash="...'", rid='...')
         >>> torrent_peers = client.sync.torrent_peers(hash="...'", rid='...')
     """
-    def maindata(self, rid=None, **kwargs):
-        return self._client.sync_maindata(rid=rid, **kwargs)
+    def __init__(self, client):
+        super(Sync, self).__init__(client)
+        self.maindata = self._MainData(client)
 
     @Alias('torrentPeers')
     def torrent_peers(self, hash=None, rid=None, **kwargs):
         return self._client.sync_torrent_peers(hash=hash, rid=rid, **kwargs)
+
+    class _MainData(InteractionLayer):
+        def __init__(self, client):
+            super(Sync._MainData, self).__init__(client)
+            self._rid = 0
+
+        def __call__(self, rid=None, **kwargs):
+            return self._client.sync_maindata(rid=rid, **kwargs)
+
+        def delta(self, **kwargs):
+            md = self._client.sync_maindata(rid=self._rid, **kwargs)
+            self._rid = md.get('rid', 0)
+            return md
+
+        def reset_rid(self):
+            self._rid = 0
 
 
 @aliased
@@ -330,6 +265,10 @@ class Torrents(InteractionLayer):
         self.topPrio = self.top_priority
         self.bottom_priority = self._ActionForAllTorrents(client, func=client.torrents_bottom_priority)
         self.bottomPrio = self.bottom_priority
+        self.download_limit = self._ActionForAllTorrents(client, func=client.torrents_download_limit)
+        self.downloadLimit = self.download_limit
+        self.upload_limit = self._ActionForAllTorrents(client, func=client.torrents_upload_limit)
+        self.uploadLimit = self.upload_limit
         self.set_download_limit = self._ActionForAllTorrents(client, func=client.torrents_set_download_limit)
         self.setDownloadLimit = self.set_download_limit
         self.set_share_limits = self._ActionForAllTorrents(client, func=client.torrents_set_share_limits)
@@ -351,23 +290,17 @@ class Torrents(InteractionLayer):
         self.set_super_seeding = self._ActionForAllTorrents(client, func=client.torrents_set_super_seeding)
         self.setSuperSeeding = self.set_super_seeding
 
-    @property
-    def download_limit(self):
-        return self._ActionForAllTorrents(self._client, func=self._client.torrents_download_limit)
-    downloadLimit = download_limit
-
-    @download_limit.setter
-    def download_limit(self, v: dict):
-        self.set_download_limit(**v)
-
-    @property
-    def upload_limit(self):
-        return self._ActionForAllTorrents(self._client, func=self.client.torrents_upload_limit)
-    uploadLimit = upload_limit
-
-    @upload_limit.setter
-    def upload_limit(self, v: dict):
-        self.set_upload_limit(**v)
+    def add(self, urls=None, torrent_files=None, save_path=None, cookie=None, category=None,
+            is_skip_checking=None, is_paused=None, is_root_folder=None, rename=None,
+            upload_limit=None, download_limit=None, use_auto_torrent_management=None,
+            is_sequential_download=None, is_first_last_piece_priority=None, **kwargs):
+        return self._client.torrents_add(urls=urls, torrent_files=torrent_files, save_path=save_path, cookie=cookie,
+                                         category=category, is_skip_checking=is_skip_checking, is_paused=is_paused,
+                                         is_root_folder=is_root_folder, rename=rename, upload_limit=upload_limit,
+                                         download_limit=download_limit,
+                                         use_auto_torrent_management=use_auto_torrent_management,
+                                         is_sequential_download=is_sequential_download,
+                                         is_first_last_piece_priority=is_first_last_piece_priority, **kwargs)
 
     class _ActionForAllTorrents(InteractionLayer):
         def __init__(self, client, func):
@@ -421,7 +354,7 @@ class Torrents(InteractionLayer):
                                               limit=limit, offset=offset,
                                               hashes=hashes, **kwargs)
 
-        def ianvtive(self, category=None, sort=None, reverse=None, limit=None, offset=None,
+        def inactive(self, category=None, sort=None, reverse=None, limit=None, offset=None,
                      hashes=None, **kwargs):
             return self._client.torrents_info(status_filter='inactive', category=category, sort=sort,
                                               reverse=reverse,
@@ -608,371 +541,3 @@ class Search(InteractionLayer):
         return self._client.search_update_plugins(**kwargs)
 
 
-##########################################################################
-# Base Objects
-##########################################################################
-class Dict(AttrDict):
-    def __init__(self, data=None, client=None):
-        self._client = client
-        super(Dict, self).__init__(data if data is not None else dict())
-
-
-class ListEntry(Dict):
-    def __init__(self, data=None, client=None, **kwargs):
-        self._client = client
-        super(ListEntry, self).__init__(data, **kwargs)
-
-
-class List(UserList):
-    def __init__(self, list_entiries=None, entry_class=None, client=None):
-        self._client = client
-
-        entries = []
-        for entry in list_entiries:
-            if isinstance(entry, dict):
-                entries.append(entry_class(data=entry, client=client))
-            else:
-                entries.append(entry)
-        super(List, self).__init__(entries)
-
-
-##########################################################################
-# Dictionary Objects
-##########################################################################
-class SearchJobDict(Dict):
-    def __init__(self, data, client):
-        if 'id' in data:
-            self._search_job_id = data['id']
-        super(SearchJobDict, self).__init__(data=data, client=client)
-
-    def stop(self, **kwargs):
-        self._client.search.stop(search_id=self._search_job_id, **kwargs)
-
-    def status(self, **kwargs):
-        return self._client.search.status(search_id=self._search_job_id, **kwargs)
-
-    def results(self, limit=None, offset=None, **kwargs):
-        return self._client.search.results(search_id=self._search_job_id, limit=limit, offset=offset, **kwargs)
-
-    def delete(self, **kwargs):
-        self._client.search.delete(search_id=self._search_job_id, **kwargs)
-
-
-@aliased
-class TorrentDict(Dict):
-    """
-    Alows interaction with individual torrents via the "Torrents" API endpoints.
-
-    Usage:
-        >>> from qbittorrentapi import Client
-        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
-        >>> # this are all the same attributes that are available as named in the
-        >>> #  endpoints or the more pythonic names in Client (with or without 'transfer_' prepended)
-        >>> torrent = client.torrents.info()[0]
-        >>> hash = torrent.info.hash
-        >>> # Attributes without inputs and a return value are properties
-        >>> properties = torrent.properties
-        >>> trackers = torrent.trackers
-        >>> files = torrent.files
-        >>> # Action methods
-        >>> torrent.edit_tracker(original_url="...", new_url="...")
-        >>> torrent.remove_trackers(urls='http://127.0.0.2/')
-        >>> torrent.rename(new_torrent_name="...")
-        >>> torrent.resume()
-        >>> torrent.pause()
-        >>> torrent.recheck()
-        >>> torrent.torrents_top_priority()
-        >>> torrent.setLocation(location='/home/user/torrents/')
-        >>> torrent.setCategory(category='video')
-    """
-    def __init__(self, data, client):
-        self._torrent_hash = data.get('hash', None)
-        super(TorrentDict, self).__init__(data, client)
-
-    @property
-    def info(self):
-        return self._client.torrents_info(hashes=self._torrent_hash)
-
-    def resume(self, **kwargs):
-        return self._client.torrents_resume(hashes=self._torrent_hash, **kwargs)
-
-    def pause(self, **kwargs):
-        return self._client.torrents_pause(hashes=self._torrent_hash, **kwargs)
-
-    def delete(self, **kwargs):
-        return self._client.torrents_delete(hashes=self._torrent_hash, **kwargs)
-
-    def recheck(self, **kwargs):
-        return self._client.torrents_recheck(hashes=self._torrent_hash, **kwargs)
-
-    def reannounce(self, **kwargs):
-        return self._client.torrents_reannounce(hashes=self._torrent_hash, **kwargs)
-
-    @Alias('increasePrio')
-    def increase_priority(self, **kwargs):
-        return self._client.torrents_increase_priority(hashes=self._torrent_hash, **kwargs)
-
-    @Alias('decreasePrio')
-    def decrease_priority(self, **kwargs):
-        return self._client.torrents_decrease_priority(hashes=self._torrent_hash, **kwargs)
-
-    @Alias('topPrio')
-    def top_priority(self, **kwargs):
-        return self._client.torrents_top_priority(hashes=self._torrent_hash, **kwargs)
-
-    @Alias('bottomPrio')
-    def bottom_priority(self, **kwargs):
-        return self._client.torrents_bottom_priority(hashes=self._torrent_hash, **kwargs)
-
-    @Alias('setShareLimits')
-    def set_share_limits(self, ratio_limit=None, seeding_time_limit=None, **kwargs):
-        return self._client.torrents_set_share_limits(hashes=self._torrent_hash, ratio_limit=ratio_limit, seeding_time_limit=seeding_time_limit, **kwargs)
-
-    @property
-    def download_limit(self, **kwargs):
-        return self._client.torrents_download_limit(hashes=self._torrent_hash, **kwargs)
-    downloadLimit = download_limit
-
-    @downloadLimit.setter
-    def downloadLimit(self, v: int): self.download_limit(limit=v)
-    @download_limit.setter
-    def download_limit(self, v: int):
-        self.set_download_limit(limit=v)
-
-    @Alias('setDownloadLimit')
-    def set_download_limit(self, limit=None, **kwargs):
-        return self._client.torrents_set_download_limit(hashes=self._torrent_hash, limit=limit, **kwargs)
-
-    @property
-    def upload_limit(self, **kwargs):
-        return self._client.torrents_set_upload_limit(hashes=self._torrent_hash, **kwargs)
-    uploadLimit = upload_limit
-
-    @uploadLimit.setter
-    def uploadLimit(self, v: int): self.set_upload_limit(limit=v)
-    @upload_limit.setter
-    def upload_limit(self, v: int):
-        self.set_upload_limit(limit=v)
-
-    @Alias('setUploadLimit')
-    def set_upload_limit(self, limit=None, **kwargs):
-        return self._client.torrents_set_upload_limit(hashes=self._torrent_hash, limit=limit, **kwargs)
-
-    @Alias('setLocation')
-    def set_location(self, location=None, **kwargs):
-        return self._client.torrents_set_location(location=location, hashes=self._torrent_hash, **kwargs)
-
-    @Alias('setCategory')
-    def set_category(self, category=None, **kwargs):
-        return self._client.torrents_set_category(category=category, hashes=self._torrent_hash, **kwargs)
-
-    @Alias('setAutoManagemnt')
-    def set_auto_management(self, enable=None, **kwargs):
-        return self._client.torrents_set_auto_management(hashes=self._torrent_hash, enable=enable, **kwargs)
-
-    @Alias('toggleSequentialDownload')
-    def toggle_sequential_download(self, **kwargs):
-        return self._client.torrents_toggle_sequential_download(hashes=self._torrent_hash, **kwargs)
-
-    @Alias('toggleFirstLastPiecePrio')
-    def toggle_first_last_piece_priority(self, **kwargs):
-        return self._client.torrents_toggle_first_last_piece_priority(hashes=self._torrent_hash, **kwargs)
-
-    @Alias('setForceStart')
-    def set_force_start(self, enable=None, **kwargs):
-        return self._client.torrents_set_force_start(hashes=self._torrent_hash, enable=enable, **kwargs)
-
-    @Alias('setSuperSeeding')
-    def set_super_seeding(self, enable=None, **kwargs):
-        return self._client.torrents_set_super_seeding(hashes=self._torrent_hash, enable=enable, **kwargs)
-
-    @property
-    def properties(self):
-        return self._client.torrents_properties(hash=self._torrent_hash)
-
-    @property
-    def trackers(self):
-        return self._client.torrents_trackers(hash=self._torrent_hash)
-
-    @trackers.setter
-    def trackers(self, v: list):
-        self.add_trackers(urls=v)
-
-    @property
-    def webseeds(self):
-        return self._client.torrents_webseeds(hash=self._torrent_hash)
-
-    @property
-    def files(self):
-        return self._client.torrents_files(hash=self._torrent_hash)
-
-    @property
-    def piece_states(self):
-        return self._client.torrents_piece_states(hash=self._torrent_hash)
-    pieceStates = piece_states
-
-    @property
-    def piece_hashes(self):
-        return self._client.torrents_piece_hashes(hash=self._torrent_hash)
-    pieceHashes = piece_hashes
-
-    @Alias('addTrackers')
-    def add_trackers(self, urls=None, **kwargs):
-        return self._client.torrents_add_trackers(hash=self._torrent_hash, urls=urls, **kwargs)
-
-    @Alias('editTracker')
-    def edit_tracker(self, orig_url=None, new_url=None, **kwargs):
-        return self._client.torrents_edit_tracker(hash=self._torrent_hash, original_url=orig_url, new_url=new_url, **kwargs)
-
-    @Alias('removeTrackers')
-    def remove_trackers(self, urls=None, **kwargs):
-        return self._client.torrents_remove_trackers(hash=self._torrent_hash, urls=urls, **kwargs)
-
-    @Alias('filePriority')
-    def file_priority(self, file_ids=None, priority=None, **kwargs):
-        return self._client.torrents_file_priority(hash=self._torrent_hash, file_ids=file_ids, priority=priority, **kwargs)
-
-    def rename(self, new_name=None, **kwargs):
-        return self._client.torrents_rename(hash=self._torrent_hash, new_torrent_name=new_name, **kwargs)
-
-
-class TorrentPropertiesDict(Dict):
-    pass
-
-
-class TransferInfoDict(Dict):
-    pass
-
-
-class SyncMainDataDict(Dict):
-    pass
-
-
-class SyncTorrentPeersDict(Dict):
-    pass
-
-
-class ApplicationPreferencesDict(Dict):
-    pass
-
-
-class BuildInfoDict(Dict):
-    pass
-
-
-class RssitemsDict(Dict):
-    pass
-
-
-class RSSRulesDict(Dict):
-    pass
-
-
-class SearchResultsDict(Dict):
-    pass
-
-
-class TorrentLimitsDict(Dict):
-    pass
-
-
-class TorrentCategoriesDict(Dict):
-    pass
-
-
-##########################################################################
-# List Objects
-##########################################################################
-class TorrentFilesList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(TorrentFilesList, self).__init__(list_entiries, entry_class=TorrentFile, client=client)
-
-
-class TorrentFile(ListEntry):
-    pass
-
-
-class WebSeedsList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(WebSeedsList, self).__init__(list_entiries, entry_class=WebSeed, client=client)
-
-
-class WebSeed(ListEntry):
-    pass
-
-
-class TrackersList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(TrackersList, self).__init__(list_entiries, entry_class=Tracker, client=client)
-
-
-class Tracker(ListEntry):
-    pass
-
-
-class TorrentInfoList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(TorrentInfoList, self).__init__(list_entiries, entry_class=TorrentDict, client=client)
-
-
-class LogPeersList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(LogPeersList, self).__init__(list_entiries, entry_class=LogPeer, client=client)
-
-
-class LogPeer(ListEntry):
-    pass
-
-
-class LogMainList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(LogMainList, self).__init__(list_entiries, entry_class=LogEntry, client=client)
-
-
-class LogEntry(ListEntry):
-    pass
-
-
-class TorrentPieceInfoList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(TorrentPieceInfoList, self).__init__(list_entiries, entry_class=TorrentPieceData, client=client)
-
-
-class TorrentPieceData(ListEntry):
-    pass
-
-
-class TorrentCategoriesList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(TorrentCategoriesList, self).__init__(list_entiries, entry_class=TorrentCategory, client=client)
-
-
-class TorrentCategory(ListEntry):
-    pass
-
-
-class SearchStatusesList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(SearchStatusesList, self).__init__(list_entiries, entry_class=SearchStatus, client=client)
-
-
-class SearchStatus(ListEntry):
-    pass
-
-
-class SearchCategoriesList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(SearchCategoriesList, self).__init__(list_entiries, entry_class=SearchCategory, client=client)
-
-
-class SearchCategory(ListEntry):
-    pass
-
-
-class SearchPluginsList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(SearchPluginsList, self).__init__(list_entiries, entry_class=SearchPlugin, client=client)
-
-
-class SearchPlugin(ListEntry):
-    pass

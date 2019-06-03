@@ -1,3 +1,6 @@
+Version 0.3
+ - Finalized interaction layer interfaces
+
 Version 0.2
 - Introduced the "interaction layer" for transparent interaction with the qBittorrent API.
 
