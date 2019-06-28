@@ -4,7 +4,6 @@ from urllib3 import disable_warnings
 from urllib3.exceptions import InsecureRequestWarning
 
 from qbittorrentapi.exceptions import *
-from qbittorrentapi.helpers import APINames
 
 try:
     # noinspection PyCompatibility
@@ -17,12 +16,12 @@ logger = logging.getLogger(__name__)
 
 
 class RequestMixIn:
-    def _get(self, _name: APINames = "", _method: str = "", **kwargs):
+    def _get(self, _name="", _method="", **kwargs):
         return self._request_wrapper(http_method='get',
                                      relative_path_list=[_name, _method],
                                      **kwargs)
 
-    def _post(self, _name: APINames = "", _method: str = "", **kwargs):
+    def _post(self, _name="", _method="", **kwargs):
         return self._request_wrapper(http_method='post',
                                      relative_path_list=[_name, _method],
                                      **kwargs)

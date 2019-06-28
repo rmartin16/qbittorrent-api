@@ -1,1 +1,2 @@
-from .client import Client
+from qbittorrentapi.client import Client
+from qbittorrentapi.exceptions import *

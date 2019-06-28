@@ -59,11 +59,11 @@ class Application(InteractionLayer):
         return self._client.app_preferences()
 
     @preferences.setter
-    def preferences(self, v: dict):
+    def preferences(self, v):
         self.set_preferences(prefs=v)
 
     @Alias("setPreferences")
-    def set_preferences(self, prefs: dict = None, **kwargs):
+    def set_preferences(self, prefs=None, **kwargs):
         return self._client.app_set_preferences(prefs=prefs, **kwargs)
 
     @property
@@ -186,9 +186,9 @@ class Transfer(InteractionLayer):
     speedLimitsMode = speed_limits_mode
 
     @speedLimitsMode.setter
-    def speedLimitsMode(self, v: bool): self.speed_limits_mode = v
+    def speedLimitsMode(self, v): self.speed_limits_mode = v
     @speed_limits_mode.setter
-    def speed_limits_mode(self, v: bool):
+    def speed_limits_mode(self, v):
         self.toggle_speed_limits_mode(intended_state=v)
 
     @Alias('toggleSpeedLimitsMode')
@@ -201,10 +201,10 @@ class Transfer(InteractionLayer):
     downloadLimit = download_limit
 
     @downloadLimit.setter
-    def downloadLimit(self, v: int): self.download_limit = v
+    def downloadLimit(self, v): self.download_limit = v
     @download_limit.setter
     @Alias('downloadLimit')
-    def download_limit(self, v: int):
+    def download_limit(self, v):
         self.set_download_limit(limit=v)
 
     @property
@@ -213,9 +213,9 @@ class Transfer(InteractionLayer):
     uploadLimit = upload_limit
 
     @uploadLimit.setter
-    def uploadLimit(self, v: int): self.upload_limit = v
+    def uploadLimit(self, v): self.upload_limit = v
     @upload_limit.setter
-    def upload_limit(self, v: int):
+    def upload_limit(self, v):
         self.set_upload_limit(limit=v)
 
     @Alias('setDownloadLimit')
@@ -395,7 +395,7 @@ class TorrentCategories(InteractionLayer):
         return self._client.torrents_categories()
 
     @categories.setter
-    def categories(self, v: dict):
+    def categories(self, v):
         if v.get('name', '') in self.categories:
             self.edit_category(**v)
         else:

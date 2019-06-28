@@ -1,3 +1,7 @@
+Version 0.3.2
+ - Restore python 2 compatibility
+ - Allow exceptions to be imported directly from package instead of only exceptions module
+
 Version 0.3
  - Finalized interaction layer interfaces
 

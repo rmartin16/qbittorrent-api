@@ -79,7 +79,7 @@ class AppMixIn(RequestMixIn):
 
     @Alias('app_setPreferences')
     @login_required
-    def app_set_preferences(self, prefs: dict = None, **kwargs):
+    def app_set_preferences(self, prefs=None, **kwargs):
         """
         Set one or more preferences in qBittorrent application. (alias: app_setPreferences)
 

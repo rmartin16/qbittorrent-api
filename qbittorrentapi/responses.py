@@ -155,9 +155,9 @@ class TorrentDictionary(Dictionary):
     downloadLimit = download_limit
 
     @downloadLimit.setter
-    def downloadLimit(self, v: int): self.download_limit(limit=v)
+    def downloadLimit(self, v): self.download_limit(limit=v)
     @download_limit.setter
-    def download_limit(self, v: int):
+    def download_limit(self, v):
         self.set_download_limit(limit=v)
 
     @Alias('setDownloadLimit')
@@ -170,9 +170,9 @@ class TorrentDictionary(Dictionary):
     uploadLimit = upload_limit
 
     @uploadLimit.setter
-    def uploadLimit(self, v: int): self.set_upload_limit(limit=v)
+    def uploadLimit(self, v): self.set_upload_limit(limit=v)
     @upload_limit.setter
-    def upload_limit(self, v: int):
+    def upload_limit(self, v):
         self.set_upload_limit(limit=v)
 
     @Alias('setUploadLimit')
@@ -216,7 +216,7 @@ class TorrentDictionary(Dictionary):
         return self._client.torrents_trackers(hash=self._hash)
 
     @trackers.setter
-    def trackers(self, v: list):
+    def trackers(self, v):
         self.add_trackers(urls=v)
 
     @property
