@@ -37,7 +37,7 @@ help(Client)
 Configuration
 -------------
 * Using an untrusted certificate (eg one that is self-signed) for HTTPS WebUI
-  * Either set `VERIFY_WEBUI_CERTIFICATE=True` when instantiating Client or set environment variable `PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE` to a non-null value.
+  * Either set `VERIFY_WEBUI_CERTIFICATE=False` when instantiating Client or set environment variable `PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE` to a non-null value.
   * Failure to do this will cause connections to qBittorrent to fail.
   * As a word of caution, doing this actually does turn off certificate verification. Therefore, for instance, potential man-in-the-middle attacks will not be detected and reported (since the error is suppressed). However, the connection will remain encrypted.
 * Host, Username and password Defaults
@@ -78,7 +78,7 @@ For instance:
 torrent_list = client.torrents_info(status_filter='active')
 ```
 
-The responses from the API calls will be strings or a dedicated object for the endpoint. In general, the non-string responses are extend Dictionaries and Lists.
+The responses from the API calls will be strings or a dedicated object for the endpoint. In general, the responses that aren't simple strings are just extended Dictionaries and Lists.
 
 
 Interaction Layer Usage
@@ -93,7 +93,7 @@ prefs = client.app.preferences
 is_dht_enabled = client.application.preferences.dht
 client.application.preferences = dict(dht=(not is_dht_enabled))
 ```
-For each namespace, any endpoints without parameters or a return value is implemented as a property. All other endpoints are implemented as methods; some of the methods have extended usage as well.
+For each namespace, any endpoints with a return value and no parameters are implemented as a property. All other endpoints are implemented as methods; some of the methods have extended usage as well.
 
 For instance, the log/main endpoint has extended usage:
 ```python
