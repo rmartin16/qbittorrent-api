@@ -20,15 +20,19 @@ Installation
 
 https://pypi.org/project/qbittorrent-api/
 
-You can install *qbittorrent-api* using one of the following techniques:
+Install via pip:
 
-- Use pip: ```pip install qbittorrent-api```
-- Download the .zip or .tar.gz file from PyPI and install
-- Download the source from Github and install
+```pip install qbittorrent-api```
 
-https://github.com/rmartin16/qbittorrent-api
+Install specific release:
 
-Be sure to also install requests and attrdict.
+```pip install git+https://github.com/rmartin16/qbittorrent-api.git@v0.3.2#egg=qbittorrent-api```
+
+Install direct from master:
+
+```pip install git+https://github.com/rmartin16/qbittorrent-api.git#egg=qbittorrent-api```
+
+Also be sure urllib3, requests, and attrdict are installed.
 
 Ensure that WebUI is enabled in qBittorrent: Tools -> Preferences -> Web UI
 
