@@ -6,6 +6,13 @@ qBittorrent v4.1.0 and later is supported. This client interacts with qBittorren
 
 [qBittorrent Web API specification](https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation)
 
+Features
+------------
+* The entire qBittorent Web API is implemented.
+* All Python version are supported.
+* If the authentication cookie expires, a new one is automatically requested in line with the request.
+* All endpoints are exposed identically to the qBittorrent specification as well as optimized for python.
+
 Installation
 ------------
 
