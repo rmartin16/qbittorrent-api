@@ -6,6 +6,7 @@ from qbittorrentapi.decorators import response_json
 from qbittorrentapi.decorators import login_required
 from qbittorrentapi.decorators import Alias
 from qbittorrentapi.decorators import aliased
+from qbittorrentapi.decorators import version_implemented
 from qbittorrentapi.helpers import APINames
 from qbittorrentapi.responses import RSSRulesDictionary
 from qbittorrentapi.responses import RSSitemsDictionary
@@ -92,6 +93,19 @@ class RSSMixIn(RequestMixIn):
         """
         params = {'withData': include_feed_data}
         return self._get(_name=APINames.RSS, _method='items', params=params, **kwargs)
+
+    @version_implemented('2.1.1', 'search/start')
+    @Alias("rss_refreshItem")
+    @login_required
+    def rss_refresh_item(self, item_path=None, **kwargs):
+        """
+        Trigger a refresh for a RSS item (alias: rss_refreshItem)
+
+        :param item_path: path to item to be refreshed (e.g. Folder\Subfolder\ItemName)
+        :return: None
+        """
+        params = {"itemPath": item_path}
+        self._get(_name=APINames.RSS, _method="refreshItem", params=params, **kwargs)
 
     @Alias('rss_setRule')
     @login_required
