@@ -94,7 +94,7 @@ class RSSMixIn(RequestMixIn):
         params = {'withData': include_feed_data}
         return self._get(_name=APINames.RSS, _method='items', params=params, **kwargs)
 
-    @version_implemented('2.1.1', 'search/start')
+    @version_implemented('2.1.1', 'rss/refreshItem')
     @Alias("rss_refreshItem")
     @login_required
     def rss_refresh_item(self, item_path=None, **kwargs):

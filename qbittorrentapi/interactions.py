@@ -452,6 +452,7 @@ class RSS(InteractionLayer):
     def move_item(self, orig_item_path=None, new_item_path=None, **kwargs):
         return self._client.rss_move_item(orig_item_path=orig_item_path, new_item_path=new_item_path, **kwargs)
 
+    @Alias('refreshItem')
     def refresh_item(self, item_path=None):
         return self._client.rss_refresh_item(item_path=item_path)
 
