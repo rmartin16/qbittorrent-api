@@ -11,7 +11,6 @@ Features
 * The entire qBittorent Web API is implemented.
 * All Python versions are supported.
 * If the authentication cookie expires, a new one is automatically requested in line with the request.
-* All endpoints are exposed identically to the qBittorrent specification as well as optimized for python.
 
 Installation
 ------------
