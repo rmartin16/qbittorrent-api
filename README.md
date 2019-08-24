@@ -346,7 +346,6 @@ torrents_add(self, urls=None, torrent_files=None, save_path=None, cookie=None, c
 class APIError(Exception):
     pass
 
-
 class LoginFailed(APIError):
     pass
 
@@ -354,67 +353,61 @@ class LoginFailed(APIError):
 class APIConnectionError(APIError):
     pass
 
-
+# all errors from a successful connection to qbittorrent are returned as HTTP errors
 class HTTPError(APIError):
     pass
-
 
 class HTTP400Error(HTTPError):
     pass
 
-
 class HTTP401Error(HTTPError):
     pass
-
 
 class HTTP403Error(HTTPError):
     pass
 
-
 class HTTP404Error(HTTPError):
     pass
-
 
 class HTTP409Error(HTTPError):
     pass
 
-
 class HTTP415Error(HTTPError):
     pass
-
 
 class HTTP500Error(HTTPError):
     pass
 
-
+# Endpoint call is missing one or more required parameters
 class MissingRequiredParameters400Error(HTTP400Error):
     pass
 
-
+# One or more parameters are malformed
 class InvalidRequest400Error(HTTP400Error):
     pass
 
-
+# Primarily reserved for XSS and host header issues.
 class Unauthorized401Error(HTTP401Error):
     pass
 
-
+# Not logged in or calling an API method that isn't public.
 class Forbidden403Error(HTTP403Error):
     pass
 
-
+# Almost certainly, this means the torrent hash didn't find a torrent...
+# Technically, this can happen if the endpoint doesn't exist...but that also means there's a bug in this implementation
 class NotFound404Error(HTTP404Error):
     pass
 
-
+# Returned if parameters don't make sense...
 class Conflict409Error(HTTP409Error):
     pass
 
-
+# torrents/add endpoint will return this for invalid URL(s)
 class UnsupportedMediaType415Error(HTTP415Error):
     pass
 
-
+# Returned if qBittorent craps on itself while processing the request...
 class InternalServerError500Error(HTTP500Error):
     pass
 ```
