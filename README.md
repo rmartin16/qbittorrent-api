@@ -306,6 +306,41 @@ Interaction Layer Details
 
 Exceptions
 ----------
+To see the exceptions an endpoint can raise, use `help(client.<namespace>_<method>)`.
+
+For example:
+```
+>>>help(Client.torrents_add)
+
+Help on function torrents_add in module qbittorrentapi.torrents:
+
+torrents_add(self, urls=None, torrent_files=None, save_path=None, cookie=None, category=None, is_skip_checking=None, is_paused=None, is_root_folder=None, rename=None, upload_limit=None, download_limit=None, use_auto_torrent_management=None, is_sequential_download=None, is_first_last_piece_priority=None, **kwargs)
+    Add one or more torrents by URLs and/or torrent files.
+    
+    Exceptions:
+        UnsupportedMediaType415Error if file is not a valid torrent file
+        FileNotFoundError if a torrent file doesn't exist
+        PermissionError if read permission is denied to torrent file
+    
+    :param urls: List of URLs (http://, https://, magnet: and bc://bt/)
+    :param torrent_files: list of torrent files
+    :param save_path: location to save the torrent data
+    :param cookie: cookie to retrieve torrents by URL
+    :param category: category to assign to torrent(s)
+    :param is_skip_checking: skip hash checking
+    :param is_paused: True to start torrent(s) paused
+    :param is_root_folder: True or False to create root folder
+    :param rename: new name for torrent(s)
+    :param upload_limit: upload limit in bytes/second
+    :param download_limit: donwnload limit in bytes/second
+    :param use_auto_torrent_management: True or False to use automatic torrent management
+    :param is_sequential_download: True or False for sequential download
+    :param is_first_last_piece_priority: True or False for first and last piece download priority
+    :return: "Ok." for success and ""Fails." for failure
+
+```
+
+
 ```python
 class APIError(Exception):
     pass
@@ -314,7 +349,7 @@ class APIError(Exception):
 class LoginFailed(APIError):
     pass
 
-
+# connection errors that aren't HTTP errors
 class APIConnectionError(APIError):
     pass
 
