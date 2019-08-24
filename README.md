@@ -45,26 +45,24 @@ help(Client)
 
 Configuration
 -------------
-* Using an untrusted certificate (eg one that is self-signed) for HTTPS WebUI
-  * Either set `VERIFY_WEBUI_CERTIFICATE=False` when instantiating Client or set environment variable `PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE` to a non-null value.
-  * Failure to do this will cause connections to qBittorrent to fail.
+* Using an untrusted certificate for HTTPS WebUI
+  * Instantiate Client with `VERIFY_WEBUI_CERTIFICATE=False` or set environment variable `PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE` to a non-null value.
+  * Failure to do this for will cause connections to qBittorrent to fail.
   * As a word of caution, doing this actually does turn off certificate verification. Therefore, for instance, potential man-in-the-middle attacks will not be detected and reported (since the error is suppressed). However, the connection will remain encrypted.
 * Host, Username and password Defaults
   * These can be provided when instantiating Client or calling `client.auth_log_in(username='...', password='...')`.
   * Alternatively, set environment variables `PYTHON_QBITTORRENTAPI_HOST`, `PYTHON_QBITTORRENTAPI_USERNAME` and `PYTHON_QBITTORRENTAPI_PASSWORD`.
 * API Endpoints Not Yet Implemented in the qBittorerent Host
-  * By default, if a call is made to endpoint that doesn't yet exist on the host (eg the Search endpoints API v2.1.1), there's a debug logger output and None is returned.
-  * Instantiate Client with `RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True` to raise UnimplementedError instead.
+  * By default, if a call is made to endpoint that doesn't yet exist on the host (e.g. the Search endpoints were introduced in Web API v2.1.1), there's a debug logger output and None is returned.
+  * To raise UnimplementedError instead, instantiate Client with `RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True`.
 * Disable Logging Debug Output
-  * Set `DISABLE_LOGGING_DEBUG_OUTPUT=True` when instantiating Client or disable logging manually:
+  * Instantiate Client with `DISABLE_LOGGING_DEBUG_OUTPUT=True` or manually disable logging for the relevant packages:
     * ```logging.getLogger('qbittorrentapi').setLevel(logging.INFO) ```
     * ```logging.getLogger('requests').setLevel(logging.INFO) ```
     * ```logging.getLogger('urllib3').setLevel(logging.INFO) ```
 
 Direct API Endpoint Access
 --------------------------
-**The interface to the direct API endpoints is stable and backwards compatibility is expected.**
-
 The API is separated in to eight namespaces for the API endpoints:
 * Authentication (auth)
 * Application (app)
@@ -87,12 +85,14 @@ For instance:
 torrent_list = client.torrents_info(status_filter='active')
 ```
 
-The responses from the API calls will be strings or a dedicated object for the endpoint. In general, the responses that aren't simple strings are just extended Dictionaries and Lists.
+The responses from the API calls are strings (e.g. app/version) or an extended Dictionary or List object (e.g. torrents/trackers).
+
+Each namespace endpoint's method name is PEP8-ified. However, they are all aliased to the endpoint's name as implemented in qBittorrent's Web API. So, for example, `client.app_web_api_version()` and `client.app_webapiVersion()` are equivilent.
 
 
 Interaction Layer Usage
 --------------------------------------
-The package also contains more robust interfaces to the API endpoints. For each of the eight namespaces, there is an interface to the relevant API endpoints.
+The package also contains more robust interfaces to the API endpoints. For each of the eight namespaces, there is an interface to the relevant API endpoints. Of note, I created an additional namespace for torrent categories.
 
 An example for the Application namespace:
 ```Python
@@ -102,9 +102,10 @@ prefs = client.app.preferences
 is_dht_enabled = client.application.preferences.dht
 client.application.preferences = dict(dht=(not is_dht_enabled))
 ```
-For each namespace, any endpoints with a return value and no parameters are implemented as a property. All other endpoints are implemented as methods; some of the methods have extended usage as well.
 
-For instance, the log/main endpoint has extended usage:
+For each namespace, all endpoints with a return value and no parameters are implemented as a property. All other endpoints are implemented as methods; some of the methods have extended usage as well.
+
+For example, the log/main endpoint has extended usage:
 ```python
 complete_log = client.log.main()
 normal_log = client.log.main.normal()
@@ -149,14 +150,12 @@ torrent.torrents_top_priority()
 torrent.set_location(location='/home/user/torrents/')
 torrent.set_category(category='video')
 ```
-This continues for all endpoints available to the namespace.
 
-Search also have extended usage.
+Search extended usage.
 ```python
 search_job = client.search.start(pattern='Ubuntu', categories='all', plugins='all')
-while True:
-  if search_job.status()[0].status == 'Stopped':
-    break
+while (search_job.status()[0].status != 'Stopped'):
+  time.sleep(.1)
 print(search_job.results())
 search_job.delete()
 ```
@@ -165,7 +164,7 @@ Interaction Layer Notes
 -----------------------
 * All endpoints are available with and without the endpoint's namespace attached.
   * So, `client.torrents.torrents_resume()` and `client.torrents.resume()` are the same.
-  * This also extends to endpoints with spaces in their name. So, `web_api_version` and `webapiVersion` are the same.
+  * As mentioned in direct API access `client.app.web_api_version` and `client.app.webapiVersion` are the same.
 * When invoking the API calls, you can use the parameters implemented in the python code or those specified in the API documentation.
   * So, `torrents_rename(hash='...', new_torrent_name="...")` and `torrents_rename(hash='...', name="...")` are the same.
 
@@ -183,10 +182,18 @@ Interaction Layer Details
 * Log
   * Methods
     * main
+      * Methods
+        * info
+        * normal
+        * warning
+        * critical
     * peers
 * Sync
   * Methods
     * maindata
+      * Methods
+        * delta
+        * reset_rid
     * torrent_peers
 * Transfer
   * Properties
@@ -200,7 +207,15 @@ Interaction Layer Details
     * toggle_speed_limits_mode
 * Torrents
   * Methods
+    * Note: each of these "methods" supports the all() method
     * info
+      * Methods
+        * downloading
+        * completed
+        * paused
+        * active
+        * inactive
+        * resumed
     * resume
     * pause
     * delete
@@ -262,8 +277,9 @@ Interaction Layer Details
     * remove_item
     * move_item
     * items
-    * items.without_data
-    * items.woth_data
+      * Methods
+        * without_data
+        * woth_data
     * set_rule
     * rename_rule
     * remove_rule
@@ -290,6 +306,7 @@ Interaction Layer Details
 
 Exceptions
 ----------
+```python
 class APIError(Exception):
     pass
 
@@ -364,3 +381,4 @@ class UnsupportedMediaType415Error(HTTP415Error):
 
 class InternalServerError500Error(HTTP500Error):
     pass
+```
