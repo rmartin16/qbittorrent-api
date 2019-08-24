@@ -306,11 +306,12 @@ Interaction Layer Details
 
 Exceptions
 ----------
-To see the exceptions an endpoint can raise, use `help(client.<namespace>_<method>)`.
+To see the exceptions an endpoint can raise, use `help(Client.<namespace>_<method>)`.
 
 For example:
 ```
->>>help(Client.torrents_add)
+>>> from qbittorrentui import Client
+>>> help(Client.torrents_add)
 
 Help on function torrents_add in module qbittorrentapi.torrents:
 
