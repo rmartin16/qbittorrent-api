@@ -349,7 +349,7 @@ class APIError(Exception):
 class LoginFailed(APIError):
     pass
 
-# connection errors that aren't HTTP errors
+# connection errors that aren't HTTP errors...like an SSL error or a timeout
 class APIConnectionError(APIError):
     pass
 
