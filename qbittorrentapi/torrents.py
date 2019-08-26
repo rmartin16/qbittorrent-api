@@ -64,7 +64,7 @@ class TorrentsMixIn(RequestMixIn):
                 'rename': (None, rename),
                 'upLimit': (None, upload_limit),
                 'dlLimit': (None, download_limit),
-                'useAutoTMM': (None, use_auto_torrent_management),
+                'autoTMM': (None, use_auto_torrent_management),
                 'sequentialDownload': (None, is_sequential_download),
                 'firstLastPiecePrio': (None, is_first_last_piece_priority)
                 }
