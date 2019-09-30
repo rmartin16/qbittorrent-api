@@ -14,7 +14,7 @@ setup(
     url='https://github.com/rmartin16/qbittorrent-api',
     author='Russell Martin',
     author_email='rmartin16@gmail.com',
-    description='Python wrapper for qBittorrent 4.1+ (Web API v2.2+)',
+    description='Python wrapper for qBittorrent 4.1+ (Web API v2.0+)',
     long_description=long_description,
     long_description_content_type="text/markdown",
     keywords='qbittorrent api',
