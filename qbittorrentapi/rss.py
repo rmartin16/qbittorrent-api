@@ -94,7 +94,7 @@ class RSSMixIn(RequestMixIn):
         params = {'withData': include_feed_data}
         return self._get(_name=APINames.RSS, _method='items', params=params, **kwargs)
 
-    @version_implemented('2.2.1', 'rss/refreshItem')
+    @version_implemented('2.2', 'rss/refreshItem')
     @Alias("rss_refreshItem")
     @login_required
     def rss_refresh_item(self, item_path=None, **kwargs):
@@ -104,8 +104,11 @@ class RSSMixIn(RequestMixIn):
         :param item_path: path to item to be refreshed (e.g. Folder\Subfolder\ItemName)
         :return: None
         """
-        params = {"itemPath": item_path}
-        self._get(_name=APINames.RSS, _method="refreshItem", params=params, **kwargs)
+        # HACK: v4.1.7 and v4.1.8 both use api v2.2; however, refreshItem was introduced in v4.1.8
+        from qbittorrentapi.helpers import is_version_less_than
+        if is_version_less_than('v4.1.7', self.app_version(), False):
+            params = {"itemPath": item_path}
+            self._get(_name=APINames.RSS, _method="refreshItem", params=params, **kwargs)
 
     @Alias('rss_setRule')
     @login_required

@@ -1,3 +1,7 @@
+Version 0.3.3
+ - Fix useAutoTMM to autoTMM for client.torrents_add() so auto torrent management works
+ - Add support to refresh RSS items introduced in qBittorrent v4.1.8
+
 Version 0.3.2
  - Restore python 2 compatibility
  - Allow exceptions to be imported directly from package instead of only exceptions module

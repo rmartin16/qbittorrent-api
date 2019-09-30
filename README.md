@@ -275,6 +275,7 @@ Interaction Layer Details
     * add_folder
     * add_feed
     * remove_item
+    * refresh_item
     * move_item
     * items
       * Methods
