@@ -301,6 +301,10 @@ class TorrentCategoriesDictionary(Dictionary):
     pass
 
 
+class TorrentsAddPeersDictionary(Dictionary):
+    pass
+
+
 ##########################################################################
 # List Objects
 ##########################################################################
@@ -396,4 +400,13 @@ class SearchPluginsList(List):
 
 
 class SearchPlugin(ListEntry):
+    pass
+
+
+class TagList(List):
+    def __init__(self, list_entiries=None, client=None):
+        super(TagList, self).__init__(list_entiries, entry_class=Tag, client=client)
+
+
+class Tag(ListEntry):
     pass

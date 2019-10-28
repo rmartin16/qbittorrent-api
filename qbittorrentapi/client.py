@@ -13,6 +13,7 @@ from qbittorrentapi.interactions import Application
 from qbittorrentapi.interactions import Transfer
 from qbittorrentapi.interactions import Torrents
 from qbittorrentapi.interactions import TorrentCategories
+from qbittorrentapi.interactions import TorrentTags
 from qbittorrentapi.interactions import Log
 from qbittorrentapi.interactions import Sync
 from qbittorrentapi.interactions import RSS
@@ -108,6 +109,7 @@ class Client(AuthMixIn, AppMixIn, LogMixIn, SyncMixIn, TransferMixIn, TorrentsMi
         self._transfer = None
         self._torrents = None
         self._torrent_categories = None
+        self._torrent_tags = None
         self._log = None
         self._sync = None
         self._rss = None
@@ -219,6 +221,18 @@ class Client(AuthMixIn, AppMixIn, LogMixIn, SyncMixIn, TransferMixIn, TorrentsMi
         if self._torrent_categories is None:
             self._torrent_categories = TorrentCategories(self)
         return self._torrent_categories
+
+    @property
+    def torrent_tags(self):
+        """
+        Allows for transparent interaction with Torrent Tags endpoints.
+
+        See Torrent_Tags class for usage.
+        :return: Torrent Tags object
+        """
+        if self._torrent_tags is None:
+            self._torrent_tags = TorrentTags(self)
+        return self._torrent_tags
 
     @property
     def rss(self):

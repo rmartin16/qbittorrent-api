@@ -1,3 +1,9 @@
+Version 0.4
+ - Support for qBittorrent v4.2.0 release
+ - Add support for app/buildInfo
+ - Add support for transfer/banPeers and torrents/addPeers
+ - Add support for torrents/addTags, torrents/removeTags, torrents/tags, torrents/createTags, and torrents/deleteTags
+
 Version 0.3.3
  - Fix useAutoTMM to autoTMM for client.torrents_add() so auto torrent management works
  - Add support to refresh RSS items introduced in qBittorrent v4.1.8

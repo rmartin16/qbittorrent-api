@@ -268,6 +268,14 @@ Interaction Layer Details
     * create_category
     * edit_category
     * remove_categories
+* Torrent Tags
+  * Properties
+    * tags
+  * Methods
+    * add_tags
+    * remove_tags
+    * create_tags
+    * delete_tags
 * RSS
   * Properties
     * rules

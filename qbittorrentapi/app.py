@@ -48,7 +48,7 @@ class AppMixIn(RequestMixIn):
             return self._MOCK_WEB_API_VERSION
         return self._get(_name=APINames.Application, _method='webapiVersion', **kwargs)
 
-    @version_implemented('2.3.0', 'app/buildInfo')
+    @version_implemented('2.3', 'app/buildInfo')
     @response_json(BuildInfoDictionary)
     @Alias('app_buildInfo')
     @login_required

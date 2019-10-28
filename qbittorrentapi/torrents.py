@@ -15,6 +15,8 @@ from qbittorrentapi.responses import TorrentLimitsDictionary
 from qbittorrentapi.responses import TorrentPieceInfoList
 from qbittorrentapi.responses import TorrentPropertiesDictionary
 from qbittorrentapi.responses import TorrentCategoriesDictionary
+from qbittorrentapi.responses import TorrentsAddPeersDictionary
+from qbittorrentapi.responses import TagList
 from qbittorrentapi.responses import TrackersList
 from qbittorrentapi.responses import WebSeedsList
 
@@ -556,6 +558,7 @@ class TorrentsMixIn(RequestMixIn):
     def torrents_toggle_first_last_piece_priority(self, hashes=None, **kwargs):
         """
         Toggle priority of first/last piece downloading. (alias: torrents_toggleFirstLastPiecePrio)
+
         :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: None
         """
@@ -590,7 +593,26 @@ class TorrentsMixIn(RequestMixIn):
                 'value': enable}
         self._post(_name=APINames.Torrents, _method='setSuperSeeding', data=data, **kwargs)
 
-    # START TORRENT CATEGORIES ENDPOINTS
+    @Alias('torrents_addPeers')
+    @version_implemented('2.3', 'torrents/addPeers')
+    @response_json(TorrentsAddPeersDictionary)
+    @login_required
+    def torrents_add_peers(self, peers=None, hashes=None, **kwargs):
+        """
+        Add one or more peers to one or more torrents. (alias: torrents_addPeers)
+
+        Exceptions:
+            InvalidRequest400Error for invalid peers
+
+        :param peers: one or more peers to add. each peer should take the form 'host:port'
+        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :return: dictionary - {<hash>: {'added': #, 'failed': #}}
+        """
+        data = {'hashes': list2string(hashes, '|'),
+                'peers': list2string(peers, '|')}
+        return self._post(_name=APINames.Torrents, _method='addPeers', data=data, **kwargs)
+
+    # TORRENT CATEGORIES ENDPOINTS
     @version_implemented('2.1.0', 'torrents/categories')
     @response_json(TorrentCategoriesDictionary)
     @login_required
@@ -654,3 +676,73 @@ class TorrentsMixIn(RequestMixIn):
         """
         data = {'categories': list2string(categories, '\n')}
         self._post(_name=APINames.Torrents, _method='removeCategories', data=data, **kwargs)
+
+    # TORRENT TAGS ENDPOINTS
+    @version_implemented('2.3', 'torrents/tags')
+    @response_json(TagList)
+    @login_required
+    def torrents_tags(self, **kwargs):
+        """
+        Retrieve all tag definitions.
+
+        :return: list of tags
+        """
+        return self._post(_name=APINames.Torrents, _method='tags', **kwargs)
+
+    @Alias('torrents_addTags')
+    @version_implemented('2.3', 'torrents/addTags')
+    @login_required
+    def torrents_add_tags(self, tags=None, hashes=None, **kwargs):
+        """
+        Add one or more tags to one or more torrents. (alias: torrents_addTags)
+
+        Note: Tags that do not exist will be created on-the-fly.
+
+        :param tags: tag name or list of tags
+        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :return: None
+        """
+        data = {'hashes': list2string(hashes, '|'),
+                'tags': list2string(tags, ',')}
+        self._post(_name=APINames.Torrents, _method='addTags', data=data, **kwargs)
+
+    @Alias('torrents_removeTags')
+    @version_implemented('2.3', 'torrents/removeTags')
+    @login_required
+    def torrents_remove_tags(self, tags=None, hashes=None, **kwargs):
+        """
+        Add one or more tags to one or more torrents. (alias: torrents_removeTags)
+
+        :param tags: tag name or list of tags
+        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :return: None
+        """
+        data = {'hashes': list2string(hashes, '|'),
+                'tags': list2string(tags, ',')}
+        self._post(_name=APINames.Torrents, _method='removeTags', data=data, **kwargs)
+
+    @Alias('torrents_createTags')
+    @version_implemented('2.3', 'torrents/createTags')
+    @login_required
+    def torrents_create_tags(self, tags=None, **kwargs):
+        """
+        Create one or more tags. (alias: torrents_createTags)
+
+        :param tags: tag name or list of tags
+        :return: None
+        """
+        data = {'tags': list2string(tags, ',')}
+        self._post(_name=APINames.Torrents, _method='createTags', data=data, **kwargs)
+
+    @Alias('torrents_deleteTags')
+    @version_implemented('2.3', 'torrents/deleteTags')
+    @login_required
+    def torrents_delete_tags(self, tags=None, **kwargs):
+        """
+        Delete one or more tags. (alias: torrents_deleteTags)
+
+        :param tags: tag name or list of tags
+        :return: None
+        """
+        data = {'tags': list2string(tags, ',')}
+        self._post(_name=APINames.Torrents, _method='deleteTags', data=data, **kwargs)

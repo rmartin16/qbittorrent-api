@@ -226,6 +226,10 @@ class Transfer(InteractionLayer):
     def set_upload_limit(self, limit=None, **kwargs):
         return self._client.transfer_set_upload_limit(limit=limit, **kwargs)
 
+    @Alias('banPeers')
+    def ban_peers(self, peers=None, **kwargs):
+        return self._client.transfer_ban_peers(peers=peers, **kwargs)
+
 
 @aliased
 class Torrents(InteractionLayer):
@@ -289,6 +293,8 @@ class Torrents(InteractionLayer):
         self.setForceStart = self.set_force_start
         self.set_super_seeding = self._ActionForAllTorrents(client, func=client.torrents_set_super_seeding)
         self.setSuperSeeding = self.set_super_seeding
+        self.add_peers = self._ActionForAllTorrents(client, func=client.torrents_add_peers)
+        self.addPeers = self.add_peers
 
     def add(self, urls=None, torrent_files=None, save_path=None, cookie=None, category=None,
             is_skip_checking=None, is_paused=None, is_root_folder=None, rename=None,
@@ -310,8 +316,8 @@ class Torrents(InteractionLayer):
         def __call__(self, hashes=None, **kwargs):
             return self.func(hashes=hashes, **kwargs)
 
-        def all(self):
-            return self.func(hashes='all')
+        def all(self, **kwargs):
+            return self.func(hashes='all', **kwargs)
 
     class _Info(InteractionLayer):
         def __call__(self, status_filter=None, category=None, sort=None, reverse=None, limit=None, offset=None,
@@ -412,6 +418,45 @@ class TorrentCategories(InteractionLayer):
     @Alias('removeCategories')
     def remove_categories(self, categories=None, **kwargs):
         return self._client.torrents_remove_categories(categories=categories, **kwargs)
+
+
+@aliased
+class TorrentTags(InteractionLayer):
+    """
+    Allows interaction with torrent tags within the "Torrent" API endpoints.
+
+    Usage:
+        >>> from qbittorrentapi import Client
+        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> tags = client.torrent_tags.tags
+        >>> client.torrent_tags.tags = 'tv show'  # create category
+        >>> client.torrent_tags.create_tags(tags=['tv show', 'linux distro'])
+        >>> client.torrent_tags.delete_tags(tags='tv show')
+    """
+
+    @property
+    def tags(self):
+        return self._client.torrents_tags()
+
+    @tags.setter
+    def tags(self, v):
+        self._client.torrents_create_tags(tags=v)
+
+    @Alias('addTags')
+    def add_tags(self, tags=None, hashes=None, **kwargs):
+        self._client.torrents_add_tags(tags=tags, hashes=hashes, **kwargs)
+
+    @Alias('removeTags')
+    def remove_tags(self, tags=None, hashes=None, **kwargs):
+        self._client.torrents_remove_tags(tags=tags, hashes=hashes, **kwargs)
+
+    @Alias('createTags')
+    def create_tags(self, tags=None, **kwargs):
+        self._client.torrents_create_tags(tags=tags, **kwargs)
+
+    @Alias('deleteTags')
+    def delete_tags(self, tags=None, **kwargs):
+        self._client.torrents_delete_tags(tags=tags, **kwargs)
 
 
 @aliased

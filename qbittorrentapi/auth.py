@@ -67,6 +67,7 @@ class AuthMixIn(RequestMixIn):
         self._transfer = None
         self._torrents = None
         self._torrent_categories = None
+        self._torrent_tags = None
         self._log = None
         self._sync = None
         self._rss = None
