@@ -5,12 +5,12 @@ with open("README.md", "r") as fh:
 
 setup(
     name='qbittorrent-api',
-    version="0.4",
+    version="0.4.1",
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     include_package_data=True,
-    install_requires=['attrdict<=2.0.1,>=2.0.0',
-                      'requests>=2.16.0,<=2.21.0',
-                      'urllib3>=1.24.2,<=1.24.3 '],
+    install_requires=['attrdict>=2.0.0',
+                      'requests>=2.16.0',
+                      'urllib3>=1.24.2'],
     url='https://github.com/rmartin16/qbittorrent-api',
     author='Russell Martin',
     author_email='rmartin16@gmail.com',
