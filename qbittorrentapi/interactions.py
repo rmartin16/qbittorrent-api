@@ -234,7 +234,7 @@ class Transfer(InteractionLayer):
 @aliased
 class Torrents(InteractionLayer):
     """
-    Alows interaction with the "Torrents" API endpoints.
+    Allows interaction with the "Torrents" API endpoints.
 
     Usage:
         >>> from qbittorrentapi import Client

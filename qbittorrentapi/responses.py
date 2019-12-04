@@ -41,11 +41,11 @@ class ListEntry(Dictionary):
 
 
 class List(UserList):
-    def __init__(self, list_entiries=None, entry_class=None, client=None):
+    def __init__(self, list_entries=None, entry_class=None, client=None):
         self._client = client
 
         entries = []
-        for entry in list_entiries:
+        for entry in list_entries:
             if isinstance(entry, dict):
                 entries.append(entry_class(data=entry, client=client))
             else:
@@ -256,6 +256,14 @@ class TorrentDictionary(Dictionary):
     def rename(self, new_name=None, **kwargs):
         return self._client.torrents_rename(hash=self._hash, new_torrent_name=new_name, **kwargs)
 
+    @Alias('addTags')
+    def add_tags(self, tags=None, **kwargs):
+        return self._client.torrents_add_tags(hashes=self._hash, tags=tags, **kwargs)
+
+    @Alias('removeTags')
+    def remove_tags(self, tags=None, **kwargs):
+        return self._client.torrents_remove_tags(hashes=self._hash, tags=tags, **kwargs)
+
 
 class TorrentPropertiesDictionary(Dictionary):
     pass
@@ -309,8 +317,8 @@ class TorrentsAddPeersDictionary(Dictionary):
 # List Objects
 ##########################################################################
 class TorrentFilesList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(TorrentFilesList, self).__init__(list_entiries, entry_class=TorrentFile, client=client)
+    def __init__(self, list_entries=None, client=None):
+        super(TorrentFilesList, self).__init__(list_entries, entry_class=TorrentFile, client=client)
 
 
 class TorrentFile(ListEntry):
@@ -318,8 +326,8 @@ class TorrentFile(ListEntry):
 
 
 class WebSeedsList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(WebSeedsList, self).__init__(list_entiries, entry_class=WebSeed, client=client)
+    def __init__(self, list_entries=None, client=None):
+        super(WebSeedsList, self).__init__(list_entries, entry_class=WebSeed, client=client)
 
 
 class WebSeed(ListEntry):
@@ -327,8 +335,8 @@ class WebSeed(ListEntry):
 
 
 class TrackersList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(TrackersList, self).__init__(list_entiries, entry_class=Tracker, client=client)
+    def __init__(self, list_entries=None, client=None):
+        super(TrackersList, self).__init__(list_entries, entry_class=Tracker, client=client)
 
 
 class Tracker(ListEntry):
@@ -336,13 +344,13 @@ class Tracker(ListEntry):
 
 
 class TorrentInfoList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(TorrentInfoList, self).__init__(list_entiries, entry_class=TorrentDictionary, client=client)
+    def __init__(self, list_entries=None, client=None):
+        super(TorrentInfoList, self).__init__(list_entries, entry_class=TorrentDictionary, client=client)
 
 
 class LogPeersList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(LogPeersList, self).__init__(list_entiries, entry_class=LogPeer, client=client)
+    def __init__(self, list_entries=None, client=None):
+        super(LogPeersList, self).__init__(list_entries, entry_class=LogPeer, client=client)
 
 
 class LogPeer(ListEntry):
@@ -350,8 +358,8 @@ class LogPeer(ListEntry):
 
 
 class LogMainList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(LogMainList, self).__init__(list_entiries, entry_class=LogEntry, client=client)
+    def __init__(self, list_entries=None, client=None):
+        super(LogMainList, self).__init__(list_entries, entry_class=LogEntry, client=client)
 
 
 class LogEntry(ListEntry):
@@ -359,8 +367,8 @@ class LogEntry(ListEntry):
 
 
 class TorrentPieceInfoList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(TorrentPieceInfoList, self).__init__(list_entiries, entry_class=TorrentPieceData, client=client)
+    def __init__(self, list_entries=None, client=None):
+        super(TorrentPieceInfoList, self).__init__(list_entries, entry_class=TorrentPieceData, client=client)
 
 
 class TorrentPieceData(ListEntry):
@@ -368,8 +376,8 @@ class TorrentPieceData(ListEntry):
 
 
 class TorrentCategoriesList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(TorrentCategoriesList, self).__init__(list_entiries, entry_class=TorrentCategory, client=client)
+    def __init__(self, list_entries=None, client=None):
+        super(TorrentCategoriesList, self).__init__(list_entries, entry_class=TorrentCategory, client=client)
 
 
 class TorrentCategory(ListEntry):
@@ -377,8 +385,8 @@ class TorrentCategory(ListEntry):
 
 
 class SearchStatusesList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(SearchStatusesList, self).__init__(list_entiries, entry_class=SearchStatus, client=client)
+    def __init__(self, list_entries=None, client=None):
+        super(SearchStatusesList, self).__init__(list_entries, entry_class=SearchStatus, client=client)
 
 
 class SearchStatus(ListEntry):
@@ -386,8 +394,8 @@ class SearchStatus(ListEntry):
 
 
 class SearchCategoriesList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(SearchCategoriesList, self).__init__(list_entiries, entry_class=SearchCategory, client=client)
+    def __init__(self, list_entries=None, client=None):
+        super(SearchCategoriesList, self).__init__(list_entries, entry_class=SearchCategory, client=client)
 
 
 class SearchCategory(ListEntry):
@@ -395,8 +403,8 @@ class SearchCategory(ListEntry):
 
 
 class SearchPluginsList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(SearchPluginsList, self).__init__(list_entiries, entry_class=SearchPlugin, client=client)
+    def __init__(self, list_entries=None, client=None):
+        super(SearchPluginsList, self).__init__(list_entries, entry_class=SearchPlugin, client=client)
 
 
 class SearchPlugin(ListEntry):
@@ -404,8 +412,8 @@ class SearchPlugin(ListEntry):
 
 
 class TagList(List):
-    def __init__(self, list_entiries=None, client=None):
-        super(TagList, self).__init__(list_entiries, entry_class=Tag, client=client)
+    def __init__(self, list_entries=None, client=None):
+        super(TagList, self).__init__(list_entries, entry_class=Tag, client=client)
 
 
 class Tag(ListEntry):

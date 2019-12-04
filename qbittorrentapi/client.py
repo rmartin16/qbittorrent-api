@@ -41,7 +41,7 @@ Implementation
           This raises a InvalidRequest400 error.
     
     Unauthorized HTTP 401
-        - This is only raised if XSS is detected or host header validiation fails.
+        - This is only raised if XSS is detected or host header validation fails.
 
 API Peculiarities
     app/setPreferences
