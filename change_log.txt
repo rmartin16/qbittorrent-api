@@ -1,3 +1,7 @@
+Version 0.4.1
+ - Round out support for tags with qBittorrent v4.2.0 release
+ - Remove upper-bound version requirements for requests and urllib3
+
 Version 0.4
  - Support for qBittorrent v4.2.0 release
  - Add support for app/buildInfo
