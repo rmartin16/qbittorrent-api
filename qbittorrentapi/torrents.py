@@ -1,5 +1,7 @@
 import logging
 from os import path
+from os import strerror as os_strerror
+import errno
 
 from qbittorrentapi.request import RequestMixIn
 from qbittorrentapi.helpers import list2string, APINames
@@ -19,6 +21,9 @@ from qbittorrentapi.responses import TorrentsAddPeersDictionary
 from qbittorrentapi.responses import TagList
 from qbittorrentapi.responses import TrackersList
 from qbittorrentapi.responses import WebSeedsList
+from qbittorrentapi.exceptions import TorrentFileNotFoundError
+from qbittorrentapi.exceptions import TorrentFilePermissionError
+from qbittorrentapi.exceptions import TorrentFileError
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +41,8 @@ class TorrentsMixIn(RequestMixIn):
 
         Exceptions:
             UnsupportedMediaType415Error if file is not a valid torrent file
-            FileNotFoundError if a torrent file doesn't exist
-            PermissionError if read permission is denied to torrent file
+            TorrentFileNotFoundError if a torrent file doesn't exist
+            TorrentFilePermissionError if read permission is denied to torrent file
 
         :param urls: List of URLs (http://, https://, magnet: and bc://bt/)
         :param torrent_files: list of torrent files
@@ -49,7 +54,7 @@ class TorrentsMixIn(RequestMixIn):
         :param is_root_folder: True or False to create root folder
         :param rename: new name for torrent(s)
         :param upload_limit: upload limit in bytes/second
-        :param download_limit: donwnload limit in bytes/second
+        :param download_limit: download limit in bytes/second
         :param use_auto_torrent_management: True or False to use automatic torrent management
         :param is_sequential_download: True or False for sequential download
         :param is_first_last_piece_priority: True or False for first and last piece download priority
@@ -74,9 +79,18 @@ class TorrentsMixIn(RequestMixIn):
         if torrent_files:
             if isinstance(torrent_files, str):
                 torrent_files = [torrent_files]
-            torrent_files = [(path.basename(torrent_file), open(torrent_file, 'rb'))
-                             for torrent_file in [path.abspath(path.realpath(path.expanduser(torrent_file)))
-                                                  for torrent_file in torrent_files]]
+            torrent_file = torrent_files[0]
+            try:
+                torrent_files = [(path.basename(torrent_file), open(torrent_file, 'rb'))
+                                 for torrent_file in [path.abspath(path.realpath(path.expanduser(torrent_file)))
+                                                      for torrent_file in torrent_files]]
+            except IOError as io_err:
+                if io_err.errno == errno.ENOENT:
+                    raise TorrentFileNotFoundError(errno.ENOENT, os_strerror(errno.ENOENT), torrent_file)
+                elif io_err.errno == errno.EACCES:
+                    raise TorrentFilePermissionError(errno.ENOENT, os_strerror(errno.EACCES), torrent_file)
+                else:
+                    raise TorrentFileError(io_err)
 
         return self._post(_name=APINames.Torrents, _method='add', data=data, files=torrent_files, **kwargs)
 

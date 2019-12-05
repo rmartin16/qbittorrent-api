@@ -45,7 +45,8 @@ class AuthMixIn(RequestMixIn):
             response = self._post(_name=APINames.Authorization,
                                   _method='login',
                                   data={'username': self.username,
-                                        'password': self._password})
+                                        'password': self._password}
+                                  )
             self._SID = response.cookies['SID']
             logger.debug("Login successful for user '%s'" % self.username)
             logger.debug("SID: %s" % self._SID)

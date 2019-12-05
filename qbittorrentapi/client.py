@@ -78,18 +78,15 @@ class Client(AuthMixIn, AppMixIn, LogMixIn, SyncMixIn, TransferMixIn, TorrentsMi
                                   for instance, if the connection is using a self-signed certificate.
                                   Not setting this to False for self-signed certs will cause a
                                   APIConnectionError exception to be raised.
-        _RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS: Some Endpoints may not be implemented in older versions of
-                                                                   qBittorrent. Setting this to True will raise a UnimplementedError
-                                                                   instead of just returning None.
+        RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS: Some Endpoints may not be implemented in older versions of
+                                                                  qBittorrent. Setting this to True will raise a UnimplementedError
+                                                                  instead of just returning None.
         DISABLE_LOGGING_DEBUG_OUTPUT: Turn off debug output from logging for this package as well as Requests & urllib3.
 
     :param host: hostname of qBittorrent client (eg http://localhost:8080)
     :param username: user name for qBittorrent client
     :param password: password for qBittorrent client
     """
-
-    # TODO: consider whether password should hang around in the event it is
-    #       necessary to attempt an automatic re-login (e.g. if the SID expires)
     def __init__(self, host='', username='', password='', **kwargs):
         self.host = host
         self.username = username

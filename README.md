@@ -37,20 +37,16 @@ Installation
 Getting Started
 ---------------
 ```python
-# import the Client for API interaction
-from qbittorrentapi import Client as qBittorrent_Client
-
-# import the exceptions for catching
-from qbittorrentapi import exceptions as qBittorrent_exc
+import qbittorrentapi
 
 # instantiate a Client using the appropriate WebUI configuration
-qbt_client = qBittorrent_Client(host='localhost:8080', username='admin', password='adminadmin')
+qbt_client = qbittorrentapi.Client(host='localhost:8080', username='admin', password='adminadmin')
 
 # the Client will automatically acquire/maintain a logged in state in line with any request.
-# therefore, this is not necessary; however, you many want to test the provided log in credentials.
+# therefore, this is not necessary; however, you many want to test the provided login credentials.
 try:
     qbt_client.auth_log_in()
-except qBittorrent_exc.LoginFailed as e:
+except qbittorrentapi.LoginFailed as e:
     print(e)
 
 # display qBittorrent info
@@ -354,8 +350,8 @@ To see the exceptions an endpoint can raise, use `help(qbt_client.<namespace>_<m
 
 For example:
 ```
->>> from qbittorrentapi import Client as qbt_client
->>> help(qbt_client.torrents_add)
+>>> import qbittorrentapi
+>>> help(qbittorrentapi.Client.torrents_add)
 
 Help on function torrents_add in module qbittorrentapi.torrents:
 
@@ -388,70 +384,156 @@ torrents_add(self, urls=None, torrent_files=None, save_path=None, cookie=None, c
 
 ```python
 class APIError(Exception):
+    """
+    Base error for all exceptions from this Client.
+    """
     pass
 
-class LoginFailed(APIError):
+
+class FileError(IOError, APIError):
+    """
+    Base class for all exceptions for file handling.
+    """
     pass
 
-# connection errors that aren't HTTP errors...like an SSL error or a timeout
-class APIConnectionError(APIError):
+
+class TorrentFileError(FileError):
+    """
+    Base class for all exceptions for torrent files.
+    """
     pass
 
-# all errors from a successful connection to qbittorrent are returned as HTTP errors
-class HTTPError(APIError):
+
+class TorrentFileNotFoundError(TorrentFileError):
+    """
+    Specified torrent file does not appear to exist.
+    """
     pass
 
-class HTTP400Error(HTTPError):
+
+class TorrentFilePermissionError(TorrentFileError):
+    """
+    Permission was denied to read the specified torrent file.
+    """
     pass
 
-class HTTP401Error(HTTPError):
+
+class APIConnectionError(RequestException, APIError):
+    """
+    Base class for all communications errors including HTTP errors.
+    """
     pass
 
-class HTTP403Error(HTTPError):
+
+class LoginFailed(APIConnectionError):
+    """
+    This can technically be raised with any request since log in may be attempted for any request and could fail.
+    """
     pass
 
-class HTTP404Error(HTTPError):
+
+class HTTPError(APIConnectionError):
+    """
+    Base error for all HTTP errors. All errors following a successful connection to qBittorrent are returned as HTTP statuses.
+    """
     pass
 
-class HTTP409Error(HTTPError):
+
+class HTTP4XXError(HTTPError):
+    """
+    Base error for all HTTP 4XX statuses.
+    """
     pass
 
-class HTTP415Error(HTTPError):
+
+class HTTP5XXError(HTTPError):
+    """
+    Base error for all HTTP 5XX statuses.
+    """
     pass
 
-class HTTP500Error(HTTPError):
+
+class HTTP400Error(HTTP4XXError):
     pass
 
-# Endpoint call is missing one or more required parameters
+
+class HTTP401Error(HTTP4XXError):
+    pass
+
+
+class HTTP403Error(HTTP4XXError):
+    pass
+
+
+class HTTP404Error(HTTP4XXError):
+    pass
+
+
+class HTTP409Error(HTTP4XXError):
+    pass
+
+
+class HTTP415Error(HTTP4XXError):
+    pass
+
+
+class HTTP500Error(HTTP5XXError):
+    pass
+
+
 class MissingRequiredParameters400Error(HTTP400Error):
+    """
+    Endpoint call is missing one or more required parameters.
+    """
     pass
 
-# One or more parameters are malformed
+
 class InvalidRequest400Error(HTTP400Error):
+    """
+    One or more endpoint arguments are malformed.
+    """
     pass
 
-# Primarily reserved for XSS and host header issues.
+
 class Unauthorized401Error(HTTP401Error):
+    """
+    Primarily reserved for XSS and host header issues.
+    """
     pass
 
-# Not logged in or calling an API method that isn't public.
+
 class Forbidden403Error(HTTP403Error):
+    """
+    Not logged in, IP has been banned, or calling an API method that isn't public.
+    """
     pass
 
-# Almost certainly, this means the torrent hash didn't find a torrent...
-# Technically, this can happen if the endpoint doesn't exist...but that also means there's a bug in this implementation
+
 class NotFound404Error(HTTP404Error):
+    """
+    This should mean qBittorrent couldn't find a torrent for the torrent hash.
+    It is also possible this means the endpoint doesn't exist in qBittorrent...but that also means this Client has a bug.
+    """
     pass
 
-# Returned if parameters don't make sense...
+
 class Conflict409Error(HTTP409Error):
+    """
+    Returned if arguments don't make sense specific to the endpoint.
+    """
     pass
 
-# torrents/add endpoint will return this for invalid URL(s)
+
 class UnsupportedMediaType415Error(HTTP415Error):
+    """
+    torrents/add endpoint will return this for invalid URL(s) or files.
+    """
     pass
 
-# Returned if qBittorent craps on itself while processing the request...
+
 class InternalServerError500Error(HTTP500Error):
+    """
+    Returned if qBittorent craps on itself while processing the request...
+    """
     pass
 ```

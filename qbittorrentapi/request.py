@@ -88,49 +88,30 @@ class RequestMixIn:
         for loop_count in range(1, (max_retries + 1)):
             try:
                 return self._request(http_method, relative_path_list, **kwargs)
-            except requests.exceptions.SSLError as errssl:
-                if loop_count == max_retries:
-                    error_message = "Failed to connect to qBittorrent. This is likely due to using a self-signed " \
-                                    "certificate for HTTPS WebUI. To suppress this error (and skip certificate " \
-                                    "verification consequently exposing the HTTPS connection to man-in-the-middle " \
-                                    "attacks), set VERIFY_WEBUI_CERTIFICATE=False when instantiating Client or set " \
-                                    "environment variable PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE " \
-                                    "to a non-null value. SSL Error: %s" % repr(errssl)
-                    logger.debug(error_message)  # , exc_info=True)
-                    raise APIConnectionError(error_message)
-            except requests.exceptions.HTTPError as errh:
-                if loop_count == max_retries:
-                    error_message = "Failed to connect to qBittorrent. Invalid HTTP Reponse: %s" % repr(errh)
-                    logger.debug(error_message)  # , exc_info=True)
-                    raise APIConnectionError(error_message)
-            except requests.exceptions.TooManyRedirects as errr:
-                if loop_count == max_retries:
-                    error_message = "Failed to connect to qBittorrent. Too many redirectse: %s" % repr(errr)
-                    logger.debug(error_message)  # , exc_info=True)
-                    raise APIConnectionError(error_message)
-            except requests.exceptions.ConnectionError as ece:
-                if loop_count == max_retries:
-                    error_message = "Failed to connect to qBittorrent. Connection Error: %s" % repr(ece)
-                    logger.debug(error_message)  # , exc_info=True)
-                    raise APIConnectionError(error_message)
-            except requests.exceptions.Timeout as et:
-                if loop_count == max_retries:
-                    error_message = "Failed to connect to qBittorrent. Timeout Error: %s" % repr(et)
-                    logger.debug(error_message)  # , exc_info=True)
-                    raise APIConnectionError(error_message)
-            except requests.exceptions.RequestException as e:
-                if loop_count == max_retries:
-                    error_message = "Failed to connect to qBittorrent. Requests Error: %s" % repr(e)
-                    logger.debug(error_message)  # , exc_info=True)
-                    raise APIConnectionError(error_message)
-            except HTTPError:
-                # pass HTTPErrors upstream
-                raise
-            except Exception as uexp:
-                if loop_count == max_retries:
-                    error_message = "Failed to connect to qBittorrent. Unknown Error: %s" % repr(uexp)
-                    logger.debug(error_message)  # , exc_info=True)
-                    raise APIConnectionError(error_message)
+            except HTTPError as e:
+                # retry request for HTTP 500 statuses, raise immediately for everything else (e.g. 4XX statuses)
+                if not isinstance(e, HTTP5XXError) or loop_count >= max_retries:
+                    raise
+            except Exception as e:
+                if loop_count >= max_retries:
+                    error_prologue = "Failed to connect to qBittorrent. "
+                    error_messages = {
+                        requests.exceptions.SSLError: "This is due to using an untrusted certificate (likely self-signed) " \
+                                                      "for HTTPS qBittorrent WebUI. To suppress this error (and skip certificate " \
+                                                      "verification consequently exposing the HTTPS connection to man-in-the-middle " \
+                                                      "attacks), set VERIFY_WEBUI_CERTIFICATE=False when instantiating Client or set " \
+                                                      "environment variable PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE " \
+                                                      "to a non-null value. SSL Error: %s" % repr(e),
+                        requests.exceptions.HTTPError: "Invalid HTTP Response: %s" % repr(e),
+                        requests.exceptions.TooManyRedirects: "Too many redirects: %s" % repr(e),
+                        requests.exceptions.ConnectionError: "Connection Error: %s" % repr(e),
+                        requests.exceptions.Timeout: "Timeout Error: %s" % repr(e),
+                        requests.exceptions.RequestException: "Requests Error: %s" % repr(e)
+                    }
+                    error_message = error_prologue + error_messages.get(type(e), "Unknown Error: %s" % repr(e))
+                    logger.debug(error_message)
+                    response = e.response if hasattr(e, 'response') else None
+                    raise APIConnectionError(error_message, response=response)
 
             logger.debug("Connection error. Retrying.")
             self._initialize_context()
@@ -235,16 +216,13 @@ class RequestMixIn:
             """
             if error_message == "":
                 error_torrent_hash = ""
-                if 'data' in kwargs:
-                    error_torrent_hash = kwargs['data']['hash'] if ('hash' in kwargs['data']) else error_torrent_hash
-                    error_torrent_hash = kwargs['data']['hashes'] if (
-                                'hashes' in kwargs['data']) else error_torrent_hash
-                if error_torrent_hash == "" and 'params' in kwargs:
-                    error_torrent_hash = kwargs['params']['hash'] if (
-                                'hash' in kwargs['params']) else error_torrent_hash
-                    error_torrent_hash = kwargs['params']['hashes'] if (
-                                'hashes' in kwargs['params']) else error_torrent_hash
-                if error_torrent_hash != "":
+                if data:
+                    error_torrent_hash = data.get('hash', error_torrent_hash)
+                    error_torrent_hash = data.get('hashes', error_torrent_hash)
+                if params and error_torrent_hash == "":
+                    error_torrent_hash = params.get('hash', error_torrent_hash)
+                    error_torrent_hash = params.get('hashes', error_torrent_hash)
+                if error_torrent_hash:
                     error_message = "Torrent hash(es): %s" % error_torrent_hash
             raise NotFound404Error(error_message)
 

@@ -3,7 +3,7 @@ from pkg_resources import parse_version
 
 def list2string(input_list=None, delimiter="|"):
     """
-    Converted entries in a list to a concatenated string
+    Convert entries in a list to a concatenated string
 
     :param input_list: list to convert
     :param delimiter: delimiter for concatenation

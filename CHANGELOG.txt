@@ -1,3 +1,10 @@
+Version 0.4.2
+ - Improve organization and clarity of README
+ - Better document exceptions
+ - Clarify torrent file handling exceptions better with proper exceptions
+ - Clean up the request wrapper exception handling
+ - Fix HTTP 404 handling to find and return problematic torrent hashes
+
 Version 0.4.1
  - Round out support for tags with qBittorrent v4.2.0 release
  - Remove upper-bound version requirements for requests and urllib3
@@ -20,10 +27,9 @@ Version 0.3
  - Finalized interaction layer interfaces
 
 Version 0.2
-- Introduced the "interaction layer" for transparent interaction with the qBittorrent API.
-
-Version 0.1.1-3
-- Fixes for pip package
+ - Introduced the "interaction layer" for transparent interaction with the qBittorrent API.
 
 Version 0.1
-- Complete implementation of qBittorrent WebUI API 2.2. Each API endpoint is available via the Client class. Automatic re-login is supported in the event of login expiration.
+ - Complete implementation of qBittorrent WebUI API 2.2.
+ - Each API endpoint is available via the Client class.
+ - Automatic re-login is supported in the event of login expiration.
