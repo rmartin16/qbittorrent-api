@@ -2,7 +2,18 @@ qBittorrent Web API Client
 ================================
 Python client implementation for qBittorrent Web API. Supports qBittorrent v4.1.0+ (i.e. Web API v2.0+).
 
-[qBittorrent Web API specification](https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation)
+  * [Features](#features)
+  * [Installation](#installation)
+  * [Getting Started](#getting-started)
+  * [API Documentation](#api-documentation)
+  * [Behavior & Configuration](#behavior--configuration)
+  * [Direct API Endpoint Access](#direct-api-endpoint-access)
+  * [Interaction Layer Usage](#interaction-layer-usage)
+  * [Interaction Layer Notes](#interaction-layer-notes)
+  * [Interaction Layer Details](#interaction-layer-details)
+  * [Exceptions](#exceptions)
+  
+The full qBittorrent Web API specification is documented on their [wiki](https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation).
 
 Features
 ------------
