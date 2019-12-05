@@ -9,48 +9,71 @@ Features
 * The entire qBittorent Web API is implemented.
 * qBittorrent version checking for an endpoint's existence/features is automatically handled.
 * All Python versions are supported.
-* If the authentication cookie expires, a new one is automatically requested in line with the request.
+* If the authentication cookie expires, a new one is automatically requested in line with any API call.
 
 Installation
 ------------
-
-*qbittorrent-api* is available on the Python Package Index (PyPI).
-
-https://pypi.org/project/qbittorrent-api/
-
-Install via pip:
-
-```pip install qbittorrent-api```
-
-Install specific release:
-
-```pip install git+https://github.com/rmartin16/qbittorrent-api.git@v0.3.2#egg=qbittorrent-api```
-
-Install direct from master:
-
-```pip install git+https://github.com/rmartin16/qbittorrent-api.git#egg=qbittorrent-api```
-
-Also be sure urllib3, requests, and attrdict are installed.
-
-Ensure that WebUI is enabled in qBittorrent: Tools -> Preferences -> Web UI
+* Install via pip from [PyPI](https://pypi.org/project/qbittorrent-api/):
+  * `pip install qbittorrent-api`
+* Install specific release:
+  * `pip install git+https://github.com/rmartin16/qbittorrent-api.git@v0.3.2#egg=qbittorrent-api`
+* Install direct from master:
+  * `pip install git+https://github.com/rmartin16/qbittorrent-api.git#egg=qbittorrent-api`
+* Ensure urllib3, requests, and attrdict are installed. (These are installed autuomatically using the methods above.)
+* Enable WebUI in qBittorrent: Tools -> Preferences -> Web UI
+* If the Web API will be exposed to the Internet (i.e. made available outside your network), please [do it properly](https://github.com/qbittorrent/qBittorrent/wiki/Linux-WebUI-HTTPS-with-Let's-Encrypt-certificates-and-NGINX-SSL-reverse-proxy).
 
 Getting Started
 ---------------
 ```python
-from qbittorrentapi import Client
-client = Client(host='localhost:8080', username='admin', password='adminadmin')
-print("qBittorrent Version: %s" % client.app_version())
-help(Client)
+# import the Client for API interaction
+from qbittorrentapi import Client as qBittorrent_Client
+
+# import the exceptions for catching
+from qbittorrentapi import exceptions as qBittorrent_exc
+
+# instantiate a Client using the appropriate WebUI configuration
+qbt_client = qBittorrent_Client(host='localhost:8080', username='admin', password='adminadmin')
+
+# the Client will automatically acquire/maintain a logged in state in line with any request.
+# therefore, this is not necessary; however, you many want to test the provided log in credentials.
+try:
+    qbt_client.auth_log_in()
+except qBittorrent_exc.LoginFailed as e:
+    print(e)
+
+# display qBittorrent info
+print(f'qBittorrent: {qbt_client.app.version}')
+print(f'qBittorrent Web API: {qbt_client.app.web_api_version}')
+for k,v in qbt_client.app.build_info.items(): print(f'{k}: {v}')
+
+# retrieve and show all torrents
+for torrent in qbt_client.torrents_info():
+    print(f'{torrent.hash[-6:]}: {torrent.name} ({torrent.state})')
+
+# pause all torrents
+qbt_client.torrents.pause.all()
 ```
 
-Configuration
+API Documentation
+---------------
+The Client's methods all document their own description, expected arguments, possible exceptions, and return value.
+
+For best results, use the "most primitive" form of the API call. So, `qbt_client.torrents_pause` instead of `qbt_client.torrents.pause`.
+
+```python
+help(qbt_client.torrents_add)
+help(qbt_client.torrents_add_trackers)
+```
+
+Behavior & Configuration
 -------------
-* Using an untrusted certificate for HTTPS WebUI
+* **WARNING**: Using an untrusted (e.g. self-signed) certificate for HTTPS WebUI
   * Instantiate Client with `VERIFY_WEBUI_CERTIFICATE=False` or set environment variable `PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE` to a non-null value.
   * Failure to do this for will cause connections to qBittorrent to fail.
   * As a word of caution, doing this actually does turn off certificate verification. Therefore, for instance, potential man-in-the-middle attacks will not be detected and reported (since the error is suppressed). However, the connection will remain encrypted.
 * Host, Username and password Defaults
-  * These can be provided when instantiating Client or calling `client.auth_log_in(username='...', password='...')`.
+  * These can be provided when instantiating Client or calling `qbt_client.auth_log_in(username='...', password='...')`.
   * Alternatively, set environment variables `PYTHON_QBITTORRENTAPI_HOST`, `PYTHON_QBITTORRENTAPI_USERNAME` and `PYTHON_QBITTORRENTAPI_PASSWORD`.
 * API Endpoints Not Yet Implemented in the qBittorrent Host
   * By default, if a call is made to endpoint that doesn't yet exist on the host (e.g. the Search endpoints were introduced in Web API v2.1.1), there's a debug logger output and None is returned.
@@ -64,6 +87,7 @@ Configuration
 Direct API Endpoint Access
 --------------------------
 The API is separated in to eight namespaces for the API endpoints:
+
 * Authentication (auth)
 * Application (app)
 * Log (log)
@@ -76,66 +100,66 @@ The API is separated in to eight namespaces for the API endpoints:
 To use this package to directly access those endpoints:
 
 ```python
-response = client.<name>_<api method>(<arguments>)
+response = qbt_client.<name>_<api method>(<arguments>)
 ```
-Replace `<name>` with one of the eight namespaces above and `<api method>` with a relevant endpoint.
+Replace `<name>` with one of the eight namespaces (from within the parentheses) above and `<api method>` with a relevant endpoint.
 
 For instance:
 ```python
-torrent_list = client.torrents_info(status_filter='active')
+torrent_list = qbt_client.torrents_info(status_filter='active')
 ```
 
 The responses from the API calls are strings (e.g. app/version) or an extended Dictionary or List object (e.g. torrents/trackers).
 
-Each namespace endpoint's method name is PEP8-ified. However, they are all aliased to the endpoint's name as implemented in qBittorrent's Web API. So, for example, `client.app_web_api_version()` and `client.app_webapiVersion()` are equivilent.
+Each namespace endpoint's method name is [PEP8](https://www.python.org/dev/peps/pep-0008/)-ified. However, they are all aliased to the endpoint's name as implemented in qBittorrent's Web API. So, for example, `qbt_client.app_web_api_version()` and `qbt_client.app_webapiVersion()` are equivalent. This is also true for the API methods' arguments; so, `qbt_client.torrents_add(urls='...', save_path='/torrents')` and `qbt_client.torrents_add(urls='...', savepath='/torrents')` are equivalent. This is intended to allow use of this Client only depending on qBittorrent's own [Web API documentation](https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation).
 
 
 Interaction Layer Usage
 --------------------------------------
-The package also contains more robust interfaces to the API endpoints. For each of the eight namespaces, there is an interface to the relevant API endpoints. Of note, I created an additional namespace for torrent categories.
+The package also contains more robust interfaces to the API endpoints. For each of the eight namespaces, there is an interface to the relevant API endpoints. Of note, I created additional namespaces for torrent categories and torrent tags.
 
 An example for the Application namespace:
 ```Python
-ver = client.app.version
-api_ver = client.app.api_web_version
-prefs = client.app.preferences
-is_dht_enabled = client.application.preferences.dht
-client.application.preferences = dict(dht=(not is_dht_enabled))
+ver = qbt_client.app.version
+api_ver = qbt_client.app.api_web_version
+prefs = qbt_client.app.preferences
+is_dht_enabled = qbt_client.application.preferences.dht
+qbt_client.application.preferences = dict(dht=(not is_dht_enabled))
 ```
 
 For each namespace, all endpoints with a return value and no parameters are implemented as a property. All other endpoints are implemented as methods; some of the methods have extended usage as well.
 
 For example, the log/main endpoint has extended usage:
 ```python
-complete_log = client.log.main()
-normal_log = client.log.main.normal()
-warning_log = client.log.main.warning()
-critical_log = client.log.main.critical()
+complete_log = qbt_client.log.main()
+normal_log = qbt_client.log.main.normal()
+warning_log = qbt_client.log.main.warning()
+critical_log = qbt_client.log.main.critical()
 ```
 The most extended namespace is Torrents.
 ```python
 # Gathering torrents
-torrent_list = client.torrents.info()
-torrent_list_active = client.torrents.info.active()
-torrent_list_active_partial = client.torrents.active(limit=100, offset=200)
-torrent_list_downloading = client.torrents.info.downloading()
+torrent_list = qbt_client.torrents.info()
+torrent_list_active = qbt_client.torrents.info.active()
+torrent_list_active_partial = qbt_client.torrents.active(limit=100, offset=200)
+torrent_list_downloading = qbt_client.torrents.info.downloading()
 
 # Torrent looping
 for torrent in torrent_list:
   print(torrent.name)
 
 # Actions for multiple torrents
-client.torrents.pause(hashes=['...', '...'])
-client.torrents.recheck(hashes=['...', '...'])
+qbt_client.torrents.pause(hashes=['...', '...'])
+qbt_client.torrents.recheck(hashes=['...', '...'])
 # or just do all torrent 
-client.torrents.pause.all()
-client.torrents.recheck.all()
-client.torrents.resume.all()
+qbt_client.torrents.pause.all()
+qbt_client.torrents.recheck.all()
+qbt_client.torrents.resume.all()
 ```
 
 Once you have a torrent, there's also a litany of interactions.
 ```python
-hash = torrent.info.hash  # as well the rest fo the properties from torrents/info endpoint
+hash = torrent.info.hash  # as well the rest of the properties from torrents/info endpoint
 properties = torrent.properties
 trackers = torrent.trackers
 files = torrent.files
@@ -153,7 +177,7 @@ torrent.set_category(category='video')
 
 Search extended usage.
 ```python
-search_job = client.search.start(pattern='Ubuntu', categories='all', plugins='all')
+search_job = qbt_client.search.start(pattern='Ubuntu', categories='all', plugins='all')
 while (search_job.status()[0].status != 'Stopped'):
   time.sleep(.1)
 print(search_job.results())
@@ -163,8 +187,8 @@ search_job.delete()
 Interaction Layer Notes
 -----------------------
 * All endpoints are available with and without the endpoint's namespace attached.
-  * So, `client.torrents.torrents_resume()` and `client.torrents.resume()` are the same.
-  * As mentioned in direct API access `client.app.web_api_version` and `client.app.webapiVersion` are the same.
+  * So, `qbt_client.torrents.torrents_resume()` and `qbt_client.torrents.resume()` are the same.
+  * As mentioned in direct API access `qbt_client.app.web_api_version` and `qbt_client.app.webapiVersion` are the same.
 * When invoking the API calls, you can use the parameters implemented in the python code or those specified in the API documentation.
   * So, `torrents_rename(hash='...', new_torrent_name="...")` and `torrents_rename(hash='...', name="...")` are the same.
 
@@ -315,12 +339,12 @@ Interaction Layer Details
 
 Exceptions
 ----------
-To see the exceptions an endpoint can raise, use `help(Client.<namespace>_<method>)`.
+To see the exceptions an endpoint can raise, use `help(qbt_client.<namespace>_<method>)`.
 
 For example:
 ```
->>> from qbittorrentui import Client
->>> help(Client.torrents_add)
+>>> from qbittorrentapi import Client as qbt_client
+>>> help(qbt_client.torrents_add)
 
 Help on function torrents_add in module qbittorrentapi.torrents:
 
