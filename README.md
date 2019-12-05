@@ -360,8 +360,8 @@ torrents_add(self, urls=None, torrent_files=None, save_path=None, cookie=None, c
     
     Exceptions:
         UnsupportedMediaType415Error if file is not a valid torrent file
-        FileNotFoundError if a torrent file doesn't exist
-        PermissionError if read permission is denied to torrent file
+        TorrentFileNotFoundError if a torrent file doesn't exist
+        TorrentFilePermissionError if read permission is denied to torrent file
     
     :param urls: List of URLs (http://, https://, magnet: and bc://bt/)
     :param torrent_files: list of torrent files
@@ -373,12 +373,11 @@ torrents_add(self, urls=None, torrent_files=None, save_path=None, cookie=None, c
     :param is_root_folder: True or False to create root folder
     :param rename: new name for torrent(s)
     :param upload_limit: upload limit in bytes/second
-    :param download_limit: donwnload limit in bytes/second
+    :param download_limit: download limit in bytes/second
     :param use_auto_torrent_management: True or False to use automatic torrent management
     :param is_sequential_download: True or False for sequential download
     :param is_first_last_piece_priority: True or False for first and last piece download priority
     :return: "Ok." for success and ""Fails." for failure
-
 ```
 
 
