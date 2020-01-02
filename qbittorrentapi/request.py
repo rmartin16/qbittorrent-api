@@ -41,6 +41,7 @@ class RequestMixIn:
             if not host.startswith('http:') and not host.startswith('https:') and not host.startswith('//'):
                 host = '//' + host
             url_without_path = urlparse(url=host, scheme='http')
+            url_without_path = url_without_path._replace(scheme='http')
 
             # detect supported scheme for URL
             logger.debug("Detecting scheme for URL...")
