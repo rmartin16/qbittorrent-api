@@ -6,13 +6,6 @@ from qbittorrentapi.decorators import login_required
 
 from qbittorrentapi.exceptions import *
 
-try:
-    # noinspection PyCompatibility
-    from urllib.parse import urlparse
-except ImportError:
-    # noinspection PyCompatibility,PyUnresolvedReferences
-    from urlparse import urlparse
-
 
 logger = logging.getLogger(__name__)
 
@@ -53,15 +46,14 @@ class AuthMixIn(RequestMixIn):
 
         except KeyError:
             logger.debug("Login failed for user '%s'" % self.username)
-            # noinspection PyTypeChecker
             raise suppress_context(LoginFailed("Login authorization failed for user '%s'" % self.username))
 
     def _initialize_context(self):
         # cache to avoid perf hit from version checking certain endpoints
         self._cached_web_api_version = None
 
-        # reset URL in case WebUI changed from HTTP to HTTPS
-        self._URL_WITHOUT_PATH = urlparse(url='')
+        # reset URL so the full URL is derived again (primarily allows for switching scheme for WebUI: HTTP <-> HTTPS)
+        self._URL_WITHOUT_PATH = None
 
         # reinitialize interaction layers
         self._application = None

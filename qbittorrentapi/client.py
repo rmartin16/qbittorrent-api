@@ -19,12 +19,6 @@ from qbittorrentapi.interactions import Sync
 from qbittorrentapi.interactions import RSS
 from qbittorrentapi.interactions import Search
 
-try:
-    # noinspection PyCompatibility
-    from urllib.parse import urlparse
-except ImportError:
-    # noinspection PyCompatibility,PyUnresolvedReferences
-    from urlparse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +77,7 @@ class Client(AuthMixIn, AppMixIn, LogMixIn, SyncMixIn, TransferMixIn, TorrentsMi
                                                                   instead of just returning None.
         DISABLE_LOGGING_DEBUG_OUTPUT: Turn off debug output from logging for this package as well as Requests & urllib3.
 
-    :param host: hostname of qBittorrent client (eg http://localhost:8080)
+    :param host: hostname of qBittorrent client (eg http://localhost[:8080], https://localhost[:8080], localhost[:8080])
     :param username: user name for qBittorrent client
     :param password: password for qBittorrent client
     """
@@ -111,7 +105,7 @@ class Client(AuthMixIn, AppMixIn, LogMixIn, SyncMixIn, TransferMixIn, TorrentsMi
         self._sync = None
         self._rss = None
         self._search = None
-        self._URL_WITHOUT_PATH = urlparse(url='')
+        self._URL_WITHOUT_PATH = None
 
         # Configuration variables
         self._VERIFY_WEBUI_CERTIFICATE = kwargs.pop('VERIFY_WEBUI_CERTIFICATE', True)

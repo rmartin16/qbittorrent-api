@@ -5,11 +5,9 @@ from urllib3.exceptions import InsecureRequestWarning
 
 from qbittorrentapi.exceptions import *
 
-try:
-    # noinspection PyCompatibility
+try:  # python 3
     from urllib.parse import urlparse
-except ImportError:
-    # noinspection PyCompatibility,PyUnresolvedReferences
+except ImportError:  # python 2
     from urlparse import urlparse
 
 logger = logging.getLogger(__name__)
@@ -27,55 +25,46 @@ class RequestMixIn:
                                      **kwargs)
 
     @staticmethod
-    def _build_url(url_without_path=urlparse(''), host="", api_path_list=None):
+    def _build_url(url_without_path=None, host="", api_path_list=None):
         """
         Create a fully qualifed URL (minus query parameters that Requests will add later).
 
         Supports detecting whether HTTPS is enabled for WebUI.
 
         :param url_without_path: if the URL was already built, this is the base URL
-        :param host: ueer provided hostname for WebUI
+        :param host: user provided hostname for WebUI
         :param api_path_list: list of strings for API endpoint path (e.g. ['api', 'v2', 'app', 'version'])
         :return: full URL for WebUI API endpoint
         """
-        full_api_path = '/'.join([s.strip('/') for s in api_path_list])
-
         # build full URL if it's the first time we're here
-        if url_without_path.netloc == "":
-            url_without_path = urlparse(host)
-
-            # URLs such as 'localhost:8080' are interpreted as all path
-            #  so, assume the path is the host if no host found
-            if url_without_path.netloc == "":
-                # noinspection PyProtectedMember
-                url_without_path = url_without_path._replace(netloc=url_without_path.path, path='')
+        if url_without_path is None:
+            if not host.startswith('http:') and not host.startswith('https:') and not host.startswith('//'):
+                host = '//' + host
+            url_without_path = urlparse(url=host, scheme='http')
 
             # detect supported scheme for URL
             logger.debug("Detecting scheme for URL...")
             try:
-                # noinspection PyProtectedMember
-                tmp_url = url_without_path._replace(scheme='http')
-                r = requests.head(tmp_url.geturl(), allow_redirects=True)
-                # if WebUI supports sending a redirect from HTTP to HTTPS eventually, using the scheme
-                # the ultimate URL Requests found will upgrade the connection to HTTPS automatically.
-                #  For instance:
-                #   >>> requests.head("http://grc.com", allow_redirects=True).url
+                r = requests.head(url_without_path.geturl(), allow_redirects=True)
+                # if WebUI eventually supports sending a redirect from HTTP to HTTPS then
+                # Requests will automatically provide a URL using HTTPS.
+                # For instance, the URL returned below will use the HTTPS scheme.
+                #  >>> requests.head("http://grc.com", allow_redirects=True).url
                 scheme = urlparse(r.url).scheme
             except requests.exceptions.RequestException:
-                # catch (practically) all Requests exceptions...any of them almost certainly means
-                #  any connection attempt will fail due to a more systemic issue handled elsewhere
+                # qBittorrent will reject the connection if WebUI is configured for HTTPS.
+                # If something else caused this exception, we'll properly handle that
+                # later during the actual API request.
                 scheme = 'https'
 
             # use detected scheme
             logger.debug("Using %s scheme" % scheme.upper())
-            # noinspection PyProtectedMember
             url_without_path = url_without_path._replace(scheme=scheme)
 
             logger.debug("Base URL: %s" % url_without_path.geturl())
 
         # add the full API path to complete the URL
-        # noinspection PyProtectedMember
-        url = url_without_path._replace(path=full_api_path)
+        url = url_without_path._replace(path='/'.join([s.strip('/') for s in api_path_list]))
 
         return url
 
@@ -126,7 +115,6 @@ class RequestMixIn:
                               api_path_list=api_path_list)
 
         # preserve URL without the path so we don't have to rebuild it next time
-        # noinspection PyProtectedMember
         self._URL_WITHOUT_PATH = url._replace(path="")
 
         # mechanism to send params to Requests
