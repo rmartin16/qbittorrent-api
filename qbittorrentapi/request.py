@@ -25,28 +25,32 @@ class RequestMixIn:
                                      **kwargs)
 
     @staticmethod
-    def _build_url(url_without_path=None, host="", api_path_list=None):
+    def _build_url(base_url=None, host='', port=None, api_path_list=None):
         """
         Create a fully qualifed URL (minus query parameters that Requests will add later).
 
         Supports detecting whether HTTPS is enabled for WebUI.
 
-        :param url_without_path: if the URL was already built, this is the base URL
+        :param base_url: if the URL was already built, this is the base URL
         :param host: user provided hostname for WebUI
         :param api_path_list: list of strings for API endpoint path (e.g. ['api', 'v2', 'app', 'version'])
         :return: full URL for WebUI API endpoint
         """
         # build full URL if it's the first time we're here
-        if url_without_path is None:
-            if not host.startswith('http:') and not host.startswith('https:') and not host.startswith('//'):
+        if base_url is None:
+            if not host.lower().startswith(('http:', 'https:', '//')):
                 host = '//' + host
-            url_without_path = urlparse(url=host, scheme='http')
-            url_without_path = url_without_path._replace(scheme='http')
+            base_url = urlparse(url=host)
+            # force scheme to HTTP even if host was provided with HTTPS scheme
+            base_url = base_url._replace(scheme='http')
+            # add port number if host doesn't contain one
+            if port is not None and not isinstance(base_url.port, int):
+                base_url = base_url._replace(netloc='%s:%s' % (base_url.netloc, port))
 
-            # detect supported scheme for URL
+            # detect whether Web API is configured for HTTP or HTTPS
             logger.debug("Detecting scheme for URL...")
             try:
-                r = requests.head(url_without_path.geturl(), allow_redirects=True)
+                r = requests.head(base_url.geturl(), allow_redirects=True)
                 # if WebUI eventually supports sending a redirect from HTTP to HTTPS then
                 # Requests will automatically provide a URL using HTTPS.
                 # For instance, the URL returned below will use the HTTPS scheme.
@@ -60,14 +64,12 @@ class RequestMixIn:
 
             # use detected scheme
             logger.debug("Using %s scheme" % scheme.upper())
-            url_without_path = url_without_path._replace(scheme=scheme)
+            base_url = base_url._replace(scheme=scheme)
 
-            logger.debug("Base URL: %s" % url_without_path.geturl())
+            logger.debug("Base URL: %s" % base_url.geturl())
 
         # add the full API path to complete the URL
-        url = url_without_path._replace(path='/'.join([s.strip('/') for s in api_path_list]))
-
-        return url
+        return base_url._replace(path='/'.join([s.strip('/') for s in api_path_list]))
 
     def _request_wrapper(self, http_method, relative_path_list, **kwargs):
         """Wrapper to manage requests retries."""
@@ -108,15 +110,16 @@ class RequestMixIn:
 
     def _request(self, http_method, relative_path_list, **kwargs):
 
-        api_path_list = [self._URL_API_PATH, self._URL_API_VERSION]
+        api_path_list = [self._API_URL_BASE_PATH, self._API_URL_API_VERSION]
         api_path_list.extend(relative_path_list)
 
-        url = self._build_url(url_without_path=self._URL_WITHOUT_PATH,
+        url = self._build_url(base_url=self._API_URL_BASE,
                               host=self.host,
+                              port=self.port,
                               api_path_list=api_path_list)
 
         # preserve URL without the path so we don't have to rebuild it next time
-        self._URL_WITHOUT_PATH = url._replace(path="")
+        self._API_URL_BASE = url._replace(path='')
 
         # mechanism to send params to Requests
         requests_params = kwargs.pop('requests_params', dict())
@@ -132,12 +135,12 @@ class RequestMixIn:
 
         # set up headers
         headers = kwargs.pop('headers', dict())
-        headers['Referer'] = self._URL_WITHOUT_PATH.geturl()
-        headers['Origin'] = self._URL_WITHOUT_PATH.geturl()
+        headers['Referer'] = self._API_URL_BASE.geturl()
+        headers['Origin'] = self._API_URL_BASE.geturl()
         # headers['X-Requested-With'] = "XMLHttpRequest"
 
         # include the SID auth cookie unless we're trying to log in and get a SID
-        cookies = {'SID': self._SID if "auth/login" not in url.path else ''}
+        cookies = {'SID': self._SID if 'auth/login' not in url.path else ''}
 
         # turn off console-printed warnings about SSL certificate issues (e.g. untrusted since it is self-signed)
         if not self._VERIFY_WEBUI_CERTIFICATE:

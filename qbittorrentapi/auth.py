@@ -53,7 +53,7 @@ class AuthMixIn(RequestMixIn):
         self._cached_web_api_version = None
 
         # reset URL so the full URL is derived again (primarily allows for switching scheme for WebUI: HTTP <-> HTTPS)
-        self._URL_WITHOUT_PATH = None
+        self._API_URL_BASE = None
 
         # reinitialize interaction layers
         self._application = None
@@ -68,5 +68,5 @@ class AuthMixIn(RequestMixIn):
 
     @login_required
     def auth_log_out(self, **kwargs):
-        """ Log out of qBittorrent client"""
+        """ Log out of qBittorrent client """
         self._get(_name=APINames.Authorization, _method='logout', **kwargs)

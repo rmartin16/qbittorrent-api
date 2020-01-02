@@ -77,18 +77,20 @@ class Client(AuthMixIn, AppMixIn, LogMixIn, SyncMixIn, TransferMixIn, TorrentsMi
                                                                   instead of just returning None.
         DISABLE_LOGGING_DEBUG_OUTPUT: Turn off debug output from logging for this package as well as Requests & urllib3.
 
-    :param host: hostname of qBittorrent client (eg http://localhost[:8080], https://localhost[:8080], localhost[:8080])
+    :param host: hostname for qBittorrent Web API (eg http://localhost[:8080], https://localhost[:8080], localhost[:8080])
+    :param port: port number for qBittorrent Web API (note: only used if host does not contain a port)
     :param username: user name for qBittorrent client
     :param password: password for qBittorrent client
     """
-    def __init__(self, host='', username='', password='', **kwargs):
+    def __init__(self, host='', port=None, username='', password='', **kwargs):
         self.host = host
+        self.port = port
         self.username = username
         self._password = password
 
         # defaults that should not change
-        self._URL_API_PATH = "api"
-        self._URL_API_VERSION = "v2"
+        self._API_URL_BASE_PATH = "api"
+        self._API_URL_API_VERSION = "v2"
 
         # state, context, and caching variables
         #   These variables are deleted if the connection to qBittorrent is reset
@@ -105,7 +107,7 @@ class Client(AuthMixIn, AppMixIn, LogMixIn, SyncMixIn, TransferMixIn, TorrentsMi
         self._sync = None
         self._rss = None
         self._search = None
-        self._URL_WITHOUT_PATH = None
+        self._API_URL_BASE = None
 
         # Configuration variables
         self._VERIFY_WEBUI_CERTIFICATE = kwargs.pop('VERIFY_WEBUI_CERTIFICATE', True)
