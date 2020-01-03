@@ -1,3 +1,7 @@
+Version 0.5.1
+ - Add Python3.8 version for PyPI
+ - Move project from beta to stable for PyPI
+
 Version 0.5.0
  - Make Web API URL derivation more robust...thereby allowing the client to actually work on Python3.8 (#5)
  - Allow port to be discretely specified during Client instantiation (#4)
