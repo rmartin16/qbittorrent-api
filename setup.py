@@ -13,7 +13,7 @@ setup(
                       'urllib3>=1.24.2'],
     url='https://github.com/rmartin16/qbittorrent-api',
     author='Russell Martin',
-    description='Python wrapper for qBittorrent 4.1+ (Web API v2.0+)',
+    description='Python client for qBittorrent v4.1+ Web API',
     long_description=long_description,
     long_description_content_type="text/markdown",
     keywords='qbittorrent api',
