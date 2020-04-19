@@ -86,7 +86,7 @@ class AppMixIn(RequestMixIn):
         :param prefs: dictionary of preferences to set
         :return: None
         """
-        data = {'json': dumps(prefs)}
+        data = {'json': dumps(prefs, separators=(',', ':'))}
         return self._post(_name=APINames.Application, _method='setPreferences', data=data, **kwargs)
 
     @Alias('app_defaultSavePath')
