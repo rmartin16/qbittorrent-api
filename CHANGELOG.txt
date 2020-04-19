@@ -1,3 +1,6 @@
+Version 0.5.2
+ - Fixes #8. Remove whitespace from in setPreferences requests for older qBittorrent versions.
+
 Version 0.5.1
  - Add Python3.8 version for PyPI
  - Move project from beta to stable for PyPI

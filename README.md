@@ -30,7 +30,7 @@ Installation
   * `pip install git+https://github.com/rmartin16/qbittorrent-api.git@v0.3.2#egg=qbittorrent-api`
 * Install direct from master:
   * `pip install git+https://github.com/rmartin16/qbittorrent-api.git#egg=qbittorrent-api`
-* Ensure urllib3, requests, and attrdict are installed. (These are installed autuomatically using the methods above.)
+* Ensure urllib3, requests, and attrdict are installed. (These are installed automatically using the methods above.)
 * Enable WebUI in qBittorrent: Tools -> Preferences -> Web UI
 * If the Web API will be exposed to the Internet (i.e. made available outside your network), please [do it properly](https://github.com/qbittorrent/qBittorrent/wiki/Linux-WebUI-HTTPS-with-Let's-Encrypt-certificates-and-NGINX-SSL-reverse-proxy).
 
