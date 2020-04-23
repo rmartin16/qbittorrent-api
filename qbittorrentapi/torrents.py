@@ -303,7 +303,7 @@ class TorrentsMixIn(RequestMixIn):
         :param reverse: Reverse sorting
         :param limit: Limit length of list
         :param offset: Start of list (if <0, offset from end of list)
-        :param hashes: Filter list by hash (seperate multiple hashes with a '|')
+        :param hashes: Filter list by hash (separate multiple hashes with a '|')
         :return: List of torrents
             Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-torrent-list
         """
@@ -484,7 +484,7 @@ class TorrentsMixIn(RequestMixIn):
     @login_required
     def torrents_upload_limit(self, hashes=None, **kwargs):
         """
-        Retrieve the upload limit for onee or more torrents. (alias: torrents_uploadLimit)
+        Retrieve the upload limit for one or more torrents. (alias: torrents_uploadLimit)
 
         :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: dictionary of limits

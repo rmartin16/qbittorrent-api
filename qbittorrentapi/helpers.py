@@ -18,7 +18,7 @@ def suppress_context(exc):
     """
     This is used to mask an exception with another one.
 
-    For instance, below, the devide by zero error is masked by the CustomException.
+    For instance, below, the divide by zero error is masked by the CustomException.
         try:
             1/0
         except ZeroDivisionError:

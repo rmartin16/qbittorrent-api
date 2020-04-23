@@ -284,7 +284,7 @@ class Torrents(InteractionLayer):
         self.set_category = self._ActionForAllTorrents(client, func=client.torrents_set_category)
         self.setCategory = self.set_category
         self.set_auto_management = self._ActionForAllTorrents(client, func=client.torrents_set_auto_management)
-        self.setAutoManagemnt = self.set_auto_management
+        self.setAutoManagement = self.set_auto_management
         self.toggle_sequential_download = self._ActionForAllTorrents(client, func=client.torrents_toggle_sequential_download)
         self.toggleSequentialDownload = self.toggle_sequential_download
         self.toggle_first_last_piece_priority = self._ActionForAllTorrents(client, func=client.torrents_toggle_first_last_piece_priority)
@@ -588,5 +588,3 @@ class Search(InteractionLayer):
     @Alias('updatePlugins')
     def update_plugins(self, **kwargs):
         return self._client.search_update_plugins(**kwargs)
-
-

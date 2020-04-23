@@ -23,7 +23,7 @@ class SearchMixIn(RequestMixIn):
     @login_required
     def search_start(self, pattern=None, plugins=None, category=None, **kwargs):
         """
-        Start a search. Python must be installed. Host may limit nuber of concurrent searches.
+        Start a search. Python must be installed. Host may limit number of concurrent searches.
 
         Exceptions:
             Conflict409Error
