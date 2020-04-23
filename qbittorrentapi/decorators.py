@@ -125,6 +125,7 @@ def response_json(response_class):
     def _inner(f):
         @wraps(f)
         def wrapper(obj, *args, **kwargs):
+            simple_response = obj._SIMPLE_RESPONSES or kwargs.pop('SIMPLE_RESPONSES', kwargs.pop('SIMPLE_RESPONSE', False))
             response = f(obj, *args, **kwargs)
             try:
                 if isinstance(response, response_class):
@@ -135,11 +136,12 @@ def response_json(response_class):
                     except AttributeError:
                         # just in case the requests package is old and doesn't contain json()
                         result = loads(response.text)
+                    if simple_response:
+                        return result
                     return response_class(result, obj)
-            except Exception:
+            except Exception as e:
                 logger.debug("Exception during response parsing.", exc_info=True)
-                # return response_class()
-                raise APIError("Exception during response parsing")
+                raise APIError("Exception during response parsing. Error: %s" % repr(e))
 
         return wrapper
 

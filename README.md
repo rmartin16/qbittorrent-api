@@ -5,8 +5,9 @@ Python client implementation for qBittorrent Web API. Supports qBittorrent v4.1.
   * [Features](#features)
   * [Installation](#installation)
   * [Getting Started](#getting-started)
-  * [API Documentation](#api-documentation)
   * [Behavior & Configuration](#behavior--configuration)
+  * [Performance](#performance)
+  * [API Documentation](#api-documentation)
   * [Direct API Endpoint Access](#direct-api-endpoint-access)
   * [Interaction Layer Usage](#interaction-layer-usage)
   * [Interaction Layer Notes](#interaction-layer-notes)
@@ -62,17 +63,6 @@ for torrent in qbt_client.torrents_info():
 qbt_client.torrents.pause.all()
 ```
 
-API Documentation
----------------
-The Client's methods all document their own description, expected arguments, possible exceptions, and return value.
-
-For best results, use the "most primitive" form of the API call. So, `qbt_client.torrents_pause` instead of `qbt_client.torrents.pause`.
-
-```python
-help(qbt_client.torrents_add)
-help(qbt_client.torrents_add_trackers)
-```
-
 Behavior & Configuration
 -------------
 * **WARNING**: Using an untrusted (e.g. self-signed) certificate for HTTPS WebUI
@@ -90,6 +80,33 @@ Behavior & Configuration
     * ```logging.getLogger('qbittorrentapi').setLevel(logging.INFO) ```
     * ```logging.getLogger('requests').setLevel(logging.INFO) ```
     * ```logging.getLogger('urllib3').setLevel(logging.INFO) ```
+
+Performance
+---------------
+By default, complex objects are returned from some endpoints. These objects allow for accessing the response's items as attributes and include methods for contextually relevant actions (such as `start()` and `stop()` for a torrent, for example).
+
+This comes at the cost of performance, though. Generally, this cost isn't large; however, some endpoints, such as `torrents_files()`, may need to convert a large payload and the cost can be significant.
+
+This client can be configured to always return only the simple JSON if desired. Simply set `SIMPLE_RESPONSES=True` when instantiating the client.
+```python
+qbt_client = qbittorrentapi.Client(host='localhost:8080', username='admin', password='adminadmin', SIMPLE_RESPONSES=True)
+```
+
+Alternatively, `SIMPLE_RESPONSES` can be set to True to return the simple JSON only for an individual method call.
+```python
+qbt_client.torrents.files(hash='...', SIMPLE_RESPONSES=True)
+```
+
+API Documentation
+---------------
+The Client's methods all document their own description, expected arguments, possible exceptions, and return value.
+
+For best results, use the "most primitive" form of the API call. So, `qbt_client.torrents_pause` instead of `qbt_client.torrents.pause`.
+
+```python
+help(qbt_client.torrents_add)
+help(qbt_client.torrents_add_trackers)
+```
 
 Direct API Endpoint Access
 --------------------------
@@ -185,7 +202,7 @@ torrent.set_category(category='video')
 Search extended usage.
 ```python
 search_job = qbt_client.search.start(pattern='Ubuntu', categories='all', plugins='all')
-while (search_job.status()[0].status != 'Stopped'):
+while search_job.status()[0].status != 'Stopped':
   time.sleep(.1)
 print(search_job.results())
 search_job.delete()
@@ -319,7 +336,7 @@ Interaction Layer Details
     * items
       * Methods
         * without_data
-        * woth_data
+        * with_data
     * set_rule
     * rename_rule
     * remove_rule

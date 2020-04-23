@@ -5,11 +5,10 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='qbittorrent-api',
-    version='0.5.2',
+    version='6.0.0',
     packages=find_packages(exclude=['*.tests', '*.tests.*', 'tests.*', 'tests']),
     include_package_data=True,
     install_requires=['attrdict>=2.0.0',
-                      'requests>=2.16.0',
                       'requests>=2.16.0',
                       'urllib3>=1.24.2'],
     url='https://github.com/rmartin16/qbittorrent-api',
@@ -33,6 +32,5 @@ setup(
                  'Operating System :: OS Independent',
                  'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
                  'Topic :: Communications :: File Sharing',
-                 'Topic :: Utilities'
-                 ]
+                 'Topic :: Utilities']
 )

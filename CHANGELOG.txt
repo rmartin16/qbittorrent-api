@@ -1,3 +1,7 @@
+Version 6.0.0
+ - Performance gains for responses with payloads...especially for large payloads.
+ - Fixes #6. Adds support for SIMPLE_RESPONSES for the entire client and individual methods.
+
 Version 0.5.2
  - Fixes #8. Remove whitespace from in setPreferences requests for older qBittorrent versions.
 

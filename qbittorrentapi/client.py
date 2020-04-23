@@ -68,6 +68,13 @@ class Client(AuthMixIn, AppMixIn, LogMixIn, SyncMixIn, TransferMixIn, TorrentsMi
     provided during Client construction.
 
     Optional Configuration Arguments:
+        SIMPLE_RESPONSES: By default, complex objects are returned from some endpoints. These objects will allow for
+                          accessing responses' items as attributes and include methods for contextually relevant actions.
+                          This comes at the cost of performance. Generally, this cost isn't large; however, some
+                          endpoints, such as torrents_files() method, may need to convert a large payload.
+                          Set this to True to return the simple JSON back.
+                          Alternatively, set this to True only for an individual method call. For instance, when
+                          requesting the files for a torrent: client.torrents_files(hash='...', SIMPLE_RESPONSES=True).
         VERIFY_WEBUI_CERTIFICATE: Set to False to skip verify certificate for HTTPS connections;
                                   for instance, if the connection is using a self-signed certificate.
                                   Not setting this to False for self-signed certs will cause a
@@ -77,7 +84,7 @@ class Client(AuthMixIn, AppMixIn, LogMixIn, SyncMixIn, TransferMixIn, TorrentsMi
                                                                   instead of just returning None.
         DISABLE_LOGGING_DEBUG_OUTPUT: Turn off debug output from logging for this package as well as Requests & urllib3.
 
-    :param host: hostname for qBittorrent Web API (eg http://localhost[:8080], https://localhost[:8080], localhost[:8080])
+    :param host: hostname for qBittorrent Web API (e.g. [http[s]://]localhost[:8080])
     :param port: port number for qBittorrent Web API (note: only used if host does not contain a port)
     :param username: user name for qBittorrent client
     :param password: password for qBittorrent client
@@ -89,8 +96,8 @@ class Client(AuthMixIn, AppMixIn, LogMixIn, SyncMixIn, TransferMixIn, TorrentsMi
         self._password = password
 
         # defaults that should not change
-        self._API_URL_BASE_PATH = "api"
-        self._API_URL_API_VERSION = "v2"
+        self._API_URL_BASE_PATH = 'api'
+        self._API_URL_API_VERSION = 'v2'
 
         # state, context, and caching variables
         #   These variables are deleted if the connection to qBittorrent is reset
@@ -112,23 +119,25 @@ class Client(AuthMixIn, AppMixIn, LogMixIn, SyncMixIn, TransferMixIn, TorrentsMi
         # Configuration variables
         self._VERIFY_WEBUI_CERTIFICATE = kwargs.pop('VERIFY_WEBUI_CERTIFICATE', True)
         self._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS = kwargs.pop('RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS', False)
-        self._PRINT_STACK_FOR_EACH_REQUEST = kwargs.pop("PRINT_STACK_FOR_EACH_REQUEST", False)
+        self._VERBOSE_RESPONSE_LOGGING = kwargs.pop('VERBOSE_RESPONSE_LOGGING', False)
+        self._PRINT_STACK_FOR_EACH_REQUEST = kwargs.pop('PRINT_STACK_FOR_EACH_REQUEST', False)
+        self._SIMPLE_RESPONSES = kwargs.pop('SIMPLE_RESPONSES', False)
 
-        if kwargs.pop("DISABLE_LOGGING_DEBUG_OUTPUT", False):
+        if kwargs.pop('DISABLE_LOGGING_DEBUG_OUTPUT', False):
             logging.getLogger('qbittorrentapi').setLevel(logging.INFO)
             logging.getLogger('requests').setLevel(logging.INFO)
             logging.getLogger('urllib3').setLevel(logging.INFO)
 
         # Environment variables have lowest priority
         if self.host == '' and environ.get('PYTHON_QBITTORRENTAPI_HOST') is not None:
-            logger.debug("Using PYTHON_QBITTORRENTAPI_HOST env variable for qBittorrent hostname")
+            logger.debug('Using PYTHON_QBITTORRENTAPI_HOST env variable for qBittorrent hostname')
             self.host = environ['PYTHON_QBITTORRENTAPI_HOST']
         if self.username == '' and environ.get('PYTHON_QBITTORRENTAPI_USERNAME') is not None:
-            logger.debug("Using PYTHON_QBITTORRENTAPI_USERNAME env variable for username")
+            logger.debug('Using PYTHON_QBITTORRENTAPI_USERNAME env variable for username')
             self.username = environ['PYTHON_QBITTORRENTAPI_USERNAME']
 
         if self._password == '' and environ.get('PYTHON_QBITTORRENTAPI_PASSWORD') is not None:
-            logger.debug("Using PYTHON_QBITTORRENTAPI_PASSWORD env variable for password")
+            logger.debug('Using PYTHON_QBITTORRENTAPI_PASSWORD env variable for password')
             self._password = environ['PYTHON_QBITTORRENTAPI_PASSWORD']
 
         if self._VERIFY_WEBUI_CERTIFICATE is True and environ.get('PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE') is not None:
@@ -139,7 +148,7 @@ class Client(AuthMixIn, AppMixIn, LogMixIn, SyncMixIn, TransferMixIn, TorrentsMi
 
         # Ensure we got everything we need
         assert self.host
-        if self.username != "":
+        if self.username != '':
             assert self._password
 
     ##########################################################################

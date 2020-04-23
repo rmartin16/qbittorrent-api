@@ -117,26 +117,25 @@ class RequestMixIn:
                                     files=files,
                                     **requests_params)
 
-        resp_logger = logger.debug
-        max_text_length_to_log = 254
-        if response.status_code != 200:
-            max_text_length_to_log = 10000  # log as much as possible in a error condition
+        if self._VERBOSE_RESPONSE_LOGGING:
+            resp_logger = logger.debug
+            max_text_length_to_log = 254
+            if response.status_code != 200:
+                max_text_length_to_log = 10000  # log as much as possible in a error condition
 
-        resp_logger("Request URL: (%s) %s" % (http_method.upper(), response.url))
-        if str(response.request.body) not in ["None", ""] and "auth/login" not in url.path:
-            body_len = max_text_length_to_log if len(response.request.body) > max_text_length_to_log else len(response.request.body)
-            resp_logger("Request body: %s%s" % (response.request.body[:body_len], "...<truncated>" if body_len >= 80 else ''))
+            resp_logger("Request URL: (%s) %s" % (http_method.upper(), response.url))
+            if str(response.request.body) not in ["None", ""] and "auth/login" not in url.path:
+                body_len = max_text_length_to_log if len(response.request.body) > max_text_length_to_log else len(response.request.body)
+                resp_logger("Request body: %s%s" % (response.request.body[:body_len], "...<truncated>" if body_len >= 80 else ''))
 
-        resp_logger("Response status: %s (%s)" % (response.status_code, response.reason))
-        if response.text:
-            text_len = max_text_length_to_log if len(response.text) > max_text_length_to_log else len(response.text)
-            resp_logger("Response text: %s%s" % (response.text[:text_len], "...<truncated>" if text_len >= 80 else ''))
+            resp_logger("Response status: %s (%s)" % (response.status_code, response.reason))
+            if response.text:
+                text_len = max_text_length_to_log if len(response.text) > max_text_length_to_log else len(response.text)
+                resp_logger("Response text: %s%s" % (response.text[:text_len], "...<truncated>" if text_len >= 80 else ''))
 
         if self._PRINT_STACK_FOR_EACH_REQUEST:
             from traceback import print_stack
             print_stack()
-
-        error_message = response.text
 
         if response.status_code == 400:
             """
@@ -147,27 +146,27 @@ class RequestMixIn:
             """
             if response.text == "":
                 raise MissingRequiredParameters400Error()
-            raise InvalidRequest400Error(error_message)
+            raise InvalidRequest400Error(response.text)
 
         elif response.status_code == 401:
             """
             Primarily reserved for XSS and host header issues. Is also
             """
-            raise Unauthorized401Error(error_message)
+            raise Unauthorized401Error(response.text)
 
         elif response.status_code == 403:
             """
             Not logged in or calling an API method that isn't public
             APIErrorType::AccessDenied
             """
-            raise Forbidden403Error(error_message)
+            raise Forbidden403Error(response.text)
 
         elif response.status_code == 404:
             """
             API method doesn't exist or more likely, torrent not found
             APIErrorType::NotFound
             """
-            if error_message == "":
+            if response.text == "":
                 error_torrent_hash = ""
                 if data:
                     error_torrent_hash = data.get('hash', error_torrent_hash)
@@ -177,28 +176,28 @@ class RequestMixIn:
                     error_torrent_hash = params.get('hashes', error_torrent_hash)
                 if error_torrent_hash:
                     error_message = "Torrent hash(es): %s" % error_torrent_hash
-            raise NotFound404Error(error_message)
+            raise NotFound404Error(response.text)
 
         elif response.status_code == 409:
             """
             APIErrorType::Conflict
             """
-            raise Conflict409Error(error_message)
+            raise Conflict409Error(response.text)
 
         elif response.status_code == 415:
             """
             APIErrorType::BadData
             """
-            raise UnsupportedMediaType415Error(error_message)
+            raise UnsupportedMediaType415Error(response.text)
 
         elif response.status_code >= 500:
-            raise InternalServerError500Error(error_message)
+            raise InternalServerError500Error(response.text)
 
         elif response.status_code >= 400:
             """
             Unaccounted for errors from API
             """
-            raise HTTPError(error_message)
+            raise HTTPError(response.text)
 
         return response
 
