@@ -494,6 +494,10 @@ class RSS(InteractionLayer):
     def refresh_item(self, item_path=None):
         return self._client.rss_refresh_item(item_path=item_path)
 
+    @Alias('markAsRead')
+    def mark_as_read(self, item_path=None, article_id=None, **kwargs):
+        return self._client.rss_mark_as_read(item_path=item_path, article_id=article_id, **kwargs)
+
     @Alias('setRule')
     def set_rule(self, rule_name=None, rule_def=None, **kwargs):
         return self._client.rss_set_rule(rule_name=rule_name, rule_def=rule_def, **kwargs)
@@ -509,6 +513,10 @@ class RSS(InteractionLayer):
     @property
     def rules(self):
         return self._client.rss_rules()
+
+    @Alias('matchingArticles')
+    def matching_articles(self, rule_name=None, **kwargs):
+        return self._client.rss_matching_articles(rule_name=rule_name, **kwargs)
 
     class _Items(InteractionLayer):
         def __call__(self, include_feed_data=None, **kwargs):

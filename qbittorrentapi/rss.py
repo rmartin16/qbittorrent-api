@@ -95,7 +95,7 @@ class RSSMixIn(RequestMixIn):
         return self._get(_name=APINames.RSS, _method='items', params=params, **kwargs)
 
     @version_implemented('2.2', 'rss/refreshItem')
-    @Alias("rss_refreshItem")
+    @Alias('rss_refreshItem')
     @login_required
     def rss_refresh_item(self, item_path=None, **kwargs):
         """
@@ -108,7 +108,25 @@ class RSSMixIn(RequestMixIn):
         from qbittorrentapi.helpers import is_version_less_than
         if is_version_less_than('v4.1.7', self.app_version(), False):
             params = {"itemPath": item_path}
-            self._get(_name=APINames.RSS, _method="refreshItem", params=params, **kwargs)
+            self._get(_name=APINames.RSS, _method='refreshItem', params=params, **kwargs)
+
+    @version_implemented('2.5.1', 'rss/markAsRead')
+    @Alias('rss_markAsRead')
+    @login_required
+    def rss_mark_as_read(self, item_path=None, article_id=None, **kwargs):
+        """
+        Mark RSS article as read. If article ID is not provider, the entire feed is marked as read. (alias: rss_markAsRead)
+
+        Exceptions:
+            NotFound404Error
+
+        :param item_path: path to item to be refreshed (e.g. Folder\Subfolder\ItemName)
+        :param article_id: article ID from rss_items()
+        :return: None
+        """
+        data = {'itemPath': item_path,
+                'articleId': article_id}
+        return self._post(_name=APINames.RSS, _method='markAsRead', data=data, **kwargs)
 
     @Alias('rss_setRule')
     @login_required
@@ -160,3 +178,19 @@ class RSSMixIn(RequestMixIn):
         :return: None
         """
         return self._get(_name=APINames.RSS, _method='rules', **kwargs)
+
+    @version_implemented('2.5.1', 'rss/matchingArticles')
+    @Alias('rss_matchingArticles')
+    @response_json(RSSitemsDictionary)
+    @login_required
+    def rss_matching_articles(self, rule_name=None, **kwargs):
+        """
+        Fetch all articles matching a rule. (alias: rss_matchingArticles)
+
+        Exceptions:
+
+        :param rule_name: Name of rule to return matching articles
+        :return
+        """
+        data = {'ruleName': rule_name}
+        return self._post(_name=APINames.RSS, _method='matchingArticles', data=data, **kwargs)
