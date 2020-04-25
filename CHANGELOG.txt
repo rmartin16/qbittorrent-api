@@ -1,4 +1,4 @@
-Version 2020.4.r1
+Version 2020.4.1
  - Add stalled(), stalled_uploading(), and stalled_downloading() to torrents.info interaction. Added in Web API v2.4.1.
  - Implement torrent file renaming. Added in Web API v2.4.0. Fixes #3.
  - Since versioning was botched last release, implement calendar versioning.
