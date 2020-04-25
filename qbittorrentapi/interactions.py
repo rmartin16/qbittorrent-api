@@ -323,56 +323,49 @@ class Torrents(InteractionLayer):
         def __call__(self, status_filter=None, category=None, sort=None, reverse=None, limit=None, offset=None,
                      hashes=None, **kwargs):
             return self._client.torrents_info(status_filter=status_filter, category=category, sort=sort,
-                                              reverse=reverse, limit=limit, offset=offset,
-                                              hashes=hashes, **kwargs)
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
 
-        def all(self, category=None, sort=None, reverse=None, limit=None, offset=None,
-                hashes=None, **kwargs):
+        def all(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
             return self._client.torrents_info(status_filter='all', category=category, sort=sort, reverse=reverse,
-                                              limit=limit, offset=offset,
-                                              hashes=hashes, **kwargs)
+                                              limit=limit, offset=offset, hashes=hashes, **kwargs)
 
-        def downloading(self, category=None, sort=None, reverse=None, limit=None, offset=None,
-                        hashes=None, **kwargs):
+        def downloading(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
             return self._client.torrents_info(status_filter='downloading', category=category, sort=sort,
-                                              reverse=reverse,
-                                              limit=limit, offset=offset,
-                                              hashes=hashes, **kwargs)
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
 
-        def completed(self, category=None, sort=None, reverse=None, limit=None, offset=None,
-                      hashes=None, **kwargs):
+        def completed(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
             return self._client.torrents_info(status_filter='completed', category=category, sort=sort,
-                                              reverse=reverse,
-                                              limit=limit, offset=offset,
-                                              hashes=hashes, **kwargs)
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
 
-        def paused(self, category=None, sort=None, reverse=None, limit=None, offset=None,
-                   hashes=None, **kwargs):
+        def paused(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
             return self._client.torrents_info(status_filter='paused', category=category, sort=sort,
-                                              reverse=reverse,
-                                              limit=limit, offset=offset,
-                                              hashes=hashes, **kwargs)
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
 
-        def active(self, category=None, sort=None, reverse=None, limit=None, offset=None,
-                   hashes=None, **kwargs):
+        def active(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
             return self._client.torrents_info(status_filter='active', category=category, sort=sort,
-                                              reverse=reverse,
-                                              limit=limit, offset=offset,
-                                              hashes=hashes, **kwargs)
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
 
-        def inactive(self, category=None, sort=None, reverse=None, limit=None, offset=None,
-                     hashes=None, **kwargs):
+        def inactive(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
             return self._client.torrents_info(status_filter='inactive', category=category, sort=sort,
-                                              reverse=reverse,
-                                              limit=limit, offset=offset,
-                                              hashes=hashes, **kwargs)
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
 
-        def resumed(self, category=None, sort=None, reverse=None, limit=None, offset=None,
-                    hashes=None, **kwargs):
+        def resumed(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
             return self._client.torrents_info(status_filter='resumed', category=category, sort=sort,
-                                              reverse=reverse,
-                                              limit=limit, offset=offset,
-                                              hashes=hashes, **kwargs)
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+
+        def stalled(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='stalled', category=category, sort=sort,
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+
+        def stalled_uploading(self, category=None, sort=None, reverse=None, limit=None, offset=None,
+                              hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='stalled_uploading', category=category, sort=sort,
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+
+        def stalled_downloading(self, category=None, sort=None, reverse=None, limit=None, offset=None,
+                                hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='stalled_downloading', category=category, sort=sort,
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
 
 
 @aliased

@@ -227,6 +227,9 @@ class TorrentDictionary(Dictionary):
     def files(self):
         return self._client.torrents_files(hash=self._hash)
 
+    def rename_file(self, file_id=None, new_file_name=None, **kwargs):
+        return self._client.torrents_rename_file(hash=self._hash, file_id=file_id, new_file_name=new_file_name, **kwargs)
+
     @property
     def piece_states(self):
         return self._client.torrents_piece_states(hash=self._hash)
@@ -319,6 +322,8 @@ class TorrentsAddPeersDictionary(Dictionary):
 class TorrentFilesList(List):
     def __init__(self, list_entries=None, client=None):
         super(TorrentFilesList, self).__init__(list_entries, entry_class=TorrentFile, client=client)
+        for i, entry in enumerate(self):
+            entry.update({'id': i})
 
 
 class TorrentFile(ListEntry):

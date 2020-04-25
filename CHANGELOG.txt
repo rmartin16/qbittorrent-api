@@ -1,3 +1,9 @@
+Version 2020.4-1
+ - Add stalled(), stalled_uploading(), and stalled_downloading() to torrents.info interaction. Added in Web API v2.4.1.
+ - Implement torrent file renaming. Added in Web API v2.4.0. Fixes #3.
+ - Since versioning was botched last release, implement calendar versioning.
+ - List of files returned from torrents_files() now contains file ID in 'id'.
+
 Version 6.0.0
  - Performance gains for responses with payloads...especially for large payloads.
  - Fixes #6. Adds support for SIMPLE_RESPONSES for the entire client and individual methods.

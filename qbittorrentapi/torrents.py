@@ -94,7 +94,9 @@ class TorrentsMixIn(RequestMixIn):
 
         return self._post(_name=APINames.Torrents, _method='add', data=data, files=torrent_files, **kwargs)
 
+    ##########################################################################
     # INDIVIDUAL TORRENT ENDPOINTS
+    ##########################################################################
     @response_json(TorrentPropertiesDictionary)
     @login_required
     def torrents_properties(self, hash=None, **kwargs):
@@ -257,7 +259,7 @@ class TorrentsMixIn(RequestMixIn):
 
         Exceptions:
             InvalidRequest400 if priority is invalid or at least one file ID is not an integer
-            NotFound404
+            NotFound404Error
             Conflict409 if torrent metadata has not finished downloading or at least one file was not found
         :param hash: hash for torrent
         :param file_ids: single file ID or a list. See
@@ -276,7 +278,7 @@ class TorrentsMixIn(RequestMixIn):
         Rename a torrent.
 
         Exceptions:
-            NotFound404
+            NotFound404Error
 
         :param hash: hash for torrent
         :param new_torrent_name: new name for torrent
@@ -286,7 +288,31 @@ class TorrentsMixIn(RequestMixIn):
                 'name': new_torrent_name}
         self._post(_name=APINames.Torrents, _method='rename', data=data, **kwargs)
 
-    # MULTIPLE TORRENT ENDPOINT
+    @version_implemented('2.4.0', 'torrents/renameFile')
+    @Alias('torrents_renameFile')
+    @login_required
+    def torrents_rename_file(self, hash=None, file_id=None, new_file_name=None, **kwargs):
+        """
+        Rename a torrent file.
+
+        Exceptions:
+            MissingRequiredParameters400Error
+            NotFound404Error
+            Conflict409Error
+
+        :param hash: hash for torrent
+        :param file_id: id for file
+        :param new_file_name: new name for file
+        :return: None
+        """
+        data = {'hash': hash,
+                'id': file_id,
+                'name': new_file_name}
+        self._post(_name=APINames.Torrents, _method='renameFile', data=data, **kwargs)
+
+    ##########################################################################
+    # MULTIPLE TORRENT ENDPOINTS
+    ##########################################################################
     @response_json(TorrentInfoList)
     @version_implemented('2.0.1', 'torrents/info', ('hashes', 'hashes'))
     @login_required
@@ -298,11 +324,12 @@ class TorrentsMixIn(RequestMixIn):
         Note: hashes is available starting web API version 2.0.1
 
         :param status_filter: Filter list by all, downloading, completed, paused, active, inactive, resumed
+                              stalled, stalled_uploading and stalled_downloading added in Web API v2.4.1
         :param category: Filter list by category
         :param sort: Sort list by any property returned
         :param reverse: Reverse sorting
         :param limit: Limit length of list
-        :param offset: Start of list (if <0, offset from end of list)
+        :param offset: Start of list (if < 0, offset from end of list)
         :param hashes: Filter list by hash (separate multiple hashes with a '|')
         :return: List of torrents
             Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-torrent-list
