@@ -14,10 +14,9 @@ logger = logging.getLogger(__name__)
 
 @aliased
 class SyncMixIn(RequestMixIn):
-    # TODO: revert to _post or figure out the Bad Request with no data...seems most likely content-length issue
     @response_json(SyncMainDataDictionary)
     @login_required
-    def sync_maindata(self, rid=None, **kwargs):
+    def sync_maindata(self, rid=0, **kwargs):
         """
         Retrieves sync data.
 
@@ -25,13 +24,13 @@ class SyncMixIn(RequestMixIn):
         :return: dictionary response
             Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-main-data
         """
-        parameters = {'rid': rid}
-        return self._get(_name=APINames.Sync, _method='maindata', params=parameters, **kwargs)
+        data = {'rid': rid}
+        return self._post(_name=APINames.Sync, _method='maindata', data=data, **kwargs)
 
     @Alias('sync_torrentPeers')
     @response_json(SyncTorrentPeersDictionary)
     @login_required
-    def sync_torrent_peers(self, hash=None, rid=None, **kwargs):
+    def sync_torrent_peers(self, hash=None, rid=0, **kwargs):
         """
         Retrieves torrent sync data. (alias: sync_torrentPeers)
 
@@ -43,6 +42,6 @@ class SyncMixIn(RequestMixIn):
         :return: Dictionary of torrent sync data.
             Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-torrent-peers-data
         """
-        parameters = {'hash': hash,
-                      'rid': rid}
-        return self._get(_name=APINames.Sync, _method='torrentPeers', params=parameters, **kwargs)
+        data = {'hash': hash,
+                'rid': rid}
+        return self._post(_name=APINames.Sync, _method='torrentPeers', data=data, **kwargs)

@@ -47,8 +47,7 @@ API Peculiarities
             - https://github.com/qbittorrent/qBittorrent/issues/10745
     
     torrents/downloadLimit and uploadLimit
-        - Hashes handling is non-standard. 404 is not returned for bad hashes
-          and 'all' doesn't work.
+        - Hashes handling is non-standard. 404 is not returned for bad hashes and 'all' doesn't work.
         - https://github.com/qbittorrent/qBittorrent/blob/6de02b0f2a79eeb4d7fb624c39a9f65ffe181d68/src/webui/api/torrentscontroller.cpp#L754
         - https://github.com/qbittorrent/qBittorrent/issues/10744
     
@@ -150,6 +149,25 @@ class Client(AuthMixIn, AppMixIn, LogMixIn, SyncMixIn, TransferMixIn, TorrentsMi
         assert self.host
         if self.username != '':
             assert self._password
+
+    def _initialize_context(self):
+        """ Reset context. This is necessary when the auth cookie needs to be replaced. """
+        # cache to avoid perf hit from version checking certain endpoints
+        self._cached_web_api_version = None
+
+        # reset URL so the full URL is derived again (primarily allows for switching scheme for WebUI: HTTP <-> HTTPS)
+        self._API_URL_BASE = None
+
+        # reinitialize interaction layers
+        self._application = None
+        self._transfer = None
+        self._torrents = None
+        self._torrent_categories = None
+        self._torrent_tags = None
+        self._log = None
+        self._sync = None
+        self._rss = None
+        self._search = None
 
     ##########################################################################
     # Interaction Layer Properties

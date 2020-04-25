@@ -1,7 +1,9 @@
+import errno
 import logging
 from os import path
 from os import strerror as os_strerror
-import errno
+
+import six
 
 from qbittorrentapi.request import RequestMixIn
 from qbittorrentapi.helpers import list2string, APINames
@@ -73,11 +75,10 @@ class TorrentsMixIn(RequestMixIn):
                 'dlLimit': (None, download_limit),
                 'autoTMM': (None, use_auto_torrent_management),
                 'sequentialDownload': (None, is_sequential_download),
-                'firstLastPiecePrio': (None, is_first_last_piece_priority)
-                }
+                'firstLastPiecePrio': (None, is_first_last_piece_priority)}
 
         if torrent_files:
-            if isinstance(torrent_files, str):
+            if isinstance(torrent_files, six.string_types):
                 torrent_files = [torrent_files]
             torrent_file = torrent_files[0]
             try:
@@ -320,7 +321,6 @@ class TorrentsMixIn(RequestMixIn):
                       hashes=None, **kwargs):
         """
         Retrieves list of info for torrents.
-
         Note: hashes is available starting web API version 2.0.1
 
         :param status_filter: Filter list by all, downloading, completed, paused, active, inactive, resumed
@@ -346,7 +346,7 @@ class TorrentsMixIn(RequestMixIn):
     @login_required
     def torrents_resume(self, hashes=None, **kwargs):
         """
-        Resume one or more torrents in qBitorrent.
+        Resume one or more torrents in qBittorrent.
 
         :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: None
@@ -357,7 +357,7 @@ class TorrentsMixIn(RequestMixIn):
     @login_required
     def torrents_pause(self, hashes=None, **kwargs):
         """
-        Pause one or more torrents in qBitorrent.
+        Pause one or more torrents in qBittorrent.
 
         :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: None
@@ -472,7 +472,7 @@ class TorrentsMixIn(RequestMixIn):
 
         :return: dictioanry {hash: limit} (-1 represents no limit)
         """
-        data = {'hashes': list2string(hashes, "|")}
+        data = {'hashes': list2string(hashes, '|')}
         return self._post(_name=APINames.Torrents, _method='downloadLimit', data=data, **kwargs)
 
     @Alias('torrents_setDownloadLimit')
@@ -501,7 +501,7 @@ class TorrentsMixIn(RequestMixIn):
         :param seeding_time_limit: minutes (-2 means use the global value and -1 is no limit_
         :return: None
         """
-        data = {'hashes': list2string(hashes, "|"),
+        data = {'hashes': list2string(hashes, '|'),
                 'ratioLimit': ratio_limit,
                 'seedingTimeLimit': seeding_time_limit}
         self._post(_name=APINames.Torrents, _method='setShareLimits', data=data, **kwargs)
@@ -736,7 +736,6 @@ class TorrentsMixIn(RequestMixIn):
     def torrents_add_tags(self, tags=None, hashes=None, **kwargs):
         """
         Add one or more tags to one or more torrents. (alias: torrents_addTags)
-
         Note: Tags that do not exist will be created on-the-fly.
 
         :param tags: tag name or list of tags

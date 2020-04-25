@@ -1,4 +1,7 @@
+from collections import Iterable
 from pkg_resources import parse_version
+
+import six
 
 
 def list2string(input_list=None, delimiter="|"):
@@ -9,8 +12,8 @@ def list2string(input_list=None, delimiter="|"):
     :param delimiter: delimiter for concatenation
     :return: if input is a list, concatenated string...else whatever the input was
     """
-    if isinstance(input_list, list):
-        return delimiter.join([str(x) for x in input_list])
+    if not isinstance(input_list, six.string_types) and isinstance(input_list, Iterable):
+        return delimiter.join(map(str, input_list))
     return input_list
 
 
@@ -52,14 +55,14 @@ class APINames(object):
 
     e.g 'torrents' in http://localhost:8080/api/v2/torrents/addTrackers
     """
-    Authorization = "auth"
-    Application = "app"
-    Log = "log"
-    Sync = "sync"
-    Transfer = "transfer"
-    Torrents = "torrents"
-    RSS = "rss"
-    Search = "search"
+    Authorization = 'auth'
+    Application = 'app'
+    Log = 'log'
+    Sync = 'sync'
+    Transfer = 'transfer'
+    Torrents = 'torrents'
+    RSS = 'rss'
+    Search = 'search'
 
     def __init__(self):
         super(APINames, self).__init__()

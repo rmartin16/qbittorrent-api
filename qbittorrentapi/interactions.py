@@ -62,7 +62,7 @@ class Application(InteractionLayer):
     def preferences(self, v):
         self.set_preferences(prefs=v)
 
-    @Alias("setPreferences")
+    @Alias('setPreferences')
     def set_preferences(self, prefs=None, **kwargs):
         return self._client.app_set_preferences(prefs=prefs, **kwargs)
 
@@ -303,9 +303,8 @@ class Torrents(InteractionLayer):
         return self._client.torrents_add(urls=urls, torrent_files=torrent_files, save_path=save_path, cookie=cookie,
                                          category=category, is_skip_checking=is_skip_checking, is_paused=is_paused,
                                          is_root_folder=is_root_folder, rename=rename, upload_limit=upload_limit,
-                                         download_limit=download_limit,
+                                         download_limit=download_limit, is_sequential_download=is_sequential_download,
                                          use_auto_torrent_management=use_auto_torrent_management,
-                                         is_sequential_download=is_sequential_download,
                                          is_first_last_piece_priority=is_first_last_piece_priority, **kwargs)
 
     class _ActionForAllTorrents(InteractionLayer):

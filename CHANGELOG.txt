@@ -1,3 +1,6 @@
+Version 2020.4.2
+ - Add support for rss/markAsRead and rss/matchingArticles. Added in v2.5.1. Fixes #10
+
 Version 2020.4.1
  - Add stalled(), stalled_uploading(), and stalled_downloading() to torrents.info interaction. Added in Web API v2.4.1.
  - Implement torrent file renaming. Added in Web API v2.4.0. Fixes #3.

@@ -15,10 +15,10 @@ logger = logging.getLogger(__name__)
 
 
 class RequestMixIn:
-    def _get(self, _name="", _method="", **kwargs):
+    def _get(self, _name='', _method='', **kwargs):
         return self._request_wrapper(http_method='get', api_name=_name, api_method=_method, **kwargs)
 
-    def _post(self, _name="", _method="", **kwargs):
+    def _post(self, _name='', _method='', **kwargs):
         return self._request_wrapper(http_method='post', api_name=_name, api_method=_method, **kwargs)
 
     def _request_wrapper(self, _retries=2, _retry_backoff_factor=.3, **kwargs):
@@ -36,22 +36,22 @@ class RequestMixIn:
                     raise
             except Exception as e:
                 if retry >= max_retries:
-                    error_prologue = "Failed to connect to qBittorrent. "
+                    error_prologue = 'Failed to connect to qBittorrent. '
                     error_messages = {
                         requests.exceptions.SSLError:
-                            "This is likely due to using an untrusted certificate (likely self-signed) " 
-                            "for HTTPS qBittorrent WebUI. To suppress this error (and skip certificate "
-                            "verification consequently exposing the HTTPS connection to man-in-the-middle "
-                            "attacks), set VERIFY_WEBUI_CERTIFICATE=False when instantiating Client or set "
-                            "environment variable PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE "
-                            "to a non-null value. SSL Error: %s" % repr(e),
-                        requests.exceptions.HTTPError: "Invalid HTTP Response: %s" % repr(e),
-                        requests.exceptions.TooManyRedirects: "Too many redirects: %s" % repr(e),
-                        requests.exceptions.ConnectionError: "Connection Error: %s" % repr(e),
-                        requests.exceptions.Timeout: "Timeout Error: %s" % repr(e),
-                        requests.exceptions.RequestException: "Requests Error: %s" % repr(e)
+                            'This is likely due to using an untrusted certificate (likely self-signed) ' 
+                            'for HTTPS qBittorrent WebUI. To suppress this error (and skip certificate '
+                            'verification consequently exposing the HTTPS connection to man-in-the-middle '
+                            'attacks), set VERIFY_WEBUI_CERTIFICATE=False when instantiating Client or set '
+                            'environment variable PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE '
+                            'to a non-null value. SSL Error: %s' % repr(e),
+                        requests.exceptions.HTTPError: 'Invalid HTTP Response: %s' % repr(e),
+                        requests.exceptions.TooManyRedirects: 'Too many redirects: %s' % repr(e),
+                        requests.exceptions.ConnectionError: 'Connection Error: %s' % repr(e),
+                        requests.exceptions.Timeout: 'Timeout Error: %s' % repr(e),
+                        requests.exceptions.RequestException: 'Requests Error: %s' % repr(e)
                     }
-                    error_message = error_prologue + error_messages.get(type(e), "Unknown Error: %s" % repr(e))
+                    error_message = error_prologue + error_messages.get(type(e), 'Unknown Error: %s' % repr(e))
                     logger.debug(error_message)
                     response = e.response if hasattr(e, 'response') else None
                     raise APIConnectionError(error_message, response=response)
@@ -73,7 +73,7 @@ class RequestMixIn:
                  data=None, params=None, files=None, headers=None, requests_params=None,
                  **kwargs):
 
-        api_path_list = [self._API_URL_BASE_PATH, self._API_URL_API_VERSION, api_name, api_method]
+        api_path_list = (self._API_URL_BASE_PATH, self._API_URL_API_VERSION, api_name, api_method)
 
         url = self._build_url(base_url=self._API_URL_BASE,
                               host=self.host,
@@ -123,15 +123,15 @@ class RequestMixIn:
             if response.status_code != 200:
                 max_text_length_to_log = 10000  # log as much as possible in a error condition
 
-            resp_logger("Request URL: (%s) %s" % (http_method.upper(), response.url))
-            if str(response.request.body) not in ["None", ""] and "auth/login" not in url.path:
+            resp_logger('Request URL: (%s) %s' % (http_method.upper(), response.url))
+            if str(response.request.body) not in ('None', '') and 'auth/login' not in url.path:
                 body_len = max_text_length_to_log if len(response.request.body) > max_text_length_to_log else len(response.request.body)
-                resp_logger("Request body: %s%s" % (response.request.body[:body_len], "...<truncated>" if body_len >= 80 else ''))
+                resp_logger('Request body: %s%s' % (response.request.body[:body_len], '...<truncated>' if body_len >= 80 else ''))
 
-            resp_logger("Response status: %s (%s)" % (response.status_code, response.reason))
+            resp_logger('Response status: %s (%s)' % (response.status_code, response.reason))
             if response.text:
                 text_len = max_text_length_to_log if len(response.text) > max_text_length_to_log else len(response.text)
-                resp_logger("Response text: %s%s" % (response.text[:text_len], "...<truncated>" if text_len >= 80 else ''))
+                resp_logger('Response text: %s%s' % (response.text[:text_len], '...<truncated>' if text_len >= 80 else ''))
 
         if self._PRINT_STACK_FOR_EACH_REQUEST:
             from traceback import print_stack
@@ -144,7 +144,7 @@ class RequestMixIn:
             If an error_message isn't returned, qBittorrent didn't receive all required parameters.
             APIErrorType::BadParams
             """
-            if response.text == "":
+            if response.text == '':
                 raise MissingRequiredParameters400Error()
             raise InvalidRequest400Error(response.text)
 
@@ -166,17 +166,18 @@ class RequestMixIn:
             API method doesn't exist or more likely, torrent not found
             APIErrorType::NotFound
             """
-            if response.text == "":
-                error_torrent_hash = ""
+            error_message = response.text
+            if error_message == '':
+                error_torrent_hash = ''
                 if data:
                     error_torrent_hash = data.get('hash', error_torrent_hash)
                     error_torrent_hash = data.get('hashes', error_torrent_hash)
-                if params and error_torrent_hash == "":
+                if params and error_torrent_hash == '':
                     error_torrent_hash = params.get('hash', error_torrent_hash)
                     error_torrent_hash = params.get('hashes', error_torrent_hash)
                 if error_torrent_hash:
-                    error_message = "Torrent hash(es): %s" % error_torrent_hash
-            raise NotFound404Error(response.text)
+                    error_message = 'Torrent hash(es): %s' % error_torrent_hash
+            raise NotFound404Error(error_message)
 
         elif response.status_code == 409:
             """
@@ -225,13 +226,13 @@ class RequestMixIn:
                 base_url = base_url._replace(netloc='%s:%s' % (base_url.netloc, port))
 
             # detect whether Web API is configured for HTTP or HTTPS
-            logger.debug("Detecting scheme for URL...")
+            logger.debug('Detecting scheme for URL...')
             try:
                 r = requests.head(base_url.geturl(), allow_redirects=True)
                 # if WebUI eventually supports sending a redirect from HTTP to HTTPS then
                 # Requests will automatically provide a URL using HTTPS.
                 # For instance, the URL returned below will use the HTTPS scheme.
-                #  >>> requests.head("http://grc.com", allow_redirects=True).url
+                #  >>> requests.head('http://grc.com', allow_redirects=True).url
                 scheme = urlparse(r.url).scheme
             except requests.exceptions.RequestException:
                 # qBittorrent will reject the connection if WebUI is configured for HTTPS.
@@ -240,10 +241,10 @@ class RequestMixIn:
                 scheme = 'https'
 
             # use detected scheme
-            logger.debug("Using %s scheme" % scheme.upper())
+            logger.debug('Using %s scheme' % scheme.upper())
             base_url = base_url._replace(scheme=scheme)
 
-            logger.debug("Base URL: %s" % base_url.geturl())
+            logger.debug('Base URL: %s' % base_url.geturl())
 
         # add the full API path to complete the URL
-        return base_url._replace(path='/'.join([s.strip('/') for s in api_path_list]))
+        return base_url._replace(path='/'.join(map(lambda s: s.strip('/'), map(str, api_path_list))))

@@ -31,7 +31,7 @@ class Dictionary(AttrDict):
                 return converted_dict
 
         data = convert_dict_values_to_attrdicts(data)
-        super(Dictionary, self).__init__(data if data is not None else dict())
+        super(Dictionary, self).__init__(data or dict())
 
 
 class ListEntry(Dictionary):
@@ -58,8 +58,7 @@ class List(UserList):
 ##########################################################################
 class SearchJobDictionary(Dictionary):
     def __init__(self, data, client):
-        if 'id' in data:
-            self._search_job_id = data.get('id', None)
+        self._search_job_id = data.get('id', None)
         super(SearchJobDictionary, self).__init__(data=data, client=client)
 
     def stop(self, **kwargs):

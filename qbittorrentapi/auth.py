@@ -27,7 +27,7 @@ class AuthMixIn(RequestMixIn):
         :param password: password for qBittorrent client
         :return: None
         """
-        if username != "":
+        if username != '':
             self.username = username
             assert password
             self._password = password
@@ -41,30 +41,12 @@ class AuthMixIn(RequestMixIn):
                                         'password': self._password}
                                   )
             self._SID = response.cookies['SID']
-            logger.debug("Login successful for user '%s'" % self.username)
-            logger.debug("SID: %s" % self._SID)
+            logger.debug('Login successful for user "%s"' % self.username)
+            logger.debug('SID: %s' % self._SID)
 
         except KeyError:
-            logger.debug("Login failed for user '%s'" % self.username)
-            raise suppress_context(LoginFailed("Login authorization failed for user '%s'" % self.username))
-
-    def _initialize_context(self):
-        # cache to avoid perf hit from version checking certain endpoints
-        self._cached_web_api_version = None
-
-        # reset URL so the full URL is derived again (primarily allows for switching scheme for WebUI: HTTP <-> HTTPS)
-        self._API_URL_BASE = None
-
-        # reinitialize interaction layers
-        self._application = None
-        self._transfer = None
-        self._torrents = None
-        self._torrent_categories = None
-        self._torrent_tags = None
-        self._log = None
-        self._sync = None
-        self._rss = None
-        self._search = None
+            logger.debug('Login failed for user "%s"' % self.username)
+            raise suppress_context(LoginFailed('Login authorization failed for user "%s"' % self.username))
 
     @login_required
     def auth_log_out(self, **kwargs):

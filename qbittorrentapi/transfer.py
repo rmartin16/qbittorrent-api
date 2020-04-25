@@ -42,7 +42,7 @@ class TransferMixIn(RequestMixIn):
     @login_required
     def transfer_toggle_speed_limits_mode(self, intended_state=None, **kwargs):
         """
-        Toggles whether alternative speed limits are enabled. (alias: transfer_toggleSpeedLimitsMode)
+        Sets whether alternative speed limits are enabled. (alias: transfer_toggleSpeedLimitsMode)
 
         :param intended_state: True to enable alt speed and False to disable.
                                Leaving None will toggle the current state.

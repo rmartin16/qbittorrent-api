@@ -22,7 +22,6 @@ class Alias(object):
     """
 
     def __init__(self, *aliases):
-        """Constructor."""
         self.aliases = set(aliases)
 
     def __call__(self, f):
@@ -41,8 +40,7 @@ def aliased(aliased_class):
     """
     Decorator function that *must* be used in combination with @alias
     decorator. This class will make the magic happen!
-    @aliased classes will have their aliased method (via @alias) actually
-    aliased.
+    @aliased classes will have their aliased method (via @alias) actually aliased.
     This method simply iterates over the member attributes of 'aliased_class'
     seeking for those which have an '_aliases' attribute and then defines new
     members in the class using those aliases as mere pointer functions to the
@@ -75,12 +73,12 @@ def login_required(f):
     @wraps(f)
     def wrapper(obj, *args, **kwargs):
         if not obj.is_logged_in:
-            logger.debug("Not logged in...attempting login")
+            logger.debug('Not logged in...attempting login')
             obj.auth_log_in()
         try:
             return f(obj, *args, **kwargs)
         except HTTP403Error:
-            logger.debug("Login may have expired...attempting new login")
+            logger.debug('Login may have expired...attempting new login')
             obj.auth_log_in()
 
         return f(obj, *args, **kwargs)
@@ -105,9 +103,8 @@ def response_text(response_class):
             try:
                 return response_class(result.text)
             except Exception:
-                logger.debug("Exception during response parsing.", exc_info=True)
-                # return response_class()
-                raise APIError("Exception during response parsing")
+                logger.debug('Exception during response parsing.', exc_info=True)
+                raise APIError('Exception during response parsing')
 
         return wrapper
 
@@ -140,8 +137,8 @@ def response_json(response_class):
                         return result
                     return response_class(result, obj)
             except Exception as e:
-                logger.debug("Exception during response parsing.", exc_info=True)
-                raise APIError("Exception during response parsing. Error: %s" % repr(e))
+                logger.debug('Exception during response parsing.', exc_info=True)
+                raise APIError('Exception during response parsing. Error: %s' % repr(e))
 
         return wrapper
 
@@ -171,16 +168,16 @@ def version_implemented(version_introduced, endpoint, end_point_params=None):
                         parameters_list = [end_point_params]
                     # each tuple should be ('python param name', 'api param name')
                     for parameter, api_parameter in [t for t in parameters_list if t[0] in kwargs]:
-                        error_message = "WARNING: Parameter '%s (%s)' for endpoint '%s' is Not Implemented. " \
-                                        "Web API v%s is installed. This endpoint parameter is available starting " \
-                                        "in Web API v%s." \
+                        error_message = 'WARNING: Parameter "%s (%s)" for endpoint "%s" is Not Implemented. ' \
+                                        'Web API v%s is installed. This endpoint parameter is available starting ' \
+                                        'in Web API v%s.' \
                                         % (api_parameter, parameter, endpoint, current_version, version_introduced)
                         logger.debug(error_message)
                         kwargs[parameter] = None
                 # or skip running unsupported API calls
                 if not end_point_params:
-                    error_message = "ERROR: Endpoint '%s' is Not Implemented. Web API v%s is installed. This endpoint" \
-                                    " is available starting in Web API v%s." \
+                    error_message = 'ERROR: Endpoint "%s" is Not Implemented. Web API v%s is installed. This endpoint' \
+                                    ' is available starting in Web API v%s.' \
                                     % (endpoint, current_version, version_introduced)
                     logger.debug(error_message)
                     if obj._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS:

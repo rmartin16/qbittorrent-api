@@ -31,7 +31,7 @@ class AppMixIn(RequestMixIn):
     def _app_web_api_version_from_version_checker(self):
         if self._cached_web_api_version:
             return self._cached_web_api_version
-        logger.debug("Retrieving API version for version_implemented verifier")
+        logger.debug('Retrieving API version for version_implemented verifier')
         self._cached_web_api_version = self.app_web_api_version()
         return self._cached_web_api_version
 
