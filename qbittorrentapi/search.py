@@ -1,23 +1,142 @@
-import logging
-
-from qbittorrentapi.request import RequestMixIn
-from qbittorrentapi.helpers import list2string, APINames
-from qbittorrentapi.decorators import response_json
-from qbittorrentapi.decorators import login_required
-from qbittorrentapi.decorators import version_implemented
 from qbittorrentapi.decorators import Alias
 from qbittorrentapi.decorators import aliased
-from qbittorrentapi.responses import SearchCategoriesList
-from qbittorrentapi.responses import SearchJobDictionary
-from qbittorrentapi.responses import SearchPluginsList
-from qbittorrentapi.responses import SearchResultsDictionary
-from qbittorrentapi.responses import SearchStatusesList
+from qbittorrentapi.decorators import login_required
+from qbittorrentapi.decorators import response_json
+from qbittorrentapi.decorators import version_implemented
+from qbittorrentapi.helpers import APINames
+from qbittorrentapi.helpers import ClientCache
+from qbittorrentapi.helpers import Dictionary
+from qbittorrentapi.helpers import List
+from qbittorrentapi.helpers import ListEntry
+from qbittorrentapi.helpers import list2string
+from qbittorrentapi.request import Request
 
-logger = logging.getLogger(__name__)
+
+class SearchJobDictionary(Dictionary):
+    def __init__(self, data, client):
+        self._search_job_id = data.get('id', None)
+        super(SearchJobDictionary, self).__init__(data=data, client=client)
+
+    def stop(self, **kwargs):
+        return self._client.search.stop(search_id=self._search_job_id, **kwargs)
+
+    def status(self, **kwargs):
+        return self._client.search.status(search_id=self._search_job_id, **kwargs)
+
+    def results(self, limit=None, offset=None, **kwargs):
+        return self._client.search.results(limit=limit, offset=offset, search_id=self._search_job_id, **kwargs)
+
+    def delete(self, **kwargs):
+        return self._client.search.delete(search_id=self._search_job_id, **kwargs)
+
+
+class SearchResultsDictionary(Dictionary):
+    pass
+
+
+class SearchStatusesList(List):
+    def __init__(self, list_entries=None, client=None):
+        super(SearchStatusesList, self).__init__(list_entries, entry_class=SearchStatus, client=client)
+
+
+class SearchStatus(ListEntry):
+    pass
+
+
+class SearchCategoriesList(List):
+    def __init__(self, list_entries=None, client=None):
+        super(SearchCategoriesList, self).__init__(list_entries, entry_class=SearchCategory, client=client)
+
+
+class SearchCategory(ListEntry):
+    pass
+
+
+class SearchPluginsList(List):
+    def __init__(self, list_entries=None, client=None):
+        super(SearchPluginsList, self).__init__(list_entries, entry_class=SearchPlugin, client=client)
+
+
+class SearchPlugin(ListEntry):
+    pass
 
 
 @aliased
-class SearchMixIn(RequestMixIn):
+class Search(ClientCache):
+    """
+    Allows interaction with "Search" API endpoints.
+
+    Usage:
+        >>> from qbittorrentapi import Client
+        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> # this is all the same attributes that are available as named in the
+        >>> #  endpoints or the more pythonic names in Client (with or without 'search_' prepended)
+        >>> # initiate searches and retrieve results
+        >>> search_job = client.search.start(pattern='Ubuntu', plugins='all', category='all')
+        >>> status = search_job.status()
+        >>> results = search_job.result()
+        >>> search_job.delete()
+        >>> # inspect and manage plugins
+        >>> plugins = client.search.plugins
+        >>> cats = client.search.categories(plugin_name='...')
+        >>> client.search.install_plugin(sources='...')
+        >>> client.search.update_plugins()
+    """
+    def start(self, pattern=None, plugins=None, category=None, **kwargs):
+        return self._client.search_start(pattern=pattern, plugins=plugins, category=category, **kwargs)
+
+    def stop(self, search_id=None, **kwargs):
+        return self._client.search_stop(search_id=search_id, **kwargs)
+
+    def status(self, search_id=None, **kwargs):
+        return self._client.search_status(search_id=search_id, **kwargs)
+
+    def results(self, search_id=None, limit=None, offset=None, **kwargs):
+        return self._client.search_results(search_id=search_id, limit=limit, offset=offset, **kwargs)
+
+    def delete(self, search_id=None, **kwargs):
+        return self._client.search_delete(search_id=search_id, **kwargs)
+
+    def categories(self, plugin_name=None, **kwargs):
+        return self._client.search_plugins(plugin_name=plugin_name, **kwargs)
+
+    @property
+    def plugins(self):
+        return self._client.search_plugins()
+
+    @Alias('installPlugin')
+    def install_plugin(self, sources=None, **kwargs):
+        return self._client.search_install_plugins(sources=sources, **kwargs)
+
+    @Alias('uninstallPlugin')
+    def uninstall_plugin(self, sources=None, **kwargs):
+        return self._client.search_uninstall_plugin(sources=sources, **kwargs)
+
+    @Alias('enablePlugin')
+    def enable_plugin(self, plugins=None, enable=None, **kwargs):
+        return self._client.search_enable_plugin(plugins=plugins, enable=enable, **kwargs)
+
+    @Alias('updatePlugins')
+    def update_plugins(self, **kwargs):
+        return self._client.search_update_plugins(**kwargs)
+
+
+@aliased
+class SearchAPIMixIn(Request):
+    """ Implementation for all Search API methods """
+
+    @property
+    def search(self):
+        """
+        Allows for transparent interaction with Search endpoints.
+
+        See Search class for usage.
+        :return: Search object
+        """
+        if self._search is None:
+            self._search = Search(client=self)
+        return self._search
+
     @version_implemented('2.1.1', 'search/start')
     @response_json(SearchJobDictionary)
     @login_required

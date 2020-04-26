@@ -1,21 +1,119 @@
-import logging
 from json import dumps
 
-from qbittorrentapi.request import RequestMixIn
-from qbittorrentapi.decorators import response_json
-from qbittorrentapi.decorators import login_required
 from qbittorrentapi.decorators import Alias
 from qbittorrentapi.decorators import aliased
+from qbittorrentapi.decorators import login_required
+from qbittorrentapi.decorators import response_json
 from qbittorrentapi.decorators import version_implemented
 from qbittorrentapi.helpers import APINames
-from qbittorrentapi.responses import RSSRulesDictionary
-from qbittorrentapi.responses import RSSitemsDictionary
+from qbittorrentapi.helpers import ClientCache
+from qbittorrentapi.helpers import Dictionary
+from qbittorrentapi.request import Request
 
-logger = logging.getLogger(__name__)
+
+class RSSitemsDictionary(Dictionary):
+    pass
+
+
+class RSSRulesDictionary(Dictionary):
+    pass
 
 
 @aliased
-class RSSMixIn(RequestMixIn):
+class RSS(ClientCache):
+    """
+    Allows interaction with "RSS" API endpoints.
+
+    Usage:
+        >>> from qbittorrentapi import Client
+        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> # this is all the same attributes that are available as named in the
+        >>> #  endpoints or the more pythonic names in Client (with or without 'log_' prepended)
+        >>> rss_rules = client.rss.rules
+        >>> client.rss.addFolder(folder_path="TPB")
+        >>> client.rss.addFeed(url='...', item_path="TPB\\Top100")
+        >>> client.rss.remove_item(item_path="TPB") # deletes TPB and Top100
+        >>> client.rss.set_rule(rule_name="...", rule_def={...})
+        >>> client.rss.items.with_data
+        >>> client.rss.items.without_data
+    """
+    def __init__(self, client):
+        super(RSS, self).__init__(client=client)
+        self.items = RSS._Items(client=client)
+
+    @Alias('addFolder')
+    def add_folder(self, folder_path=None, **kwargs):
+        return self._client.rss_add_folder(folder_path=folder_path, **kwargs)
+
+    @Alias('addFeed')
+    def add_feed(self, url=None, item_path=None, **kwargs):
+        return self._client.rss_add_feed(url=url, item_path=item_path, **kwargs)
+
+    @Alias('removeItem')
+    def remove_item(self, item_path=None, **kwargs):
+        return self._client.rss_remove_item(item_path=item_path, **kwargs)
+
+    @Alias('moveItem')
+    def move_item(self, orig_item_path=None, new_item_path=None, **kwargs):
+        return self._client.rss_move_item(orig_item_path=orig_item_path, new_item_path=new_item_path, **kwargs)
+
+    @Alias('refreshItem')
+    def refresh_item(self, item_path=None):
+        return self._client.rss_refresh_item(item_path=item_path)
+
+    @Alias('markAsRead')
+    def mark_as_read(self, item_path=None, article_id=None, **kwargs):
+        return self._client.rss_mark_as_read(item_path=item_path, article_id=article_id, **kwargs)
+
+    @Alias('setRule')
+    def set_rule(self, rule_name=None, rule_def=None, **kwargs):
+        return self._client.rss_set_rule(rule_name=rule_name, rule_def=rule_def, **kwargs)
+
+    @Alias('renameRule')
+    def rename_rule(self, orig_rule_name=None, new_rule_name=None, **kwargs):
+        return self._client.rss_rename_rule(orig_rule_name=orig_rule_name, new_rule_name=new_rule_name, **kwargs)
+
+    @Alias('removeRule')
+    def remove_rule(self, rule_name=None, **kwargs):
+        return self._client.rss_remove_rule(rule_name=rule_name, **kwargs)
+
+    @property
+    def rules(self):
+        return self._client.rss_rules()
+
+    @Alias('matchingArticles')
+    def matching_articles(self, rule_name=None, **kwargs):
+        return self._client.rss_matching_articles(rule_name=rule_name, **kwargs)
+
+    class _Items(ClientCache):
+        def __call__(self, include_feed_data=None, **kwargs):
+            return self._client.rss_items(include_feed_data=include_feed_data, **kwargs)
+
+        @property
+        def without_data(self):
+            return self._client.rss_items(include_feed_data=False)
+
+        @property
+        def with_data(self):
+            return self._client.rss_items(include_feed_data=True)
+
+
+@aliased
+class RSSAPIMixIn(Request):
+    """ Implementation of all RSS API methods """
+
+    @property
+    def rss(self):
+        """
+        Allows for transparent interaction with RSS endpoints.
+
+        See RSS class for usage.
+        :return: RSS object
+        """
+        if self._rss is None:
+            self._rss = RSS(client=self)
+        return self._rss
+
     @Alias('rss_addFolder')
     @login_required
     def rss_add_folder(self, folder_path=None, **kwargs):

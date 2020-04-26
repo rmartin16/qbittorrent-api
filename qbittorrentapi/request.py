@@ -1,20 +1,146 @@
+from os import environ
 import logging
 from time import sleep
 import requests
 from urllib3 import disable_warnings
 from urllib3.exceptions import InsecureRequestWarning
 
+from qbittorrentapi.decorators import login_required
 from qbittorrentapi.exceptions import *
+from qbittorrentapi.helpers import APINames
+from qbittorrentapi.helpers import suppress_context
 
 try:  # python 3
+    # noinspection PyCompatibility,PyUnresolvedReferences
     from urllib.parse import urlparse
 except ImportError:  # python 2
+    # noinspection PyCompatibility,PyUnresolvedReferences
     from urlparse import urlparse
 
 logger = logging.getLogger(__name__)
 
 
-class RequestMixIn:
+class Request(object):
+    def __init__(self, host='', port=None, username='', password='', **kwargs):
+        self.host = host
+        self.port = port
+        self.username = username
+        self._password = password
+
+        # defaults that should not change
+        self._API_URL_BASE_PATH = 'api'
+        self._API_URL_API_VERSION = 'v2'
+
+        # state, context, and caching variables
+        #   These variables are deleted if the connection to qBittorrent is reset
+        #   or a new login is required. All of these (except the SID cookie) should
+        #   be reset in _initialize_connection().
+        self._SID = None
+        self._cached_web_api_version = None
+        self._application = None
+        self._transfer = None
+        self._torrents = None
+        self._torrent_categories = None
+        self._torrent_tags = None
+        self._log = None
+        self._sync = None
+        self._rss = None
+        self._search = None
+        self._API_URL_BASE = None
+
+        # Configuration variables
+        self._VERIFY_WEBUI_CERTIFICATE = kwargs.pop('VERIFY_WEBUI_CERTIFICATE', True)
+        self._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS = kwargs.pop('RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS', False)
+        self._VERBOSE_RESPONSE_LOGGING = kwargs.pop('VERBOSE_RESPONSE_LOGGING', False)
+        self._PRINT_STACK_FOR_EACH_REQUEST = kwargs.pop('PRINT_STACK_FOR_EACH_REQUEST', False)
+        self._SIMPLE_RESPONSES = kwargs.pop('SIMPLE_RESPONSES', False)
+
+        if kwargs.pop('DISABLE_LOGGING_DEBUG_OUTPUT', False):
+            logging.getLogger('qbittorrentapi').setLevel(logging.INFO)
+            logging.getLogger('requests').setLevel(logging.INFO)
+            logging.getLogger('urllib3').setLevel(logging.INFO)
+
+        # Environment variables have lowest priority
+        if self.host == '' and environ.get('PYTHON_QBITTORRENTAPI_HOST') is not None:
+            logger.debug('Using PYTHON_QBITTORRENTAPI_HOST env variable for qBittorrent hostname')
+            self.host = environ['PYTHON_QBITTORRENTAPI_HOST']
+        if self.username == '' and environ.get('PYTHON_QBITTORRENTAPI_USERNAME') is not None:
+            logger.debug('Using PYTHON_QBITTORRENTAPI_USERNAME env variable for username')
+            self.username = environ['PYTHON_QBITTORRENTAPI_USERNAME']
+
+        if self._password == '' and environ.get('PYTHON_QBITTORRENTAPI_PASSWORD') is not None:
+            logger.debug('Using PYTHON_QBITTORRENTAPI_PASSWORD env variable for password')
+            self._password = environ['PYTHON_QBITTORRENTAPI_PASSWORD']
+
+        if self._VERIFY_WEBUI_CERTIFICATE is True and environ.get('PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE') is not None:
+            self._VERIFY_WEBUI_CERTIFICATE = False
+
+        # Mocking variables until better unit testing exists
+        self._MOCK_WEB_API_VERSION = kwargs.pop('MOCK_WEB_API_VERSION', None)
+
+        # Ensure we got everything we need
+        assert self.host
+        if self.username:
+            assert self._password
+
+    def _initialize_context(self):
+        """ Reset context. This is necessary when the auth cookie needs to be replaced. """
+        # cache to avoid perf hit from version checking certain endpoints
+        self._cached_web_api_version = None
+
+        # reset URL so the full URL is derived again (primarily allows for switching scheme for WebUI: HTTP <-> HTTPS)
+        self._API_URL_BASE = None
+
+        # reinitialize interaction layers
+        self._application = None
+        self._transfer = None
+        self._torrents = None
+        self._torrent_categories = None
+        self._torrent_tags = None
+        self._log = None
+        self._sync = None
+        self._rss = None
+        self._search = None
+
+    @property
+    def is_logged_in(self):
+        return bool(self._SID)
+
+    def auth_log_in(self, username='', password=''):
+        """
+        Log in to qBittorrent host.
+
+        Exceptions:
+            LoginFailed if credentials failed to log in
+            Forbidden403Error if user user is banned...or not logged in
+
+        :param username: user name for qBittorrent client
+        :param password: password for qBittorrent client
+        :return: None
+        """
+        if username:
+            self.username = username
+            assert password
+            self._password = password
+
+        try:
+            self._initialize_context()
+            response = self._post(_name=APINames.Authorization,
+                                  _method='login',
+                                  data={'username': self.username, 'password': self._password})
+            self._SID = response.cookies['SID']
+        except KeyError:
+            logger.debug('Login failed for user "%s"' % self.username)
+            raise suppress_context(LoginFailed('Login authorization failed for user "%s"' % self.username))
+        else:
+            logger.debug('Login successful for user "%s"' % self.username)
+            logger.debug('SID: %s' % self._SID)
+
+    @login_required
+    def auth_log_out(self, **kwargs):
+        """ Log out of qBittorrent client """
+        self._get(_name=APINames.Authorization, _method='logout', **kwargs)
+
     def _get(self, _name='', _method='', **kwargs):
         return self._request_wrapper(http_method='get', api_name=_name, api_method=_method, **kwargs)
 
@@ -22,7 +148,7 @@ class RequestMixIn:
         return self._request_wrapper(http_method='post', api_name=_name, api_method=_method, **kwargs)
 
     def _request_wrapper(self, _retries=2, _retry_backoff_factor=.3, **kwargs):
-        """Wrapper to manage requests retries."""
+        """ Wrapper to manage requests retries """
 
         # This should retry at least twice to account for the Web API switching from HTTP to HTTPS.
         # During the second attempt, the URL is rebuilt using HTTP or HTTPS as appropriate.
@@ -53,7 +179,7 @@ class RequestMixIn:
                     }
                     error_message = error_prologue + error_messages.get(type(e), 'Unknown Error: %s' % repr(e))
                     logger.debug(error_message)
-                    response = e.response if hasattr(e, 'response') else None
+                    response = getattr(e, 'response', None)
                     raise APIConnectionError(error_message, response=response)
 
             # back off on attempting each subsequent retry. first retry is always immediate.
@@ -61,8 +187,7 @@ class RequestMixIn:
             try:
                 if retry > 0:
                     backoff_time = _retry_backoff_factor * (2 ** ((retry + 1) - 1))
-                    if backoff_time < 120:
-                        sleep(backoff_time)
+                    sleep(backoff_time if backoff_time < 30 else 30)
             except Exception:
                 pass
             finally:
@@ -70,11 +195,10 @@ class RequestMixIn:
                 self._initialize_context()
 
     def _request(self, http_method, api_name, api_method,
-                 data=None, params=None, files=None, headers=None, requests_params=None,
-                 **kwargs):
+                 data=None, params=None, files=None, headers=None, requests_params=None, **kwargs):
+        _ = kwargs.pop('SIMPLE_RESPONSES', kwargs.pop('SIMPLE_RESPONSE', False))  # ensure SIMPLE_RESPONSE(S) isn't sent
 
         api_path_list = (self._API_URL_BASE_PATH, self._API_URL_API_VERSION, api_name, api_method)
-
         url = self._build_url(base_url=self._API_URL_BASE,
                               host=self.host,
                               port=self.port,
@@ -137,7 +261,10 @@ class RequestMixIn:
             from traceback import print_stack
             print_stack()
 
-        if response.status_code == 400:
+        if response.status_code < 400:
+            """Short circuit and return result for anything less than 400"""
+            return response
+        elif response.status_code == 400:
             """
             Returned for malformed requests such as missing or invalid parameters.
 

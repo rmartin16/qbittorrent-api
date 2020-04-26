@@ -1,37 +1,557 @@
 import errno
-import logging
 from os import path
 from os import strerror as os_strerror
 
 import six
+from attrdict import AttrDict
 
-from qbittorrentapi.request import RequestMixIn
-from qbittorrentapi.helpers import list2string, APINames
-from qbittorrentapi.decorators import response_text
-from qbittorrentapi.decorators import response_json
-from qbittorrentapi.decorators import login_required
-from qbittorrentapi.decorators import version_implemented
+from qbittorrentapi.helpers import APINames
+from qbittorrentapi.helpers import ClientCache
+from qbittorrentapi.helpers import Dictionary
+from qbittorrentapi.helpers import List
+from qbittorrentapi.helpers import ListEntry
+from qbittorrentapi.helpers import list2string
 from qbittorrentapi.decorators import Alias
 from qbittorrentapi.decorators import aliased
-from qbittorrentapi.responses import TorrentFilesList
-from qbittorrentapi.responses import TorrentInfoList
-from qbittorrentapi.responses import TorrentLimitsDictionary
-from qbittorrentapi.responses import TorrentPieceInfoList
-from qbittorrentapi.responses import TorrentPropertiesDictionary
-from qbittorrentapi.responses import TorrentCategoriesDictionary
-from qbittorrentapi.responses import TorrentsAddPeersDictionary
-from qbittorrentapi.responses import TagList
-from qbittorrentapi.responses import TrackersList
-from qbittorrentapi.responses import WebSeedsList
+from qbittorrentapi.decorators import login_required
+from qbittorrentapi.decorators import response_json
+from qbittorrentapi.decorators import response_text
+from qbittorrentapi.decorators import version_implemented
+from qbittorrentapi.exceptions import TorrentFileError
 from qbittorrentapi.exceptions import TorrentFileNotFoundError
 from qbittorrentapi.exceptions import TorrentFilePermissionError
-from qbittorrentapi.exceptions import TorrentFileError
-
-logger = logging.getLogger(__name__)
+from qbittorrentapi.request import Request
 
 
 @aliased
-class TorrentsMixIn(RequestMixIn):
+class TorrentDictionary(Dictionary):
+    """
+    Alows interaction with individual torrents via the "Torrents" API endpoints.
+
+    Usage:
+        >>> from qbittorrentapi import Client
+        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> # this are all the same attributes that are available as named in the
+        >>> #  endpoints or the more pythonic names in Client (with or without 'transfer_' prepended)
+        >>> torrent = client.torrents.info()[0]
+        >>> hash = torrent.info.hash
+        >>> # Attributes without inputs and a return value are properties
+        >>> properties = torrent.properties
+        >>> trackers = torrent.trackers
+        >>> files = torrent.files
+        >>> # Action methods
+        >>> torrent.edit_tracker(original_url="...", new_url="...")
+        >>> torrent.remove_trackers(urls='http://127.0.0.2/')
+        >>> torrent.rename(new_torrent_name="...")
+        >>> torrent.resume()
+        >>> torrent.pause()
+        >>> torrent.recheck()
+        >>> torrent.torrents_top_priority()
+        >>> torrent.setLocation(location='/home/user/torrents/')
+        >>> torrent.setCategory(category='video')
+    """
+    def __init__(self, data, client):
+        self._hash = data.get('hash', None)
+        super(TorrentDictionary, self).__init__(data=data, client=client)
+
+    @property
+    def info(self):
+        info = self._client.torrents_info(hashes=self._hash)
+        if len(info) == 1:
+            return info[0]
+        return AttrDict()
+
+    def resume(self, **kwargs):
+        return self._client.torrents_resume(hashes=self._hash, **kwargs)
+
+    def pause(self, **kwargs):
+        return self._client.torrents_pause(hashes=self._hash, **kwargs)
+
+    def delete(self, delete_files=None, **kwargs):
+        return self._client.torrents_delete(delete_files=delete_files, hashes=self._hash, **kwargs)
+
+    def recheck(self, **kwargs):
+        return self._client.torrents_recheck(hashes=self._hash, **kwargs)
+
+    def reannounce(self, **kwargs):
+        return self._client.torrents_reannounce(hashes=self._hash, **kwargs)
+
+    @Alias('increasePrio')
+    def increase_priority(self, **kwargs):
+        return self._client.torrents_increase_priority(hashes=self._hash, **kwargs)
+
+    @Alias('decreasePrio')
+    def decrease_priority(self, **kwargs):
+        return self._client.torrents_decrease_priority(hashes=self._hash, **kwargs)
+
+    @Alias('topPrio')
+    def top_priority(self, **kwargs):
+        return self._client.torrents_top_priority(hashes=self._hash, **kwargs)
+
+    @Alias('bottomPrio')
+    def bottom_priority(self, **kwargs):
+        return self._client.torrents_bottom_priority(hashes=self._hash, **kwargs)
+
+    @Alias('setShareLimits')
+    def set_share_limits(self, ratio_limit=None, seeding_time_limit=None, **kwargs):
+        return self._client.torrents_set_share_limits(ratio_limit=ratio_limit, seeding_time_limit=seeding_time_limit,
+                                                      hashes=self._hash, **kwargs)
+
+    @property
+    def download_limit(self, **kwargs):
+        return self._client.torrents_download_limit(hashes=self._hash, **kwargs)
+    downloadLimit = download_limit
+
+    @downloadLimit.setter
+    def downloadLimit(self, v): self.download_limit(limit=v)
+    @download_limit.setter
+    def download_limit(self, v):
+        self.set_download_limit(limit=v)
+
+    @Alias('setDownloadLimit')
+    def set_download_limit(self, limit=None, **kwargs):
+        return self._client.torrents_set_download_limit(limit=limit, hashes=self._hash, **kwargs)
+
+    @property
+    def upload_limit(self, **kwargs):
+        return self._client.torrents_set_upload_limit(hashes=self._hash, **kwargs)
+    uploadLimit = upload_limit
+
+    @uploadLimit.setter
+    def uploadLimit(self, v): self.set_upload_limit(limit=v)
+    @upload_limit.setter
+    def upload_limit(self, v):
+        self.set_upload_limit(limit=v)
+
+    @Alias('setUploadLimit')
+    def set_upload_limit(self, limit=None, **kwargs):
+        return self._client.torrents_set_upload_limit(limit=limit, hashes=self._hash, **kwargs)
+
+    @Alias('setLocation')
+    def set_location(self, location=None, **kwargs):
+        return self._client.torrents_set_location(location=location, hashes=self._hash, **kwargs)
+
+    @Alias('setCategory')
+    def set_category(self, category=None, **kwargs):
+        return self._client.torrents_set_category(category=category, hashes=self._hash, **kwargs)
+
+    @Alias('setAutoManagemnt')
+    def set_auto_management(self, enable=None, **kwargs):
+        return self._client.torrents_set_auto_management(enable=enable, hashes=self._hash, **kwargs)
+
+    @Alias('toggleSequentialDownload')
+    def toggle_sequential_download(self, **kwargs):
+        return self._client.torrents_toggle_sequential_download(hashes=self._hash, **kwargs)
+
+    @Alias('toggleFirstLastPiecePrio')
+    def toggle_first_last_piece_priority(self, **kwargs):
+        return self._client.torrents_toggle_first_last_piece_priority(hashes=self._hash, **kwargs)
+
+    @Alias('setForceStart')
+    def set_force_start(self, enable=None, **kwargs):
+        return self._client.torrents_set_force_start(enable=enable, hashes=self._hash, **kwargs)
+
+    @Alias('setSuperSeeding')
+    def set_super_seeding(self, enable=None, **kwargs):
+        return self._client.torrents_set_super_seeding(enable=enable, hashes=self._hash, **kwargs)
+
+    @property
+    def properties(self):
+        return self._client.torrents_properties(hash=self._hash)
+
+    @property
+    def trackers(self):
+        return self._client.torrents_trackers(hash=self._hash)
+
+    @trackers.setter
+    def trackers(self, v):
+        self.add_trackers(urls=v)
+
+    @property
+    def webseeds(self):
+        return self._client.torrents_webseeds(hash=self._hash)
+
+    @property
+    def files(self):
+        return self._client.torrents_files(hash=self._hash)
+
+    def rename_file(self, file_id=None, new_file_name=None, **kwargs):
+        return self._client.torrents_rename_file(hash=self._hash, file_id=file_id, new_file_name=new_file_name, **kwargs)
+
+    @property
+    def piece_states(self):
+        return self._client.torrents_piece_states(hash=self._hash)
+    pieceStates = piece_states
+
+    @property
+    def piece_hashes(self):
+        return self._client.torrents_piece_hashes(hash=self._hash)
+    pieceHashes = piece_hashes
+
+    @Alias('addTrackers')
+    def add_trackers(self, urls=None, **kwargs):
+        return self._client.torrents_add_trackers(hash=self._hash, urls=urls, **kwargs)
+
+    @Alias('editTracker')
+    def edit_tracker(self, orig_url=None, new_url=None, **kwargs):
+        return self._client.torrents_edit_tracker(hash=self._hash, original_url=orig_url, new_url=new_url, **kwargs)
+
+    @Alias('removeTrackers')
+    def remove_trackers(self, urls=None, **kwargs):
+        return self._client.torrents_remove_trackers(hash=self._hash, urls=urls, **kwargs)
+
+    @Alias('filePriority')
+    def file_priority(self, file_ids=None, priority=None, **kwargs):
+        return self._client.torrents_file_priority(hash=self._hash, file_ids=file_ids, priority=priority, **kwargs)
+
+    def rename(self, new_name=None, **kwargs):
+        return self._client.torrents_rename(hash=self._hash, new_torrent_name=new_name, **kwargs)
+
+    @Alias('addTags')
+    def add_tags(self, tags=None, **kwargs):
+        return self._client.torrents_add_tags(hashes=self._hash, tags=tags, **kwargs)
+
+    @Alias('removeTags')
+    def remove_tags(self, tags=None, **kwargs):
+        return self._client.torrents_remove_tags(hashes=self._hash, tags=tags, **kwargs)
+
+
+class TorrentPropertiesDictionary(Dictionary):
+    pass
+
+
+class TorrentLimitsDictionary(Dictionary):
+    pass
+
+
+class TorrentCategoriesDictionary(Dictionary):
+    pass
+
+
+class TorrentsAddPeersDictionary(Dictionary):
+    pass
+
+
+class TorrentFilesList(List):
+    def __init__(self, list_entries=None, client=None):
+        super(TorrentFilesList, self).__init__(list_entries, entry_class=TorrentFile, client=client)
+        for i, entry in enumerate(self):
+            entry.update({'id': i})
+
+
+class TorrentFile(ListEntry):
+    pass
+
+
+class WebSeedsList(List):
+    def __init__(self, list_entries=None, client=None):
+        super(WebSeedsList, self).__init__(list_entries, entry_class=WebSeed, client=client)
+
+
+class WebSeed(ListEntry):
+    pass
+
+
+class TrackersList(List):
+    def __init__(self, list_entries=None, client=None):
+        super(TrackersList, self).__init__(list_entries, entry_class=Tracker, client=client)
+
+
+class Tracker(ListEntry):
+    pass
+
+
+class TorrentInfoList(List):
+    def __init__(self, list_entries=None, client=None):
+        super(TorrentInfoList, self).__init__(list_entries, entry_class=TorrentDictionary, client=client)
+
+
+class TorrentPieceInfoList(List):
+    def __init__(self, list_entries=None, client=None):
+        super(TorrentPieceInfoList, self).__init__(list_entries, entry_class=TorrentPieceData, client=client)
+
+
+class TorrentPieceData(ListEntry):
+    pass
+
+
+class TorrentCategoriesList(List):
+    def __init__(self, list_entries=None, client=None):
+        super(TorrentCategoriesList, self).__init__(list_entries, entry_class=TorrentCategory, client=client)
+
+
+class TorrentCategory(ListEntry):
+    pass
+
+
+class TagList(List):
+    def __init__(self, list_entries=None, client=None):
+        super(TagList, self).__init__(list_entries, entry_class=Tag, client=client)
+
+
+class Tag(ListEntry):
+    pass
+
+
+class Torrents(ClientCache):
+    """
+    Allows interaction with the "Torrents" API endpoints.
+
+    Usage:
+        >>> from qbittorrentapi import Client
+        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> # this are all the same attributes that are available as named in the
+        >>> #  endpoints or the more pythonic names in Client (with or without 'torrents_' prepended)
+        >>> torrent_list = client.torrents.info()
+        >>> torrent_list_active = client.torrents.info.active()
+        >>> torrent_list_active_partial = client.torrents.active(limit=100, offset=200)
+        >>> torrent_list_downloading = client.torrents.info.downloading()
+        >>> # torrent looping
+        >>> for torrent in client.torrents.info.completed()
+        >>> # all torrents endpoints with a 'hashes' parameters support all method to apply action to all torrents
+        >>> client.torrents.pause.all()
+        >>> client.torrents.resume.all()
+        >>> # or specify the individual hashes
+        >>> client.torrents.downloadLimit(hashes=['...', '...'])
+    """
+    def __init__(self, client):
+        super(Torrents, self).__init__(client=client)
+        self.info = self._Info(client=client)
+        self.resume = self._ActionForAllTorrents(client=client, func=client.torrents_resume)
+        self.pause = self._ActionForAllTorrents(client=client, func=client.torrents_pause)
+        self.delete = self._ActionForAllTorrents(client=client, func=client.torrents_delete)
+        self.recheck = self._ActionForAllTorrents(client=client, func=client.torrents_recheck)
+        self.reannounce = self._ActionForAllTorrents(client=client, func=client.torrents_reannounce)
+        self.increase_priority = self._ActionForAllTorrents(client=client, func=client.torrents_increase_priority)
+        self.increasePrio = self.increase_priority
+        self.decrease_priority = self._ActionForAllTorrents(client=client, func=client.torrents_decrease_priority)
+        self.decreasePrio = self.decrease_priority
+        self.top_priority = self._ActionForAllTorrents(client=client, func=client.torrents_top_priority)
+        self.topPrio = self.top_priority
+        self.bottom_priority = self._ActionForAllTorrents(client=client, func=client.torrents_bottom_priority)
+        self.bottomPrio = self.bottom_priority
+        self.download_limit = self._ActionForAllTorrents(client=client, func=client.torrents_download_limit)
+        self.downloadLimit = self.download_limit
+        self.upload_limit = self._ActionForAllTorrents(client=client, func=client.torrents_upload_limit)
+        self.uploadLimit = self.upload_limit
+        self.set_download_limit = self._ActionForAllTorrents(client=client, func=client.torrents_set_download_limit)
+        self.setDownloadLimit = self.set_download_limit
+        self.set_share_limits = self._ActionForAllTorrents(client=client, func=client.torrents_set_share_limits)
+        self.setShareLimits = self.set_share_limits
+        self.set_upload_limit = self._ActionForAllTorrents(client=client, func=client.torrents_set_upload_limit)
+        self.setUploadLimit = self.set_upload_limit
+        self.set_location = self._ActionForAllTorrents(client=client, func=client.torrents_set_location)
+        self.setLocation = self.set_location
+        self.set_category = self._ActionForAllTorrents(client=client, func=client.torrents_set_category)
+        self.setCategory = self.set_category
+        self.set_auto_management = self._ActionForAllTorrents(client=client, func=client.torrents_set_auto_management)
+        self.setAutoManagement = self.set_auto_management
+        self.toggle_sequential_download = self._ActionForAllTorrents(client=client, func=client.torrents_toggle_sequential_download)
+        self.toggleSequentialDownload = self.toggle_sequential_download
+        self.toggle_first_last_piece_priority = self._ActionForAllTorrents(client=client, func=client.torrents_toggle_first_last_piece_priority)
+        self.toggleFirstLastPiecePrio = self.toggle_first_last_piece_priority
+        self.set_force_start = self._ActionForAllTorrents(client=client, func=client.torrents_set_force_start)
+        self.setForceStart = self.set_force_start
+        self.set_super_seeding = self._ActionForAllTorrents(client=client, func=client.torrents_set_super_seeding)
+        self.setSuperSeeding = self.set_super_seeding
+        self.add_peers = self._ActionForAllTorrents(client=client, func=client.torrents_add_peers)
+        self.addPeers = self.add_peers
+
+    def add(self, urls=None, torrent_files=None, save_path=None, cookie=None, category=None,
+            is_skip_checking=None, is_paused=None, is_root_folder=None, rename=None,
+            upload_limit=None, download_limit=None, use_auto_torrent_management=None,
+            is_sequential_download=None, is_first_last_piece_priority=None, **kwargs):
+        return self._client.torrents_add(urls=urls, torrent_files=torrent_files, save_path=save_path, cookie=cookie,
+                                         category=category, is_skip_checking=is_skip_checking, is_paused=is_paused,
+                                         is_root_folder=is_root_folder, rename=rename, upload_limit=upload_limit,
+                                         download_limit=download_limit, is_sequential_download=is_sequential_download,
+                                         use_auto_torrent_management=use_auto_torrent_management,
+                                         is_first_last_piece_priority=is_first_last_piece_priority, **kwargs)
+
+    class _ActionForAllTorrents(ClientCache):
+        def __init__(self, client, func):
+            super(Torrents._ActionForAllTorrents, self).__init__(client=client)
+            self.func = func
+
+        def __call__(self, hashes=None, **kwargs):
+            return self.func(hashes=hashes, **kwargs)
+
+        def all(self, **kwargs):
+            return self.func(hashes='all', **kwargs)
+
+    class _Info(ClientCache):
+        def __call__(self, status_filter=None, category=None, sort=None, reverse=None, limit=None, offset=None,
+                     hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter=status_filter, category=category, sort=sort,
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+
+        def all(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='all', category=category, sort=sort, reverse=reverse,
+                                              limit=limit, offset=offset, hashes=hashes, **kwargs)
+
+        def downloading(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='downloading', category=category, sort=sort,
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+
+        def completed(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='completed', category=category, sort=sort,
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+
+        def paused(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='paused', category=category, sort=sort,
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+
+        def active(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='active', category=category, sort=sort,
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+
+        def inactive(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='inactive', category=category, sort=sort,
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+
+        def resumed(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='resumed', category=category, sort=sort,
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+
+        def stalled(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='stalled', category=category, sort=sort,
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+
+        def stalled_uploading(self, category=None, sort=None, reverse=None, limit=None, offset=None,
+                              hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='stalled_uploading', category=category, sort=sort,
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+
+        def stalled_downloading(self, category=None, sort=None, reverse=None, limit=None, offset=None,
+                                hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='stalled_downloading', category=category, sort=sort,
+                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+
+
+@aliased
+class TorrentCategories(ClientCache):
+    """
+    Alows interaction with torrent categories within the "Torrents" API endpoints.
+
+    Usage:
+        >>> from qbittorrentapi import Client
+        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> # this are all the same attributes that are available as named in the
+        >>> #  endpoints or the more pythonic names in Client (with or without 'torrents_' prepended)
+        >>> categories = client.torrent_categories.categories
+        >>> # create or edit categories
+        >>> client.torrent_categories.create_category(name='Video', save_path='/home/user/torrents/Video')
+        >>> client.torrent_categories.edit_category(name='Video', save_path='/data/torrents/Video')
+        >>> # edit or create new by assignment
+        >>> client.torrent_categories.categories = dict(name='Video', save_path='/hone/user/')
+        >>> # delete categories
+        >>> client.torrent_categories.removeCategories(categories='Video')
+        >>> client.torrent_categories.removeCategories(categories=['Audio', "ISOs"])
+    """
+
+    @property
+    def categories(self):
+        return self._client.torrents_categories()
+
+    @categories.setter
+    def categories(self, v):
+        if v.get('name', '') in self.categories:
+            self.edit_category(**v)
+        else:
+            self.create_category(**v)
+
+    @Alias('createCategory')
+    def create_category(self, name=None, save_path=None, **kwargs):
+        return self._client.torrents_create_category(name=name, save_path=save_path, **kwargs)
+
+    @Alias('editCategory')
+    def edit_category(self, name=None, save_path=None, **kwargs):
+        return self._client.torrents_edit_category(name=name, save_path=save_path, **kwargs)
+
+    @Alias('removeCategories')
+    def remove_categories(self, categories=None, **kwargs):
+        return self._client.torrents_remove_categories(categories=categories, **kwargs)
+
+
+@aliased
+class TorrentTags(ClientCache):
+    """
+    Allows interaction with torrent tags within the "Torrent" API endpoints.
+
+    Usage:
+        >>> from qbittorrentapi import Client
+        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> tags = client.torrent_tags.tags
+        >>> client.torrent_tags.tags = 'tv show'  # create category
+        >>> client.torrent_tags.create_tags(tags=['tv show', 'linux distro'])
+        >>> client.torrent_tags.delete_tags(tags='tv show')
+    """
+
+    @property
+    def tags(self):
+        return self._client.torrents_tags()
+
+    @tags.setter
+    def tags(self, v):
+        self._client.torrents_create_tags(tags=v)
+
+    @Alias('addTags')
+    def add_tags(self, tags=None, hashes=None, **kwargs):
+        self._client.torrents_add_tags(tags=tags, hashes=hashes, **kwargs)
+
+    @Alias('removeTags')
+    def remove_tags(self, tags=None, hashes=None, **kwargs):
+        self._client.torrents_remove_tags(tags=tags, hashes=hashes, **kwargs)
+
+    @Alias('createTags')
+    def create_tags(self, tags=None, **kwargs):
+        self._client.torrents_create_tags(tags=tags, **kwargs)
+
+    @Alias('deleteTags')
+    def delete_tags(self, tags=None, **kwargs):
+        self._client.torrents_delete_tags(tags=tags, **kwargs)
+
+
+@aliased
+class TorrentsAPIMixIn(Request):
+    """ Implementation of all Torrents API methods """
+
+    @property
+    def torrents(self):
+        """
+        Allows for transparent interaction with Torrents endpoints.
+
+        See Torrents and Torrent class for usage.
+        :return: Torrents object
+        """
+        if self._torrents is None:
+            self._torrents = Torrents(client=self)
+        return self._torrents
+
+    @property
+    def torrent_categories(self):
+        """
+        Allows for transparent interaction with Torrent Categories endpoints.
+
+        See Torrent_Categories class for usage.
+        :return: Torrent Categories object
+        """
+        if self._torrent_categories is None:
+            self._torrent_categories = TorrentCategories(self)
+        return self._torrent_categories
+
+    @property
+    def torrent_tags(self):
+        """
+        Allows for transparent interaction with Torrent Tags endpoints.
+
+        See Torrent_Tags class for usage.
+        :return: Torrent Tags object
+        """
+        if self._torrent_tags is None:
+            self._torrent_tags = TorrentTags(self)
+        return self._torrent_tags
+
     @response_text(str)
     @login_required
     def torrents_add(self, urls=None, torrent_files=None, save_path=None, cookie=None, category=None,
