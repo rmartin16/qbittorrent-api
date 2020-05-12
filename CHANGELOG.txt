@@ -1,3 +1,6 @@
+Version 2020.5.3
+ - Include currently supported qBittorrent version. Fixes #11.
+
 Version 2020.4.2
  - Add support for rss/markAsRead and rss/matchingArticles. Added in v2.5.1. Fixes #10
 
