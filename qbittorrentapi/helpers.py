@@ -1,10 +1,11 @@
-from collections import Iterable
-
 try:
     from collections import UserList
+    # noinspection PyCompatibility,PyUnresolvedReferences
+    from collections.abc import Iterable
 except ImportError:
     # noinspection PyCompatibility,PyUnresolvedReferences
     from UserList import UserList
+    from collections import Iterable
 
 from attrdict import AttrDict
 from pkg_resources import parse_version

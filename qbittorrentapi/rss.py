@@ -127,7 +127,7 @@ class RSSAPIMixIn(Request):
         :return: None
         """
         data = {'path': folder_path}
-        return self._post(_name=APINames.RSS, _method='addFolder', data=data, **kwargs)
+        self._post(_name=APINames.RSS, _method='addFolder', data=data, **kwargs)
 
     @Alias('rss_addFeed')
     @login_required
@@ -144,7 +144,7 @@ class RSSAPIMixIn(Request):
         """
         data = {'url': url,
                 'path': item_path}
-        return self._post(_name=APINames.RSS, _method='addFeed', data=data, **kwargs)
+        self._post(_name=APINames.RSS, _method='addFeed', data=data, **kwargs)
 
     @Alias('rss_removeItem')
     @login_required
@@ -161,7 +161,7 @@ class RSSAPIMixIn(Request):
         :return: None
         """
         data = {'path': item_path}
-        return self._post(_name=APINames.RSS, _method='removeItem', data=data, **kwargs)
+        self._post(_name=APINames.RSS, _method='removeItem', data=data, **kwargs)
 
     @Alias('rss_moveItem')
     @login_required
@@ -178,7 +178,7 @@ class RSSAPIMixIn(Request):
         """
         data = {'itemPath': orig_item_path,
                 'destPath': new_item_path}
-        return self._post(_name=APINames.RSS, _method='moveItem', data=data, **kwargs)
+        self._post(_name=APINames.RSS, _method='moveItem', data=data, **kwargs)
 
     @response_json(RSSitemsDictionary)
     @login_required
@@ -205,8 +205,8 @@ class RSSAPIMixIn(Request):
         # HACK: v4.1.7 and v4.1.8 both use api v2.2; however, refreshItem was introduced in v4.1.8
         from qbittorrentapi.helpers import is_version_less_than
         if is_version_less_than('v4.1.7', self.app_version(), False):
-            params = {"itemPath": item_path}
-            return self._get(_name=APINames.RSS, _method='refreshItem', params=params, **kwargs)
+            data = {"itemPath": item_path}
+            self._post(_name=APINames.RSS, _method='refreshItem', data=data, **kwargs)
 
     @version_implemented('2.5.1', 'rss/markAsRead')
     @Alias('rss_markAsRead')
@@ -224,7 +224,7 @@ class RSSAPIMixIn(Request):
         """
         data = {'itemPath': item_path,
                 'articleId': article_id}
-        return self._post(_name=APINames.RSS, _method='markAsRead', data=data, **kwargs)
+        self._post(_name=APINames.RSS, _method='markAsRead', data=data, **kwargs)
 
     @Alias('rss_setRule')
     @login_required
@@ -239,7 +239,7 @@ class RSSAPIMixIn(Request):
         """
         data = {'ruleName': rule_name,
                 'ruleDef': dumps(rule_def)}
-        return self._post(_name=APINames.RSS, _method='setRule', data=data, **kwargs)
+        self._post(_name=APINames.RSS, _method='setRule', data=data, **kwargs)
 
     @Alias('rss_renameRule')
     @login_required
@@ -253,7 +253,7 @@ class RSSAPIMixIn(Request):
         """
         data = {'ruleName': orig_rule_name,
                 'newRuleName': new_rule_name}
-        return self._post(_name=APINames.RSS, _method='renameRule', data=data, **kwargs)
+        self._post(_name=APINames.RSS, _method='renameRule', data=data, **kwargs)
 
     @Alias('rss_removeRule')
     @login_required
@@ -265,7 +265,7 @@ class RSSAPIMixIn(Request):
         :return: None
         """
         data = {'ruleName': rule_name}
-        return self._post(_name=APINames.RSS, _method='removeRule', data=data, **kwargs)
+        self._post(_name=APINames.RSS, _method='removeRule', data=data, **kwargs)
 
     @response_json(RSSRulesDictionary)
     @login_required

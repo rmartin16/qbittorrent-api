@@ -98,7 +98,7 @@ class Search(ClientCache):
         return self._client.search_delete(search_id=search_id, **kwargs)
 
     def categories(self, plugin_name=None, **kwargs):
-        return self._client.search_plugins(plugin_name=plugin_name, **kwargs)
+        return self._client.search_categories(plugin_name=plugin_name, **kwargs)
 
     @property
     def plugins(self):
@@ -106,7 +106,7 @@ class Search(ClientCache):
 
     @Alias('installPlugin')
     def install_plugin(self, sources=None, **kwargs):
-        return self._client.search_install_plugins(sources=sources, **kwargs)
+        return self._client.search_install_plugin(sources=sources, **kwargs)
 
     @Alias('uninstallPlugin')
     def uninstall_plugin(self, sources=None, **kwargs):
@@ -150,7 +150,7 @@ class SearchAPIMixIn(Request):
         :param pattern: term to search for
         :param plugins: list of plugins to use for searching (supports 'all' and 'enabled')
         :param category: categories to limit search; dependent on plugins. (supports 'all')
-        :return: ID of search job
+        :return: search job
         """
         data = {'pattern': pattern,
                 'plugins': list2string(plugins, '|'),
@@ -267,14 +267,14 @@ class SearchAPIMixIn(Request):
     @version_implemented('2.1.1', 'search/uninstallPlugin')
     @Alias('search_uninstallPlugin')
     @login_required
-    def search_uninstall_plugin(self, sources=None, **kwargs):
+    def search_uninstall_plugin(self, names=None, **kwargs):
         """
         Uninstall search plugins. (alias: search_uninstallPlugin)
 
-        :param sources:
+        :param names: names of plugins to uninstall
         :return: None
         """
-        data = {'sources': list2string(sources, '|')}
+        data = {'names': list2string(names, '|')}
         self._post(_name=APINames.Search, _method='uninstallPlugin', data=data, **kwargs)
 
     @version_implemented('2.1.1', 'search/enablePlugin')
@@ -288,7 +288,7 @@ class SearchAPIMixIn(Request):
         :param enable: True or False
         :return: None
         """
-        data = {'names': plugins,
+        data = {'names': list2string(plugins, '|'),
                 'enable': enable}
         self._post(_name=APINames.Search, _method='enablePlugin', data=data, **kwargs)
 
@@ -301,4 +301,4 @@ class SearchAPIMixIn(Request):
 
         :return: None
         """
-        self._get(_name=APINames.Search, _method='updatePlugins', **kwargs)
+        self._post(_name=APINames.Search, _method='updatePlugins', **kwargs)

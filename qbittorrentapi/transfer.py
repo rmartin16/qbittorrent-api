@@ -44,7 +44,9 @@ class Transfer(ClientCache):
     speedLimitsMode = speed_limits_mode
 
     @speedLimitsMode.setter
-    def speedLimitsMode(self, v): self.speed_limits_mode = v
+    def speedLimitsMode(self, v):
+        self.speed_limits_mode = v
+
     @speed_limits_mode.setter
     def speed_limits_mode(self, v):
         self.toggle_speed_limits_mode(intended_state=v)
@@ -59,9 +61,10 @@ class Transfer(ClientCache):
     downloadLimit = download_limit
 
     @downloadLimit.setter
-    def downloadLimit(self, v): self.download_limit = v
+    def downloadLimit(self, v):
+        self.download_limit = v
+
     @download_limit.setter
-    @Alias('downloadLimit')
     def download_limit(self, v):
         self.set_download_limit(limit=v)
 
@@ -71,7 +74,9 @@ class Transfer(ClientCache):
     uploadLimit = upload_limit
 
     @uploadLimit.setter
-    def uploadLimit(self, v): self.upload_limit = v
+    def uploadLimit(self, v):
+        self.upload_limit = v
+
     @upload_limit.setter
     def upload_limit(self, v):
         self.set_upload_limit(limit=v)

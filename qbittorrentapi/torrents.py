@@ -537,7 +537,7 @@ class TorrentsAPIMixIn(Request):
         :return: Torrent Categories object
         """
         if self._torrent_categories is None:
-            self._torrent_categories = TorrentCategories(self)
+            self._torrent_categories = TorrentCategories(client=self)
         return self._torrent_categories
 
     @property
@@ -549,7 +549,7 @@ class TorrentsAPIMixIn(Request):
         :return: Torrent Tags object
         """
         if self._torrent_tags is None:
-            self._torrent_tags = TorrentTags(self)
+            self._torrent_tags = TorrentTags(client=self)
         return self._torrent_tags
 
     @response_text(str)
@@ -854,14 +854,14 @@ class TorrentsAPIMixIn(Request):
         :return: List of torrents
             Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-torrent-list
         """
-        parameters = {'filter': status_filter,
-                      'category': category,
-                      'sort': sort,
-                      'reverse': reverse,
-                      'limit': limit,
-                      'offset': offset,
-                      'hashes': list2string(hashes, '|')}
-        return self._get(_name=APINames.Torrents, _method='info', params=parameters, **kwargs)
+        data = {'filter': status_filter,
+                'category': category,
+                'sort': sort,
+                'reverse': reverse,
+                'limit': limit,
+                'offset': offset,
+                'hashes': list2string(hashes, '|')}
+        return self._post(_name=APINames.Torrents, _method='info', data=data, **kwargs)
 
     @login_required
     def torrents_resume(self, hashes=None, **kwargs):
@@ -1248,7 +1248,7 @@ class TorrentsAPIMixIn(Request):
 
         :return: list of tags
         """
-        return self._post(_name=APINames.Torrents, _method='tags', **kwargs)
+        return self._get(_name=APINames.Torrents, _method='tags', **kwargs)
 
     @Alias('torrents_addTags')
     @version_implemented('2.3', 'torrents/addTags')

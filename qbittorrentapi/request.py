@@ -50,7 +50,9 @@ class Request(object):
 
         # Configuration variables
         self._VERIFY_WEBUI_CERTIFICATE = kwargs.pop('VERIFY_WEBUI_CERTIFICATE', True)
-        self._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS = kwargs.pop('RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS', False)
+        self._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS = kwargs.pop(
+            'RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS',
+            kwargs.pop('RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS', False))
         self._VERBOSE_RESPONSE_LOGGING = kwargs.pop('VERBOSE_RESPONSE_LOGGING', False)
         self._PRINT_STACK_FOR_EACH_REQUEST = kwargs.pop('PRINT_STACK_FOR_EACH_REQUEST', False)
         self._SIMPLE_RESPONSES = kwargs.pop('SIMPLE_RESPONSES', False)
@@ -223,6 +225,10 @@ class Request(object):
         headers = headers or dict()
         headers['Referer'] = self._API_URL_BASE.geturl()
         headers['Origin'] = self._API_URL_BASE.geturl()
+        # send Content-Length zero for empty POSTs
+        # Requests will not send Content-Length if data is empty
+        if http_method == 'post' and not any(filter(None, data.values())):
+            headers['Content-Length'] = '0'
 
         # include the SID auth cookie unless we're trying to log in and get a SID
         cookies = {'SID': self._SID if 'auth/login' not in url.path else ''}

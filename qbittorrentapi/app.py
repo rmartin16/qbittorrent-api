@@ -60,7 +60,6 @@ class Application(ClientCache):
         return self._client.app_build_info()
     buildInfo = build_info
 
-    @property
     def shutdown(self):
         return self._client.app_shutdown()
 
@@ -77,7 +76,8 @@ class Application(ClientCache):
         return self._client.app_set_preferences(prefs=prefs, **kwargs)
 
     @property
-    def default_save_path(self, **kwargs): return self._client.app_default_save_path(**kwargs)
+    def default_save_path(self, **kwargs):
+        return self._client.app_default_save_path(**kwargs)
     defaultSavePath = default_save_path
 
 
@@ -86,7 +86,7 @@ class AppAPIMixIn(Request):
     """ Implementation of all Application API methods """
 
     @property
-    def application(self):
+    def app(self):
         """
         Allows for transparent interaction with Application endpoints. (alias: app)
 
@@ -96,7 +96,7 @@ class AppAPIMixIn(Request):
         if self._application is None:
             self._application = Application(client=self)
         return self._application
-    app = application
+    application = app
 
     @response_text(str)
     @login_required
@@ -145,7 +145,7 @@ class AppAPIMixIn(Request):
     @login_required
     def app_shutdown(self, **kwargs):
         """Shutdown qBittorrent"""
-        self._get(_name=APINames.Application, _method='shutdown', **kwargs)
+        self._post(_name=APINames.Application, _method='shutdown', **kwargs)
 
     @response_json(ApplicationPreferencesDictionary)
     @login_required
@@ -168,7 +168,7 @@ class AppAPIMixIn(Request):
         :return: None
         """
         data = {'json': dumps(prefs, separators=(',', ':'))}
-        return self._post(_name=APINames.Application, _method='setPreferences', data=data, **kwargs)
+        self._post(_name=APINames.Application, _method='setPreferences', data=data, **kwargs)
 
     @Alias('app_defaultSavePath')
     @response_text(str)
