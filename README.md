@@ -74,7 +74,7 @@ Behavior & Configuration
   * Alternatively, set environment variables `PYTHON_QBITTORRENTAPI_HOST`, `PYTHON_QBITTORRENTAPI_USERNAME` and `PYTHON_QBITTORRENTAPI_PASSWORD`.
 * API Endpoints Not Yet Implemented in the qBittorrent Host
   * By default, if a call is made to endpoint that doesn't yet exist on the host (e.g. the Search endpoints were introduced in Web API v2.1.1), there's a debug logger output and None is returned.
-  * To raise UnimplementedError instead, instantiate Client with `RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True`.
+  * To raise NotImplementedError instead, instantiate Client with `RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True`.
 * Disable Logging Debug Output
   * Instantiate Client with `DISABLE_LOGGING_DEBUG_OUTPUT=True` or manually disable logging for the relevant packages:
     * ```logging.getLogger('qbittorrentapi').setLevel(logging.INFO) ```
@@ -303,6 +303,7 @@ Interaction Layer Details
     * file_priority
     * filePrio
     * rename
+    * rename_file
     * set_location
     * set_category
     * set_auto_management
@@ -332,6 +333,7 @@ Interaction Layer Details
     * add_feed
     * remove_item
     * refresh_item
+    * rss_mark_as_read
     * move_item
     * items
       * Methods
@@ -340,6 +342,7 @@ Interaction Layer Details
     * set_rule
     * rename_rule
     * remove_rule
+    * rss_matching_articles
 * Search
   * Properties
     * plugins
