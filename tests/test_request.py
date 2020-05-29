@@ -61,9 +61,10 @@ def test_http404(client):
         client.torrents_rename(hash='asdf', new_torrent_name='erty')
 
 
-def test_http409(client, torrent_hash):
-    with pytest.raises(Conflict409Error):
-        client.torrents.increase_priority(hashes='asdf')
+def test_http409(client, api_version):
+    if is_version_less_than('4.1.5', api_version, lteq=False):
+        with pytest.raises(Conflict409Error):
+            client.torrents.increase_priority(hashes='asdf')
 
 
 def test_http415(client):
