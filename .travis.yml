@@ -62,7 +62,7 @@ before_install:
   # start qBittorrent
   - $QBT_PATH/bin/qbittorrent-nox --daemon
 install:
-  - pip install .
+  - pip install --upgrade --force-reinstall .
 script: pytest
 after_success:
   - codecov
