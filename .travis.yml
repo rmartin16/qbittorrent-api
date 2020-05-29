@@ -3,35 +3,35 @@ dist: bionic
 addons:
   apt:
     packages:
-      - libboost-dev libboost-system-dev #libboost-chrono-dev #libboost-random-dev
+      - libboost-dev libboost-system-dev
       - qtbase5-dev libqt5svg5-dev
 python:
-  #- 2.7
+  - 2.7
   #- 3.4  # not supported on bionic
-  #- 3.5
-  #- 3.6
+  - 3.5
+  - 3.6
   - 3.7
   - 3.8
-  #- 3.9-dev
-  #- 3.10-dev
-  #- pypy3
+  - 3.9-dev
+  - 3.10-dev
+  - pypy3
 env:
-  #- QBT_VER="4.1.0"
-  #- QBT_VER="4.1.1"
-  #- QBT_VER="4.1.2"  # nox version wouldn't start out of the box: fixed in https://github.com/qbittorrent/qBittorrent/pull/9365
-  #- QBT_VER="4.1.3"
-  #- QBT_VER="4.1.4"
-  #- QBT_VER="4.1.5"
-  #- QBT_VER="4.1.6"
-  #- QBT_VER="4.1.7"
-  #- QBT_VER="4.1.8"
-  #- QBT_VER="4.1.9"
-  #- QBT_VER="4.1.9.1"
-  #- QBT_VER="4.2.0"
-  #- QBT_VER="4.2.1"
-  #- QBT_VER="4.2.2"
-  #- QBT_VER="4.2.3"
-  #- QBT_VER="4.2.4"
+  - QBT_VER="4.1.0"
+  - QBT_VER="4.1.1"
+  - QBT_VER="4.1.2"  # nox version wouldn't start out of the box: fixed in https://github.com/qbittorrent/qBittorrent/pull/9365
+  - QBT_VER="4.1.3"
+  - QBT_VER="4.1.4"
+  - QBT_VER="4.1.5"
+  - QBT_VER="4.1.6"
+  - QBT_VER="4.1.7"
+  - QBT_VER="4.1.8"
+  - QBT_VER="4.1.9"
+  - QBT_VER="4.1.9.1"
+  - QBT_VER="4.2.0"
+  - QBT_VER="4.2.1"
+  - QBT_VER="4.2.2"
+  - QBT_VER="4.2.3"
+  - QBT_VER="4.2.4"
   - QBT_VER="4.2.5"
 jobs:
   allow_failures:
