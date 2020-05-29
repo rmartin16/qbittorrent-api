@@ -135,7 +135,7 @@ class TorrentDictionary(Dictionary):
     def set_category(self, category=None, **kwargs):
         return self._client.torrents_set_category(category=category, hashes=self._hash, **kwargs)
 
-    @Alias('setAutoManagemnt')
+    @Alias('setAutoManagement')
     def set_auto_management(self, enable=None, **kwargs):
         return self._client.torrents_set_auto_management(enable=enable, hashes=self._hash, **kwargs)
 
