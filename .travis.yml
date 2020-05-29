@@ -3,7 +3,7 @@ dist: bionic
 addons:
   apt:
     packages:
-      - libboost-dev libboost-system-dev libboost-chrono-dev libboost-random-dev
+      - libboost-dev libboost-system-dev libboost-chrono-dev #libboost-random-dev
       - qtbase5-dev libqt5svg5-dev
 python:
   #- 2.7
