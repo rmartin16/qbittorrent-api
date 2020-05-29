@@ -18,7 +18,7 @@ python:
 env:
   - QBT_VER="4.1.0"
   - QBT_VER="4.1.1"
-  - QBT_VER="4.1.2"  # nox version wouldn't start out of the box: fixed in https://github.com/qbittorrent/qBittorrent/pull/9365
+  #- QBT_VER="4.1.2"  # nox version wouldn't start out of the box: fixed in https://github.com/qbittorrent/qBittorrent/pull/9365
   - QBT_VER="4.1.3"
   - QBT_VER="4.1.4"
   - QBT_VER="4.1.5"
