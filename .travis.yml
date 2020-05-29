@@ -22,8 +22,10 @@ python:
   - 3.8
   #- 3.9-dev
   #- 3.10-dev
-  #- pypy3
+  - pypy3
 env:
+  - global:
+      - secure: "Oswps/VybIB0Kmm9tQr4EgqUtlKVr4ns2RMCwRYmlkD442gm9AxJxm2NeOxAkLOFSECWHwYaw5nCflW5fl+qXx7OPJA7XcLiWLJ56emuV1EaO6/ixPhDESPAyiN+v7FCOtgVtR4j7QrjzM6ExYGjs9+JmGKprErns10krRF90FbIvSGCsSmoZaGgwxd9uN+t4jlZmPbDbgqXrKhn0kk+WJguad2bdPzsjzj610ATKxcusMimak7WR1w1vi4cqkDyfjBCc+80SfZVpMrCb8uftt7ikfLKnrmIIhcPJ8JqEGr6Tp74z5W8bxuCeYTwIJwirvrHb4j/S+bf48aSUBwlra1tjRDq558GhL2VGovlVmNMZgXmqZo+K6jTUSBZX20xp7YGEF4aiFeetkeaDr8h7nav+2HnjMb5elgHs+G0TVQ3zyxc3vmxN+1oACmQVi3QxsqhPQUFoPRfjw7NqNpz2HMmOozXmPABviyhgHjsjGRKiIs3kyRJssglKo0hNOvZ540g8WuxaFPXgYStHNOuZynZPGWMd/0MZxfbdeh+AVwAG2Lxp3Hq77XhIm9GkbLFg9ybvBPCKHE2DrXT1fbKozzF7Y8V3bzOlbvexIowp2s8ojmliWShRvBndJjlDEKhmloOSobpM3lPImiz+jXM5E5jKGUOas4ECjShYBYZXBM="
   - QBT_VER="4.1.0"
   - QBT_VER="4.1.1"
   #- QBT_VER="4.1.2"  # nox version wouldn't start out of the box: fixed in https://github.com/qbittorrent/qBittorrent/pull/9365
@@ -41,9 +43,6 @@ env:
   - QBT_VER="4.2.3"
   - QBT_VER="4.2.4"
   - QBT_VER="4.2.5"
-  global:
-    - secure: "Oswps/VybIB0Kmm9tQr4EgqUtlKVr4ns2RMCwRYmlkD442gm9AxJxm2NeOxAkLOFSECWHwYaw5nCflW5fl+qXx7OPJA7XcLiWLJ56emuV1EaO6/ixPhDESPAyiN+v7FCOtgVtR4j7QrjzM6ExYGjs9+JmGKprErns10krRF90FbIvSGCsSmoZaGgwxd9uN+t4jlZmPbDbgqXrKhn0kk+WJguad2bdPzsjzj610ATKxcusMimak7WR1w1vi4cqkDyfjBCc+80SfZVpMrCb8uftt7ikfLKnrmIIhcPJ8JqEGr6Tp74z5W8bxuCeYTwIJwirvrHb4j/S+bf48aSUBwlra1tjRDq558GhL2VGovlVmNMZgXmqZo+K6jTUSBZX20xp7YGEF4aiFeetkeaDr8h7nav+2HnjMb5elgHs+G0TVQ3zyxc3vmxN+1oACmQVi3QxsqhPQUFoPRfjw7NqNpz2HMmOozXmPABviyhgHjsjGRKiIs3kyRJssglKo0hNOvZ540g8WuxaFPXgYStHNOuZynZPGWMd/0MZxfbdeh+AVwAG2Lxp3Hq77XhIm9GkbLFg9ybvBPCKHE2DrXT1fbKozzF7Y8V3bzOlbvexIowp2s8ojmliWShRvBndJjlDEKhmloOSobpM3lPImiz+jXM5E5jKGUOas4ECjShYBYZXBM="
-
 jobs:
   allow_failures:
     - python: pypy3
