@@ -41,6 +41,7 @@ jobs:
 cache:
   directories:
     - $HOME/deb  # until deb downloads are more reliable...
+    - $HOME/.cache/pip
 before_install:
   - python --version
   - pip install -U pip
