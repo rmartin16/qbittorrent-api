@@ -11,8 +11,7 @@ addons:
       name: "rmartin16/qbittorrent-api"
       description: "Python client implementation for qBittorrent's Web API"
     notification_email: rmartin16@gmail.com
-    build_command_prepend: "echo"
-    build_command: "echo"
+    build_command: "--no-command --fs-capture-search ./qbittorrentapi/"
     branch_pattern: coverity_scan
 python:
   #- 2.7
