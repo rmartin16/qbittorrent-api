@@ -2,6 +2,7 @@ import pytest
 
 from qbittorrentapi import Client
 from qbittorrentapi.exceptions import *
+from qbittorrentapi.helpers import is_version_less_than
 from qbittorrentapi.torrents import TorrentDictionary
 from qbittorrentapi.torrents import TorrentInfoList
 
@@ -46,12 +47,13 @@ def test_api_connection_error():
         Client(host='localhost:8081').auth_log_in()
 
 
-def test_request_http400(client, torrent_hash):
+def test_request_http400(client, api_version, torrent_hash):
     with pytest.raises(MissingRequiredParameters400Error):
         client.torrents_file_priority(hash=torrent_hash)
 
-    with pytest.raises(InvalidRequest400Error):
-        client.torrents_file_priority(hash=torrent_hash, file_ids=1, priority='asdf')
+    if is_version_less_than('4.1.5', api_version, lteq=False):
+        with pytest.raises(InvalidRequest400Error):
+            client.torrents_file_priority(hash=torrent_hash, file_ids='asdf', priority='asdf')
 
 
 def test_http404(client):
