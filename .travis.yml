@@ -15,14 +15,14 @@ addons:
     build_command: "echo"
     branch_pattern: coverity_scan
 python:
-  #- 2.7
+  - 2.7
   #- 3.4  # not supported on bionic
-  #- 3.5
-  #- 3.6
-  #- 3.7
+  - 3.5
+  - 3.6
+  - 3.7
   - 3.8
-  #- 3.9-dev
-  #- 3.10-dev
+  - 3.9-dev
+  - 3.10-dev
   - pypy3
 env:
   jobs:
@@ -62,7 +62,7 @@ before_install:
   - pip install -U pytest-cov
   - pip install codecov
   # coverity
-  - echo -n | openssl s_client -connect https://scan.coverity.com | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+  - echo -n | openssl s_client -connect https://scan.coverity.com -port 433 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
   # prepare to install qbittorrent things
   - mkdir -p $HOME/deb
   - mkdir -p $HOME/Downloads  # default torrent download location
