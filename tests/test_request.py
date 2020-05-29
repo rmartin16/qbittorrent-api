@@ -2,6 +2,7 @@ import pytest
 
 from qbittorrentapi import Client
 from qbittorrentapi.exceptions import *
+from qbittorrentapi.helpers import is_version_less_than
 from qbittorrentapi.torrents import TorrentDictionary
 from qbittorrentapi.torrents import TorrentInfoList
 
@@ -41,26 +42,31 @@ def test_request_extra_params(client, torrent_hash):
     assert isinstance(torrent, TorrentDictionary)
 
 
-def test_request_api_connection_error():
+def test_api_connection_error():
     with pytest.raises(APIConnectionError):
         Client(host='localhost:8081').auth_log_in()
 
 
-def test_request_http400(client):
+def test_request_http400(client, api_version, torrent_hash):
     with pytest.raises(MissingRequiredParameters400Error):
-        client.torrents_edit_tracker()
+        client.torrents_file_priority(hash=torrent_hash)
+
+    if is_version_less_than('4.1.5', api_version, lteq=False):
+        with pytest.raises(InvalidRequest400Error):
+            client.torrents_file_priority(hash=torrent_hash, file_ids='asdf', priority='asdf')
 
 
-def test_request_http404(client):
+def test_http404(client):
     with pytest.raises(NotFound404Error):
         client.torrents_rename(hash='asdf', new_torrent_name='erty')
 
 
-def test_request_http409(client, torrent_hash):
-    with pytest.raises(Conflict409Error):
-        client.torrents_remove_trackers(hash=torrent_hash, urls='example.com')
+def test_http409(client, api_version):
+    if is_version_less_than('4.1.5', api_version, lteq=False):
+        with pytest.raises(Conflict409Error):
+            client.torrents.increase_priority(hashes='asdf')
 
 
-def test_request_http415(client):
+def test_http415(client):
     with pytest.raises(UnsupportedMediaType415Error):
         client.torrents.add(torrent_files='/etc/hosts')
