@@ -28,7 +28,7 @@ API Peculiarities
         - Sending an empty string for 'banned_ips' drops the useless message
           below in to the log file (same for WebUI):
             ' is not a valid IP address and was rejected while applying the list of banned addresses.'
-            - https://github.com/qbittorrent/qBittorrent/issues/10745
+            - [Resolved] https://github.com/qbittorrent/qBittorrent/issues/10745
     
     torrents/downloadLimit and uploadLimit
         - Hashes handling is non-standard. 404 is not returned for bad hashes and 'all' doesn't work.
