@@ -24,8 +24,6 @@ python:
   #- 3.10-dev
   - pypy3
 env:
-  global:
-      - secure: "V2nn1l9YTRKTRdbA9++ESqg3QM2hqlkHxOTODvs4mOXErVvINI4TwOAfc4hc1DkidTgXoHC+eGuqRuKBuMgUMLxSOYhvpQPdJgJqGOhnEiA4RSYkBO72o65vttJjI/x9439Y9wSv5G+3jm2YvrAfh1VlHnCcsPb0gsnt4X6qrx3FMz8M4tuG7U6EEsCWtY7DQVrzPsMTlXXAIXqAnR2cO3UQvYwFECj2bobLTtmldLTpaCePTWKY2gaX1dminejWtRofu4wfhQGC9QXEiJNqQcZ4rrckkwMgSsvQHwiNf/uDH13g6tMI5DzWhJNg7BzMAtIIb09SnnATPSuSBfpcSG27M5gZdvULH4aGEp3O8e1a+HSXY5aSKhZYfvylR0PUP6eDzXeYXn99ziajSBMTZ6ZZVpg2bMAg73TiB2cod+vyvXczjEFNAO+QmhaWaNrD4e5Vi6CS0yUjOS8Ec4k9GCkK+nhcIe5b78j1kc2MQe9XdWnGhtZqJQJCceSh/bdGCRhcNN/+REo3egiHKjn4vIg7HlDEGgaxsJwe9JNsD4M/q1C2YjwDCYIdcJbP1Yn6JMaIkwHx9ezdih5xA3IfZNLvs8IJyN/AO43N4HoPOfdTz0NX80QhEnyOiETy920jih6O4Mi/JmlJo+CYjoLP331Peb4A5C4iXthClxtgd9w="
   jobs:
     - QBT_VER="4.1.0"
     - QBT_VER="4.1.1"
@@ -44,6 +42,9 @@ env:
     - QBT_VER="4.2.3"
     - QBT_VER="4.2.4"
     - QBT_VER="4.2.5"
+  global:
+    # COVERITY_SCAN_TOKEN
+    - secure: "V2nn1l9YTRKTRdbA9++ESqg3QM2hqlkHxOTODvs4mOXErVvINI4TwOAfc4hc1DkidTgXoHC+eGuqRuKBuMgUMLxSOYhvpQPdJgJqGOhnEiA4RSYkBO72o65vttJjI/x9439Y9wSv5G+3jm2YvrAfh1VlHnCcsPb0gsnt4X6qrx3FMz8M4tuG7U6EEsCWtY7DQVrzPsMTlXXAIXqAnR2cO3UQvYwFECj2bobLTtmldLTpaCePTWKY2gaX1dminejWtRofu4wfhQGC9QXEiJNqQcZ4rrckkwMgSsvQHwiNf/uDH13g6tMI5DzWhJNg7BzMAtIIb09SnnATPSuSBfpcSG27M5gZdvULH4aGEp3O8e1a+HSXY5aSKhZYfvylR0PUP6eDzXeYXn99ziajSBMTZ6ZZVpg2bMAg73TiB2cod+vyvXczjEFNAO+QmhaWaNrD4e5Vi6CS0yUjOS8Ec4k9GCkK+nhcIe5b78j1kc2MQe9XdWnGhtZqJQJCceSh/bdGCRhcNN/+REo3egiHKjn4vIg7HlDEGgaxsJwe9JNsD4M/q1C2YjwDCYIdcJbP1Yn6JMaIkwHx9ezdih5xA3IfZNLvs8IJyN/AO43N4HoPOfdTz0NX80QhEnyOiETy920jih6O4Mi/JmlJo+CYjoLP331Peb4A5C4iXthClxtgd9w="
 jobs:
   allow_failures:
     - python: pypy3
@@ -60,7 +61,7 @@ before_install:
   - pip install -U pytest-cov
   - pip install codecov
   # coverity
-  - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+  - echo -n | openssl s_client -connect https://scan.coverity.com | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
   # prepare to install qbittorrent things
   - mkdir -p $HOME/deb
   - mkdir -p $HOME/Downloads  # default torrent download location
