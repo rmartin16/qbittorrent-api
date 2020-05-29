@@ -1,4 +1,5 @@
 language: python
+os: linux
 dist: bionic
 addons:
   apt:
@@ -10,8 +11,8 @@ addons:
       name: "rmartin16/qbittorrent-api"
       description: "Python client implementation for qBittorrent's Web API"
     notification_email: rmartin16@gmail.com
-    build_command_prepend: echo
-    build_command: echo
+    build_command_prepend: "echo"
+    build_command: "echo"
     branch_pattern: coverity_scan
 python:
   #- 2.7
