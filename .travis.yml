@@ -15,15 +15,15 @@ addons:
     build_command: "echo"
     branch_pattern: coverity_scan
 python:
-  - 2.7
+  #- 2.7
   #- 3.4  # not supported on bionic
-  - 3.5
-  - 3.6
-  - 3.7
+  #- 3.5
+  #- 3.6
+  #- 3.7
   - 3.8
-  - 3.9-dev
-  - 3.10-dev
-  - pypy3
+  #- 3.9-dev
+  #- 3.10-dev
+  #- pypy3
 env:
   jobs:
     - QBT_VER="4.1.0"
