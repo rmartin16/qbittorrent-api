@@ -25,7 +25,7 @@ python:
   - pypy3
 env:
   global:
-      - secure: "Oswps/VybIB0Kmm9tQr4EgqUtlKVr4ns2RMCwRYmlkD442gm9AxJxm2NeOxAkLOFSECWHwYaw5nCflW5fl+qXx7OPJA7XcLiWLJ56emuV1EaO6/ixPhDESPAyiN+v7FCOtgVtR4j7QrjzM6ExYGjs9+JmGKprErns10krRF90FbIvSGCsSmoZaGgwxd9uN+t4jlZmPbDbgqXrKhn0kk+WJguad2bdPzsjzj610ATKxcusMimak7WR1w1vi4cqkDyfjBCc+80SfZVpMrCb8uftt7ikfLKnrmIIhcPJ8JqEGr6Tp74z5W8bxuCeYTwIJwirvrHb4j/S+bf48aSUBwlra1tjRDq558GhL2VGovlVmNMZgXmqZo+K6jTUSBZX20xp7YGEF4aiFeetkeaDr8h7nav+2HnjMb5elgHs+G0TVQ3zyxc3vmxN+1oACmQVi3QxsqhPQUFoPRfjw7NqNpz2HMmOozXmPABviyhgHjsjGRKiIs3kyRJssglKo0hNOvZ540g8WuxaFPXgYStHNOuZynZPGWMd/0MZxfbdeh+AVwAG2Lxp3Hq77XhIm9GkbLFg9ybvBPCKHE2DrXT1fbKozzF7Y8V3bzOlbvexIowp2s8ojmliWShRvBndJjlDEKhmloOSobpM3lPImiz+jXM5E5jKGUOas4ECjShYBYZXBM="
+      - secure: "V2nn1l9YTRKTRdbA9++ESqg3QM2hqlkHxOTODvs4mOXErVvINI4TwOAfc4hc1DkidTgXoHC+eGuqRuKBuMgUMLxSOYhvpQPdJgJqGOhnEiA4RSYkBO72o65vttJjI/x9439Y9wSv5G+3jm2YvrAfh1VlHnCcsPb0gsnt4X6qrx3FMz8M4tuG7U6EEsCWtY7DQVrzPsMTlXXAIXqAnR2cO3UQvYwFECj2bobLTtmldLTpaCePTWKY2gaX1dminejWtRofu4wfhQGC9QXEiJNqQcZ4rrckkwMgSsvQHwiNf/uDH13g6tMI5DzWhJNg7BzMAtIIb09SnnATPSuSBfpcSG27M5gZdvULH4aGEp3O8e1a+HSXY5aSKhZYfvylR0PUP6eDzXeYXn99ziajSBMTZ6ZZVpg2bMAg73TiB2cod+vyvXczjEFNAO+QmhaWaNrD4e5Vi6CS0yUjOS8Ec4k9GCkK+nhcIe5b78j1kc2MQe9XdWnGhtZqJQJCceSh/bdGCRhcNN/+REo3egiHKjn4vIg7HlDEGgaxsJwe9JNsD4M/q1C2YjwDCYIdcJbP1Yn6JMaIkwHx9ezdih5xA3IfZNLvs8IJyN/AO43N4HoPOfdTz0NX80QhEnyOiETy920jih6O4Mi/JmlJo+CYjoLP331Peb4A5C4iXthClxtgd9w="
   jobs:
     - QBT_VER="4.1.0"
     - QBT_VER="4.1.1"
@@ -59,6 +59,8 @@ before_install:
   - pip install -U pytest
   - pip install -U pytest-cov
   - pip install codecov
+  # coverity
+  - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
   # prepare to install qbittorrent things
   - mkdir -p $HOME/deb
   - mkdir -p $HOME/Downloads  # default torrent download location
@@ -74,6 +76,6 @@ before_install:
   - $QBT_PATH/bin/qbittorrent-nox --daemon
 install:
   - pip install .
-script: pytest
+script: if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then pytest; fi
 after_success:
   - codecov
