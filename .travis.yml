@@ -3,7 +3,7 @@ dist: bionic
 addons:
   apt:
     packages:
-      - libboost-dev libboost-system-dev libboost-chrono-dev  #libboost-random-dev
+      - libboost-dev libboost-system-dev libboost-chrono-dev libboost-random-dev
       - qtbase5-dev libqt5svg5-dev
 python:
   #- 2.7
@@ -52,11 +52,11 @@ before_install:
   - mkdir -p $HOME/Downloads  # default torrent download location
   - alias wget="wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 100"
   # install libtorrent-rasterbar
-  - [ ! -f $HOME/deb/libtorrent-rasterbar9_amd64.deb ] && wget https://bit.ly/libtorrent-rasterbar9-1-1-1 -O $HOME/deb/libtorrent-rasterbar9_amd64.deb
-  - [ ! -f $HOME/deb/libtorrent-rasterbar-dev_amd64.deb ] && wget https://bit.ly/libtorrent-rasterbar-dev-1-1-1 -O $HOME/deb/libtorrent-rasterbar-dev_amd64.deb
+  - if [ ! -f $HOME/deb/libtorrent-rasterbar9_amd64.deb ]; then wget https://bit.ly/libtorrent-rasterbar9-1-1-1 -O $HOME/deb/libtorrent-rasterbar9_amd64.deb; fi
+  - if [ ! -f $HOME/deb/libtorrent-rasterbar-dev_amd64.deb ]; then wget https://bit.ly/libtorrent-rasterbar-dev-1-1-1 -O $HOME/deb/libtorrent-rasterbar-dev_amd64.deb; fi
   - sudo dpkg -i $HOME/deb/libtorrent-rasterbar-dev_amd64.deb $HOME/deb/libtorrent-rasterbar9_amd64.deb
   # install qBittorrent
-  - [ ! -f $HOME/deb/qbittorrent_nox_amd64.deb ] && wget https://bit.ly/qbittorrent-nox-amd64-$(echo "$QBT_VER" | tr . -) -O $HOME/deb/qbittorrent_nox_amd64.deb
+  - if [ ! -f $HOME/deb/qbittorrent_nox_amd64.deb ]; then wget https://bit.ly/qbittorrent-nox-amd64-$(echo "$QBT_VER" | tr . -) -O $HOME/deb/qbittorrent_nox_amd64.deb; fi
   - sudo dpkg -i $HOME/deb/qbittorrent_nox_amd64.deb
   # start qBittorrent
   - $QBT_PATH/bin/qbittorrent-nox --daemon
