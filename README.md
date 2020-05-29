@@ -1,6 +1,6 @@
 qBittorrent Web API Client
 ================================
-[![PyPI](https://img.shields.io/pypi/v/qbittorrent-api)](https://pypi.org/project/qbittorrent-api/) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/qbittorrent-api) [![Travis (.org) branch](https://img.shields.io/travis/rmartin16/qbittorrent-api/master)](https://travis-ci.org/github/rmartin16/qbittorrent-api) [![Codecov branch](https://img.shields.io/codecov/c/gh/rmartin16/qbittorrent-api/master)](https://codecov.io/gh/rmartin16/qbittorrent-api) [![Coverity Scan](https://img.shields.io/coverity/scan/21227)]() ![PyPI - License](https://img.shields.io/pypi/l/qbittorrent-api)
+[![PyPI](https://img.shields.io/pypi/v/qbittorrent-api)](https://pypi.org/project/qbittorrent-api/) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/qbittorrent-api) [![Travis (.org) branch](https://img.shields.io/travis/rmartin16/qbittorrent-api/master)](https://travis-ci.org/github/rmartin16/qbittorrent-api) [![Codecov branch](https://img.shields.io/codecov/c/gh/rmartin16/qbittorrent-api/master)](https://codecov.io/gh/rmartin16/qbittorrent-api) [![Coverity Scan](https://img.shields.io/coverity/scan/21227)](https://scan.coverity.com/projects/rmartin16-qbittorrent-api) ![PyPI - Implementation](https://img.shields.io/pypi/implementation/qbittorrent-api)
 
 Python client implementation for qBittorrent Web API. Supports qBittorrent v4.1.0+ (i.e. Web API v2.0+).
 
