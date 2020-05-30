@@ -21,6 +21,7 @@ class RSSRulesDictionary(Dictionary):
 
 @aliased
 class RSS(ClientCache):
+
     """
     Allows interaction with "RSS" API endpoints.
 
@@ -37,6 +38,7 @@ class RSS(ClientCache):
         >>> client.rss.items.with_data
         >>> client.rss.items.without_data
     """
+
     def __init__(self, client):
         super(RSS, self).__init__(client=client)
         self.items = RSS._Items(client=client)
@@ -100,7 +102,8 @@ class RSS(ClientCache):
 
 @aliased
 class RSSAPIMixIn(Request):
-    """ Implementation of all RSS API methods """
+
+    """Implementation of all RSS API methods"""
 
     @property
     def rss(self):
