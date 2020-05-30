@@ -26,6 +26,7 @@ class LogEntry(ListEntry):
 
 
 class Log(ClientCache):
+
     """
     Allows interaction with "Log" API endpoints.
 
@@ -71,7 +72,9 @@ class Log(ClientCache):
 
 
 class LogAPIMixIn(Request):
-    """ Implementation of all Log API methods """
+
+    """Implementation of all Log API methods"""
+
     @property
     def log(self):
         """
