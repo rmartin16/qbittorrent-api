@@ -17,6 +17,7 @@ class SyncTorrentPeersDictionary(Dictionary):
 
 
 class Sync(ClientCache):
+
     """
     Alows interaction with the "Sync" API endpoints.
 
@@ -33,6 +34,7 @@ class Sync(ClientCache):
         >>> torrentPeers= client.sync.torrentPeers(hash="...'", rid='...')
         >>> torrent_peers = client.sync.torrent_peers(hash="...'", rid='...')
     """
+
     def __init__(self, client):
         super(Sync, self).__init__(client=client)
         self.maindata = self._MainData(client=client)
@@ -74,7 +76,8 @@ class Sync(ClientCache):
 
 @aliased
 class SyncAPIMixIn(Request):
-    """ Implementation of all Sync API Methods """
+
+    """Implementation of all Sync API Methods"""
 
     @property
     def sync(self):
@@ -104,18 +107,18 @@ class SyncAPIMixIn(Request):
     @Alias('sync_torrentPeers')
     @response_json(SyncTorrentPeersDictionary)
     @login_required
-    def sync_torrent_peers(self, hash=None, rid=0, **kwargs):
+    def sync_torrent_peers(self, torrent_hash=None, rid=0, **kwargs):
         """
         Retrieves torrent sync data. (alias: sync_torrentPeers)
 
         Exceptions:
             NotFound404Error
 
-        :param hash: hash for torrent
+        :param torrent_hash: hash for torrent
         :param rid: response ID
         :return: Dictionary of torrent sync data.
             Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-torrent-peers-data
         """
-        data = {'hash': hash,
+        data = {'hash': torrent_hash or kwargs.pop('hash'),
                 'rid': rid}
         return self._post(_name=APINames.Sync, _method='torrentPeers', data=data, **kwargs)
