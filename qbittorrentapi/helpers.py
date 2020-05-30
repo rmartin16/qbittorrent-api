@@ -75,14 +75,18 @@ class APINames(object):
 
 
 class ClientCache(object):
+
     """Caches the client. Subclass this for any object that needs access to the Client."""
+
     def __init__(self, *args, **kwargs):
         self._client = kwargs.pop('client')
         super(ClientCache, self).__init__(*args, **kwargs)
 
 
 class Dictionary(ClientCache, AttrDict):
+
     """Base definition of dictionary-like objects returned from qBittorrent."""
+
     def __init__(self, data=None, client=None):
 
         # iterate through a dictionary converting any nested dictionaries to AttrDicts
@@ -103,7 +107,9 @@ class Dictionary(ClientCache, AttrDict):
 
 
 class List(ClientCache, UserList):
+
     """Base definition for list-like objects returned from qBittorrent."""
+
     def __init__(self, list_entries=None, entry_class=None, client=None):
 
         entries = []
@@ -116,5 +122,5 @@ class List(ClientCache, UserList):
 
 
 class ListEntry(Dictionary):
+
     """Base definition for objects within a list returned from qBittorrent."""
-    pass
