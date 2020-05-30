@@ -63,6 +63,7 @@ class SearchPlugin(ListEntry):
 
 @aliased
 class Search(ClientCache):
+
     """
     Allows interaction with "Search" API endpoints.
 
@@ -82,6 +83,7 @@ class Search(ClientCache):
         >>> client.search.install_plugin(sources='...')
         >>> client.search.update_plugins()
     """
+
     def start(self, pattern=None, plugins=None, category=None, **kwargs):
         return self._client.search_start(pattern=pattern, plugins=plugins, category=category, **kwargs)
 
@@ -123,6 +125,7 @@ class Search(ClientCache):
 
 @aliased
 class SearchAPIMixIn(Request):
+
     """ Implementation for all Search API methods """
 
     @property
