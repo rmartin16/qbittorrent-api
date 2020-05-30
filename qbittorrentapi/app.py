@@ -25,6 +25,7 @@ class BuildInfoDictionary(Dictionary):
 
 @aliased
 class Application(ClientCache):
+
     """
     Allows interaction with "Application" API endpoints.
 
@@ -46,6 +47,7 @@ class Application(ClientCache):
         >>>
         >>> client.application.shutdown()
     """
+
     @property
     def version(self):
         return self._client.app_version()
@@ -83,7 +85,8 @@ class Application(ClientCache):
 
 @aliased
 class AppAPIMixIn(Request):
-    """ Implementation of all Application API methods """
+
+    """Implementation of all Application API methods"""
 
     @property
     def app(self):
@@ -144,7 +147,7 @@ class AppAPIMixIn(Request):
 
     @login_required
     def app_shutdown(self, **kwargs):
-        """Shutdown qBittorrent"""
+        """Shutdown qBittorrent."""
         self._post(_name=APINames.Application, _method='shutdown', **kwargs)
 
     @response_json(ApplicationPreferencesDictionary)

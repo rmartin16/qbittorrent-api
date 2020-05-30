@@ -2,13 +2,15 @@ import logging
 from functools import wraps
 from json import loads
 
-from qbittorrentapi.exceptions import *
+from qbittorrentapi.exceptions import APIError
+from qbittorrentapi.exceptions import HTTP403Error
 from qbittorrentapi.helpers import is_version_less_than
 
 logger = logging.getLogger(__name__)
 
 
 class Alias(object):
+
     """
     Alias class that can be used as a decorator for making methods callable
     through other names (or "aliases").
@@ -57,7 +59,7 @@ def aliased(aliased_class):
         i.coolMethod() # equivalent to i.myKinkyMethod() and i.boring_method()
     """
     original_methods = aliased_class.__dict__.copy()
-    for name, method in original_methods.items():
+    for method in original_methods.values():
         if hasattr(method, '_aliases'):
             # Add the aliases for 'method', but don't override any
             # previously-defined attribute of 'aliased_class'
@@ -112,6 +114,7 @@ def response_text(response_class):
 
 
 def response_json(response_class):
+
     """
     Return the JSON in the API response. JSON is parsed as instance of response_class.
 
