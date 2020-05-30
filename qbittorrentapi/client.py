@@ -17,7 +17,7 @@ Implementation
         - Alternatively, if a parameter is malformatted, HTTP400 is returned
           with an error message.
           This raises a InvalidRequest400 error.
-    
+
     Unauthorized HTTP 401
         - This is only raised if XSS is detected or host header validation fails.
 
@@ -49,6 +49,7 @@ class Client(AppAPIMixIn,
              TorrentsAPIMixIn,
              RSSAPIMixIn,
              SearchAPIMixIn):
+
     """
     Initialize API for qBittorrent client.
 
@@ -78,5 +79,6 @@ class Client(AppAPIMixIn,
                                                               UnimplementedError instead of just returning None.
     DISABLE_LOGGING_DEBUG_OUTPUT: Turn off debug output from logging for this package as well as Requests & urllib3.
     """
-    def __init__(self, host='', port=None, username='', password='', **kwargs):
+
+    def __init__(self, host='', port=None, username=None, password=None, **kwargs):
         super(Client, self).__init__(host=host, port=port, username=username, password=password, **kwargs)
