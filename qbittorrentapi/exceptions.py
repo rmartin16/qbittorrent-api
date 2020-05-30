@@ -1,156 +1,102 @@
 from requests.exceptions import RequestException
+from requests.exceptions import HTTPError as RequestsHTTPError
 
 
 class APIError(Exception):
-    """
-    Base error for all exceptions from this Client.
-    """
-    pass
+    """Base error for all exceptions from this Client."""
 
 
 class FileError(IOError, APIError):
-    """
-    Base class for all exceptions for file handling.
-    """
-    pass
+    """Base class for all exceptions for file handling."""
 
 
 class TorrentFileError(FileError):
-    """
-    Base class for all exceptions for torrent files.
-    """
-    pass
+    """Base class for all exceptions for torrent files."""
 
 
 class TorrentFileNotFoundError(TorrentFileError):
-    """
-    Specified torrent file does not appear to exist.
-    """
-    pass
+    """Specified torrent file does not appear to exist."""
 
 
 class TorrentFilePermissionError(TorrentFileError):
-    """
-    Permission was denied to read the specified torrent file.
-    """
-    pass
+    """Permission was denied to read the specified torrent file."""
 
 
 class APIConnectionError(RequestException, APIError):
-    """
-    Base class for all communications errors including HTTP errors.
-    """
-    pass
+    """Base class for all communications errors including HTTP errors."""
 
 
 class LoginFailed(APIConnectionError):
-    """
-    This can technically be raised with any request since log in may be attempted for any request and could fail.
-    """
-    pass
+    """This can technically be raised with any request since log in may be attempted for any request and could fail."""
 
 
-class HTTPError(APIConnectionError):
-    """
-    Base error for all HTTP errors. All errors following a successful connection to qBittorrent are returned as HTTP statuses.
-    """
-    pass
+class HTTPError(RequestsHTTPError, APIConnectionError):
+    """Base error for all HTTP errors. All errors following a successful connection to qBittorrent are returned as HTTP statuses."""
 
 
 class HTTP4XXError(HTTPError):
-    """
-    Base error for all HTTP 4XX statuses.
-    """
-    pass
+    """Base error for all HTTP 4XX statuses."""
 
 
 class HTTP5XXError(HTTPError):
-    """
-    Base error for all HTTP 5XX statuses.
-    """
-    pass
+    """Base error for all HTTP 5XX statuses."""
 
 
 class HTTP400Error(HTTP4XXError):
-    pass
+    """HTTP 400 Status"""
 
 
 class HTTP401Error(HTTP4XXError):
-    pass
+    """HTTP 401 Status"""
 
 
 class HTTP403Error(HTTP4XXError):
-    pass
+    """HTTP 403 Status"""
 
 
 class HTTP404Error(HTTP4XXError):
-    pass
+    """HTTP 404 Status"""
 
 
 class HTTP409Error(HTTP4XXError):
-    pass
+    """HTTP 409 Status"""
 
 
 class HTTP415Error(HTTP4XXError):
-    pass
+    """HTTP 415 Status"""
 
 
 class HTTP500Error(HTTP5XXError):
-    pass
+    """HTTP 500 Status"""
 
 
 class MissingRequiredParameters400Error(HTTP400Error):
-    """
-    Endpoint call is missing one or more required parameters.
-    """
-    pass
+    """Endpoint call is missing one or more required parameters."""
 
 
 class InvalidRequest400Error(HTTP400Error):
-    """
-    One or more endpoint arguments are malformed.
-    """
-    pass
+    """One or more endpoint arguments are malformed."""
 
 
 class Unauthorized401Error(HTTP401Error):
-    """
-    Primarily reserved for XSS and host header issues.
-    """
-    pass
+    """Primarily reserved for XSS and host header issues."""
 
 
 class Forbidden403Error(HTTP403Error):
-    """
-    Not logged in, IP has been banned, or calling an API method that isn't public.
-    """
-    pass
+    """Not logged in, IP has been banned, or calling an API method that isn't public."""
 
 
 class NotFound404Error(HTTP404Error):
-    """
-    This should mean qBittorrent couldn't find a torrent for the torrent hash.
-    It is also possible this means the endpoint doesn't exist in qBittorrent...but that also means this Client has a bug.
-    """
-    pass
+    """This should mean qBittorrent couldn't find a torrent for the torrent hash."""
 
 
 class Conflict409Error(HTTP409Error):
-    """
-    Returned if arguments don't make sense specific to the endpoint.
-    """
-    pass
+    """Returned if arguments don't make sense specific to the endpoint."""
 
 
 class UnsupportedMediaType415Error(HTTP415Error):
-    """
-    torrents/add endpoint will return this for invalid URL(s) or files.
-    """
-    pass
+    """torrents/add endpoint will return this for invalid URL(s) or files."""
 
 
 class InternalServerError500Error(HTTP500Error):
-    """
-    Returned if qBittorent craps on itself while processing the request...
-    """
-    pass
+    """Returned if qBittorent craps on itself while processing the request..."""
