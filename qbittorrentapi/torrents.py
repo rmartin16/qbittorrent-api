@@ -25,6 +25,7 @@ from qbittorrentapi.request import Request
 
 @aliased
 class TorrentDictionary(Dictionary):
+
     """
     Alows interaction with individual torrents via the "Torrents" API endpoints.
 
@@ -51,70 +52,72 @@ class TorrentDictionary(Dictionary):
         >>> torrent.setCategory(category='video')
     """
     def __init__(self, data, client):
-        self._hash = data.get('hash', None)
+        self._torrent_hash = data.get('hash', None)
         super(TorrentDictionary, self).__init__(data=data, client=client)
 
     @property
     def info(self):
-        info = self._client.torrents_info(hashes=self._hash)
+        info = self._client.torrents_info(torrent_hashes=self._torrent_hash)
         if len(info) == 1:
             return info[0]
         return AttrDict()
 
     def resume(self, **kwargs):
-        return self._client.torrents_resume(hashes=self._hash, **kwargs)
+        return self._client.torrents_resume(torrent_hashes=self._torrent_hash, **kwargs)
 
     def pause(self, **kwargs):
-        return self._client.torrents_pause(hashes=self._hash, **kwargs)
+        return self._client.torrents_pause(torrent_hashes=self._torrent_hash, **kwargs)
 
     def delete(self, delete_files=None, **kwargs):
-        return self._client.torrents_delete(delete_files=delete_files, hashes=self._hash, **kwargs)
+        return self._client.torrents_delete(delete_files=delete_files, torrent_hashes=self._torrent_hash, **kwargs)
 
     def recheck(self, **kwargs):
-        return self._client.torrents_recheck(hashes=self._hash, **kwargs)
+        return self._client.torrents_recheck(torrent_hashes=self._torrent_hash, **kwargs)
 
     def reannounce(self, **kwargs):
-        return self._client.torrents_reannounce(hashes=self._hash, **kwargs)
+        return self._client.torrents_reannounce(torrent_hashes=self._torrent_hash, **kwargs)
 
     @Alias('increasePrio')
     def increase_priority(self, **kwargs):
-        return self._client.torrents_increase_priority(hashes=self._hash, **kwargs)
+        return self._client.torrents_increase_priority(torrent_hashes=self._torrent_hash, **kwargs)
 
     @Alias('decreasePrio')
     def decrease_priority(self, **kwargs):
-        return self._client.torrents_decrease_priority(hashes=self._hash, **kwargs)
+        return self._client.torrents_decrease_priority(torrent_hashes=self._torrent_hash, **kwargs)
 
     @Alias('topPrio')
     def top_priority(self, **kwargs):
-        return self._client.torrents_top_priority(hashes=self._hash, **kwargs)
+        return self._client.torrents_top_priority(torrent_hashes=self._torrent_hash, **kwargs)
 
     @Alias('bottomPrio')
     def bottom_priority(self, **kwargs):
-        return self._client.torrents_bottom_priority(hashes=self._hash, **kwargs)
+        return self._client.torrents_bottom_priority(torrent_hashes=self._torrent_hash, **kwargs)
 
     @Alias('setShareLimits')
     def set_share_limits(self, ratio_limit=None, seeding_time_limit=None, **kwargs):
         return self._client.torrents_set_share_limits(ratio_limit=ratio_limit, seeding_time_limit=seeding_time_limit,
-                                                      hashes=self._hash, **kwargs)
+                                                      torrent_hashes=self._torrent_hash, **kwargs)
 
     @property
     def download_limit(self, **kwargs):
-        return self._client.torrents_download_limit(hashes=self._hash, **kwargs)
+        return self._client.torrents_download_limit(torrent_hashes=self._torrent_hash, **kwargs)
     downloadLimit = download_limit
 
     @downloadLimit.setter
-    def downloadLimit(self, v): self.download_limit(limit=v)
+    def downloadLimit(self, v):
+        self.download_limit = v
+
     @download_limit.setter
     def download_limit(self, v):
         self.set_download_limit(limit=v)
 
     @Alias('setDownloadLimit')
     def set_download_limit(self, limit=None, **kwargs):
-        return self._client.torrents_set_download_limit(limit=limit, hashes=self._hash, **kwargs)
+        return self._client.torrents_set_download_limit(limit=limit, torrent_hashes=self._torrent_hash, **kwargs)
 
     @property
     def upload_limit(self, **kwargs):
-        return self._client.torrents_set_upload_limit(hashes=self._hash, **kwargs)
+        return self._client.torrents_set_upload_limit(torrent_hashes=self._torrent_hash, **kwargs)
     uploadLimit = upload_limit
 
     @uploadLimit.setter
@@ -125,43 +128,43 @@ class TorrentDictionary(Dictionary):
 
     @Alias('setUploadLimit')
     def set_upload_limit(self, limit=None, **kwargs):
-        return self._client.torrents_set_upload_limit(limit=limit, hashes=self._hash, **kwargs)
+        return self._client.torrents_set_upload_limit(limit=limit, torrent_hashes=self._torrent_hash, **kwargs)
 
     @Alias('setLocation')
     def set_location(self, location=None, **kwargs):
-        return self._client.torrents_set_location(location=location, hashes=self._hash, **kwargs)
+        return self._client.torrents_set_location(location=location, torrent_hashes=self._torrent_hash, **kwargs)
 
     @Alias('setCategory')
     def set_category(self, category=None, **kwargs):
-        return self._client.torrents_set_category(category=category, hashes=self._hash, **kwargs)
+        return self._client.torrents_set_category(category=category, torrent_hashes=self._torrent_hash, **kwargs)
 
     @Alias('setAutoManagement')
     def set_auto_management(self, enable=None, **kwargs):
-        return self._client.torrents_set_auto_management(enable=enable, hashes=self._hash, **kwargs)
+        return self._client.torrents_set_auto_management(enable=enable, torrent_hashes=self._torrent_hash, **kwargs)
 
     @Alias('toggleSequentialDownload')
     def toggle_sequential_download(self, **kwargs):
-        return self._client.torrents_toggle_sequential_download(hashes=self._hash, **kwargs)
+        return self._client.torrents_toggle_sequential_download(torrent_hashes=self._torrent_hash, **kwargs)
 
     @Alias('toggleFirstLastPiecePrio')
     def toggle_first_last_piece_priority(self, **kwargs):
-        return self._client.torrents_toggle_first_last_piece_priority(hashes=self._hash, **kwargs)
+        return self._client.torrents_toggle_first_last_piece_priority(torrent_hashes=self._torrent_hash, **kwargs)
 
     @Alias('setForceStart')
     def set_force_start(self, enable=None, **kwargs):
-        return self._client.torrents_set_force_start(enable=enable, hashes=self._hash, **kwargs)
+        return self._client.torrents_set_force_start(enable=enable, torrent_hashes=self._torrent_hash, **kwargs)
 
     @Alias('setSuperSeeding')
     def set_super_seeding(self, enable=None, **kwargs):
-        return self._client.torrents_set_super_seeding(enable=enable, hashes=self._hash, **kwargs)
+        return self._client.torrents_set_super_seeding(enable=enable, torrent_hashes=self._torrent_hash, **kwargs)
 
     @property
     def properties(self):
-        return self._client.torrents_properties(hash=self._hash)
+        return self._client.torrents_properties(torrent_hash=self._torrent_hash)
 
     @property
     def trackers(self):
-        return self._client.torrents_trackers(hash=self._hash)
+        return self._client.torrents_trackers(torrent_hash=self._torrent_hash)
 
     @trackers.setter
     def trackers(self, v):
@@ -169,51 +172,51 @@ class TorrentDictionary(Dictionary):
 
     @property
     def webseeds(self):
-        return self._client.torrents_webseeds(hash=self._hash)
+        return self._client.torrents_webseeds(torrent_hash=self._torrent_hash)
 
     @property
     def files(self):
-        return self._client.torrents_files(hash=self._hash)
+        return self._client.torrents_files(torrent_hash=self._torrent_hash)
 
     def rename_file(self, file_id=None, new_file_name=None, **kwargs):
-        return self._client.torrents_rename_file(hash=self._hash, file_id=file_id, new_file_name=new_file_name, **kwargs)
+        return self._client.torrents_rename_file(torrent_hash=self._torrent_hash, file_id=file_id, new_file_name=new_file_name, **kwargs)
 
     @property
     def piece_states(self):
-        return self._client.torrents_piece_states(hash=self._hash)
+        return self._client.torrents_piece_states(torrent_hash=self._torrent_hash)
     pieceStates = piece_states
 
     @property
     def piece_hashes(self):
-        return self._client.torrents_piece_hashes(hash=self._hash)
+        return self._client.torrents_piece_hashes(torrent_hash=self._torrent_hash)
     pieceHashes = piece_hashes
 
     @Alias('addTrackers')
     def add_trackers(self, urls=None, **kwargs):
-        return self._client.torrents_add_trackers(hash=self._hash, urls=urls, **kwargs)
+        return self._client.torrents_add_trackers(torrent_hash=self._torrent_hash, urls=urls, **kwargs)
 
     @Alias('editTracker')
     def edit_tracker(self, orig_url=None, new_url=None, **kwargs):
-        return self._client.torrents_edit_tracker(hash=self._hash, original_url=orig_url, new_url=new_url, **kwargs)
+        return self._client.torrents_edit_tracker(torrent_hash=self._torrent_hash, original_url=orig_url, new_url=new_url, **kwargs)
 
     @Alias('removeTrackers')
     def remove_trackers(self, urls=None, **kwargs):
-        return self._client.torrents_remove_trackers(hash=self._hash, urls=urls, **kwargs)
+        return self._client.torrents_remove_trackers(torrent_hash=self._torrent_hash, urls=urls, **kwargs)
 
     @Alias('filePriority')
     def file_priority(self, file_ids=None, priority=None, **kwargs):
-        return self._client.torrents_file_priority(hash=self._hash, file_ids=file_ids, priority=priority, **kwargs)
+        return self._client.torrents_file_priority(torrent_hash=self._torrent_hash, file_ids=file_ids, priority=priority, **kwargs)
 
     def rename(self, new_name=None, **kwargs):
-        return self._client.torrents_rename(hash=self._hash, new_torrent_name=new_name, **kwargs)
+        return self._client.torrents_rename(torrent_hash=self._torrent_hash, new_torrent_name=new_name, **kwargs)
 
     @Alias('addTags')
     def add_tags(self, tags=None, **kwargs):
-        return self._client.torrents_add_tags(hashes=self._hash, tags=tags, **kwargs)
+        return self._client.torrents_add_tags(torrent_hashes=self._torrent_hash, tags=tags, **kwargs)
 
     @Alias('removeTags')
     def remove_tags(self, tags=None, **kwargs):
-        return self._client.torrents_remove_tags(hashes=self._hash, tags=tags, **kwargs)
+        return self._client.torrents_remove_tags(torrent_hashes=self._torrent_hash, tags=tags, **kwargs)
 
 
 class TorrentPropertiesDictionary(Dictionary):
@@ -294,6 +297,7 @@ class Tag(ListEntry):
 
 
 class Torrents(ClientCache):
+
     """
     Allows interaction with the "Torrents" API endpoints.
 
@@ -312,7 +316,7 @@ class Torrents(ClientCache):
         >>> client.torrents.pause.all()
         >>> client.torrents.resume.all()
         >>> # or specify the individual hashes
-        >>> client.torrents.downloadLimit(hashes=['...', '...'])
+        >>> client.torrents.downloadLimit(torrent_hashes=['...', '...'])
     """
     def __init__(self, client):
         super(Torrents, self).__init__(client=client)
@@ -373,63 +377,64 @@ class Torrents(ClientCache):
             super(Torrents._ActionForAllTorrents, self).__init__(client=client)
             self.func = func
 
-        def __call__(self, hashes=None, **kwargs):
-            return self.func(hashes=hashes, **kwargs)
+        def __call__(self, torrent_hashes=None, **kwargs):
+            return self.func(torrent_hashes=torrent_hashes, **kwargs)
 
         def all(self, **kwargs):
-            return self.func(hashes='all', **kwargs)
+            return self.func(torrent_hashes='all', **kwargs)
 
     class _Info(ClientCache):
         def __call__(self, status_filter=None, category=None, sort=None, reverse=None, limit=None, offset=None,
-                     hashes=None, **kwargs):
+                     torrent_hashes=None, **kwargs):
             return self._client.torrents_info(status_filter=status_filter, category=category, sort=sort,
-                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+                                              reverse=reverse, limit=limit, offset=offset, torrent_hashes=torrent_hashes, **kwargs)
 
-        def all(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
+        def all(self, category=None, sort=None, reverse=None, limit=None, offset=None, torrent_hashes=None, **kwargs):
             return self._client.torrents_info(status_filter='all', category=category, sort=sort, reverse=reverse,
-                                              limit=limit, offset=offset, hashes=hashes, **kwargs)
+                                              limit=limit, offset=offset, torrent_hashes=torrent_hashes, **kwargs)
 
-        def downloading(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
+        def downloading(self, category=None, sort=None, reverse=None, limit=None, offset=None, torrent_hashes=None, **kwargs):
             return self._client.torrents_info(status_filter='downloading', category=category, sort=sort,
-                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+                                              reverse=reverse, limit=limit, offset=offset, torrent_hashes=torrent_hashes, **kwargs)
 
-        def completed(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
-            return self._client.torrents_info(status_filter='completed', category=category, sort=sort,
-                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+        def completed(self, category=None, sort=None, reverse=None, limit=None, offset=None, torrent_hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='completed', category=category, sort=sort, reverse=reverse,
+                                              limit=limit, offset=offset, torrent_hashes=torrent_hashes, **kwargs)
 
-        def paused(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
+        def paused(self, category=None, sort=None, reverse=None, limit=None, offset=None, torrent_hashes=None, **kwargs):
             return self._client.torrents_info(status_filter='paused', category=category, sort=sort,
-                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+                                              reverse=reverse, limit=limit, offset=offset, torrent_hashes=torrent_hashes, **kwargs)
 
-        def active(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
-            return self._client.torrents_info(status_filter='active', category=category, sort=sort,
-                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+        def active(self, category=None, sort=None, reverse=None, limit=None, offset=None, torrent_hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='active', category=category, sort=sort, reverse=reverse,
+                                              limit=limit, offset=offset, torrent_hashes=torrent_hashes, **kwargs)
 
-        def inactive(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
-            return self._client.torrents_info(status_filter='inactive', category=category, sort=sort,
-                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+        def inactive(self, category=None, sort=None, reverse=None, limit=None, offset=None, torrent_hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='inactive', category=category, sort=sort, reverse=reverse,
+                                              limit=limit, offset=offset, torrent_hashes=torrent_hashes, **kwargs)
 
-        def resumed(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
-            return self._client.torrents_info(status_filter='resumed', category=category, sort=sort,
-                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+        def resumed(self, category=None, sort=None, reverse=None, limit=None, offset=None, torrent_hashes=None, **kwargs):
+            return self._client.torrents_info(status_filter='resumed', category=category, sort=sort, reverse=reverse,
+                                              limit=limit, offset=offset, torrent_hashes=torrent_hashes, **kwargs)
 
-        def stalled(self, category=None, sort=None, reverse=None, limit=None, offset=None, hashes=None, **kwargs):
+        def stalled(self, category=None, sort=None, reverse=None, limit=None, offset=None, torrent_hashes=None, **kwargs):
             return self._client.torrents_info(status_filter='stalled', category=category, sort=sort,
-                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+                                              reverse=reverse, limit=limit, offset=offset, torrent_hashes=torrent_hashes, **kwargs)
 
         def stalled_uploading(self, category=None, sort=None, reverse=None, limit=None, offset=None,
-                              hashes=None, **kwargs):
+                              torrent_hashes=None, **kwargs):
             return self._client.torrents_info(status_filter='stalled_uploading', category=category, sort=sort,
-                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+                                              reverse=reverse, limit=limit, offset=offset, torrent_hashes=torrent_hashes, **kwargs)
 
         def stalled_downloading(self, category=None, sort=None, reverse=None, limit=None, offset=None,
-                                hashes=None, **kwargs):
+                                torrent_hashes=None, **kwargs):
             return self._client.torrents_info(status_filter='stalled_downloading', category=category, sort=sort,
-                                              reverse=reverse, limit=limit, offset=offset, hashes=hashes, **kwargs)
+                                              reverse=reverse, limit=limit, offset=offset, torrent_hashes=torrent_hashes, **kwargs)
 
 
 @aliased
 class TorrentCategories(ClientCache):
+
     """
     Alows interaction with torrent categories within the "Torrents" API endpoints.
 
@@ -475,6 +480,7 @@ class TorrentCategories(ClientCache):
 
 @aliased
 class TorrentTags(ClientCache):
+
     """
     Allows interaction with torrent tags within the "Torrent" API endpoints.
 
@@ -496,12 +502,12 @@ class TorrentTags(ClientCache):
         self._client.torrents_create_tags(tags=v)
 
     @Alias('addTags')
-    def add_tags(self, tags=None, hashes=None, **kwargs):
-        self._client.torrents_add_tags(tags=tags, hashes=hashes, **kwargs)
+    def add_tags(self, tags=None, torrent_hashes=None, **kwargs):
+        self._client.torrents_add_tags(tags=tags, torrent_hashes=torrent_hashes, **kwargs)
 
     @Alias('removeTags')
-    def remove_tags(self, tags=None, hashes=None, **kwargs):
-        self._client.torrents_remove_tags(tags=tags, hashes=hashes, **kwargs)
+    def remove_tags(self, tags=None, torrent_hashes=None, **kwargs):
+        self._client.torrents_remove_tags(tags=tags, torrent_hashes=torrent_hashes, **kwargs)
 
     @Alias('createTags')
     def create_tags(self, tags=None, **kwargs):
@@ -514,7 +520,8 @@ class TorrentTags(ClientCache):
 
 @aliased
 class TorrentsAPIMixIn(Request):
-    """ Implementation of all Torrents API methods """
+
+    """Implementation of all Torrents API methods"""
 
     @property
     def torrents(self):
@@ -597,14 +604,15 @@ class TorrentsAPIMixIn(Request):
                 'sequentialDownload': (None, is_sequential_download),
                 'firstLastPiecePrio': (None, is_first_last_piece_priority)}
 
+        files = None
         if torrent_files:
             if isinstance(torrent_files, six.string_types):
                 torrent_files = [torrent_files]
-            torrent_file = torrent_files[0]
             try:
-                torrent_files = [(path.basename(torrent_file), open(torrent_file, 'rb'))
-                                 for torrent_file in [path.abspath(path.realpath(path.expanduser(torrent_file)))
-                                                      for torrent_file in torrent_files]]
+                files = []
+                for torrent_file in torrent_files:
+                    filename = path.abspath(path.realpath(path.expanduser(torrent_file)))
+                    files.append((path.basename(filename), open(filename, 'rb')))
             except IOError as io_err:
                 if io_err.errno == errno.ENOENT:
                     raise TorrentFileNotFoundError(errno.ENOENT, os_strerror(errno.ENOENT), torrent_file)
@@ -613,128 +621,128 @@ class TorrentsAPIMixIn(Request):
                 else:
                     raise TorrentFileError(io_err)
 
-        return self._post(_name=APINames.Torrents, _method='add', data=data, files=torrent_files, **kwargs)
+        return self._post(_name=APINames.Torrents, _method='add', data=data, files=files, **kwargs)
 
     ##########################################################################
     # INDIVIDUAL TORRENT ENDPOINTS
     ##########################################################################
     @response_json(TorrentPropertiesDictionary)
     @login_required
-    def torrents_properties(self, hash=None, **kwargs):
+    def torrents_properties(self, torrent_hash=None, **kwargs):
         """
         Retrieve individual torrent's properties.
 
         Exceptions:
             NotFound404Error
 
-        :param hash: hash for torrent
+        :param torrent_hash: hash for torrent
         :return: Dictionary of torrent properties
             Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-torrent-generic-properties
         """
-        data = {'hash': hash}
+        data = {'hash': torrent_hash or kwargs.pop('hash')}
         return self._post(_name=APINames.Torrents, _method='properties', data=data, **kwargs)
 
     @response_json(TrackersList)
     @login_required
-    def torrents_trackers(self, hash=None, **kwargs):
+    def torrents_trackers(self, torrent_hash=None, **kwargs):
         """
         Retrieve individual torrent's trackers.
 
         Exceptions:
             NotFound404Error
 
-        :param hash: hash for torrent
+        :param torrent_hash: hash for torrent
         :return: List of torrent's trackers
             Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-torrent-trackers
         """
-        data = {'hash': hash}
+        data = {'hash': torrent_hash or kwargs.pop('hash')}
         return self._post(_name=APINames.Torrents, _method='trackers', data=data, **kwargs)
 
     @response_json(WebSeedsList)
     @login_required
-    def torrents_webseeds(self, hash=None, **kwargs):
+    def torrents_webseeds(self, torrent_hash=None, **kwargs):
         """
         Retrieve individual torrent's web seeds.
 
         Exceptions:
             NotFound404Error
 
-        :param hash: hash for torrent
+        :param torrent_hash: hash for torrent
         :return: List of torrent's web seeds
             Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-torrent-web-seeds
         """
-        data = {'hash': hash}
+        data = {'hash': torrent_hash or kwargs.pop('hash')}
         return self._post(_name=APINames.Torrents, _method='webseeds', data=data, **kwargs)
 
     @response_json(TorrentFilesList)
     @login_required
-    def torrents_files(self, hash=None, **kwargs):
+    def torrents_files(self, torrent_hash=None, **kwargs):
         """
         Retrieve individual torrent's files.
 
         Exceptions:
             NotFound404Error
 
-        :param hash: hash for torrent
+        :param torrent_hash: hash for torrent
         :return: List of torrent's files
             Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-torrent-contents
         """
-        data = {'hash': hash}
+        data = {'hash': torrent_hash or kwargs.pop('hash')}
         return self._post(_name=APINames.Torrents, _method='files', data=data, **kwargs)
 
     @Alias('torrents_pieceStates')
     @response_json(TorrentPieceInfoList)
     @login_required
-    def torrents_piece_states(self, hash=None, **kwargs):
+    def torrents_piece_states(self, torrent_hash=None, **kwargs):
         """
         Retrieve individual torrent's pieces' states. (alias: torrents_pieceStates)
 
         Exceptions:
             NotFound404Error
 
-        :param hash: hash for torrent
+        :param torrent_hash: hash for torrent
         :return: list of torrent's pieces' states
         """
-        data = {'hash': hash}
+        data = {'hash': torrent_hash or kwargs.pop('hash')}
         return self._post(_name=APINames.Torrents, _method='pieceStates', data=data, **kwargs)
 
     @Alias('torrents_pieceHashes')
     @response_json(TorrentPieceInfoList)
     @login_required
-    def torrents_piece_hashes(self, hash=None, **kwargs):
+    def torrents_piece_hashes(self, torrent_hash=None, **kwargs):
         """
         Retrieve individual torrent's pieces' hashes. (alias: torrents_pieceHashes)
 
         Exceptions:
             NotFound404Error
 
-        :param hash: hash for torrent
+        :param torrent_hash: hash for torrent
         :return: List of torrent's pieces' hashes
         """
-        data = {'hash': hash}
+        data = {'hash': torrent_hash or kwargs.pop('hash')}
         return self._post(_name=APINames.Torrents, _method='pieceHashes', data=data, **kwargs)
 
     @Alias('torrents_addTrackers')
     @login_required
-    def torrents_add_trackers(self, hash=None, urls=None, **kwargs):
+    def torrents_add_trackers(self, torrent_hash=None, urls=None, **kwargs):
         """
         Add trackers to a torrent. (alias: torrents_addTrackers)
 
         Exceptions:
             NotFound404Error
 
-        :param hash: hash for torrent
+        :param torrent_hash: hash for torrent
         :param urls: tracker urls to add to torrent
         :return: None
         """
-        data = {'hash': hash,
+        data = {'hash': torrent_hash or kwargs.pop('hash'),
                 'urls': list2string(urls, '\n')}
         self._post(_name=APINames.Torrents, _method='addTrackers', data=data, **kwargs)
 
     @version_implemented('2.2.0', 'torrents/editTracker')
     @Alias('torrents_editTracker')
     @login_required
-    def torrents_edit_tracker(self, hash=None, original_url=None, new_url=None, **kwargs):
+    def torrents_edit_tracker(self, torrent_hash=None, original_url=None, new_url=None, **kwargs):
         """
         Replace a torrent's tracker with a different one. (alias: torrents_editTrackers)
 
@@ -743,12 +751,12 @@ class TorrentsAPIMixIn(Request):
             NotFound404Error
             Conflict409Error
 
-        :param hash: hash for torrent
+        :param torrent_hash: hash for torrent
         :param original_url: URL for existing tracker
         :param new_url: new URL to replace
         :return: None
         """
-        data = {'hash': hash,
+        data = {'hash': torrent_hash or kwargs.pop('hash'),
                 'origUrl': original_url,
                 'newUrl': new_url}
         self._post(_name=APINames.Torrents, _method='editTracker', data=data, **kwargs)
@@ -756,7 +764,7 @@ class TorrentsAPIMixIn(Request):
     @version_implemented('2.2', 'torrents/removeTrackers')
     @Alias('torrents_removeTrackers')
     @login_required
-    def torrents_remove_trackers(self, hash=None, urls=None, **kwargs):
+    def torrents_remove_trackers(self, torrent_hash=None, urls=None, **kwargs):
         """
         Remove trackers from a torrent. (alias: torrents_removeTrackers)
 
@@ -764,17 +772,17 @@ class TorrentsAPIMixIn(Request):
             NotFound404Error
             Conflict409Error
 
-        :param hash: hash for torrent
+        :param torrent_hash: hash for torrent
         :param urls: tracker urls to removed from torrent
         :return: None
         """
-        data = {'hash': hash,
+        data = {'hash': torrent_hash or kwargs.pop('hash'),
                 'urls': list2string(urls, '|')}
         self._post(_name=APINames.Torrents, _method='removeTrackers', data=data, **kwargs)
 
     @Alias('torrents_filePrio')
     @login_required
-    def torrents_file_priority(self, hash=None, file_ids=None, priority=None, **kwargs):
+    def torrents_file_priority(self, torrent_hash=None, file_ids=None, priority=None, **kwargs):
         """
         Set priority for one or more files. (alias: torrents_filePrio)
 
@@ -782,37 +790,37 @@ class TorrentsAPIMixIn(Request):
             InvalidRequest400 if priority is invalid or at least one file ID is not an integer
             NotFound404Error
             Conflict409 if torrent metadata has not finished downloading or at least one file was not found
-        :param hash: hash for torrent
+        :param torrent_hash: hash for torrent
         :param file_ids: single file ID or a list. See
         :param priority: priority for file(s)
             Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#set-file-priority
         :return:
         """
-        data = {'hash': hash,
+        data = {'hash': torrent_hash or kwargs.pop('hash'),
                 'id': list2string(file_ids, "|"),
                 'priority': priority}
         self._post(_name=APINames.Torrents, _method='filePrio', data=data, **kwargs)
 
     @login_required
-    def torrents_rename(self, hash=None, new_torrent_name=None, **kwargs):
+    def torrents_rename(self, torrent_hash=None, new_torrent_name=None, **kwargs):
         """
         Rename a torrent.
 
         Exceptions:
             NotFound404Error
 
-        :param hash: hash for torrent
+        :param torrent_hash: hash for torrent
         :param new_torrent_name: new name for torrent
         :return: None
         """
-        data = {'hash': hash,
+        data = {'hash': torrent_hash or kwargs.pop('hash'),
                 'name': new_torrent_name}
         self._post(_name=APINames.Torrents, _method='rename', data=data, **kwargs)
 
     @version_implemented('2.4.0', 'torrents/renameFile')
     @Alias('torrents_renameFile')
     @login_required
-    def torrents_rename_file(self, hash=None, file_id=None, new_file_name=None, **kwargs):
+    def torrents_rename_file(self, torrent_hash=None, file_id=None, new_file_name=None, **kwargs):
         """
         Rename a torrent file.
 
@@ -821,12 +829,12 @@ class TorrentsAPIMixIn(Request):
             NotFound404Error
             Conflict409Error
 
-        :param hash: hash for torrent
+        :param torrent_hash: hash for torrent
         :param file_id: id for file
         :param new_file_name: new name for file
         :return: None
         """
-        data = {'hash': hash,
+        data = {'hash': torrent_hash or kwargs.pop('hash'),
                 'id': file_id,
                 'name': new_file_name}
         self._post(_name=APINames.Torrents, _method='renameFile', data=data, **kwargs)
@@ -838,7 +846,7 @@ class TorrentsAPIMixIn(Request):
     @version_implemented('2.0.1', 'torrents/info', ('hashes', 'hashes'))
     @login_required
     def torrents_info(self, status_filter=None, category=None, sort=None, reverse=None, limit=None, offset=None,
-                      hashes=None, **kwargs):
+                      torrent_hashes=None, **kwargs):
         """
         Retrieves list of info for torrents.
         Note: hashes is available starting web API version 2.0.1
@@ -850,7 +858,7 @@ class TorrentsAPIMixIn(Request):
         :param reverse: Reverse sorting
         :param limit: Limit length of list
         :param offset: Start of list (if < 0, offset from end of list)
-        :param hashes: Filter list by hash (separate multiple hashes with a '|')
+        :param torrent_hashes: Filter list by hash (separate multiple hashes with a '|')
         :return: List of torrents
             Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-torrent-list
         """
@@ -860,168 +868,168 @@ class TorrentsAPIMixIn(Request):
                 'reverse': reverse,
                 'limit': limit,
                 'offset': offset,
-                'hashes': list2string(hashes, '|')}
+                'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|')}
         return self._post(_name=APINames.Torrents, _method='info', data=data, **kwargs)
 
     @login_required
-    def torrents_resume(self, hashes=None, **kwargs):
+    def torrents_resume(self, torrent_hashes=None, **kwargs):
         """
         Resume one or more torrents in qBittorrent.
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: None
         """
-        data = {'hashes': list2string(hashes, '|')}
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|')}
         self._post(_name=APINames.Torrents, _method='resume', data=data, **kwargs)
 
     @login_required
-    def torrents_pause(self, hashes=None, **kwargs):
+    def torrents_pause(self, torrent_hashes=None, **kwargs):
         """
         Pause one or more torrents in qBittorrent.
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: None
         """
-        data = {'hashes': list2string(hashes, "|")}
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), "|")}
         self._post(_name=APINames.Torrents, _method='pause', data=data, **kwargs)
 
     @login_required
-    def torrents_delete(self, delete_files=None, hashes=None, **kwargs):
+    def torrents_delete(self, delete_files=None, torrent_hashes=None, **kwargs):
         """
         Remove a torrent from qBittorrent and optionally delete its files.
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :param delete_files: Truw to delete the torrent's files
         :return: None
         """
-        data = {'hashes': list2string(hashes, '|'),
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|'),
                 'deleteFiles': delete_files}
         self._post(_name=APINames.Torrents, _method='delete', data=data, **kwargs)
 
     @login_required
-    def torrents_recheck(self, hashes=None, **kwargs):
+    def torrents_recheck(self, torrent_hashes=None, **kwargs):
         """
         Recheck a torrent in qBittorrent.
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: None
         """
-        data = {'hashes': list2string(hashes, '|')}
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|')}
         self._post(_name=APINames.Torrents, _method='recheck', data=data, **kwargs)
 
     @version_implemented('2.0.2', 'torrents/reannounce')
     @login_required
-    def torrents_reannounce(self, hashes=None, **kwargs):
+    def torrents_reannounce(self, torrent_hashes=None, **kwargs):
         """
         Reannounce a torrent.
 
         Note: torrents/reannounce not available web API version 2.0.2
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: None
         """
-        data = {'hashes': list2string(hashes, '|')}
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|')}
         self._post(_name=APINames.Torrents, _method='reannounce', data=data, **kwargs)
 
     @Alias('torrents_increasePrio')
     @login_required
-    def torrents_increase_priority(self, hashes=None, **kwargs):
+    def torrents_increase_priority(self, torrent_hashes=None, **kwargs):
         """
         Increase the priority of a torrent. Torrent Queuing must be enabled. (alias: torrents_increasePrio)
 
         Exceptions:
             Conflict409
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: None
         """
-        data = {'hashes': list2string(hashes, '|')}
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|')}
         self._post(_name=APINames.Torrents, _method='increasePrio', data=data, **kwargs)
 
     @Alias('torrents_decreasePrio')
     @login_required
-    def torrents_decrease_priority(self, hashes=None, **kwargs):
+    def torrents_decrease_priority(self, torrent_hashes=None, **kwargs):
         """
         Decrease the priority of a torrent. Torrent Queuing must be enabled. (alias: torrents_decreasePrio)
 
         Exceptions:
             Conflict409
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: None
         """
-        data = {'hashes': list2string(hashes, '|')}
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|')}
         self._post(_name=APINames.Torrents, _method='decreasePrio', data=data, **kwargs)
 
     @Alias('torrents_topPrio')
     @login_required
-    def torrents_top_priority(self, hashes=None, **kwargs):
+    def torrents_top_priority(self, torrent_hashes=None, **kwargs):
         """
         Set torrent as highest priority. Torrent Queuing must be enabled. (alias: torrents_topPrio)
 
         Exceptions:
             Conflict409
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: None
         """
-        data = {'hashes': list2string(hashes, '|')}
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|')}
         self._post(_name=APINames.Torrents, _method='topPrio', data=data, **kwargs)
 
     @Alias('torrents_bottomPrio')
     @login_required
-    def torrents_bottom_priority(self, hashes=None, **kwargs):
+    def torrents_bottom_priority(self, torrent_hashes=None, **kwargs):
         """
         Set torrent as highest priority. Torrent Queuing must be enabled. (alias: torrents_bottomPrio)
 
         Exceptions:
             Conflict409
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: None
         """
-        data = {'hashes': list2string(hashes, '|')}
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|')}
         self._post(_name=APINames.Torrents, _method='bottomPrio', data=data, **kwargs)
 
     @Alias('torrents_downloadLimit')
     @response_json(TorrentLimitsDictionary)
     @login_required
-    def torrents_download_limit(self, hashes=None, **kwargs):
+    def torrents_download_limit(self, torrent_hashes=None, **kwargs):
         """
         Retrieve the download limit for one or more torrents. (alias: torrents_downloadLimit)
 
         :return: dictioanry {hash: limit} (-1 represents no limit)
         """
-        data = {'hashes': list2string(hashes, '|')}
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|')}
         return self._post(_name=APINames.Torrents, _method='downloadLimit', data=data, **kwargs)
 
     @Alias('torrents_setDownloadLimit')
     @login_required
-    def torrents_set_download_limit(self, limit=None, hashes=None, **kwargs):
+    def torrents_set_download_limit(self, limit=None, torrent_hashes=None, **kwargs):
         """
         Set the download limit for one or more torrents. (alias: torrents_setDownloadLimit)
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :param limit: bytes/second (-1 sets the limit to infinity)
         :return: None
         """
-        data = {'hashes': list2string(hashes, '|'),
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|'),
                 'limit': limit}
         self._post(_name=APINames.Torrents, _method='setDownloadLimit', data=data, **kwargs)
 
     @version_implemented('2.0.1', 'torrents/setShareLimits')
     @Alias('torrents_setShareLimits')
     @login_required
-    def torrents_set_share_limits(self, ratio_limit=None, seeding_time_limit=None, hashes=None, **kwargs):
+    def torrents_set_share_limits(self, ratio_limit=None, seeding_time_limit=None, torrent_hashes=None, **kwargs):
         """
         Set share limits for one or more torrents.
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :param ratio_limit: max ratio to seed a torrent. (-2 means use the global value and -1 is no limit)
         :param seeding_time_limit: minutes (-2 means use the global value and -1 is no limit_
         :return: None
         """
-        data = {'hashes': list2string(hashes, '|'),
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|'),
                 'ratioLimit': ratio_limit,
                 'seedingTimeLimit': seeding_time_limit}
         self._post(_name=APINames.Torrents, _method='setShareLimits', data=data, **kwargs)
@@ -1029,33 +1037,33 @@ class TorrentsAPIMixIn(Request):
     @Alias('torrents_uploadLimit')
     @response_json(TorrentLimitsDictionary)
     @login_required
-    def torrents_upload_limit(self, hashes=None, **kwargs):
+    def torrents_upload_limit(self, torrent_hashes=None, **kwargs):
         """
         Retrieve the upload limit for one or more torrents. (alias: torrents_uploadLimit)
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: dictionary of limits
         """
-        data = {'hashes': list2string(hashes, '|')}
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|')}
         return self._post(_name=APINames.Torrents, _method='uploadLimit', data=data, **kwargs)
 
     @Alias('torrents_setUploadLimit')
     @login_required
-    def torrents_set_upload_limit(self, limit=None, hashes=None, **kwargs):
+    def torrents_set_upload_limit(self, limit=None, torrent_hashes=None, **kwargs):
         """
         Set the upload limit for one or more torrents. (alias: torrents_setUploadLimit)
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :param limit: bytes/second (-1 sets the limit to infinity)
         :return: None
         """
-        data = {'hashes': list2string(hashes, '|'),
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|'),
                 'limit': limit}
         self._post(_name=APINames.Torrents, _method='setUploadLimit', data=data, **kwargs)
 
     @Alias('torrents_setLocation')
     @login_required
-    def torrents_set_location(self, location=None, hashes=None, **kwargs):
+    def torrents_set_location(self, location=None, torrent_hashes=None, **kwargs):
         """
         Set location for torrents's files. (alias: torrents_setLocation)
 
@@ -1063,94 +1071,94 @@ class TorrentsAPIMixIn(Request):
             Unauthorized403 if the user doesn't have permissions to write to the location
             Conflict409 if the directory cannot be created at the location
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :param location: disk location to move torrent's files
         :return: None
         """
-        data = {'hashes': list2string(hashes, '|'),
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|'),
                 'location': location}
         self._post(_name=APINames.Torrents, _method='setLocation', data=data, **kwargs)
 
     @Alias('torrents_setCategory')
     @login_required
-    def torrents_set_category(self, category=None, hashes=None, **kwargs):
+    def torrents_set_category(self, category=None, torrent_hashes=None, **kwargs):
         """
         Set a category for one or more torrents. (alias: torrents_setCategory)
 
         Exceptions:
             Conflict409 for bad category
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :param category: category to assign to torrent
         :return: None
         """
-        data = {'hashes': list2string(hashes, '|'),
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|'),
                 'category': category}
         self._post(_name=APINames.Torrents, _method='setCategory', data=data, **kwargs)
 
     @Alias('torrents_setAutoManagement')
     @login_required
-    def torrents_set_auto_management(self, enable=None, hashes=None, **kwargs):
+    def torrents_set_auto_management(self, enable=None, torrent_hashes=None, **kwargs):
         """
         Enable or disable automatic torrent management for one or more torrents. (alias: torrents_setAutoManagement)
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :param enable: True or False
         :return: None
         """
-        data = {'hashes': list2string(hashes, '|'),
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|'),
                 'enable': enable}
         self._post(_name=APINames.Torrents, _method='setAutoManagement', data=data, **kwargs)
 
     @Alias('torrents_toggleSequentialDownload')
     @login_required
-    def torrents_toggle_sequential_download(self, hashes=None, **kwargs):
+    def torrents_toggle_sequential_download(self, torrent_hashes=None, **kwargs):
         """
         Toggle sequential download for one or more torrents. (alias: torrents_toggleSequentialDownload)
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: None
         """
-        data = {'hashes': list2string(hashes)}
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'))}
         self._post(_name=APINames.Torrents, _method='toggleSequentialDownload', data=data, **kwargs)
 
     @Alias('torrents_toggleFirstLastPiecePrio')
     @login_required
-    def torrents_toggle_first_last_piece_priority(self, hashes=None, **kwargs):
+    def torrents_toggle_first_last_piece_priority(self, torrent_hashes=None, **kwargs):
         """
         Toggle priority of first/last piece downloading. (alias: torrents_toggleFirstLastPiecePrio)
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: None
         """
-        data = {'hashes': list2string(hashes, '|')}
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|')}
         self._post(_name=APINames.Torrents, _method='toggleFirstLastPiecePrio', data=data, **kwargs)
 
     @Alias('torrents_setForceStart')
     @login_required
-    def torrents_set_force_start(self, enable=None, hashes=None, **kwargs):
+    def torrents_set_force_start(self, enable=None, torrent_hashes=None, **kwargs):
         """
         Force start one or more torrents. (alias: torrents_setForceStart)
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :param enable: True or False (False makes this equivalent to torrents_resume())
         :return: None
         """
-        data = {'hashes': list2string(hashes, '|'),
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|'),
                 'value': enable}
         self._post(_name=APINames.Torrents, _method='setForceStart', data=data, **kwargs)
 
     @Alias('torrents_setSuperSeeding')
     @login_required
-    def torrents_set_super_seeding(self, enable=None, hashes=None, **kwargs):
+    def torrents_set_super_seeding(self, enable=None, torrent_hashes=None, **kwargs):
         """
         Set one or more torrents as super seeding. (alias: torrents_setSuperSeeding)
 
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :param enable: True or False
         :return:
         """
-        data = {'hashes': list2string(hashes, '|'),
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|'),
                 'value': enable}
         self._post(_name=APINames.Torrents, _method='setSuperSeeding', data=data, **kwargs)
 
@@ -1158,7 +1166,7 @@ class TorrentsAPIMixIn(Request):
     @version_implemented('2.3', 'torrents/addPeers')
     @response_json(TorrentsAddPeersDictionary)
     @login_required
-    def torrents_add_peers(self, peers=None, hashes=None, **kwargs):
+    def torrents_add_peers(self, peers=None, torrent_hashes=None, **kwargs):
         """
         Add one or more peers to one or more torrents. (alias: torrents_addPeers)
 
@@ -1166,10 +1174,10 @@ class TorrentsAPIMixIn(Request):
             InvalidRequest400Error for invalid peers
 
         :param peers: one or more peers to add. each peer should take the form 'host:port'
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: dictionary - {<hash>: {'added': #, 'failed': #}}
         """
-        data = {'hashes': list2string(hashes, '|'),
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|'),
                 'peers': list2string(peers, '|')}
         return self._post(_name=APINames.Torrents, _method='addPeers', data=data, **kwargs)
 
@@ -1253,31 +1261,31 @@ class TorrentsAPIMixIn(Request):
     @Alias('torrents_addTags')
     @version_implemented('2.3', 'torrents/addTags')
     @login_required
-    def torrents_add_tags(self, tags=None, hashes=None, **kwargs):
+    def torrents_add_tags(self, tags=None, torrent_hashes=None, **kwargs):
         """
         Add one or more tags to one or more torrents. (alias: torrents_addTags)
         Note: Tags that do not exist will be created on-the-fly.
 
         :param tags: tag name or list of tags
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: None
         """
-        data = {'hashes': list2string(hashes, '|'),
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|'),
                 'tags': list2string(tags, ',')}
         self._post(_name=APINames.Torrents, _method='addTags', data=data, **kwargs)
 
     @Alias('torrents_removeTags')
     @version_implemented('2.3', 'torrents/removeTags')
     @login_required
-    def torrents_remove_tags(self, tags=None, hashes=None, **kwargs):
+    def torrents_remove_tags(self, tags=None, torrent_hashes=None, **kwargs):
         """
         Add one or more tags to one or more torrents. (alias: torrents_removeTags)
 
         :param tags: tag name or list of tags
-        :param hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: None
         """
-        data = {'hashes': list2string(hashes, '|'),
+        data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|'),
                 'tags': list2string(tags, ',')}
         self._post(_name=APINames.Torrents, _method='removeTags', data=data, **kwargs)
 
