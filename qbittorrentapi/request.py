@@ -21,11 +21,12 @@ logger = logging.getLogger(__name__)
 
 
 class Request(object):
-    def __init__(self, host='', port=None, username='', password='', **kwargs):
+    """Facilitates HTTP requests to qBittorrent"""
+    def __init__(self, host='', port=None, username=None, password=None, **kwargs):
         self.host = host
         self.port = port
-        self.username = username
-        self._password = password
+        self.username = username or ''
+        self._password = password or ''
 
         # defaults that should not change
         self._API_URL_BASE_PATH = 'api'
@@ -35,7 +36,7 @@ class Request(object):
         #   These variables are deleted if the connection to qBittorrent is reset
         #   or a new login is required. All of these (except the SID cookie) should
         #   be reset in _initialize_connection().
-        self._SID = None
+        self._SID = None  # authorization cookie
         self._cached_web_api_version = None
         self._application = None
         self._transfer = None
@@ -80,13 +81,8 @@ class Request(object):
         # Mocking variables until better unit testing exists
         self._MOCK_WEB_API_VERSION = kwargs.pop('MOCK_WEB_API_VERSION', None)
 
-        # Ensure we got everything we need
-        assert self.host
-        if self.username:
-            assert self._password
-
     def _initialize_context(self):
-        """ Reset context. This is necessary when the auth cookie needs to be replaced. """
+        """Reset context. This is necessary when the auth cookie needs to be replaced."""
         # cache to avoid perf hit from version checking certain endpoints
         self._cached_web_api_version = None
 
@@ -108,7 +104,7 @@ class Request(object):
     def is_logged_in(self):
         return bool(self._SID)
 
-    def auth_log_in(self, username='', password=''):
+    def auth_log_in(self, username=None, password=None):
         """
         Log in to qBittorrent host.
 
@@ -121,9 +117,8 @@ class Request(object):
         :return: None
         """
         if username:
-            self.username = username
-            assert password
-            self._password = password
+            self.username = username or ''
+            self._password = password or ''
 
         try:
             self._initialize_context()
@@ -140,7 +135,7 @@ class Request(object):
 
     @login_required
     def auth_log_out(self, **kwargs):
-        """ Log out of qBittorrent client """
+        """End session with qBittorrent"""
         self._get(_name=APINames.Authorization, _method='logout', **kwargs)
 
     def _get(self, _name='', _method='', **kwargs):
@@ -151,7 +146,6 @@ class Request(object):
 
     def _request_wrapper(self, _retries=2, _retry_backoff_factor=.3, **kwargs):
         """ Wrapper to manage requests retries """
-
         # This should retry at least twice to account for the Web API switching from HTTP to HTTPS.
         # During the second attempt, the URL is rebuilt using HTTP or HTTPS as appropriate.
         max_retries = _retries if _retries > 1 else 2
@@ -167,7 +161,7 @@ class Request(object):
                     error_prologue = 'Failed to connect to qBittorrent. '
                     error_messages = {
                         requests.exceptions.SSLError:
-                            'This is likely due to using an untrusted certificate (likely self-signed) ' 
+                            'This is likely due to using an untrusted certificate (likely self-signed) '
                             'for HTTPS qBittorrent WebUI. To suppress this error (and skip certificate '
                             'verification consequently exposing the HTTPS connection to man-in-the-middle '
                             'attacks), set VERIFY_WEBUI_CERTIFICATE=False when instantiating Client or set '
@@ -186,15 +180,11 @@ class Request(object):
 
             # back off on attempting each subsequent retry. first retry is always immediate.
             # if the backoff factor is 0.1, then sleep() will sleep for [0.0s, 0.2s, 0.4s, 0.8s, ...] between retries.
-            try:
-                if retry > 0:
-                    backoff_time = _retry_backoff_factor * (2 ** ((retry + 1) - 1))
-                    sleep(backoff_time if backoff_time < 30 else 30)
-            except Exception:
-                pass
-            finally:
-                logger.debug('Retry attempt %d' % (retry+1))
-                self._initialize_context()
+            if retry > 0:
+                backoff_time = _retry_backoff_factor * (2 ** ((retry + 1) - 1))
+                sleep(backoff_time if backoff_time < 30 else 30)
+            logger.debug('Retry attempt %d' % (retry+1))
+            self._initialize_context()
 
     def _request(self, http_method, api_name, api_method,
                  data=None, params=None, files=None, headers=None, requests_params=None, **kwargs):
@@ -247,29 +237,16 @@ class Request(object):
                                     files=files,
                                     **requests_params)
 
-        if self._VERBOSE_RESPONSE_LOGGING:
-            resp_logger = logger.debug
-            max_text_length_to_log = 254
-            if response.status_code != 200:
-                max_text_length_to_log = 10000  # log as much as possible in a error condition
+        self.verbose_logging(http_method, response, url)
+        self.handle_error_responses(data, params, response)
+        return response
 
-            resp_logger('Request URL: (%s) %s' % (http_method.upper(), response.url))
-            if str(response.request.body) not in ('None', '') and 'auth/login' not in url.path:
-                body_len = max_text_length_to_log if len(response.request.body) > max_text_length_to_log else len(response.request.body)
-                resp_logger('Request body: %s%s' % (response.request.body[:body_len], '...<truncated>' if body_len >= 80 else ''))
-
-            resp_logger('Response status: %s (%s)' % (response.status_code, response.reason))
-            if response.text:
-                text_len = max_text_length_to_log if len(response.text) > max_text_length_to_log else len(response.text)
-                resp_logger('Response text: %s%s' % (response.text[:text_len], '...<truncated>' if text_len >= 80 else ''))
-
-        if self._PRINT_STACK_FOR_EACH_REQUEST:
-            from traceback import print_stack
-            print_stack()
-
+    @staticmethod
+    def handle_error_responses(data, params, response):
+        """Raise proper exception if qBittorrent returns Error HTTP Status"""
         if response.status_code < 400:
-            """Short circuit and return result for anything less than 400"""
-            return response
+            # short circuit for non-error statuses
+            return
         elif response.status_code == 400:
             """
             Returned for malformed requests such as missing or invalid parameters.
@@ -333,7 +310,29 @@ class Request(object):
             """
             raise HTTPError(response.text)
 
-        return response
+    def verbose_logging(self, http_method, response, url):
+        """Log verbose information about request. Can be useful during development"""
+        if self._VERBOSE_RESPONSE_LOGGING:
+            resp_logger = logger.debug
+            max_text_length_to_log = 254
+            if response.status_code != 200:
+                max_text_length_to_log = 10000  # log as much as possible in a error condition
+
+            resp_logger('Request URL: (%s) %s' % (http_method.upper(), response.url))
+            if str(response.request.body) not in ('None', '') and 'auth/login' not in url.path:
+                body_len = max_text_length_to_log if len(response.request.body) > max_text_length_to_log else len(
+                    response.request.body)
+                resp_logger('Request body: %s%s' % (
+                response.request.body[:body_len], '...<truncated>' if body_len >= 80 else ''))
+
+            resp_logger('Response status: %s (%s)' % (response.status_code, response.reason))
+            if response.text:
+                text_len = max_text_length_to_log if len(response.text) > max_text_length_to_log else len(response.text)
+                resp_logger(
+                    'Response text: %s%s' % (response.text[:text_len], '...<truncated>' if text_len >= 80 else ''))
+        if self._PRINT_STACK_FOR_EACH_REQUEST:
+            from traceback import print_stack
+            print_stack()
 
     @staticmethod
     def _build_url(base_url=None, host='', port=None, api_path_list=None):
