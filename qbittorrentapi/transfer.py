@@ -17,6 +17,7 @@ class TransferInfoDictionary(Dictionary):
 
 @aliased
 class Transfer(ClientCache):
+
     """
     Alows interaction with the "Transfer" API endpoints.
 
@@ -96,7 +97,8 @@ class Transfer(ClientCache):
 
 @aliased
 class TransferAPIMixIn(Request):
-    """ Implementation of all Transfer API methods """
+
+    """Implementation of all Transfer API methods"""
 
     @property
     def transfer(self):
