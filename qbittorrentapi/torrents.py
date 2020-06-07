@@ -121,7 +121,9 @@ class TorrentDictionary(Dictionary):
     uploadLimit = upload_limit
 
     @uploadLimit.setter
-    def uploadLimit(self, v): self.set_upload_limit(limit=v)
+    def uploadLimit(self, v):
+        self.upload_limit = v
+
     @upload_limit.setter
     def upload_limit(self, v):
         self.set_upload_limit(limit=v)
@@ -761,7 +763,7 @@ class TorrentsAPIMixIn(Request):
                 'newUrl': new_url}
         self._post(_name=APINames.Torrents, _method='editTracker', data=data, **kwargs)
 
-    @version_implemented('2.2', 'torrents/removeTrackers')
+    @version_implemented('2.2.0', 'torrents/removeTrackers')
     @Alias('torrents_removeTrackers')
     @login_required
     def torrents_remove_trackers(self, torrent_hash=None, urls=None, **kwargs):
@@ -843,7 +845,7 @@ class TorrentsAPIMixIn(Request):
     # MULTIPLE TORRENT ENDPOINTS
     ##########################################################################
     @response_json(TorrentInfoList)
-    @version_implemented('2.0.1', 'torrents/info', ('hashes', 'hashes'))
+    @version_implemented('2.0.1', 'torrents/info', ('torrent_hashes', 'hashes'))
     @login_required
     def torrents_info(self, status_filter=None, category=None, sort=None, reverse=None, limit=None, offset=None,
                       torrent_hashes=None, **kwargs):
@@ -1026,7 +1028,7 @@ class TorrentsAPIMixIn(Request):
 
         :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :param ratio_limit: max ratio to seed a torrent. (-2 means use the global value and -1 is no limit)
-        :param seeding_time_limit: minutes (-2 means use the global value and -1 is no limit_
+        :param seeding_time_limit: minutes (-2 means use the global value and -1 is no limit)
         :return: None
         """
         data = {'hashes': list2string(torrent_hashes or kwargs.get('hashes'), '|'),
@@ -1068,7 +1070,7 @@ class TorrentsAPIMixIn(Request):
         Set location for torrents's files. (alias: torrents_setLocation)
 
         Exceptions:
-            Unauthorized403 if the user doesn't have permissions to write to the location
+            Forbidden403Error if the user doesn't have permissions to write to the location
             Conflict409 if the directory cannot be created at the location
 
         :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
