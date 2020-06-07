@@ -24,10 +24,10 @@ def test_log_out(client):
     client.auth_log_in()
 
 
-def test_simple_response(client, torrent_hash):
-    torrent = client.torrents.info(hashes=torrent_hash)[0]
+def test_simple_response(client, test_torrent):
+    torrent = client.torrents_info()[0]
     assert isinstance(torrent, TorrentDictionary)
-    torrent = client.torrents.info(hashes=torrent_hash, SIMPLE_RESPONSE=True)[0]
+    torrent = client.torrents_info(SIMPLE_RESPONSE=True)[0]
     assert isinstance(torrent, dict)
 
 
