@@ -176,6 +176,8 @@ def version_implemented(version_introduced, endpoint, end_point_params=None):
                                         'in Web API v%s.' \
                                         % (api_parameter, parameter, endpoint, current_version, version_introduced)
                         logger.debug(error_message)
+                        if obj._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS:
+                            raise NotImplementedError(error_message)
                         kwargs[parameter] = None
                 # or skip running unsupported API calls
                 if not end_point_params:

@@ -8,6 +8,7 @@ from attrdict import AttrDict
 from qbittorrentapi.helpers import APINames
 from qbittorrentapi.helpers import ClientCache
 from qbittorrentapi.helpers import Dictionary
+from qbittorrentapi.helpers import is_version_less_than
 from qbittorrentapi.helpers import List
 from qbittorrentapi.helpers import ListEntry
 from qbittorrentapi.helpers import list2string
@@ -57,7 +58,10 @@ class TorrentDictionary(Dictionary):
 
     @property
     def info(self):
-        info = self._client.torrents_info(torrent_hashes=self._torrent_hash)
+        if is_version_less_than(self._client._app_web_api_version_from_version_checker(), '2.0.1', lteq=False):
+            info = [t for t in self._client.torrents_info() if t.hash == self._torrent_hash]
+        else:
+            info = self._client.torrents_info(torrent_hashes=self._torrent_hash)
         if len(info) == 1:
             return info[0]
         return AttrDict()
@@ -1165,7 +1169,7 @@ class TorrentsAPIMixIn(Request):
         self._post(_name=APINames.Torrents, _method='setSuperSeeding', data=data, **kwargs)
 
     @Alias('torrents_addPeers')
-    @version_implemented('2.3', 'torrents/addPeers')
+    @version_implemented('2.3.0', 'torrents/addPeers')
     @response_json(TorrentsAddPeersDictionary)
     @login_required
     def torrents_add_peers(self, peers=None, torrent_hashes=None, **kwargs):
@@ -1184,7 +1188,7 @@ class TorrentsAPIMixIn(Request):
         return self._post(_name=APINames.Torrents, _method='addPeers', data=data, **kwargs)
 
     # TORRENT CATEGORIES ENDPOINTS
-    @version_implemented('2.1.0', 'torrents/categories')
+    @version_implemented('2.1.1', 'torrents/categories')
     @response_json(TorrentCategoriesDictionary)
     @login_required
     def torrents_categories(self, **kwargs):
@@ -1216,7 +1220,7 @@ class TorrentsAPIMixIn(Request):
                 'savePath': save_path}
         self._post(_name=APINames.Torrents, _method='createCategory', data=data, **kwargs)
 
-    @version_implemented('2.1.0', 'torrents/editCategory', {'save_path': 'savePath'})
+    @version_implemented('2.1.0', 'torrents/editCategory')
     @Alias('torrents_editCategory')
     @login_required
     def torrents_edit_category(self, name=None, save_path=None, **kwargs):
