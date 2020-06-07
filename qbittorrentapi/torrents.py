@@ -1253,7 +1253,7 @@ class TorrentsAPIMixIn(Request):
         self._post(_name=APINames.Torrents, _method='removeCategories', data=data, **kwargs)
 
     # TORRENT TAGS ENDPOINTS
-    @version_implemented('2.3', 'torrents/tags')
+    @version_implemented('2.3.0', 'torrents/tags')
     @response_json(TagList)
     @login_required
     def torrents_tags(self, **kwargs):
@@ -1265,7 +1265,7 @@ class TorrentsAPIMixIn(Request):
         return self._get(_name=APINames.Torrents, _method='tags', **kwargs)
 
     @Alias('torrents_addTags')
-    @version_implemented('2.3', 'torrents/addTags')
+    @version_implemented('2.3.0', 'torrents/addTags')
     @login_required
     def torrents_add_tags(self, tags=None, torrent_hashes=None, **kwargs):
         """
@@ -1281,7 +1281,7 @@ class TorrentsAPIMixIn(Request):
         self._post(_name=APINames.Torrents, _method='addTags', data=data, **kwargs)
 
     @Alias('torrents_removeTags')
-    @version_implemented('2.3', 'torrents/removeTags')
+    @version_implemented('2.3.0', 'torrents/removeTags')
     @login_required
     def torrents_remove_tags(self, tags=None, torrent_hashes=None, **kwargs):
         """
@@ -1296,7 +1296,7 @@ class TorrentsAPIMixIn(Request):
         self._post(_name=APINames.Torrents, _method='removeTags', data=data, **kwargs)
 
     @Alias('torrents_createTags')
-    @version_implemented('2.3', 'torrents/createTags')
+    @version_implemented('2.3.0', 'torrents/createTags')
     @login_required
     def torrents_create_tags(self, tags=None, **kwargs):
         """
@@ -1309,7 +1309,7 @@ class TorrentsAPIMixIn(Request):
         self._post(_name=APINames.Torrents, _method='createTags', data=data, **kwargs)
 
     @Alias('torrents_deleteTags')
-    @version_implemented('2.3', 'torrents/deleteTags')
+    @version_implemented('2.3.0', 'torrents/deleteTags')
     @login_required
     def torrents_delete_tags(self, tags=None, **kwargs):
         """

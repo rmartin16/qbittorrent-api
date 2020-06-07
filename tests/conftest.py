@@ -1,8 +1,11 @@
 from os import environ
+from os import path
+from time import sleep
 
 import pytest
 
 from qbittorrentapi import Client
+from tests.test_torrents import check, check_limit, url1, hash1
 
 qbt_version = 'v' + environ['QBT_VER']
 
@@ -45,7 +48,36 @@ def torrent_hash():
 
 @pytest.fixture(scope='session')
 def torrent(client, torrent_hash):
-    return client.torrents_info(torrent_hashes=torrent_hash)[0]
+    return [t for t in client.torrents_info() if t.hash == torrent_hash][0]
+
+
+def add_test_torrent(client):
+    client.torrents.add(urls=url1,
+                        save_path=path.expanduser('~/test_download/'),
+                        category='test_category', is_paused=True,
+                        upload_limit=1024, download_limit=2048,
+                        is_sequential_download=True, is_first_last_piece_priority=True)
+    for attempt in range(check_limit):
+        try:
+            torrent = [t for t in client.torrents_info() if t.hash == hash1][0]
+            break
+        except:
+            if attempt >= check_limit - 1:
+                raise
+            sleep(1)
+    return torrent
+
+
+def delete_test_torrent(torrent):
+    torrent.delete(delete_files=True)
+    check(lambda: [t.hash for t in torrent._client.torrents_info()], torrent.hash, reverse=True, negate=True)
+
+
+@pytest.fixture
+def test_torrent(client):
+    torrent = add_test_torrent(client)
+    yield torrent
+    delete_test_torrent(torrent)
 
 
 @pytest.fixture(scope='session')
