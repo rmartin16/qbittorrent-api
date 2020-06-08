@@ -104,6 +104,8 @@ class Dictionary(ClientCache, AttrDict):
 
         data = convert_dict_values_to_attrdicts(data)
         super(Dictionary, self).__init__(data or dict(), client=client)
+        # allows updating properties that aren't necessarily a part of the AttrDict
+        self._setattr('_allow_invalid_attributes', True)
 
 
 class List(ClientCache, UserList):
