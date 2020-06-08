@@ -19,11 +19,18 @@ def test_update_plugins(client, api_version):
     else:
         client.search.update_plugins()
         time.sleep(2)
-        assert (any(entry for entry in reversed(client.log.main())
-                    if 'All plugins are already up to date.' in entry['message'])
-                or any(entry for entry in reversed(client.log.main())
-                       if 'Updating' in entry['message'])
-                )
+        for attempt in range(3):
+            try:
+                assert (any(entry for entry in reversed(client.log.main())
+                            if 'All plugins are already up to date.' in entry['message'])
+                        or any(entry for entry in reversed(client.log.main())
+                               if 'Updating' in entry['message'])
+                        )
+                break
+            except:
+                if attempt >= 2:
+                    raise
+                sleep(1)
 
 
 def test_enable_plugin(client, api_version):

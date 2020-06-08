@@ -66,6 +66,16 @@ def get_func(client, func_str):
     return func
 
 
+def disable_queueing(client):
+    if client.app.preferences.queueing_enabled:
+        client.app.preferences = dict(queueing_enabled=False)
+
+
+def enable_queueing(client):
+    if not client.app.preferences.queueing_enabled:
+        client.app.preferences = dict(queueing_enabled=True)
+
+
 @pytest.mark.parametrize('client_func', (('torrents_add', 'torrents_delete'),
                                          ('torrents.add', 'torrents.delete')))
 def test_add_delete(client, api_version, client_func):
@@ -107,11 +117,11 @@ def test_add_delete(client, api_version, client_func):
 
     if is_version_less_than('2.0.0', api_version, lteq=False):
         add_by_file()
-        sleep(1)
+        sleep(2)
         check_torrents_added()
-        sleep(1)
+        sleep(2)
         add_by_url()
-        sleep(1)
+        sleep(2)
         check_torrents_added()
 
 
@@ -239,6 +249,39 @@ def test_recheck(client, torrent_hash):
     pass  # this test isn't reliable...
     # client.torrents_recheck(torrent_hashes=torrent_hash)
     # assert client.torrents_info(torrents_hashes=torrent_hash)[0].state in ('checkingUP', 'checkingDL')
+
+
+@pytest.mark.parametrize('client_func', (('torrents_increase_priority', 'torrents_decrease_priority', 'torrents_top_priority', 'torrents_bottom_priority'),
+                                         ('torrents_increasePrio', 'torrents_decreasePrio', 'torrents_topPrio', 'torrents_bottomPrio')))
+def test_priority(client, test_torrent, client_func):
+    disable_queueing(client)
+
+    with pytest.raises(Conflict409Error):
+        get_func(client, client_func[0])(torrent_hashes=test_torrent.hash)
+    with pytest.raises(Conflict409Error):
+        get_func(client, client_func[1])(torrent_hashes=test_torrent.hash)
+    with pytest.raises(Conflict409Error):
+        get_func(client, client_func[2])(torrent_hashes=test_torrent.hash)
+    with pytest.raises(Conflict409Error):
+        get_func(client, client_func[3])(torrent_hashes=test_torrent.hash)
+
+    enable_queueing(client)
+
+    current_priority = test_torrent.info.priority
+    get_func(client, client_func[0])(torrent_hashes=test_torrent.hash)
+    check(lambda: test_torrent.info.priority < current_priority, True)
+
+    current_priority = test_torrent.info.priority
+    get_func(client, client_func[1])(torrent_hashes=test_torrent.hash)
+    check(lambda: test_torrent.info.priority > current_priority, True)
+
+    current_priority = test_torrent.info.priority
+    get_func(client, client_func[2])(torrent_hashes=test_torrent.hash)
+    check(lambda: test_torrent.info.priority < current_priority, True)
+
+    current_priority = test_torrent.info.priority
+    get_func(client, client_func[3])(torrent_hashes=test_torrent.hash)
+    check(lambda: test_torrent.info.priority > current_priority, True)
 
 
 @pytest.mark.parametrize('client_func', (('torrents_set_download_limit', 'torrents_download_limit'),
@@ -491,3 +534,5 @@ def test_delete_tags(client, api_version, client_func, tags):
         client.torrents_create_tags(tags=tags)
         get_func(client, client_func)(tags=tags)
         check(lambda: client.torrents_tags(), tags, reverse=True, negate=True)
+
+
