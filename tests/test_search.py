@@ -31,13 +31,18 @@ def test_enable_plugin(client, api_version):
         with pytest.raises(NotImplementedError):
             client.search_enable_plugin()
     else:
-        plugins = client.search_plugins()
-        client.search_enable_plugin(plugins=(p['name'] for p in plugins), enable=False)
-        time.sleep(1)
-        assert all(not p['enabled'] for p in client.search_plugins())
-        client.search_enable_plugin(plugins=(p['name'] for p in plugins), enable=True)
-        time.sleep(1)
-        assert all(p['enabled'] for p in client.search_plugins())
+        for attempt in range(3):
+            try:
+                plugins = client.search_plugins()
+                client.search_enable_plugin(plugins=(p['name'] for p in plugins), enable=False)
+                time.sleep(1)
+                assert all(not p['enabled'] for p in client.search_plugins())
+                client.search_enable_plugin(plugins=(p['name'] for p in plugins), enable=True)
+                time.sleep(1)
+                assert all(p['enabled'] for p in client.search_plugins())
+            except:
+                if attempt >= 2:
+                    raise
 
     if is_version_less_than(api_version, '2.1.1', lteq=False):
         with pytest.raises(NotImplementedError):
