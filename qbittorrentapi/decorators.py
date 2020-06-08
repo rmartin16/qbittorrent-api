@@ -171,6 +171,8 @@ def version_implemented(version_introduced, endpoint, end_point_params=None):
                         parameters_list = [end_point_params]
                     # each tuple should be ('python param name', 'api param name')
                     for parameter, api_parameter in [t for t in parameters_list if t[0] in kwargs]:
+                        if kwargs[parameter] is None:
+                            continue
                         error_message = 'WARNING: Parameter "%s (%s)" for endpoint "%s" is Not Implemented. ' \
                                         'Web API v%s is installed. This endpoint parameter is available starting ' \
                                         'in Web API v%s.' \
