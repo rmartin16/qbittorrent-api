@@ -98,7 +98,7 @@ qbt_client = qbittorrentapi.Client(host='localhost:8080', username='admin', pass
 
 Alternatively, `SIMPLE_RESPONSES` can be set to True to return the simple JSON only for an individual method call.
 ```python
-qbt_client.torrents.files(hash='...', SIMPLE_RESPONSES=True)
+qbt_client.torrents.files(torrent_hash='...', SIMPLE_RESPONSES=True)
 ```
 
 API Documentation
@@ -177,8 +177,8 @@ for torrent in torrent_list:
   print(torrent.name)
 
 # Actions for multiple torrents
-qbt_client.torrents.pause(hashes=['...', '...'])
-qbt_client.torrents.recheck(hashes=['...', '...'])
+qbt_client.torrents.pause(torrent_hashes=['...', '...'])
+qbt_client.torrents.recheck(torrent_hashes=['...', '...'])
 # or just do all torrent 
 qbt_client.torrents.pause.all()
 qbt_client.torrents.recheck.all()
@@ -218,7 +218,7 @@ Interaction Layer Notes
   * So, `qbt_client.torrents.torrents_resume()` and `qbt_client.torrents.resume()` are the same.
   * As mentioned in direct API access `qbt_client.app.web_api_version` and `qbt_client.app.webapiVersion` are the same.
 * When invoking the API calls, you can use the parameters implemented in the python code or those specified in the API documentation.
-  * So, `torrents_rename(hash='...', new_torrent_name="...")` and `torrents_rename(hash='...', name="...")` are the same.
+  * So, `torrents_rename(torrent_hash='...', new_torrent_name="...")` and `torrents_rename(torrent_hash='...', name="...")` are the same.
 
 Interaction Layer Details
 -------------------------

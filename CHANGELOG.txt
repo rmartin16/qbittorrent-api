@@ -1,3 +1,13 @@
+Version 2020.6.4
+ - Bug fix release. Reorganized code and classes to be more logical.
+ - Started returning None from many methods that were returning Requests Responses.
+ - Content-Length header is now explicitly sent as "0" for any POSTs without a body.
+ - Endpoint input parameters "hash" and "hashes" are renamed to "torrent_hash" and "torrent_hashes". "hash" and "hashes" remain supported.
+ - search_uninstall_plugin now works. search_enable_plugin now supports multiple plugins.
+ - Torrent.download_limit now only return the value instead of a dictionary. Torrent.upload_limit now works.
+ - Drop advertising Python 2.6 and 3.4 support; add PyPy3 support.
+ - Implement test suite and CI that can test all supported qBittorrent versions on all pythons.
+
 Version 2020.5.3
  - Include currently supported qBittorrent version in README. Fixes #11.
 
