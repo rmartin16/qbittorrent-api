@@ -28,6 +28,8 @@ jobs:
   allow_failures:
     - python: 3.9-dev
     - python: 3.10-dev
+  exclude:
+    - if: branch != comprehensive_tests AND env(QBT_VER) != env(LATEST_QBT_VERSION)
 env:
   - QBT_VER="4.1.0"
   - QBT_VER="4.1.1"
@@ -74,7 +76,10 @@ before_install:
   - $QBT_PATH/bin/qbittorrent-nox --daemon
 install:
   - pip install .
-script: if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then pytest; fi
+script: |
+  if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
+    pytest;
+  fi
 after_success:
   - codecov
   - coveralls
