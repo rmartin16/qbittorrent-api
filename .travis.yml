@@ -28,6 +28,7 @@ jobs:
   allow_failures:
     - python: 3.9-dev
     - python: 3.10-dev
+    - python: pypy3
   exclude:
     - if: branch != comprehensive_tests AND env(QBT_VER) != env(LATEST_QBT_VERSION)
 env:
