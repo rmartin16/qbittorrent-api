@@ -56,7 +56,8 @@ class TorrentDictionary(Dictionary):
         self._torrent_hash = data.get('hash', None)
         super(TorrentDictionary, self).__init__(data=data, client=client)
 
-    def _update(self):
+    def sync_local(self):
+        """Update local cache of torrent info."""
         for name, value in self.info.items():
             setattr(self, name, value)
 
@@ -72,15 +73,12 @@ class TorrentDictionary(Dictionary):
 
     def resume(self, **kwargs):
         self._client.torrents_resume(torrent_hashes=self._torrent_hash, **kwargs)
-        self._update()
 
     def pause(self, **kwargs):
         self._client.torrents_pause(torrent_hashes=self._torrent_hash, **kwargs)
-        self._update()
 
     def delete(self, delete_files=None, **kwargs):
         self._client.torrents_delete(delete_files=delete_files, torrent_hashes=self._torrent_hash, **kwargs)
-        self._update()
 
     def recheck(self, **kwargs):
         self._client.torrents_recheck(torrent_hashes=self._torrent_hash, **kwargs)
@@ -91,28 +89,23 @@ class TorrentDictionary(Dictionary):
     @Alias('increasePrio')
     def increase_priority(self, **kwargs):
         self._client.torrents_increase_priority(torrent_hashes=self._torrent_hash, **kwargs)
-        self._update()
 
     @Alias('decreasePrio')
     def decrease_priority(self, **kwargs):
         self._client.torrents_decrease_priority(torrent_hashes=self._torrent_hash, **kwargs)
-        self._update()
 
     @Alias('topPrio')
     def top_priority(self, **kwargs):
         self._client.torrents_top_priority(torrent_hashes=self._torrent_hash, **kwargs)
-        self._update()
 
     @Alias('bottomPrio')
     def bottom_priority(self, **kwargs):
         self._client.torrents_bottom_priority(torrent_hashes=self._torrent_hash, **kwargs)
-        self._update()
 
     @Alias('setShareLimits')
     def set_share_limits(self, ratio_limit=None, seeding_time_limit=None, **kwargs):
         self._client.torrents_set_share_limits(ratio_limit=ratio_limit, seeding_time_limit=seeding_time_limit,
                                                torrent_hashes=self._torrent_hash, **kwargs)
-        self._update()
 
     @property
     def download_limit(self, **kwargs):
@@ -130,7 +123,6 @@ class TorrentDictionary(Dictionary):
     @Alias('setDownloadLimit')
     def set_download_limit(self, limit=None, **kwargs):
         self._client.torrents_set_download_limit(limit=limit, torrent_hashes=self._torrent_hash, **kwargs)
-        self._update()
 
     @property
     def upload_limit(self, **kwargs):
@@ -148,42 +140,34 @@ class TorrentDictionary(Dictionary):
     @Alias('setUploadLimit')
     def set_upload_limit(self, limit=None, **kwargs):
         self._client.torrents_set_upload_limit(limit=limit, torrent_hashes=self._torrent_hash, **kwargs)
-        self._update()
 
     @Alias('setLocation')
     def set_location(self, location=None, **kwargs):
         self._client.torrents_set_location(location=location, torrent_hashes=self._torrent_hash, **kwargs)
-        self._update()
 
     @Alias('setCategory')
     def set_category(self, category=None, **kwargs):
         self._client.torrents_set_category(category=category, torrent_hashes=self._torrent_hash, **kwargs)
-        self._update()
 
     @Alias('setAutoManagement')
     def set_auto_management(self, enable=None, **kwargs):
         self._client.torrents_set_auto_management(enable=enable, torrent_hashes=self._torrent_hash, **kwargs)
-        self._update()
 
     @Alias('toggleSequentialDownload')
     def toggle_sequential_download(self, **kwargs):
         self._client.torrents_toggle_sequential_download(torrent_hashes=self._torrent_hash, **kwargs)
-        self._update()
 
     @Alias('toggleFirstLastPiecePrio')
     def toggle_first_last_piece_priority(self, **kwargs):
         self._client.torrents_toggle_first_last_piece_priority(torrent_hashes=self._torrent_hash, **kwargs)
-        self._update()
 
     @Alias('setForceStart')
     def set_force_start(self, enable=None, **kwargs):
         self._client.torrents_set_force_start(enable=enable, torrent_hashes=self._torrent_hash, **kwargs)
-        self._update()
 
     @Alias('setSuperSeeding')
     def set_super_seeding(self, enable=None, **kwargs):
         self._client.torrents_set_super_seeding(enable=enable, torrent_hashes=self._torrent_hash, **kwargs)
-        self._update()
 
     @property
     def properties(self):
@@ -237,17 +221,14 @@ class TorrentDictionary(Dictionary):
 
     def rename(self, new_name=None, **kwargs):
         self._client.torrents_rename(torrent_hash=self._torrent_hash, new_torrent_name=new_name, **kwargs)
-        self._update()
 
     @Alias('addTags')
     def add_tags(self, tags=None, **kwargs):
         self._client.torrents_add_tags(torrent_hashes=self._torrent_hash, tags=tags, **kwargs)
-        self._update()
 
     @Alias('removeTags')
     def remove_tags(self, tags=None, **kwargs):
         self._client.torrents_remove_tags(torrent_hashes=self._torrent_hash, tags=tags, **kwargs)
-        self._update()
 
 
 class TorrentPropertiesDictionary(Dictionary):

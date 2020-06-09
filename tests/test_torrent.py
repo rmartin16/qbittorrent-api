@@ -83,11 +83,11 @@ def test_set_share_limits(api_version, test_torrent, client_func):
 def test_download_limit(test_torrent, client_func):
     setattr(test_torrent, client_func[0], 2048)
     check(lambda: getattr(test_torrent, client_func[0]), 2048)
-    check(lambda: test_torrent.dl_limit, 2048)
+    check(lambda: test_torrent.info.dl_limit, 2048)
 
     getattr(test_torrent, client_func[1])(4096)
     check(lambda: getattr(test_torrent, client_func[0]), 4096)
-    check(lambda: test_torrent.dl_limit, 4096)
+    check(lambda: test_torrent.info.dl_limit, 4096)
 
 
 @pytest.mark.parametrize('client_func', (('upload_limit', 'set_upload_limit'),
@@ -95,11 +95,11 @@ def test_download_limit(test_torrent, client_func):
 def test_upload_limit(test_torrent, client_func):
     setattr(test_torrent, client_func[0], 2048)
     check(lambda: getattr(test_torrent, client_func[0]), 2048)
-    check(lambda: test_torrent.up_limit, 2048)
+    check(lambda: test_torrent.info.up_limit, 2048)
 
     getattr(test_torrent, client_func[1])(4096)
     check(lambda: getattr(test_torrent, client_func[0]), 4096)
-    check(lambda: test_torrent.up_limit, 4096)
+    check(lambda: test_torrent.info.up_limit, 4096)
 
 
 @pytest.mark.parametrize('client_func', ('set_location', 'setLocation'))
@@ -107,7 +107,6 @@ def test_set_location(api_version, test_torrent, client_func):
     if is_version_less_than('2.0.1', api_version, lteq=False):
         loc = path.expanduser('~/Downloads/3/')
         getattr(test_torrent, client_func)(loc)
-        # check(lambda: test_torrent.save_path, loc)
         check(lambda: test_torrent.info.save_path, loc)
 
 
@@ -116,7 +115,6 @@ def test_set_location(api_version, test_torrent, client_func):
 def test_set_category(client, test_torrent, client_func, category):
     client.torrents_create_category(category=category)
     getattr(test_torrent, client_func)(category=category)
-    check(lambda: test_torrent.category.replace('+', ' '), category, reverse=True)
     check(lambda: test_torrent.info.category.replace('+', ' '), category, reverse=True)
     client.torrents_remove_categories(categories=category)
 
@@ -125,10 +123,8 @@ def test_set_category(client, test_torrent, client_func, category):
 def test_set_auto_management(test_torrent, client_func):
     current_setting = test_torrent.auto_tmm
     getattr(test_torrent, client_func)(enable=(not current_setting))
-    check(lambda: test_torrent.auto_tmm, not current_setting)
     check(lambda: test_torrent.info.auto_tmm, not current_setting)
     getattr(test_torrent, client_func)(enable=current_setting)
-    check(lambda: test_torrent.auto_tmm, current_setting)
     check(lambda: test_torrent.info.auto_tmm, current_setting)
 
 
@@ -136,10 +132,8 @@ def test_set_auto_management(test_torrent, client_func):
 def test_toggle_sequential_download(test_torrent, client_func):
     current_setting = test_torrent.seq_dl
     getattr(test_torrent, client_func)()
-    check(lambda: test_torrent.seq_dl, not current_setting)
     check(lambda: test_torrent.info.seq_dl, not current_setting)
     getattr(test_torrent, client_func)()
-    check(lambda: test_torrent.seq_dl, current_setting)
     check(lambda: test_torrent.info.seq_dl, current_setting)
 
 
@@ -148,10 +142,8 @@ def test_toggle_first_last_piece_priority(api_version, test_torrent, client_func
     if is_version_less_than('2.0.1', api_version, lteq=False):
         current_setting = test_torrent.f_l_piece_prio
         getattr(test_torrent, client_func)()
-        check(lambda: test_torrent.f_l_piece_prio, not current_setting)
         check(lambda: test_torrent.info.f_l_piece_prio, not current_setting)
         getattr(test_torrent, client_func)()
-        check(lambda: test_torrent.f_l_piece_prio, current_setting)
         check(lambda: test_torrent.info.f_l_piece_prio, current_setting)
 
 
@@ -159,10 +151,8 @@ def test_toggle_first_last_piece_priority(api_version, test_torrent, client_func
 def test_set_force_start(test_torrent, client_func):
     current_setting = test_torrent.force_start
     getattr(test_torrent, client_func)(enable=(not current_setting))
-    # check(lambda: test_torrent.force_start, not current_setting)
     check(lambda: test_torrent.info.force_start, not current_setting)
     getattr(test_torrent, client_func)(enable=current_setting)
-    # check(lambda: test_torrent.force_start, current_setting)
     check(lambda: test_torrent.info.force_start, current_setting)
 
 
@@ -170,10 +160,8 @@ def test_set_force_start(test_torrent, client_func):
 def test_set_super_seeding(test_torrent, client_func):
     current_setting = test_torrent.super_seeding
     getattr(test_torrent, client_func)(enable=(not current_setting))
-    # check(lambda: test_torrent.super_seeding, not current_setting)
     check(lambda: test_torrent.info.super_seeding, not current_setting)
     getattr(test_torrent, client_func)(enable=current_setting)
-    # check(lambda: test_torrent.super_seeding, current_setting)
     check(lambda: test_torrent.info.super_seeding, current_setting)
 
 
@@ -263,7 +251,6 @@ def test_file_priority(test_torrent, client_func):
 @pytest.mark.parametrize('name', ('new_name', 'new name'))
 def test_rename(test_torrent, name):
     test_torrent.rename(new_name=name)
-    check(lambda: test_torrent.name.replace('+', ' '), name)
     check(lambda: test_torrent.info.name.replace('+', ' '), name)
 
 
@@ -278,11 +265,9 @@ def test_add_remove_tags(client, api_version, test_torrent, client_func, tags):
             getattr(test_torrent, client_func[1])(tags=tags)
     else:
         getattr(test_torrent, client_func[0])(tags=tags)
-        check(lambda: test_torrent.tags, tags, reverse=True)
         check(lambda: test_torrent.info.tags, tags, reverse=True)
 
         getattr(test_torrent, client_func[1])(tags=tags)
-        check(lambda: test_torrent.tags, tags, reverse=True, negate=True)
         check(lambda: test_torrent.info.tags, tags, reverse=True, negate=True)
 
         client.torrents_delete_tags(tags=tags)
