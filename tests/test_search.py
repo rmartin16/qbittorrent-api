@@ -2,6 +2,7 @@ import time
 
 import pytest
 
+from qbittorrentapi import NotFound404Error
 from qbittorrentapi.helpers import is_version_less_than
 from qbittorrentapi.search import SearchJobDictionary, SearchStatusesList, SearchResultsDictionary
 
@@ -30,7 +31,7 @@ def test_update_plugins(client, api_version):
             except:
                 if attempt >= 2:
                     raise
-                sleep(1)
+                time.sleep(1)
 
 
 def test_enable_plugin(client, api_version):
@@ -50,6 +51,7 @@ def test_enable_plugin(client, api_version):
             except:
                 if attempt >= 2:
                     raise
+                time.sleep(1)
 
     if is_version_less_than(api_version, '2.1.1', lteq=False):
         with pytest.raises(NotImplementedError):
@@ -122,7 +124,10 @@ def test_search(client, api_version):
         assert statuses[0]['status'] == 'Running'
         results = client.search_results(search_id=job['id'], limit=1)
         assert isinstance(results, SearchResultsDictionary)
+        results = job.results()
+        assert isinstance(results, SearchResultsDictionary)
         client.search_stop(search_id=job['id'])
+        time.sleep(1)
         statuses = client.search_status(search_id=job['id'])
         assert statuses[0]['status'] == 'Stopped'
         client.search_delete(search_id=job['id'])
@@ -141,8 +146,50 @@ def test_search(client, api_version):
         results = client.search.results(search_id=job['id'], limit=1)
         assert isinstance(results, SearchResultsDictionary)
         client.search_stop(search_id=job['id'])
+        time.sleep(1)
         statuses = client.search.status(search_id=job['id'])
         assert statuses[0]['status'] == 'Stopped'
         client.search.delete(search_id=job['id'])
         statuses = client.search.status()
         assert not statuses
+
+
+def test_stop(client, api_version):
+    if is_version_less_than(api_version, '2.1.1', lteq=False):
+        with pytest.raises(NotImplementedError):
+            client.search_stop(search_id=100)
+    else:
+        job = client.search_start(pattern='Ubuntu', plugins='enabled', category='all')
+        client.search_stop(search_id=job.id)
+        time.sleep(1)
+        statuses = client.search.status(search_id=job['id'])
+        assert statuses[0]['status'] == 'Stopped'
+
+    if is_version_less_than(api_version, '2.1.1', lteq=False):
+        with pytest.raises(NotImplementedError):
+            client.search_stop(search_id=100)
+    else:
+        job = client.search_start(pattern='Ubuntu', plugins='enabled', category='all')
+        client.search.stop(search_id=job.id)
+        time.sleep(1)
+        statuses = client.search.status(search_id=job['id'])
+        assert statuses[0]['status'] == 'Stopped'
+
+    if is_version_less_than(api_version, '2.1.1', lteq=False):
+        with pytest.raises(NotImplementedError):
+            client.search_stop(search_id=100)
+    else:
+        job = client.search_start(pattern='Ubuntu', plugins='enabled', category='all')
+        job.stop()
+        assert job.status()[0].status == 'Stopped'
+
+
+def test_delete(client, api_version):
+    if is_version_less_than(api_version, '2.1.1', lteq=False):
+        with pytest.raises(NotImplementedError):
+            client.search_stop(search_id=100)
+    else:
+        job = client.search_start(pattern='Ubuntu', plugins='enabled', category='all')
+        job.delete()
+        with pytest.raises(NotFound404Error):
+            job.status()
