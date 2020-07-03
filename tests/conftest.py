@@ -91,5 +91,6 @@ def api_version():
 
 
 def pytest_sessionfinish(session, exitstatus):
-    client = Client()
-    client.torrents_delete(delete_files=True, torrent_hashes='c6df3faa31ff9a73a3687bf5522b2035e561ac41')
+    if 'TRAVIS' not in environ:
+        client = Client()
+        client.torrents_delete(delete_files=True, torrent_hashes='c6df3faa31ff9a73a3687bf5522b2035e561ac41')
