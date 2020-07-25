@@ -10,9 +10,9 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../..'))
 
 
 # -- Project information -----------------------------------------------------
@@ -33,7 +33,8 @@ pygments_style = 'sphinx'
 # ones.
 extensions = [
     'sphinx.ext.todo',
-    'sphinx.ext.githubpages'
+    'sphinx.ext.githubpages',
+    'sphinx.ext.autodoc'
 ]
 
 source_suffix = '.rst'
@@ -65,7 +66,13 @@ html_static_path = ['_static']
 
 
 import sphinx_glpi_theme
-
 html_theme = "glpi"
-
 html_theme_path = sphinx_glpi_theme.get_html_themes_path()
+
+# sphinx-autoapi
+#extensions.append('autoapi.extension')
+#autoapi_type = 'python'
+#autoapi_dirs = ['../../qbittorrentapi']
+# autoapi_options = ['show-inheritance-diagram']
+#autoapi_ignore = ['*decorators*', '*exceptions*']
+
