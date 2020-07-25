@@ -1,0 +1,6 @@
+-r requirements.txt
+sphinx
+pytest
+codecov
+coveralls
+sphinx_glpi_theme
