@@ -1,3 +1,6 @@
+Version 2020.7.6
+ - Re-release of v2020.7.5.
+
 Version 2020.7.5
  - Add RTD documentation.
 
