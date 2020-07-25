@@ -8,6 +8,8 @@ Currently supports up to qBittorrent [v4.2.5](https://github.com/qbittorrent/qBi
   
 The full qBittorrent Web API specification is documented on their [wiki](https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation).
 
+[Find the full documentation for this client on RTD.](https://qbittorrent-api.readthedocs.io/)
+
 Features
 ------------
 * The entire qBittorent Web API is implemented.

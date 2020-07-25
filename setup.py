@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='qbittorrent-api',
-    version='2020.6.4',
+    version='2020.7.5',
     packages=find_packages(exclude=['*.tests', '*.tests.*', 'tests.*', 'tests']),
     include_package_data=True,
     install_requires=['attrdict>=2.0.0',

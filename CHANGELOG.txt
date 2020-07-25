@@ -1,3 +1,6 @@
+Version 2020.7.5
+ - Add RTD documentation.
+
 Version 2020.6.4
  - Bug fix release. Reorganized code and classes to be more logical.
  - Started returning None from many methods that were returning Requests Responses.
