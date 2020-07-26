@@ -95,6 +95,11 @@ def test_verify_cert(api_version):
     assert client._VERIFY_WEBUI_CERTIFICATE is True
     assert client.app.web_api_version == api_version
 
+    environ['PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE'] = 'true'
+    client = Client(VERIFY_WEBUI_CERTIFICATE=True)
+    assert client._VERIFY_WEBUI_CERTIFICATE is False
+    assert client.app.web_api_version == api_version
+
 
 def test_api_connection_error():
     with pytest.raises(APIConnectionError):

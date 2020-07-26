@@ -12,6 +12,8 @@ import requests
 from qbittorrentapi.exceptions import Forbidden403Error
 from qbittorrentapi.exceptions import Conflict409Error
 from qbittorrentapi.exceptions import InvalidRequest400Error
+from qbittorrentapi.exceptions import TorrentFileNotFoundError
+from qbittorrentapi.exceptions import TorrentFilePermissionError
 from qbittorrentapi.helpers import is_version_less_than
 from qbittorrentapi.torrents import TorrentPropertiesDictionary
 from qbittorrentapi.torrents import TrackersList
@@ -91,6 +93,14 @@ def test_add_delete(client, api_version, client_func):
         add_by_url()
         sleep(2)
         check_torrents_added()
+
+
+def test_add_torrent_file_fail(client):
+    with pytest.raises(TorrentFileNotFoundError):
+        client.torrents_add(torrent_files='/tmp/asdfasdfasdfasdf')
+
+    with pytest.raises(TorrentFilePermissionError):
+        client.torrents_add(torrent_files='/etc/shadow')
 
 
 def test_add_options(api_version, test_torrent):
@@ -218,6 +228,15 @@ def test_pause_resume(client, torrent_hash, client_func):
 
     get_func(client, client_func[1])(torrent_hashes=torrent_hash)
     check(lambda: client.torrents_info(torrents_hashes=torrent_hash)[0].state, ('pausedDL',), negate=True)
+
+
+def test_action_for_all_torrents(client, test_torrent):
+    client.torrents.pause.all()
+    for torrent in client.torrents.info():
+        check(lambda: client.torrents_info(torrents_hashes=torrent.hash)[0].state, ('stalledDL', 'pausedDL'))
+    client.torrents.resume.all()
+    for torrent in client.torrents.info():
+        check(lambda: client.torrents_info(torrents_hashes=torrent.hash)[0].state, ('pausedDL',), negate=True)
 
 
 def test_recheck(client, torrent_hash):
@@ -378,12 +397,25 @@ def test_torrents_add_peers(client, api_version, torrent_hash, client_func, peer
             assert isinstance(p, TorrentsAddPeersDictionary)
 
 
-def test_categories(client, api_version):
+def test_categories1(client, api_version):
     if is_version_less_than(api_version, '2.1.1', lteq=False):
         with pytest.raises(NotImplementedError):
             client.torrents_categories()
     else:
         assert isinstance(client.torrents_categories(), TorrentCategoriesDictionary)
+
+
+def test_categories2(client, api_version):
+    if is_version_less_than(api_version, '2.1.1', lteq=False):
+        with pytest.raises(NotImplementedError):
+            client.torrent_categories.categories
+    else:
+        name = 'new_category'
+        client.torrent_categories.categories = {'name': name, 'savePath': '/tmp'}
+        assert name in client.torrent_categories.categories
+        client.torrent_categories.categories = {'name': name, 'savePath': '/tmp/new'}
+        assert client.torrent_categories.categories[name]['savePath'] == '/tmp/new'
+        client.torrents_remove_categories(categories=name)
 
 
 @pytest.mark.parametrize('client_func', ('torrents_create_category', 'torrents_createCategory',
@@ -450,6 +482,18 @@ def test_tags(client, api_version, client_func):
             assert isinstance(get_func(client, client_func)(), TagList)
         except:
             assert isinstance(get_func(client, client_func), TagList)
+
+
+def test_add_tag_though_property(client, api_version):
+    name = 'newtag'
+    if is_version_less_than(api_version, '2.3.0', lteq=False):
+        with pytest.raises(NotImplementedError):
+            client.torrent_tags.tags = name
+    else:
+        client.torrent_tags.tags = name
+        assert name in client.torrent_tags.tags
+        client.torrent_tags.remove_tags(name)
+        assert name not in client.torrent_tags.tags
 
 
 @pytest.mark.parametrize('client_func', ('torrents_add_tags', 'torrents_addTags',

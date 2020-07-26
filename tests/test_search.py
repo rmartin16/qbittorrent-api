@@ -20,7 +20,7 @@ def test_update_plugins(client, api_version):
     else:
         client.search.update_plugins()
         time.sleep(2)
-        for attempt in range(3):
+        for attempt in range(10):
             try:
                 assert (any(entry for entry in reversed(client.log.main())
                             if 'All plugins are already up to date.' in entry['message'])
@@ -29,8 +29,6 @@ def test_update_plugins(client, api_version):
                         )
                 break
             except:
-                if attempt >= 2:
-                    raise
                 time.sleep(1)
 
 
@@ -39,7 +37,7 @@ def test_enable_plugin(client, api_version):
         with pytest.raises(NotImplementedError):
             client.search_enable_plugin()
     else:
-        for attempt in range(3):
+        for attempt in range(10):
             try:
                 plugins = client.search_plugins()
                 client.search_enable_plugin(plugins=(p['name'] for p in plugins), enable=False)
@@ -49,8 +47,6 @@ def test_enable_plugin(client, api_version):
                 time.sleep(1)
                 assert all(p['enabled'] for p in client.search_plugins())
             except:
-                if attempt >= 2:
-                    raise
                 time.sleep(1)
 
     if is_version_less_than(api_version, '2.1.1', lteq=False):

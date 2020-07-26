@@ -590,7 +590,7 @@ class TorrentsAPIMixIn(Request):
         :param use_auto_torrent_management: True or False to use automatic torrent management
         :param is_sequential_download: True or False for sequential download
         :param is_first_last_piece_priority: True or False for first and last piece download priority
-        :return: "Ok." for success and ""Fails." for failure
+        :return: "Ok." for success and "Fails." for failure
         """
 
         data = {'urls': (None, list2string(urls, '\n')),
@@ -611,17 +611,16 @@ class TorrentsAPIMixIn(Request):
         if torrent_files:
             if isinstance(torrent_files, six.string_types):
                 torrent_files = [torrent_files]
-            try:
-                files = []
-                for torrent_file in torrent_files:
+            files = []
+            for torrent_file in torrent_files:
+                try:
                     filename = path.abspath(path.realpath(path.expanduser(torrent_file)))
                     files.append((path.basename(filename), open(filename, 'rb')))
-            except IOError as io_err:
-                if io_err.errno == errno.ENOENT:
-                    raise TorrentFileNotFoundError(errno.ENOENT, os_strerror(errno.ENOENT), torrent_file)
-                elif io_err.errno == errno.EACCES:
-                    raise TorrentFilePermissionError(errno.ENOENT, os_strerror(errno.EACCES), torrent_file)
-                else:
+                except IOError as io_err:
+                    if io_err.errno == errno.ENOENT:
+                        raise TorrentFileNotFoundError(errno.ENOENT, os_strerror(errno.ENOENT), torrent_file)
+                    elif io_err.errno == errno.EACCES:
+                        raise TorrentFilePermissionError(errno.ENOENT, os_strerror(errno.EACCES), torrent_file)
                     raise TorrentFileError(io_err)
 
         return self._post(_name=APINames.Torrents, _method='add', data=data, files=files, **kwargs)

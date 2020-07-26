@@ -62,11 +62,11 @@ class Sync(ClientCache):
             super(Sync._TorrentPeers, self).__init__(client=client)
             self._rid = None
 
-        def __call__(self, rid=None, **kwargs):
-            return self._client.sync_torrent_peers(rid=rid, **kwargs)
+        def __call__(self, torrent_hash=None, rid=None, **kwargs):
+            return self._client.sync_torrent_peers(torrent_hash=torrent_hash, rid=rid, **kwargs)
 
-        def delta(self, **kwargs):
-            tp = self._client.sync_torrent_peers(rid=self._rid, **kwargs)
+        def delta(self, torrent_hash=None, **kwargs):
+            tp = self._client.sync_torrent_peers(torrent_hash=torrent_hash, rid=self._rid, **kwargs)
             self._rid = tp.get('rid', 0)
             return tp
 

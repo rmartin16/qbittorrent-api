@@ -82,6 +82,7 @@ def torrent_hash():
 
 @pytest.fixture(scope='session')
 def torrent(client, torrent_hash):
+    check(lambda: len([t for t in client.torrents_info() if t.hash == torrent_hash]), value=1)
     return [t for t in client.torrents_info() if t.hash == torrent_hash][0]
 
 
