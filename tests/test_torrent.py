@@ -8,6 +8,7 @@ from qbittorrentapi.helpers import is_version_less_than
 from qbittorrentapi.torrents import TorrentPropertiesDictionary
 from qbittorrentapi.torrents import TrackersList
 from qbittorrentapi.torrents import WebSeedsList
+from qbittorrentapi.torrents import TorrentDictionary
 from qbittorrentapi.torrents import TorrentFilesList
 from qbittorrentapi.torrents import TorrentPieceInfoList
 
@@ -16,6 +17,11 @@ from tests.test_torrents import check, url1, hash1, enable_queueing, disable_que
 
 def test_info(test_torrent):
     assert test_torrent.info.hash == test_torrent.hash
+
+
+def test_sync_local(test_torrent):
+    test_torrent.sync_local()
+    assert isinstance(test_torrent, TorrentDictionary)
 
 
 def test_pause_resume(client, test_torrent):
@@ -238,7 +244,7 @@ def test_piece_states(test_torrent, client_func):
 
 
 @pytest.mark.parametrize('client_func', ('piece_hashes', 'pieceHashes'))
-def test_piece_states(test_torrent, client_func):
+def test_piece_hashes(test_torrent, client_func):
     assert isinstance(getattr(test_torrent, client_func), TorrentPieceInfoList)
 
 

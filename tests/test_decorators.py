@@ -110,8 +110,11 @@ def test_version_implemented():
     with pytest.raises(NotImplementedError):
         FakeClient().endpoint_param_not_implemented(var1='asdf')
 
+    assert FakeClient().endpoint_param_not_implemented(var1=None) is None
+
     fake_client = FakeClient()
     fake_client._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS = False
     assert fake_client.endpoint_param_not_implemented(var1='asdf') is None
+    assert fake_client.endpoint_not_implemented() is None
 
     assert FakeClient().endpoint_param_implemented(var1='asdf') == 'asdf'

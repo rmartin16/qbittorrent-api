@@ -125,26 +125,22 @@ def test_files(client, test_torrent):
     assert 'availability' in files[0]
 
 
-def test_piece_states(client, test_torrent):
-    piece_states = client.torrents_piece_states(torrent_hash=test_torrent.hash)
+@pytest.mark.parametrize('client_func', ('torrents_piece_states', 'torrents_pieceStates'))
+def test_piece_states(client, test_torrent, client_func):
+    piece_states = get_func(client, client_func)(torrent_hash=test_torrent.hash)
     assert isinstance(piece_states, TorrentPieceInfoList)
 
-    piece_states = client.torrents_pieceStates(torrent_hash=test_torrent.hash)
-    assert isinstance(piece_states, TorrentPieceInfoList)
 
-
-def test_piece_hashes(client, test_torrent):
-    piece_hashes = client.torrents_piece_hashes(torrent_hash=test_torrent.hash)
-    assert isinstance(piece_hashes, TorrentPieceInfoList)
-
-    piece_hashes = client.torrents_pieceHashes(torrent_hash=test_torrent.hash)
+@pytest.mark.parametrize('client_func', ('torrents_piece_hashes', 'torrents_pieceHashes'))
+def test_piece_hashes(client, test_torrent, client_func):
+    piece_hashes = get_func(client, client_func)(torrent_hash=test_torrent.hash)
     assert isinstance(piece_hashes, TorrentPieceInfoList)
 
 
 @pytest.mark.parametrize('trackers', ('127.0.0.1', ('127.0.0.2', '127.0.0.3')))
 @pytest.mark.parametrize('client_func', ('torrents_add_trackers', 'torrents_addTrackers'))
 def test_add_trackers(client, trackers, client_func, test_torrent):
-    getattr(client, client_func)(torrent_hash=test_torrent.hash, urls=trackers)
+    get_func(client, client_func)(torrent_hash=test_torrent.hash, urls=trackers)
     check(lambda: (t.url for t in test_torrent.trackers), trackers, reverse=True)
 
 
@@ -152,10 +148,10 @@ def test_add_trackers(client, trackers, client_func, test_torrent):
 def test_edit_tracker(client, api_version, client_func, test_torrent):
     if is_version_less_than(api_version, '2.2.0', lteq=False):
         with pytest.raises(NotImplementedError):
-            getattr(client, client_func)(torrent_hash=test_torrent.hash, original_url='127.1.0.1', new_url='127.1.0.2')
+            get_func(client, client_func)(torrent_hash=test_torrent.hash, original_url='127.1.0.1', new_url='127.1.0.2')
     else:
         test_torrent.add_trackers('127.1.0.1')
-        getattr(client, client_func)(torrent_hash=test_torrent.hash, original_url='127.1.0.1', new_url='127.1.0.2')
+        get_func(client, client_func)(torrent_hash=test_torrent.hash, original_url='127.1.0.1', new_url='127.1.0.2')
         check(lambda: (t.url for t in test_torrent.trackers), '127.1.0.2', reverse=True)
 
 
@@ -164,16 +160,16 @@ def test_edit_tracker(client, api_version, client_func, test_torrent):
 def test_remove_trackers(client, api_version, trackers, client_func, test_torrent):
     if is_version_less_than(api_version, '2.2.0', lteq=False):
         with pytest.raises(NotImplementedError):
-            getattr(client, client_func)(torrent_hash=test_torrent.hash, urls=trackers)
+            get_func(client, client_func)(torrent_hash=test_torrent.hash, urls=trackers)
     else:
         test_torrent.add_trackers(trackers)
-        getattr(client, client_func)(torrent_hash=test_torrent.hash, urls=trackers)
+        get_func(client, client_func)(torrent_hash=test_torrent.hash, urls=trackers)
         check(lambda: (t.url for t in test_torrent.trackers), trackers, reverse=True, negate=True)
 
 
 @pytest.mark.parametrize('client_func', ('torrents_file_priority', 'torrents_filePrio'))
 def test_file_priority(client, torrent, torrent_hash, client_func, test_torrent):
-    getattr(client, client_func)(torrent_hash=torrent_hash, file_ids=0, priority=7)
+    get_func(client, client_func)(torrent_hash=torrent_hash, file_ids=0, priority=7)
     check(lambda: torrent.files[0].priority, 7)
 
 
@@ -194,13 +190,24 @@ def test_rename_file(client, api_version, torrent_hash, torrent, new_name, clien
         check(lambda: torrent.files[0].name.replace('+', ' '), new_name[0])
 
 
-def test_torrents_info(client, api_version, torrent_hash):
-    torrents = client.torrents_info()
-    assert isinstance(torrents, TorrentInfoList)
+@pytest.mark.parametrize('client_func', ('torrents_info', 'torrents.info'))
+def test_torrents_info(client, api_version, torrent_hash, client_func):
+    assert isinstance(get_func(client, client_func)(), TorrentInfoList)
+    if '.' in client_func:
+        assert isinstance(get_func(client, client_func).all(), TorrentInfoList)
+        assert isinstance(get_func(client, client_func).downloading(), TorrentInfoList)
+        assert isinstance(get_func(client, client_func).completed(), TorrentInfoList)
+        assert isinstance(get_func(client, client_func).paused(), TorrentInfoList)
+        assert isinstance(get_func(client, client_func).active(), TorrentInfoList)
+        assert isinstance(get_func(client, client_func).inactive(), TorrentInfoList)
+        assert isinstance(get_func(client, client_func).resumed(), TorrentInfoList)
+        assert isinstance(get_func(client, client_func).stalled(), TorrentInfoList)
+        assert isinstance(get_func(client, client_func).stalled_uploading(), TorrentInfoList)
+        assert isinstance(get_func(client, client_func).stalled_downloading(), TorrentInfoList)
 
     if is_version_less_than(api_version, '2.0.1', lteq=False):
         with pytest.raises(NotImplementedError):
-            client.torrents_info(torrent_hashes=torrent_hash)
+            get_func(client, client_func)(torrent_hashes=torrent_hash)
 
 
 @pytest.mark.parametrize('client_func', (('torrents_pause', 'torrents_resume'),

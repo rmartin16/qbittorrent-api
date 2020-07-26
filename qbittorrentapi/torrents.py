@@ -290,15 +290,6 @@ class TorrentPieceData(ListEntry):
     pass
 
 
-class TorrentCategoriesList(List):
-    def __init__(self, list_entries=None, client=None):
-        super(TorrentCategoriesList, self).__init__(list_entries, entry_class=TorrentCategory, client=client)
-
-
-class TorrentCategory(ListEntry):
-    pass
-
-
 class TagList(List):
     def __init__(self, list_entries=None, client=None):
         super(TagList, self).__init__(list_entries, entry_class=Tag, client=client)
