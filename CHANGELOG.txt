@@ -1,3 +1,6 @@
+Version 2020.7.7
+ - Update tests and misc small fixes.
+
 Version 2020.7.6
  - Re-release of v2020.7.5.
 
