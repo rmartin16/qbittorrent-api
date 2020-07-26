@@ -8,7 +8,6 @@ except ImportError:
 
 import pytest
 import requests
-import six
 
 from qbittorrentapi.exceptions import Forbidden403Error
 from qbittorrentapi.exceptions import Conflict409Error
@@ -25,38 +24,7 @@ from qbittorrentapi.torrents import TorrentsAddPeersDictionary
 from qbittorrentapi.torrents import TorrentCategoriesDictionary
 from qbittorrentapi.torrents import TagList
 
-check_limit = 10
-
-url1 = 'http://releases.ubuntu.com/18.04/ubuntu-18.04.4-desktop-amd64.iso.torrent'
-filename1 = url1.split('/')[-1]
-hash1 = '286d2e5b4f8369855328336ac1263ae02a7a60d5'
-
-url2 = 'https://releases.ubuntu.com/20.04/ubuntu-20.04-desktop-amd64.iso.torrent'
-filename2 = url2.split('/')[-1]
-hash2 = '9fc20b9e98ea98b4a35e6223041a5ef94ea27809'
-
-
-def check(check_func, value, reverse=False, negate=False):
-    if isinstance(value, (six.string_types, int)):
-        value = (value,)
-    for i in range(check_limit):
-        try:
-            if reverse:
-                for v in value:
-                    if negate:
-                        assert v not in check_func()
-                    else:
-                        assert v in check_func()
-            else:
-                if negate:
-                    assert check_func() not in value
-                else:
-                    assert check_func() in value
-            break
-        except AssertionError:
-            if i >= check_limit - 1:
-                raise
-            sleep(1)
+from tests.conftest import check, filename1, filename2, hash1, hash2, url1, url2
 
 
 def get_func(client, func_str):

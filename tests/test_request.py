@@ -32,6 +32,12 @@ def test_log_in_via_auth():
         client_bad.auth_log_in(username='asdf', password='asdfasdf')
 
 
+def test_port(app_version):
+    host, port = environ.get('PYTHON_QBITTORRENTAPI_HOST').split(':')
+    client = Client(host=host, port=port)
+    assert client.app.version == app_version
+
+
 def test_log_out(client):
     client.auth_log_out()
     with pytest.raises(Forbidden403Error):
@@ -83,6 +89,10 @@ def test_disable_logging():
 def test_verify_cert(api_version):
     client = Client(VERIFY_WEBUI_CERTIFICATE=False)
     assert client._VERIFY_WEBUI_CERTIFICATE is False
+    assert client.app.web_api_version == api_version
+
+    client = Client(VERIFY_WEBUI_CERTIFICATE=True)
+    assert client._VERIFY_WEBUI_CERTIFICATE is True
     assert client.app.web_api_version == api_version
 
 

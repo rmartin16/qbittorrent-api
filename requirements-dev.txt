@@ -1,6 +1,7 @@
 -r requirements.txt
 sphinx
 pytest
+pytest-cov
 codecov
 coveralls
 sphinx_glpi_theme
