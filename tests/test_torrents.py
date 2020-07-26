@@ -492,7 +492,7 @@ def test_add_tag_though_property(client, api_version):
     else:
         client.torrent_tags.tags = name
         assert name in client.torrent_tags.tags
-        client.torrent_tags.remove_tags(name)
+        client.torrent_tags.delete_tags(name)
         assert name not in client.torrent_tags.tags
 
 

@@ -46,6 +46,7 @@ def test_enable_plugin(client, api_version):
                 client.search_enable_plugin(plugins=(p['name'] for p in plugins), enable=True)
                 time.sleep(1)
                 assert all(p['enabled'] for p in client.search_plugins())
+                break
             except:
                 time.sleep(1)
 
