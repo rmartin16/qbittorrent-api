@@ -239,10 +239,15 @@ def test_action_for_all_torrents(client, test_torrent):
         check(lambda: client.torrents_info(torrents_hashes=torrent.hash)[0].state, ('pausedDL',), negate=True)
 
 
-def test_recheck(client, torrent_hash):
-    pass  # this test isn't reliable...
-    # client.torrents_recheck(torrent_hashes=torrent_hash)
-    # assert client.torrents_info(torrents_hashes=torrent_hash)[0].state in ('checkingUP', 'checkingDL')
+@pytest.mark.parametrize('client_func', ('torrents_recheck', 'torrents.recheck'))
+def test_recheck(client, torrent_hash, client_func):
+    get_func(client, client_func)(torrent_hashes=torrent_hash)
+
+
+@pytest.mark.parametrize('client_func', ('torrents_reannounce', 'torrents.reannounce'))
+def test_reannounce(client, torrent_hash, client_func):
+    sleep(2)
+    get_func(client, client_func)(torrent_hashes=torrent_hash)
 
 
 @pytest.mark.parametrize('client_func', (('torrents_increase_priority', 'torrents_decrease_priority', 'torrents_top_priority', 'torrents_bottom_priority'),

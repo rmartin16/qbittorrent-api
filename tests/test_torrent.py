@@ -227,6 +227,14 @@ def test_files(test_torrent):
     assert 'id' in test_torrent.files[0]
 
 
+def test_recheck(client, torrent):
+    torrent.recheck()
+
+
+def test_reannounce(client, torrent):
+    torrent.reannounce()
+
+
 @pytest.mark.parametrize('client_func', ('rename_file', 'renameFile'))
 @pytest.mark.parametrize('name', ('new_name', 'new name'))
 def test_rename_file(api_version, test_torrent, client_func, name):

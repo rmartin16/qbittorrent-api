@@ -320,10 +320,8 @@ class Request(object):
 
             resp_logger('Request URL: (%s) %s' % (http_method.upper(), response.url))
             if str(response.request.body) not in ('None', '') and 'auth/login' not in url.path:
-                body_len = max_text_length_to_log if len(response.request.body) > max_text_length_to_log else len(
-                    response.request.body)
-                resp_logger('Request body: %s%s' % (
-                response.request.body[:body_len], '...<truncated>' if body_len >= 80 else ''))
+                body_len = max_text_length_to_log if len(response.request.body) > max_text_length_to_log else len(response.request.body)
+                resp_logger('Request body: %s%s' % (response.request.body[:body_len], '...<truncated>' if body_len >= 80 else ''))
 
             resp_logger('Response status: %s (%s)' % (response.status_code, response.reason))
             if response.text:

@@ -311,7 +311,7 @@ class Torrents(ClientCache):
         >>> #  endpoints or the more pythonic names in Client (with or without 'torrents_' prepended)
         >>> torrent_list = client.torrents.info()
         >>> torrent_list_active = client.torrents.info.active()
-        >>> torrent_list_active_partial = client.torrents.active(limit=100, offset=200)
+        >>> torrent_list_active_partial = client.torrents.info.active(limit=100, offset=200)
         >>> torrent_list_downloading = client.torrents.info.downloading()
         >>> # torrent looping
         >>> for torrent in client.torrents.info.completed()
