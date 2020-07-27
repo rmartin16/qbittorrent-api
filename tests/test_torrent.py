@@ -231,8 +231,12 @@ def test_recheck(client, torrent):
     torrent.recheck()
 
 
-def test_reannounce(client, torrent):
-    torrent.reannounce()
+def test_reannounce(client, api_version, torrent):
+    if is_version_less_than(api_version, '2.0.2', lteq=False):
+        with pytest.raises(NotImplementedError):
+            torrent.reannounce()
+    else:
+        torrent.reannounce()
 
 
 @pytest.mark.parametrize('client_func', ('rename_file', 'renameFile'))
