@@ -245,9 +245,12 @@ def test_recheck(client, torrent_hash, client_func):
 
 
 @pytest.mark.parametrize('client_func', ('torrents_reannounce', 'torrents.reannounce'))
-def test_reannounce(client, torrent_hash, client_func):
-    sleep(2)
-    get_func(client, client_func)(torrent_hashes=torrent_hash)
+def test_reannounce(client, api_version, torrent_hash, client_func):
+    if is_version_less_than(api_version, '2.0.2', lteq=False):
+        with pytest.raises(NotImplementedError):
+            get_func(client, client_func)(torrent_hashes=torrent_hash)
+    else:
+        get_func(client, client_func)(torrent_hashes=torrent_hash)
 
 
 @pytest.mark.parametrize('client_func', (('torrents_increase_priority', 'torrents_decrease_priority', 'torrents_top_priority', 'torrents_bottom_priority'),
