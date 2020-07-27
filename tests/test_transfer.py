@@ -55,7 +55,7 @@ def test_download_limit(client):
     client.transfer_setDownloadLimit(limit=3072)
     assert client.transfer_downloadLimit() == 3072
 
-    client.transfer.set_download_limit(limit=4096)
+    client.transfer.download_limit = 4096
     assert client.transfer.download_limit == 4096
     client.transfer.downloadLimit = 5120
     assert client.transfer.downloadLimit == 5120
@@ -67,9 +67,9 @@ def test_upload_limit(client):
     client.transfer_setUploadLimit(limit=3072)
     assert client.transfer_uploadLimit() == 3072
 
-    client.transfer.set_upload_limit(limit=4096)
+    client.transfer.upload_limit = 4096
     assert client.transfer.upload_limit == 4096
-    client.transfer.setUploadLimit(limit=5120)
+    client.transfer.uploadLimit = 5120
     assert client.transfer.uploadLimit == 5120
 
 

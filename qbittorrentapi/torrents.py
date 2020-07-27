@@ -290,15 +290,6 @@ class TorrentPieceData(ListEntry):
     pass
 
 
-class TorrentCategoriesList(List):
-    def __init__(self, list_entries=None, client=None):
-        super(TorrentCategoriesList, self).__init__(list_entries, entry_class=TorrentCategory, client=client)
-
-
-class TorrentCategory(ListEntry):
-    pass
-
-
 class TagList(List):
     def __init__(self, list_entries=None, client=None):
         super(TagList, self).__init__(list_entries, entry_class=Tag, client=client)
@@ -320,7 +311,7 @@ class Torrents(ClientCache):
         >>> #  endpoints or the more pythonic names in Client (with or without 'torrents_' prepended)
         >>> torrent_list = client.torrents.info()
         >>> torrent_list_active = client.torrents.info.active()
-        >>> torrent_list_active_partial = client.torrents.active(limit=100, offset=200)
+        >>> torrent_list_active_partial = client.torrents.info.active(limit=100, offset=200)
         >>> torrent_list_downloading = client.torrents.info.downloading()
         >>> # torrent looping
         >>> for torrent in client.torrents.info.completed()
@@ -599,7 +590,7 @@ class TorrentsAPIMixIn(Request):
         :param use_auto_torrent_management: True or False to use automatic torrent management
         :param is_sequential_download: True or False for sequential download
         :param is_first_last_piece_priority: True or False for first and last piece download priority
-        :return: "Ok." for success and ""Fails." for failure
+        :return: "Ok." for success and "Fails." for failure
         """
 
         data = {'urls': (None, list2string(urls, '\n')),
@@ -620,17 +611,16 @@ class TorrentsAPIMixIn(Request):
         if torrent_files:
             if isinstance(torrent_files, six.string_types):
                 torrent_files = [torrent_files]
-            try:
-                files = []
-                for torrent_file in torrent_files:
+            files = []
+            for torrent_file in torrent_files:
+                try:
                     filename = path.abspath(path.realpath(path.expanduser(torrent_file)))
                     files.append((path.basename(filename), open(filename, 'rb')))
-            except IOError as io_err:
-                if io_err.errno == errno.ENOENT:
-                    raise TorrentFileNotFoundError(errno.ENOENT, os_strerror(errno.ENOENT), torrent_file)
-                elif io_err.errno == errno.EACCES:
-                    raise TorrentFilePermissionError(errno.ENOENT, os_strerror(errno.EACCES), torrent_file)
-                else:
+                except IOError as io_err:
+                    if io_err.errno == errno.ENOENT:
+                        raise TorrentFileNotFoundError(errno.ENOENT, os_strerror(errno.ENOENT), torrent_file)
+                    elif io_err.errno == errno.EACCES:
+                        raise TorrentFilePermissionError(errno.ENOENT, os_strerror(errno.EACCES), torrent_file)
                     raise TorrentFileError(io_err)
 
         return self._post(_name=APINames.Torrents, _method='add', data=data, files=files, **kwargs)

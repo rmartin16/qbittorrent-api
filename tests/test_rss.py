@@ -65,8 +65,11 @@ def test_add_move_refresh_remove_feed(client, api_version):
         else:
             client.rss.refresh_item(item_path=item_two)
             sleep(2)
-            items = client.rss.items(include_feed_data=True)
+            items = client.rss.items(include_feed_data=False)
             assert isinstance(items, RSSitemsDictionary)
+            items = client.rss.items.without_data
+            assert isinstance(items, RSSitemsDictionary)
+            items = client.rss.items.with_data
             if is_version_less_than(api_version, '2.5.1', lteq=False):
                 with pytest.raises(NotImplementedError):
                     client.rss.mark_as_read()
