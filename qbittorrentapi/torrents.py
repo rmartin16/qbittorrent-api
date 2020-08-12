@@ -577,7 +577,7 @@ class TorrentsAPIMixIn(Request):
             TorrentFilePermissionError if read permission is denied to torrent file
 
         :param urls: List of URLs (http://, https://, magnet: and bc://bt/)
-        :param torrent_files: list of torrent files
+        :param torrent_files: list of file objects
         :param save_path: location to save the torrent data
         :param cookie: cookie to retrieve torrents by URL
         :param category: category to assign to torrent(s)
@@ -609,19 +609,13 @@ class TorrentsAPIMixIn(Request):
 
         files = None
         if torrent_files:
-            if isinstance(torrent_files, six.string_types):
+            if not isinstance(torrent_files, (list, tuple)):
                 torrent_files = [torrent_files]
+
             files = []
-            for torrent_file in torrent_files:
-                try:
-                    filename = path.abspath(path.realpath(path.expanduser(torrent_file)))
-                    files.append((path.basename(filename), open(filename, 'rb')))
-                except IOError as io_err:
-                    if io_err.errno == errno.ENOENT:
-                        raise TorrentFileNotFoundError(errno.ENOENT, os_strerror(errno.ENOENT), torrent_file)
-                    elif io_err.errno == errno.EACCES:
-                        raise TorrentFilePermissionError(errno.ENOENT, os_strerror(errno.EACCES), torrent_file)
-                    raise TorrentFileError(io_err)
+
+            for i, tf in enumerate(torrent_files):
+                files.append((f'torrents{i}', tf))
 
         return self._post(_name=APINames.Torrents, _method='add', data=data, files=files, **kwargs)
 
