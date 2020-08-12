@@ -615,7 +615,7 @@ class TorrentsAPIMixIn(Request):
             files = []
 
             for i, tf in enumerate(torrent_files):
-                files.append((f'torrents{i}', tf))
+                files.append(('torrents%s'%i, tf))
 
         return self._post(_name=APINames.Torrents, _method='add', data=data, files=files, **kwargs)
 
