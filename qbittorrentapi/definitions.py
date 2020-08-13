@@ -49,8 +49,13 @@ class TorrentStates(Enum):
     ERROR = 'error'
     MISSING_FILES = 'missingFiles'
     UPLOADING = 'uploading'
+<<<<<<< HEAD
     PAUSED_UPLOAD = 'pausedUP'
     QUEUED_UPLOAD = 'queuedUP'
+=======
+    PAUSED_UPLOAD = 'pausedUp'
+    QUEUED_UPLOAD = 'queuedUp'
+>>>>>>> add enum for torrent states; code/doc cleanup
     STALLED_UPLOAD = 'stalledUP'
     CHECKING_UPLOAD = 'checkingUP'
     FORCED_UPLOAD = 'forcedUP'

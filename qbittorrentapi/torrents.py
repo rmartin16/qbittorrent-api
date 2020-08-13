@@ -76,8 +76,12 @@ class TorrentDictionary(Dictionary):
 
     @property
     def info(self):
+<<<<<<< HEAD
         api_version = self._client._app_web_api_version_from_version_checker()
         if self._client._is_version_less_than(api_version, '2.0.1', lteq=False):
+=======
+        if self._is_version_less_than(self._client._app_web_api_version_from_version_checker(), '2.0.1', lteq=False):
+>>>>>>> add enum for torrent states; code/doc cleanup
             info = [t for t in self._client.torrents_info() if t.hash == self._torrent_hash]
         else:
             info = self._client.torrents_info(torrent_hashes=self._torrent_hash)
@@ -848,8 +852,12 @@ class TorrentsAPIMixIn(Request):
         :raises Conflict409: if torrent metadata has not finished downloading or at least one file was not found
         :param torrent_hash: hash for torrent
         :param file_ids: single file ID or a list.
+<<<<<<< HEAD
         :param priority: priority for file(s)
             Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#set-file-priority
+=======
+        :param priority: priority for file(s) (https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#set-file-priority)
+>>>>>>> add enum for torrent states; code/doc cleanup
         :return: None
         """
         data = {'hash': torrent_hash or kwargs.pop('hash'),
