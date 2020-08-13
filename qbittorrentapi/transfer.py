@@ -7,7 +7,6 @@ from qbittorrentapi.decorators import version_implemented
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary
-from qbittorrentapi.helpers import list2string
 from qbittorrentapi.request import Request
 
 
@@ -21,7 +20,7 @@ class Transfer(ClientCache):
     """
     Alows interaction with the "Transfer" API endpoints.
 
-    Usage:
+    :Usage:
         >>> from qbittorrentapi import Client
         >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
         >>> # this are all the same attributes that are available as named in the
@@ -203,5 +202,5 @@ class TransferAPIMixIn(Request):
         :param peers: one or more peers to ban. each peer should take the form 'host:port'
         :return: None
         """
-        data = {'peers': list2string(peers, '|')}
+        data = {'peers': self._list2string(peers, '|')}
         self._post(_name=APINames.Transfer, _method='banPeers', data=data, **kwargs)

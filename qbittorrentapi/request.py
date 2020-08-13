@@ -1,9 +1,19 @@
 from os import environ
 import logging
+from pkg_resources import parse_version
 from time import sleep
-import requests
 from urllib3 import disable_warnings
 from urllib3.exceptions import InsecureRequestWarning
+
+try:  # python 3
+    from collections.abc import Iterable
+    from urllib.parse import urlparse
+except ImportError:  # python 2
+    from collections import Iterable
+    from urlparse import urlparse
+
+import requests
+import six
 
 from qbittorrentapi.decorators import login_required
 from qbittorrentapi.exceptions import APIConnectionError
@@ -19,21 +29,12 @@ from qbittorrentapi.exceptions import Conflict409Error
 from qbittorrentapi.exceptions import UnsupportedMediaType415Error
 from qbittorrentapi.exceptions import InternalServerError500Error
 from qbittorrentapi.definitions import APINames
-from qbittorrentapi.helpers import suppress_context
-
-try:  # python 3
-    # noinspection PyCompatibility,PyUnresolvedReferences
-    from urllib.parse import urlparse
-except ImportError:  # python 2
-    # noinspection PyCompatibility,PyUnresolvedReferences
-    from urlparse import urlparse
 
 logger = logging.getLogger(__name__)
 
 
 class Request(object):
-
-    """Facilitates HTTP requests to qBittorrent"""
+    """Facilitates HTTP requests to qBittorrent."""
 
     def __init__(self, host='', port=None, username=None, password=None, **kwargs):
         self.host = host
@@ -94,6 +95,99 @@ class Request(object):
         # Mocking variables until better unit testing exists
         self._MOCK_WEB_API_VERSION = kwargs.pop('MOCK_WEB_API_VERSION', None)
 
+    ########################################
+    # Authorization Endpoints
+    ########################################
+    @property
+    def is_logged_in(self):
+        return bool(self._SID)
+
+    def auth_log_in(self, username=None, password=None):
+        """
+        Log in to qBittorrent host.
+
+        :raises LoginFailed: if credentials failed to log in
+        :raises Forbidden403Error: if user user is banned...or not logged in
+
+        :param username: user name for qBittorrent client
+        :param password: password for qBittorrent client
+        :return: None
+        """
+        if username:
+            self.username = username or ''
+            self._password = password or ''
+
+        try:
+            self._initialize_context()
+            response = self._post(_name=APINames.Authorization,
+                                  _method='login',
+                                  data={'username': self.username, 'password': self._password})
+            self._SID = response.cookies['SID']
+        except KeyError:
+            logger.debug('Login failed for user "%s"' % self.username)
+            raise self._suppress_context(LoginFailed('Login authorization failed for user "%s"' % self.username))
+        else:
+            logger.debug('Login successful for user "%s"' % self.username)
+            logger.debug('SID: %s' % self._SID)
+
+    @login_required
+    def auth_log_out(self, **kwargs):
+        """End session with qBittorrent."""
+        self._get(_name=APINames.Authorization, _method='logout', **kwargs)
+
+    ########################################
+    # Helpers
+    ########################################
+    @classmethod
+    def _list2string(cls, input_list=None, delimiter="|"):
+        """
+        Convert entries in a list to a concatenated string
+
+        :param input_list: list to convert
+        :param delimiter: delimiter for concatenation
+        :return: if input is a list, concatenated string...else whatever the input was
+        """
+        if not isinstance(input_list, six.string_types) and isinstance(input_list, Iterable):
+            return delimiter.join(map(str, input_list))
+        return input_list
+
+    @classmethod
+    def _suppress_context(cls, exc):
+        """
+        This is used to mask an exception with another one.
+
+        For instance, below, the divide by zero error is masked by the CustomException.
+            try:
+                1/0
+            except ZeroDivisionError:
+                raise suppress_context(CustomException())
+
+        Note: In python 3, the last line would simply be raise CustomException() from None
+        :param exc: new Exception that will be raised
+        :return: Exception to be raised
+        """
+        exc.__cause__ = None
+        return exc
+
+    @classmethod
+    def _is_version_less_than(cls, ver1, ver2, lteq=True):
+        """
+        Determine if ver1 is equal to or later than ver2.
+
+        Note: changes need to be reflected in decorators._is_version_less_than as well
+
+        :param ver1: version to check
+        :param ver2: current version of application
+        :param lteq: True for Less Than or Equals; False for just Less Than
+        :return: True or False
+        """
+        if lteq:
+            return parse_version(ver1) <= parse_version(ver2)
+        return parse_version(ver1) < parse_version(ver2)
+
+    ########################################
+    # HTTP Requests
+    ########################################
     def _initialize_context(self):
         """Reset context. This is necessary when the auth cookie needs to be replaced."""
         # cache to avoid perf hit from version checking certain endpoints
@@ -113,48 +207,10 @@ class Request(object):
         self._rss = None
         self._search = None
 
-    @property
-    def is_logged_in(self):
-        return bool(self._SID)
-
-    def auth_log_in(self, username=None, password=None):
-        """
-        Log in to qBittorrent host.
-
-        Exceptions:
-            LoginFailed if credentials failed to log in
-            Forbidden403Error if user user is banned...or not logged in
-
-        :param username: user name for qBittorrent client
-        :param password: password for qBittorrent client
-        :return: None
-        """
-        if username:
-            self.username = username or ''
-            self._password = password or ''
-
-        try:
-            self._initialize_context()
-            response = self._post(_name=APINames.Authorization,
-                                  _method='login',
-                                  data={'username': self.username, 'password': self._password})
-            self._SID = response.cookies['SID']
-        except KeyError:
-            logger.debug('Login failed for user "%s"' % self.username)
-            raise suppress_context(LoginFailed('Login authorization failed for user "%s"' % self.username))
-        else:
-            logger.debug('Login successful for user "%s"' % self.username)
-            logger.debug('SID: %s' % self._SID)
-
-    @login_required
-    def auth_log_out(self, **kwargs):
-        """End session with qBittorrent."""
-        self._get(_name=APINames.Authorization, _method='logout', **kwargs)
-
-    def _get(self, _name='', _method='', **kwargs):
+    def _get(self, _name=APINames.EMPTY, _method='', **kwargs):
         return self._request_wrapper(http_method='get', api_name=_name, api_method=_method, **kwargs)
 
-    def _post(self, _name='', _method='', **kwargs):
+    def _post(self, _name=APINames.EMPTY, _method='', **kwargs):
         return self._request_wrapper(http_method='post', api_name=_name, api_method=_method, **kwargs)
 
     def _request_wrapper(self, _retries=2, _retry_backoff_factor=.3, **kwargs):
@@ -205,9 +261,7 @@ class Request(object):
                  data=None, params=None, files=None, headers=None, requests_params=None, **kwargs):
         _ = kwargs.pop('SIMPLE_RESPONSES', kwargs.pop('SIMPLE_RESPONSE', False))  # ensure SIMPLE_RESPONSE(S) isn't sent
 
-        if api_name in APINames:
-            api_name = api_name.value
-
+        api_name = api_name.value if api_name in APINames else api_name
         api_path_list = (self._API_URL_BASE_PATH, self._API_URL_API_VERSION, api_name, api_method)
         url = self._build_url(base_url=self._API_URL_BASE,
                               host=self.host,
@@ -382,3 +436,6 @@ class Request(object):
 
         # add the full API path to complete the URL
         return base_url._replace(path='/'.join(map(lambda s: s.strip('/'), map(str, api_path_list))))
+
+
+is_version_less_than = Request._is_version_less_than

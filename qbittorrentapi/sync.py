@@ -17,7 +17,6 @@ class SyncTorrentPeersDictionary(Dictionary):
 
 
 class Sync(ClientCache):
-
     """
     Alows interaction with the "Sync" API endpoints.
 
@@ -76,8 +75,7 @@ class Sync(ClientCache):
 
 @aliased
 class SyncAPIMixIn(Request):
-
-    """Implementation of all Sync API Methods"""
+    """Implementation of all Sync API Methods."""
 
     @property
     def sync(self):
@@ -111,8 +109,7 @@ class SyncAPIMixIn(Request):
         """
         Retrieves torrent sync data. (alias: sync_torrentPeers)
 
-        Exceptions:
-            NotFound404Error
+        :raises NotFound404Error:
 
         :param torrent_hash: hash for torrent
         :param rid: response ID

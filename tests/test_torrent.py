@@ -3,8 +3,8 @@ from time import sleep
 
 import pytest
 
+from .conftest import is_version_less_than
 from qbittorrentapi import Conflict409Error
-from qbittorrentapi.helpers import is_version_less_than
 from qbittorrentapi.torrents import TorrentPropertiesDictionary
 from qbittorrentapi.torrents import TrackersList
 from qbittorrentapi.torrents import WebSeedsList

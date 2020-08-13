@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from qbittorrentapi.helpers import is_version_less_than
+from .conftest import is_version_less_than
 
 
 def test_version(client, app_version):

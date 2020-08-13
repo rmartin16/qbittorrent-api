@@ -6,6 +6,7 @@ import pytest
 import six
 
 from qbittorrentapi import Client
+from qbittorrentapi.request import Request
 
 qbt_version = 'v' + environ['QBT_VER']
 
@@ -38,6 +39,8 @@ hash1 = '94a315e2cf8015b2f635d79aab592e6db557d5ea'
 url2 = 'https://releases.ubuntu.com/20.04/ubuntu-20.04.1-desktop-amd64.iso.torrent'
 filename2 = url2.split('/')[-1]
 hash2 = 'd1101a2b9d202811a05e8c57c557a20bf974dc8a'
+
+is_version_less_than = Request._is_version_less_than
 
 
 def check(check_func, value, reverse=False, negate=False):

@@ -25,11 +25,10 @@ class BuildInfoDictionary(Dictionary):
 
 @aliased
 class Application(ClientCache):
-
     """
     Allows interaction with "Application" API endpoints.
 
-    Usage:
+    :Usage:
         >>> from qbittorrentapi import Client
         >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
         >>> # this are all the same attributes that are available as named in the
@@ -85,7 +84,6 @@ class Application(ClientCache):
 
 @aliased
 class AppAPIMixIn(Request):
-
     """Implementation of all Application API methods"""
 
     @property
