@@ -119,7 +119,7 @@ def test_request_http400(client, api_version, torrent_hash):
     with pytest.raises(MissingRequiredParameters400Error):
         client.torrents_file_priority(hash=torrent_hash)
 
-    if Request.is_version_less_than('4.1.5', api_version, lteq=False):
+    if Request._is_version_less_than('4.1.5', api_version, lteq=False):
         with pytest.raises(InvalidRequest400Error):
             client.torrents_file_priority(hash=torrent_hash, file_ids='asdf', priority='asdf')
 

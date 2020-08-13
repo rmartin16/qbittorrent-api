@@ -261,12 +261,8 @@ class Request(object):
                  data=None, params=None, files=None, headers=None, requests_params=None, **kwargs):
         _ = kwargs.pop('SIMPLE_RESPONSES', kwargs.pop('SIMPLE_RESPONSE', False))  # ensure SIMPLE_RESPONSE(S) isn't sent
 
-<<<<<<< HEAD
         if isinstance(api_name, APINames):
             api_name = api_name.value
-=======
-        api_name = api_name.value if api_name in APINames else api_name
->>>>>>> add enum for torrent states; code/doc cleanup
         api_path_list = (self._API_URL_BASE_PATH, self._API_URL_API_VERSION, api_name, api_method)
         url = self._build_url(base_url=self._API_URL_BASE,
                               host=self.host,
@@ -441,6 +437,3 @@ class Request(object):
 
         # add the full API path to complete the URL
         return base_url._replace(path='/'.join(map(lambda s: s.strip('/'), map(str, api_path_list))))
-
-
-is_version_less_than = Request._is_version_less_than
