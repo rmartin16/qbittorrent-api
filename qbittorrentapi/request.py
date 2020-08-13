@@ -6,7 +6,18 @@ from urllib3 import disable_warnings
 from urllib3.exceptions import InsecureRequestWarning
 
 from qbittorrentapi.decorators import login_required
-from qbittorrentapi.exceptions import *
+from qbittorrentapi.exceptions import APIConnectionError
+from qbittorrentapi.exceptions import HTTPError
+from qbittorrentapi.exceptions import HTTP5XXError
+from qbittorrentapi.exceptions import LoginFailed
+from qbittorrentapi.exceptions import MissingRequiredParameters400Error
+from qbittorrentapi.exceptions import InvalidRequest400Error
+from qbittorrentapi.exceptions import Unauthorized401Error
+from qbittorrentapi.exceptions import Forbidden403Error
+from qbittorrentapi.exceptions import NotFound404Error
+from qbittorrentapi.exceptions import Conflict409Error
+from qbittorrentapi.exceptions import UnsupportedMediaType415Error
+from qbittorrentapi.exceptions import InternalServerError500Error
 from qbittorrentapi.helpers import APINames
 from qbittorrentapi.helpers import suppress_context
 
@@ -21,7 +32,9 @@ logger = logging.getLogger(__name__)
 
 
 class Request(object):
+
     """Facilitates HTTP requests to qBittorrent"""
+
     def __init__(self, host='', port=None, username=None, password=None, **kwargs):
         self.host = host
         self.port = port
@@ -135,7 +148,7 @@ class Request(object):
 
     @login_required
     def auth_log_out(self, **kwargs):
-        """End session with qBittorrent"""
+        """End session with qBittorrent."""
         self._get(_name=APINames.Authorization, _method='logout', **kwargs)
 
     def _get(self, _name='', _method='', **kwargs):
@@ -145,9 +158,11 @@ class Request(object):
         return self._request_wrapper(http_method='post', api_name=_name, api_method=_method, **kwargs)
 
     def _request_wrapper(self, _retries=2, _retry_backoff_factor=.3, **kwargs):
-        """ Wrapper to manage requests retries """
-        # This should retry at least twice to account for the Web API switching from HTTP to HTTPS.
-        # During the second attempt, the URL is rebuilt using HTTP or HTTPS as appropriate.
+        """
+        Wrapper to manage requests retries.
+        This should retry at least twice to account for the Web API switching from HTTP to HTTPS.
+        During the second attempt, the URL is rebuilt using HTTP or HTTPS as appropriate.
+        """
         max_retries = _retries if _retries > 1 else 2
         for retry in range(0, (max_retries + 1)):
             try:
@@ -243,7 +258,7 @@ class Request(object):
 
     @staticmethod
     def handle_error_responses(data, params, response):
-        """Raise proper exception if qBittorrent returns Error HTTP Status"""
+        """Raise proper exception if qBittorrent returns Error HTTP Status."""
         if response.status_code < 400:
             # short circuit for non-error statuses
             return
@@ -311,7 +326,7 @@ class Request(object):
             raise HTTPError(response.text)
 
     def verbose_logging(self, http_method, response, url):
-        """Log verbose information about request. Can be useful during development"""
+        """Log verbose information about request. Can be useful during development."""
         if self._VERBOSE_RESPONSE_LOGGING:
             resp_logger = logger.debug
             max_text_length_to_log = 254
