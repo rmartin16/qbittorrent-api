@@ -1,9 +1,7 @@
 try:
     from collections import UserList
-    # noinspection PyCompatibility,PyUnresolvedReferences
     from collections.abc import Iterable
 except ImportError:
-    # noinspection PyCompatibility,PyUnresolvedReferences
     from UserList import UserList
     from collections import Iterable
 

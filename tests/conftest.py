@@ -35,9 +35,9 @@ url1 = 'http://releases.ubuntu.com/18.04/ubuntu-18.04.4-desktop-amd64.iso.torren
 filename1 = url1.split('/')[-1]
 hash1 = '286d2e5b4f8369855328336ac1263ae02a7a60d5'
 
-url2 = 'https://releases.ubuntu.com/20.04/ubuntu-20.04-desktop-amd64.iso.torrent'
+url2 = 'https://releases.ubuntu.com/20.04/ubuntu-20.04.1-desktop-amd64.iso.torrent'
 filename2 = url2.split('/')[-1]
-hash2 = '9fc20b9e98ea98b4a35e6223041a5ef94ea27809'
+hash2 = 'd1101a2b9d202811a05e8c57c557a20bf974dc8a'
 
 
 def check(check_func, value, reverse=False, negate=False):
@@ -67,9 +67,9 @@ def check(check_func, value, reverse=False, negate=False):
 @pytest.fixture(scope='session')
 def client():
     """ qBittorrent Client for testing session """
-    client = Client(RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True)
+    client = Client(RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True, VERBOSE_RESPONSE_LOGGING=True)
     client.auth_log_in()
-    client.torrents_add(urls='https://torrent.ubuntu.com/xubuntu/releases/focal/release/desktop/xubuntu-20.04-desktop-amd64.iso.torrent',
+    client.torrents_add(urls='https://torrent.ubuntu.com/xubuntu/releases/bionic/release/desktop/xubuntu-18.04.4-desktop-amd64.iso.torrent',
                         upload_limit=10, download_limit=10)
     return client
 
@@ -77,7 +77,7 @@ def client():
 @pytest.fixture(scope='session')
 def torrent_hash():
     """ Torrent hash for the Xubuntu torrent loaded for testing """
-    return 'c6df3faa31ff9a73a3687bf5522b2035e561ac41'
+    return '9a271ad2325b1e5974dfd548cb9bba4c78757a25'
 
 
 @pytest.fixture(scope='session')

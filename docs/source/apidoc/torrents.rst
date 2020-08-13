@@ -5,8 +5,7 @@ Torrents
 
 .. autoclass:: TorrentsAPIMixIn
     :members:
-    :exclude-members: torrents
-
+    :exclude-members: torrents, torrent_categories, torrent_tags
 .. autoclass:: Torrents
     :members:
     :undoc-members:

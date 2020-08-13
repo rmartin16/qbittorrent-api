@@ -2,6 +2,13 @@ import errno
 from os import path
 from os import strerror as os_strerror
 
+try:
+    from collections.abc import Iterable
+    from collections.abc import Mapping
+except ImportError:
+    from collections import Iterable
+    from collections import Mapping
+
 import six
 from attrdict import AttrDict
 
@@ -576,8 +583,17 @@ class TorrentsAPIMixIn(Request):
             TorrentFileNotFoundError if a torrent file doesn't exist
             TorrentFilePermissionError if read permission is denied to torrent file
 
-        :param urls: List of URLs (http://, https://, magnet: and bc://bt/)
-        :param torrent_files: list of torrent files
+        :param urls: single instance or an iterable of URLs (http://, https://, magnet: and bc://bt/)
+        :param torrent_files: several options are available to send torrent files to qBittorrent:
+                              1) single instance of bytes: useful if torrent file already read from disk or downloaded from internet.
+                              2) single instance of file handle to torrent file: use open(<filepath>, 'rb') to open the torrent file.
+                              3) single instance of a filepath to torrent file: e.g. '/home/user/torrent_filename.torrent'
+                              4) an iterable of the single instances above to send more than one torrent file
+                              5) dictionary with key/value pairs of torrent name and single instance of above object
+                              Note: The torrent name in a dictionary is useful to identify which torrent file
+                              errored. qBittorrent provides back that name in the error text. If a torrent
+                              name is not provided, then the name of the file will be used. And in the case of
+                              bytes (or if filename cannot be determined), the value 'torrent__n' will be used
         :param save_path: location to save the torrent data
         :param cookie: cookie to retrieve torrents by URL
         :param category: category to assign to torrent(s)
@@ -609,13 +625,52 @@ class TorrentsAPIMixIn(Request):
 
         files = None
         if torrent_files:
-            if isinstance(torrent_files, six.string_types):
+            name_prefix = 'torrent__'
+            # if it's string-like and not a tuple|list|set, then make it a list
+            # checking for 'read' attr since a single file handle is iterable but also needs to be in a list
+            if isinstance(torrent_files, six.string_types) or \
+                not isinstance(torrent_files, Iterable) or \
+                    hasattr(torrent_files, 'read'):
                 torrent_files = [torrent_files]
-            files = []
-            for torrent_file in torrent_files:
+
+            # up convert to a dictionary is not already
+            if not isinstance(torrent_files, Mapping):
+                input_files = {'%s%s' % (name_prefix, i): torrent_file for i, torrent_file in enumerate(torrent_files)}
+            else:
+                input_files = torrent_files
+
+            files = {}
+            for name, torrent_file in input_files.items():
                 try:
-                    filename = path.abspath(path.realpath(path.expanduser(torrent_file)))
-                    files.append((path.basename(filename), open(filename, 'rb')))
+                    fh = None
+                    if isinstance(torrent_file, bytes):
+                        # since strings are bytes on python 2, simple filepaths will end up here
+                        # just check if it's a file first in that case...
+                        try:
+                            filepath = path.abspath(path.realpath(path.expanduser(str(torrent_file))))
+                            if path.exists(filepath):
+                                fh = open(filepath, 'rb')
+                                name = path.basename(filepath)
+                        except:
+                            fh = None
+                        # assume it's a raw torrent file that was downloaded or read from disk
+                        if not fh:
+                            fh = torrent_file
+                    elif hasattr(torrent_file, 'read') and callable(torrent_file.read):
+                        # if hasattr 'read', assume this is a file handle from open() or similar...
+                        #  there isn't a reliable way to detect a file-like object on both python 2 & 3
+                        fh = torrent_file
+                    else:
+                        # otherwise, coerce to a string and try to open it as a file
+                        filepath = path.abspath(path.realpath(path.expanduser(str(torrent_file))))
+                        fh = open(filepath, 'rb')
+                        name = path.basename(filepath)
+
+                    if name.startswith(name_prefix):
+                        # let Requests try to figure out the filename to send in the Multipart-Encoding POST
+                        files[name] = fh
+                    else:
+                        files[name] = (name, fh)
                 except IOError as io_err:
                     if io_err.errno == errno.ENOENT:
                         raise TorrentFileNotFoundError(errno.ENOENT, os_strerror(errno.ENOENT), torrent_file)

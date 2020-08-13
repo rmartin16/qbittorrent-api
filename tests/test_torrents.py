@@ -1,4 +1,5 @@
 from os import path
+from sys import version_info
 from time import sleep
 
 try:
@@ -49,12 +50,14 @@ def enable_queueing(client):
 @pytest.mark.parametrize('client_func', (('torrents_add', 'torrents_delete'),
                                          ('torrents.add', 'torrents.delete')))
 def test_add_delete(client, api_version, client_func):
-    def download_file(url, filename):
+    def download_file(url, filename=None, return_bytes=False):
         max_attempts = 3
         for attempt in range(max_attempts):
             try:
                 with requests.get(url) as r:
                     r.raise_for_status()
+                    if return_bytes:
+                        return r.content
                     with open(path.expanduser('~/%s' % filename), 'wb') as f:
                         for chunk in r.iter_content(chunk_size=1024):
                             f.write(chunk)
@@ -76,31 +79,62 @@ def test_add_delete(client, api_version, client_func):
         finally:
             delete()
 
-    def add_by_file():
+    def add_by_filename():
         download_file(url=url1, filename=filename1)
         download_file(url=url2, filename=filename2)
         files = ('~/%s' % filename1, '~/%s' % filename2)
+        assert get_func(client, client_func[0])(torrent_files=files) == 'Ok.'
+
+    def add_by_filename_dict():
+        download_file(url=url1, filename=filename1)
+        download_file(url=url2, filename=filename2)
+        files = {filename1: '~/%s' % filename1, filename2: '~/%s' % filename2}
+        assert get_func(client, client_func[0])(torrent_files=files) == 'Ok.'
+
+    def add_by_filehandles():
+        download_file(url=url1, filename=filename1)
+        download_file(url=url2, filename=filename2)
+        files = (open(path.expanduser('~/' + filename1), 'rb'), open(path.expanduser('~/' + filename2), 'rb'))
+        assert get_func(client, client_func[0])(torrent_files=files) == 'Ok.'
+
+    def add_by_bytes():
+        files = (download_file(url1, return_bytes=True), download_file(url2, return_bytes=True))
         assert get_func(client, client_func[0])(torrent_files=files) == 'Ok.'
 
     def add_by_url():
         get_func(client, client_func[0])(urls=(url1, url2))
 
     if is_version_less_than('2.0.0', api_version, lteq=False):
-        add_by_file()
+        # something was wrong with torrents_add on v2.0.0 (the initial version)
+        add_by_filename()
+        sleep(2)
+        check_torrents_added()
+        sleep(2)
+        add_by_filename_dict()
         sleep(2)
         check_torrents_added()
         sleep(2)
         add_by_url()
         sleep(2)
         check_torrents_added()
+        sleep(2)
+        add_by_filehandles()
+        sleep(2)
+        check_torrents_added()
+        sleep(2)
+        add_by_bytes()
+        sleep(2)
+        check_torrents_added()
 
 
 def test_add_torrent_file_fail(client):
-    with pytest.raises(TorrentFileNotFoundError):
-        client.torrents_add(torrent_files='/tmp/asdfasdfasdfasdf')
+    # torrent add is wonky in python2 because of support for raw bytes...
+    if version_info[0] > 2:
+        with pytest.raises(TorrentFileNotFoundError):
+            client.torrents_add(torrent_files='/tmp/asdfasdfasdfasdf')
 
-    with pytest.raises(TorrentFilePermissionError):
-        client.torrents_add(torrent_files='/etc/shadow')
+        with pytest.raises(TorrentFilePermissionError):
+            client.torrents_add(torrent_files='/etc/shadow')
 
 
 def test_add_options(api_version, test_torrent):
