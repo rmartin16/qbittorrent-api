@@ -12,12 +12,12 @@ except ImportError:
 import six
 from attrdict import AttrDict
 
-from qbittorrentapi.helpers import APINames
-from qbittorrentapi.helpers import ClientCache
-from qbittorrentapi.helpers import Dictionary
+from qbittorrentapi.definitions import APINames
+from qbittorrentapi.definitions import ClientCache
+from qbittorrentapi.definitions import Dictionary
+from qbittorrentapi.definitions import List
+from qbittorrentapi.definitions import ListEntry
 from qbittorrentapi.helpers import is_version_less_than
-from qbittorrentapi.helpers import List
-from qbittorrentapi.helpers import ListEntry
 from qbittorrentapi.helpers import list2string
 from qbittorrentapi.decorators import Alias
 from qbittorrentapi.decorators import aliased

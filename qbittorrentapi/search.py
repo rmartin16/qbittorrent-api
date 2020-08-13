@@ -3,11 +3,11 @@ from qbittorrentapi.decorators import aliased
 from qbittorrentapi.decorators import login_required
 from qbittorrentapi.decorators import response_json
 from qbittorrentapi.decorators import version_implemented
-from qbittorrentapi.helpers import APINames
-from qbittorrentapi.helpers import ClientCache
-from qbittorrentapi.helpers import Dictionary
-from qbittorrentapi.helpers import List
-from qbittorrentapi.helpers import ListEntry
+from qbittorrentapi.definitions import APINames
+from qbittorrentapi.definitions import ClientCache
+from qbittorrentapi.definitions import Dictionary
+from qbittorrentapi.definitions import List
+from qbittorrentapi.definitions import ListEntry
 from qbittorrentapi.helpers import list2string
 from qbittorrentapi.request import Request
 

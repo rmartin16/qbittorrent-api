@@ -18,7 +18,7 @@ from qbittorrentapi.exceptions import NotFound404Error
 from qbittorrentapi.exceptions import Conflict409Error
 from qbittorrentapi.exceptions import UnsupportedMediaType415Error
 from qbittorrentapi.exceptions import InternalServerError500Error
-from qbittorrentapi.helpers import APINames
+from qbittorrentapi.definitions import APINames
 from qbittorrentapi.helpers import suppress_context
 
 try:  # python 3
@@ -205,6 +205,9 @@ class Request(object):
                  data=None, params=None, files=None, headers=None, requests_params=None, **kwargs):
         _ = kwargs.pop('SIMPLE_RESPONSES', kwargs.pop('SIMPLE_RESPONSE', False))  # ensure SIMPLE_RESPONSE(S) isn't sent
 
+        if api_name in APINames:
+            api_name = api_name.value
+
         api_path_list = (self._API_URL_BASE_PATH, self._API_URL_API_VERSION, api_name, api_method)
         url = self._build_url(base_url=self._API_URL_BASE,
                               host=self.host,
@@ -263,34 +266,26 @@ class Request(object):
             # short circuit for non-error statuses
             return
         elif response.status_code == 400:
-            """
-            Returned for malformed requests such as missing or invalid parameters.
-
-            If an error_message isn't returned, qBittorrent didn't receive all required parameters.
-            APIErrorType::BadParams
-            """
+            # Returned for malformed requests such as missing or invalid parameters.
+            #
+            # If an error_message isn't returned, qBittorrent didn't receive all required parameters.
+            # APIErrorType::BadParams
             if response.text == '':
                 raise MissingRequiredParameters400Error()
             raise InvalidRequest400Error(response.text)
 
         elif response.status_code == 401:
-            """
-            Primarily reserved for XSS and host header issues. Is also
-            """
+            # Primarily reserved for XSS and host header issues. Is also
             raise Unauthorized401Error(response.text)
 
         elif response.status_code == 403:
-            """
-            Not logged in or calling an API method that isn't public
-            APIErrorType::AccessDenied
-            """
+            # Not logged in or calling an API method that isn't public
+            # APIErrorType::AccessDenied
             raise Forbidden403Error(response.text)
 
         elif response.status_code == 404:
-            """
-            API method doesn't exist or more likely, torrent not found
-            APIErrorType::NotFound
-            """
+            # API method doesn't exist or more likely, torrent not found
+            # APIErrorType::NotFound
             error_message = response.text
             if error_message == '':
                 error_torrent_hash = ''
@@ -305,24 +300,18 @@ class Request(object):
             raise NotFound404Error(error_message)
 
         elif response.status_code == 409:
-            """
-            APIErrorType::Conflict
-            """
+            # APIErrorType::Conflict
             raise Conflict409Error(response.text)
 
         elif response.status_code == 415:
-            """
-            APIErrorType::BadData
-            """
+            # APIErrorType::BadData
             raise UnsupportedMediaType415Error(response.text)
 
         elif response.status_code >= 500:
             raise InternalServerError500Error(response.text)
 
         elif response.status_code >= 400:
-            """
-            Unaccounted for errors from API
-            """
+            # Unaccounted for errors from API
             raise HTTPError(response.text)
 
     def verbose_logging(self, http_method, response, url):

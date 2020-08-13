@@ -1,21 +1,23 @@
 Introduction
 ======================
 
-.. |pypi| image:: https://img.shields.io/pypi/v/qbittorrent-api
-   :target: https://pypi.org/project/qbittorrent-api/
-.. |travis ci| image:: https://img.shields.io/travis/rmartin16/qbittorrent-api/master
+.. |travis ci| image:: https://img.shields.io/travis/rmartin16/qbittorrent-api/master?style=flat-square
    :target: https://travis-ci.org/github/rmartin16/qbittorrent-api
-.. |codecov| image:: https://img.shields.io/codecov/c/gh/rmartin16/qbittorrent-api/master
+.. |codecov| image:: https://img.shields.io/codecov/c/gh/rmartin16/qbittorrent-api/master?style=flat-square
    :target: https://codecov.io/gh/rmartin16/qbittorrent-api
-.. |coverity| image:: https://img.shields.io/coverity/scan/21227
+.. |coverity| image:: https://img.shields.io/coverity/scan/21227?style=flat-square
    :target: https://scan.coverity.com/projects/rmartin16-qbittorrent-api
+.. |codacy| image:: https://img.shields.io/codacy/grade/e924396ef8e54d918ed4c093834f3708?style=flat-square
+   :target: https://app.codacy.com/manual/rmartin16/qbittorrent-api/dashboard
 
-.. |pypi versions| image:: https://img.shields.io/pypi/pyversions/qbittorrent-api
-.. |pypi implementations| image:: https://img.shields.io/pypi/implementation/qbittorrent-api
+.. |pypi| image:: https://img.shields.io/pypi/v/qbittorrent-api?style=flat-square
+   :target: https://pypi.org/project/qbittorrent-api/
+.. |pypi versions| image:: https://img.shields.io/pypi/pyversions/qbittorrent-api?style=flat-square
+.. |pypi implementations| image:: https://img.shields.io/pypi/implementation/qbittorrent-api?style=flat-square
 
-|pypi| |travis ci| |codecov| |coverity|
+|travis ci| |codecov| |coverity| |codacy|
 
-|pypi versions| |pypi implementations|
+|pypi| |pypi versions| |pypi implementations|
 
 Python client implementation for qBittorrent Web API.
 

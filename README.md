@@ -1,6 +1,13 @@
 qBittorrent Web API Client
 ================================
-[![PyPI](https://img.shields.io/pypi/v/qbittorrent-api)](https://pypi.org/project/qbittorrent-api/) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/qbittorrent-api) [![Travis (.org) branch](https://img.shields.io/travis/rmartin16/qbittorrent-api/master)](https://travis-ci.org/github/rmartin16/qbittorrent-api) [![Codecov branch](https://img.shields.io/codecov/c/gh/rmartin16/qbittorrent-api/master)](https://codecov.io/gh/rmartin16/qbittorrent-api) [![Coverity Scan](https://img.shields.io/coverity/scan/21227)](https://scan.coverity.com/projects/rmartin16-qbittorrent-api) ![PyPI - Implementation](https://img.shields.io/pypi/implementation/qbittorrent-api)
+[![Travis (.org) branch](https://img.shields.io/travis/rmartin16/qbittorrent-api/master?style=flat-square)](https://travis-ci.org/github/rmartin16/qbittorrent-api)
+[![Codecov branch](https://img.shields.io/codecov/c/gh/rmartin16/qbittorrent-api/master?style=flat-square)](https://codecov.io/gh/rmartin16/qbittorrent-api)
+[![Coverity Scan](https://img.shields.io/coverity/scan/21227?style=flat-square)](https://scan.coverity.com/projects/rmartin16-qbittorrent-api)
+[![Codacy grade](https://img.shields.io/codacy/grade/e924396ef8e54d918ed4c093834f3708?style=flat-square)](https://app.codacy.com/manual/rmartin16/qbittorrent-api/dashboard)
+
+[![PyPI](https://img.shields.io/pypi/v/qbittorrent-api?style=flat-square)](https://pypi.org/project/qbittorrent-api/) 
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/qbittorrent-api?style=flat-square)
+![PyPI - Implementation](https://img.shields.io/pypi/implementation/qbittorrent-api?style=flat-square)
 
 Python client implementation for qBittorrent Web API. Supports qBittorrent v4.1.0+ (i.e. Web API v2.0+).
 
