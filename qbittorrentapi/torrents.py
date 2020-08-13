@@ -623,62 +623,69 @@ class TorrentsAPIMixIn(Request):
                 'sequentialDownload': (None, is_sequential_download),
                 'firstLastPiecePrio': (None, is_first_last_piece_priority)}
 
-        files = None
-        if torrent_files:
-            name_prefix = 'torrent__'
-            # if it's string-like and not a tuple|list|set, then make it a list
-            # checking for 'read' attr since a single file handle is iterable but also needs to be in a list
-            if isinstance(torrent_files, six.string_types) or \
-                not isinstance(torrent_files, Iterable) or \
-                    hasattr(torrent_files, 'read'):
-                torrent_files = [torrent_files]
-
-            # up convert to a dictionary is not already
-            if not isinstance(torrent_files, Mapping):
-                input_files = {'%s%s' % (name_prefix, i): torrent_file for i, torrent_file in enumerate(torrent_files)}
-            else:
-                input_files = torrent_files
-
-            files = {}
-            for name, torrent_file in input_files.items():
-                try:
-                    fh = None
-                    if isinstance(torrent_file, bytes):
-                        # since strings are bytes on python 2, simple filepaths will end up here
-                        # just check if it's a file first in that case...
-                        try:
-                            filepath = path.abspath(path.realpath(path.expanduser(str(torrent_file))))
-                            if path.exists(filepath):
-                                fh = open(filepath, 'rb')
-                                name = path.basename(filepath)
-                        except:
-                            fh = None
-                        # assume it's a raw torrent file that was downloaded or read from disk
-                        if not fh:
-                            fh = torrent_file
-                    elif hasattr(torrent_file, 'read') and callable(torrent_file.read):
-                        # if hasattr 'read', assume this is a file handle from open() or similar...
-                        #  there isn't a reliable way to detect a file-like object on both python 2 & 3
-                        fh = torrent_file
-                    else:
-                        # otherwise, coerce to a string and try to open it as a file
-                        filepath = path.abspath(path.realpath(path.expanduser(str(torrent_file))))
-                        fh = open(filepath, 'rb')
-                        name = path.basename(filepath)
-
-                    if name.startswith(name_prefix):
-                        # let Requests try to figure out the filename to send in the Multipart-Encoding POST
-                        files[name] = fh
-                    else:
-                        files[name] = (name, fh)
-                except IOError as io_err:
-                    if io_err.errno == errno.ENOENT:
-                        raise TorrentFileNotFoundError(errno.ENOENT, os_strerror(errno.ENOENT), torrent_file)
-                    elif io_err.errno == errno.EACCES:
-                        raise TorrentFilePermissionError(errno.ENOENT, os_strerror(errno.EACCES), torrent_file)
-                    raise TorrentFileError(io_err)
+        files = self._normalize_torrent_files(torrent_files)
 
         return self._post(_name=APINames.Torrents, _method='add', data=data, files=files, **kwargs)
+
+    @staticmethod
+    def _normalize_torrent_files(user_files):
+        """
+        Normalize the torrent file(s) from the user.
+        The file(s) can be the raw bytes, file handle, filepath for a torrent file,
+        or a Sequence (e.g. list|set|tuple) of any of these "files".
+        Further, the file(s) can be in a dictionary with the "names" of the torrents as the keys.
+        These "names" can be anything...but are mostly useful as identifiers for each file.
+        """
+        if not user_files:
+            return None
+
+        prefix = 'torrent__'
+        # if it's string-like and not a list|set|tuple, then make it a list
+        # checking for 'read' attr since a single file handle is iterable but also needs to be in a list
+        if isinstance(user_files, six.string_types) or not isinstance(user_files, Iterable) or hasattr(user_files, 'read'):
+            user_files = [user_files]
+
+        # up convert to a dictionary to add fabricated torrent names
+        norm_files = user_files if isinstance(user_files, Mapping) else {prefix + str(i): f for i, f in enumerate(user_files)}
+
+        files = {}
+        for name, torrent_file in norm_files.items():
+            try:
+                fh = None
+                if isinstance(torrent_file, bytes):
+                    # since strings are bytes on python 2, simple filepaths will end up here
+                    # just check if it's a file first in that case...
+                    # this does prevent providing more useful IO errors on python 2....but it's dead anyway...
+                    try:
+                        filepath = path.abspath(path.realpath(path.expanduser(str(torrent_file))))
+                        if path.exists(filepath):
+                            fh = open(filepath, 'rb')
+                            name = path.basename(filepath)
+                    except Exception:
+                        fh = None
+                    # if bytes, assume it's a raw torrent file that was downloaded or read from disk
+                    if not fh:
+                        fh = torrent_file
+                elif hasattr(torrent_file, 'read') and callable(torrent_file.read):
+                    # if hasattr('read'), assume this is a file handle from open() or similar...
+                    #  there isn't a reliable way to detect a file-like object on both python 2 & 3
+                    fh = torrent_file
+                else:
+                    # otherwise, coerce to a string and try to open it as a file
+                    filepath = path.abspath(path.realpath(path.expanduser(str(torrent_file))))
+                    fh = open(filepath, 'rb')
+                    name = path.basename(filepath)
+
+                # if using default name, let Requests try to figure out the filename to send
+                # Requests will fall back to "name" as the dict key if fh doesn't provide a file name
+                files[name] = fh if name.startswith(prefix) else (name, fh)
+            except IOError as io_err:
+                if io_err.errno == errno.ENOENT:
+                    raise TorrentFileNotFoundError(errno.ENOENT, os_strerror(errno.ENOENT), torrent_file)
+                elif io_err.errno == errno.EACCES:
+                    raise TorrentFilePermissionError(errno.ENOENT, os_strerror(errno.EACCES), torrent_file)
+                raise TorrentFileError(io_err)
+        return files or None
 
     ##########################################################################
     # INDIVIDUAL TORRENT ENDPOINTS

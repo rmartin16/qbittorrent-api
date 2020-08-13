@@ -23,13 +23,13 @@ Implementation
 
 API Peculiarities
     app/setPreferences
-        - This was endlessly frustrating since it requires data in the 
+        - This was endlessly frustrating since it requires data in the
           form of {'json': dumps({'dht': True})}...
         - Sending an empty string for 'banned_ips' drops the useless message
           below in to the log file (same for WebUI):
             ' is not a valid IP address and was rejected while applying the list of banned addresses.'
             - [Resolved] https://github.com/qbittorrent/qBittorrent/issues/10745
-    
+
     torrents/downloadLimit and uploadLimit
         - Hashes handling is non-standard. 404 is not returned for bad hashes and 'all' doesn't work.
         - https://github.com/qbittorrent/qBittorrent/blob/6de02b0f2a79eeb4d7fb624c39a9f65ffe181d68/src/webui/api/torrentscontroller.cpp#L754
