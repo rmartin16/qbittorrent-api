@@ -1,6 +1,6 @@
 Version 2020.8.8
  - Support adding torrents from raw torrent files as bytes or file handles. Fixes #23.
- - Introduce Torrent State enum.
+ - Introduce TorrentStates enum for qBittorrent list of torrent states.
 
 Version 2020.7.7
  - Update tests and misc small fixes.

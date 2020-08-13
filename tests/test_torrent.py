@@ -1,5 +1,4 @@
 from os import path
-from time import sleep
 
 import pytest
 

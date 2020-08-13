@@ -76,7 +76,8 @@ class TorrentDictionary(Dictionary):
 
     @property
     def info(self):
-        if self._is_version_less_than(self._client._app_web_api_version_from_version_checker(), '2.0.1', lteq=False):
+        api_version = self._client._app_web_api_version_from_version_checker()
+        if self._client._is_version_less_than(api_version, '2.0.1', lteq=False):
             info = [t for t in self._client.torrents_info() if t.hash == self._torrent_hash]
         else:
             info = self._client.torrents_info(torrent_hashes=self._torrent_hash)
