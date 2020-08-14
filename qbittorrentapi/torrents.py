@@ -702,7 +702,7 @@ class TorrentsAPIMixIn(Request):
 
         :param torrent_hash: hash for torrent
         :return: Dictionary of torrent properties
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-torrent-generic-properties
+            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-generic-properties
         """
         data = {'hash': torrent_hash or kwargs.pop('hash')}
         return self._post(_name=APINames.Torrents, _method='properties', data=data, **kwargs)
@@ -717,7 +717,7 @@ class TorrentsAPIMixIn(Request):
 
         :param torrent_hash: hash for torrent
         :return: List of torrent's trackers
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-torrent-trackers
+            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-trackers
         """
         data = {'hash': torrent_hash or kwargs.pop('hash')}
         return self._post(_name=APINames.Torrents, _method='trackers', data=data, **kwargs)
@@ -732,7 +732,7 @@ class TorrentsAPIMixIn(Request):
 
         :param torrent_hash: hash for torrent
         :return: List of torrent's web seeds
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-torrent-web-seeds
+            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-web-seeds
         """
         data = {'hash': torrent_hash or kwargs.pop('hash')}
         return self._post(_name=APINames.Torrents, _method='webseeds', data=data, **kwargs)
@@ -747,7 +747,7 @@ class TorrentsAPIMixIn(Request):
 
         :param torrent_hash: hash for torrent
         :return: List of torrent's files
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-torrent-contents
+            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-contents
         """
         data = {'hash': torrent_hash or kwargs.pop('hash')}
         return self._post(_name=APINames.Torrents, _method='files', data=data, **kwargs)
@@ -848,7 +848,8 @@ class TorrentsAPIMixIn(Request):
         :raises Conflict409: if torrent metadata has not finished downloading or at least one file was not found
         :param torrent_hash: hash for torrent
         :param file_ids: single file ID or a list.
-        :param priority: priority for file(s) (https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#set-file-priority)
+        :param priority: priority for file(s)
+            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#set-file-priority
         :return: None
         """
         data = {'hash': torrent_hash or kwargs.pop('hash'),
@@ -913,7 +914,7 @@ class TorrentsAPIMixIn(Request):
         :param offset: Start of list (if < 0, offset from end of list)
         :param torrent_hashes: Filter list by hash (separate multiple hashes with a '|')
         :return: List of torrents
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-torrent-list
+            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-list
         """
         data = {'filter': status_filter,
                 'category': category,

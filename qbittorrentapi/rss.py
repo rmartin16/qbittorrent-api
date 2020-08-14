@@ -229,7 +229,7 @@ class RSSAPIMixIn(Request):
 
         :param rule_name: name for new rule
         :param rule_def: dictionary with rule fields
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#set-auto-downloading-rule
+            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#set-auto-downloading-rule
         :return: None
         """
         data = {'ruleName': rule_name,

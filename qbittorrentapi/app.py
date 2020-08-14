@@ -139,7 +139,7 @@ class AppAPIMixIn(Request):
         Retrieve build info. (alias: app_buildInfo)
 
         :return: Dictionary of build info. Each piece of info is an attribute.
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-build-info
+            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-build-info
         """
         return self._get(_name=APINames.Application, _method='buildInfo', **kwargs)
 
@@ -155,7 +155,7 @@ class AppAPIMixIn(Request):
         Retrieve qBittorrent application preferences.
 
         :return: Dictionary of preferences. Each preference is an attribute.
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-application-preferences
+            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-application-preferences
         """
         return self._get(_name=APINames.Application, _method='preferences', **kwargs)
 

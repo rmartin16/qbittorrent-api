@@ -60,7 +60,6 @@ before_install:
   - pip install -U pytest-cov
   - pip install -U codecov
   - pip install -U coveralls
-  - pip install -U psutil
   # coverity
   - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca
   # prepare to install qbittorrent things

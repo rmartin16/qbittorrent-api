@@ -181,7 +181,7 @@ class SearchAPIMixIn(Request):
 
         :param search_id: ID of search to get status; leave emtpy for status of all jobs
         :return: dictionary of searches
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-search-status
+            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-status
         """
         params = {'id': search_id}
         return self._get(_name=APINames.Search, _method='status', params=params, **kwargs)
@@ -200,7 +200,7 @@ class SearchAPIMixIn(Request):
         :param limit: number of results to return
         :param offset: where to start returning results
         :return: Dictionary of results
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-search-results
+            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-results
         """
         data = {'id': search_id,
                 'limit': limit,
@@ -242,7 +242,7 @@ class SearchAPIMixIn(Request):
         Retrieve details of search plugins.
 
         :return: List of plugins.
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#get-search-plugins
+            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-plugins
         """
         return self._get(_name=APINames.Search, _method='plugins', **kwargs)
 

@@ -5,4 +5,3 @@ pytest-cov
 codecov
 coveralls
 sphinx_glpi_theme
-psutil
