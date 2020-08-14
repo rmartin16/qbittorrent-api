@@ -46,8 +46,23 @@ torrent2_hash = 'd1101a2b9d202811a05e8c57c557a20bf974dc8a'
 is_version_less_than = Request._is_version_less_than
 
 
-def check(check_func, value, reverse=False, negate=False):
-    """Compare function return to expected value with retries"""
+def get_func(client, func_str):
+    func = client
+    for attr in func_str.split('.'):
+        func = getattr(func, attr)
+    return func
+
+
+def check(check_func, value, reverse=False, negate=False, any=False):
+    """
+    Compare function return to expected value with retries
+
+    :param check_func: callable to generate values to check
+    :param value: str, int, or iterator of values to look for
+    :param reverse: False: look for check_func return in value; True: look for value in check_func return
+    :param negate: False: value must be found; True: value must not be found
+    :param any: False: all values must be (not) found; True: any value must be (not) found
+    """
     if isinstance(value, (six.string_types, int)):
         value = (value,)
     for i in range(check_limit):
@@ -56,13 +71,17 @@ def check(check_func, value, reverse=False, negate=False):
                 for v in value:
                     if negate:
                         assert v not in check_func()
+                        if any: break
                     else:
                         assert v in check_func()
+                        if any: break
             else:
                 if negate:
                     assert check_func() not in value
+                    if any: break
                 else:
                     assert check_func() in value
+                    if any: break
             break
         except AssertionError:
             if i >= check_limit - 1:

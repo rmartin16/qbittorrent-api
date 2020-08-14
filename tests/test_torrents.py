@@ -10,7 +10,6 @@ except ImportError:
 import pytest
 import requests
 
-from .conftest import is_version_less_than
 from qbittorrentapi.exceptions import Forbidden403Error
 from qbittorrentapi.exceptions import Conflict409Error
 from qbittorrentapi.exceptions import InvalidRequest400Error
@@ -28,13 +27,7 @@ from qbittorrentapi.torrents import TorrentCategoriesDictionary
 from qbittorrentapi.torrents import TagList
 
 from tests.conftest import check, torrent1_filename, torrent2_filename, torrent1_hash, torrent2_hash, torrent1_url, torrent2_url
-
-
-def get_func(client, func_str):
-    func = client
-    for attr in func_str.split('.'):
-        func = getattr(func, attr)
-    return func
+from tests.conftest import get_func, is_version_less_than
 
 
 def disable_queueing(client):

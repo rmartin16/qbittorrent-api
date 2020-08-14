@@ -2,8 +2,8 @@ from time import sleep
 
 import pytest
 
-from .conftest import is_version_less_than
 from qbittorrentapi.rss import RSSitemsDictionary
+from tests.conftest import is_version_less_than
 
 folder_one = 'testFolderOne'
 folder_two = 'testFolderTwo'

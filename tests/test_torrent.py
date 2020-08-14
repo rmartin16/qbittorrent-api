@@ -2,7 +2,6 @@ from os import path
 
 import pytest
 
-from .conftest import is_version_less_than
 from qbittorrentapi import Conflict409Error
 from qbittorrentapi import TorrentStates
 from qbittorrentapi import TorrentPropertiesDictionary
@@ -11,6 +10,7 @@ from qbittorrentapi import WebSeedsList
 from qbittorrentapi import TorrentDictionary
 from qbittorrentapi import TorrentFilesList
 from qbittorrentapi import TorrentPieceInfoList
+from tests.conftest import is_version_less_than
 
 from tests.test_torrents import check, torrent1_url, torrent1_hash, enable_queueing, disable_queueing
 

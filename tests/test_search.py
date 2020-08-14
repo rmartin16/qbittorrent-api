@@ -18,7 +18,7 @@ def test_update_plugins(client, api_version, client_func):
     else:
         client.search.update_plugins()
         check(lambda: [entry['message'] for entry in reversed(client.log.main())],
-              ('All plugins are already up to date.', 'Updating'),
+              ('Updating', 'All plugins are already up to date.'),
               reverse=True,
               any=True)
 

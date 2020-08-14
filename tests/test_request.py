@@ -4,12 +4,12 @@ from os import environ
 
 import pytest
 
-from qbittorrentapi import Client, Request
+from qbittorrentapi import Client
 from qbittorrentapi.exceptions import *
-from .conftest import is_version_less_than
 from qbittorrentapi.request import Request
 from qbittorrentapi.torrents import TorrentDictionary
 from qbittorrentapi.torrents import TorrentInfoList
+from tests.conftest import is_version_less_than
 
 MockResponse = namedtuple('MockResponse', ('status_code', 'text'))
 
