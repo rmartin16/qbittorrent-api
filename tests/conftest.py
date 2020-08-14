@@ -1,5 +1,11 @@
+from datetime import datetime
+from datetime import timedelta
 from os import environ
+from os import listdir
 from os import path
+from os import setpgrp
+from psutil import process_iter
+from subprocess import Popen
 from time import sleep
 
 import pytest
@@ -133,3 +139,32 @@ def pytest_sessionfinish(session, exitstatus):
     if 'TRAVIS' not in environ:
         client = Client()
         client.torrents_delete(delete_files=True, torrent_hashes='c6df3faa31ff9a73a3687bf5522b2035e561ac41')
+
+
+@pytest.fixture(autouse=True)
+def ensure_qbt_running():
+    """Ensure qBittorrent is running...cause it crashes a lot"""
+    if any(p.name() == 'qbittorrent' for p in process_iter()):
+        return
+
+    qbt_command = None
+    qbt_bin_dir = environ['QBT_PATH'] + '/bin/'
+    qbt_bin_ls = listdir(qbt_bin_dir)
+    # travis runs nox while local builds probably run straight qbt
+    if any(f == 'qbittorrent-nox' for f in qbt_bin_ls):
+        qbt_command = 'qbittorrent-nox --daemon'
+    elif any(f == 'qbittorrent' for f in qbt_bin_ls):
+        qbt_command = 'qbittorrent'
+    if qbt_command is None:
+        return
+
+    Popen(['nohup', qbt_bin_dir + qbt_command],
+          stdout=open('/dev/null', 'w'),
+          stderr=open('/dev/null', 'w'),
+          preexec_fn=setpgrp)
+
+    stop_time = datetime.now() + timedelta(seconds=15)
+    while datetime.now() < stop_time:
+        if any(p.name() == 'qbittorrent' for p in process_iter()):
+            return
+        sleep(1)
