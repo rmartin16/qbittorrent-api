@@ -45,7 +45,7 @@ def test_state_enum(orig_torrent):
 
 def test_pause_resume(client, orig_torrent):
     orig_torrent.pause()
-    check(lambda: client.torrents_info(torrents_hashes=orig_torrent.hash)[0].state, ('stalledDL', 'pausedDL'))
+    check(lambda: client.torrents_info(torrents_hashes=orig_torrent.hash)[0].state, ('stalledDL', 'pausedDL'), any=True)
 
     orig_torrent.resume()
     check(lambda: client.torrents_info(torrents_hashes=orig_torrent.hash)[0].state, ('pausedDL',), negate=True)

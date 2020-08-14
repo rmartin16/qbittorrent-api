@@ -65,59 +65,54 @@ def test_add_delete(client, api_version, client_func):
         get_func(client, client_func[1])(delete_files=True, torrent_hashes=torrent2_hash)
         check(lambda: [t.hash for t in client.torrents_info()], torrent2_hash, reverse=True, negate=True)
 
-    def check_torrents_added():
-        try:
-            check(lambda: [t.hash for t in client.torrents_info()], torrent1_hash, reverse=True)
-            check(lambda: [t.hash for t in client.torrents_info()], torrent2_hash, reverse=True)
-        finally:
-            delete()
+    def check_torrents_added(f):
+        def inner():
+            try:
+                f()
+                check(lambda: [t.hash for t in client.torrents_info()], torrent1_hash, reverse=True)
+                check(lambda: [t.hash for t in client.torrents_info()], torrent2_hash, reverse=True)
+            finally:
+                sleep(1)
+                delete()
+        return inner
 
+    @check_torrents_added
     def add_by_filename():
         download_file(url=torrent1_url, filename=torrent1_filename)
         download_file(url=torrent2_url, filename=torrent2_filename)
         files = ('~/%s' % torrent1_filename, '~/%s' % torrent2_filename)
         assert get_func(client, client_func[0])(torrent_files=files) == 'Ok.'
 
+    @check_torrents_added
     def add_by_filename_dict():
         download_file(url=torrent1_url, filename=torrent1_filename)
         download_file(url=torrent2_url, filename=torrent2_filename)
         files = {torrent1_filename: '~/%s' % torrent1_filename, torrent2_filename: '~/%s' % torrent2_filename}
         assert get_func(client, client_func[0])(torrent_files=files) == 'Ok.'
 
+    @check_torrents_added
     def add_by_filehandles():
         download_file(url=torrent1_url, filename=torrent1_filename)
         download_file(url=torrent2_url, filename=torrent2_filename)
         files = (open(path.expanduser('~/' + torrent1_filename), 'rb'), open(path.expanduser('~/' + torrent2_filename), 'rb'))
         assert get_func(client, client_func[0])(torrent_files=files) == 'Ok.'
 
+    @check_torrents_added
     def add_by_bytes():
         files = (download_file(torrent1_url, return_bytes=True), download_file(torrent2_url, return_bytes=True))
         assert get_func(client, client_func[0])(torrent_files=files) == 'Ok.'
 
+    @check_torrents_added
     def add_by_url():
         get_func(client, client_func[0])(urls=(torrent1_url, torrent2_url))
 
     if is_version_less_than('2.0.0', api_version, lteq=False):
         # something was wrong with torrents_add on v2.0.0 (the initial version)
         add_by_filename()
-        sleep(2)
-        check_torrents_added()
-        sleep(2)
         add_by_filename_dict()
-        sleep(2)
-        check_torrents_added()
-        sleep(2)
         add_by_url()
-        sleep(2)
-        check_torrents_added()
-        sleep(2)
         add_by_filehandles()
-        sleep(2)
-        check_torrents_added()
-        sleep(2)
         add_by_bytes()
-        sleep(2)
-        check_torrents_added()
 
 
 def test_add_torrent_file_fail(client):
@@ -132,7 +127,7 @@ def test_add_torrent_file_fail(client):
 
 def test_add_options(api_version, new_torrent):
     check(lambda: new_torrent.category, 'test_category')
-    check(lambda: new_torrent.state, ('pausedDL', 'checkingResumeData'))
+    check(lambda: new_torrent.state, ('pausedDL', 'checkingResumeData'), reverse=True, any=True)
     check(lambda: new_torrent.save_path, path.expanduser('~/test_download/'))
     check(lambda: new_torrent.up_limit, 1024)
     check(lambda: new_torrent.dl_limit, 2048)
@@ -206,7 +201,9 @@ def test_remove_trackers(client, api_version, trackers, client_func, orig_torren
 
 
 @pytest.mark.parametrize('client_func', ('torrents_file_priority', 'torrents_filePrio'))
-def test_file_priority(client, orig_torrent, orig_torrent_hash, client_func, new_torrent):
+def test_file_priority(client, orig_torrent, orig_torrent_hash, client_func):
+    get_func(client, client_func)(torrent_hash=orig_torrent_hash, file_ids=0, priority=6)
+    check(lambda: orig_torrent.files[0].priority, 6)
     get_func(client, client_func)(torrent_hash=orig_torrent_hash, file_ids=0, priority=7)
     check(lambda: orig_torrent.files[0].priority, 7)
 
@@ -252,19 +249,19 @@ def test_torrents_info(client, api_version, orig_torrent_hash, client_func):
                                          ('torrents.pause', 'torrents.resume')))
 def test_pause_resume(client, orig_torrent_hash, client_func):
     get_func(client, client_func[0])(torrent_hashes=orig_torrent_hash)
-    check(lambda: client.torrents_info(torrents_hashes=orig_torrent_hash)[0].state, ('stalledDL', 'pausedDL'))
+    check(lambda: client.torrents_info(torrents_hashes=orig_torrent_hash)[0].state, ('stalledDL', 'pausedDL'), any=True)
 
     get_func(client, client_func[1])(torrent_hashes=orig_torrent_hash)
     check(lambda: client.torrents_info(torrents_hashes=orig_torrent_hash)[0].state, ('pausedDL',), negate=True)
 
 
-def test_action_for_all_torrents(client, new_torrent):
-    client.torrents.pause.all()
-    for torrent in client.torrents.info():
-        check(lambda: client.torrents_info(torrents_hashes=torrent.hash)[0].state, ('stalledDL', 'pausedDL'))
+def test_action_for_all_torrents(client):
     client.torrents.resume.all()
     for torrent in client.torrents.info():
         check(lambda: client.torrents_info(torrents_hashes=torrent.hash)[0].state, ('pausedDL',), negate=True)
+    client.torrents.pause.all()
+    for torrent in client.torrents.info():
+        check(lambda: client.torrents_info(torrents_hashes=torrent.hash)[0].state, ('stalledDL', 'pausedDL'), any=True)
 
 
 @pytest.mark.parametrize('client_func', ('torrents_recheck', 'torrents.recheck'))
@@ -413,7 +410,7 @@ def test_toggle_first_last_piece_priority(client, api_version, client_func, new_
     if is_version_less_than('2.0.0', api_version, lteq=False):
         current_setting = new_torrent.info.f_l_piece_prio
         get_func(client, client_func)(torrent_hashes=new_torrent.hash)
-        new_torrent.sync_local()
+        # new_torrent.sync_local()
         check(lambda: new_torrent.info.f_l_piece_prio, not current_setting)
 
 

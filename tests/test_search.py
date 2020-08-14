@@ -1,5 +1,3 @@
-import time
-
 import pytest
 
 from qbittorrentapi import NotFound404Error
@@ -17,10 +15,13 @@ def test_update_plugins(client, api_version, client_func):
             client.search_update_plugins()
     else:
         client.search.update_plugins()
-        check(lambda: [entry['message'] for entry in reversed(client.log.main())],
-              ('Updating', 'All plugins are already up to date.'),
-              reverse=True,
-              any=True)
+        check(
+            lambda: any(
+                entry['message'].startswith('Updating plugin ') or
+                entry['message'] == 'All plugins are already up to date.' for entry in reversed(client.log.main())
+            ),
+            True
+        )
 
 
 @pytest.mark.parametrize('client_func', (('search_plugins', 'search_enable_plugin'),

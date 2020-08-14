@@ -63,26 +63,43 @@ def check(check_func, value, reverse=False, negate=False, any=False):
     :param negate: False: value must be found; True: value must not be found
     :param any: False: all values must be (not) found; True: any value must be (not) found
     """
+    def _do_check(_check_func, _v, _negate, _reverse):
+        if _negate:
+            if _reverse:
+                assert _v not in _check_func()
+            else:
+                assert _check_func() not in (_v,)
+        else:
+            if _reverse:
+                assert _v in _check_func()
+            else:
+                assert _check_func() in (_v,)
+
     if isinstance(value, (six.string_types, int)):
         value = (value,)
+
     for i in range(check_limit):
         try:
-            if reverse:
-                for v in value:
-                    if negate:
-                        assert v not in check_func()
-                        if any: break
-                    else:
-                        assert v in check_func()
-                        if any: break
-            else:
-                if negate:
-                    assert check_func() not in value
-                    if any: break
-                else:
-                    assert check_func() in value
-                    if any: break
-            break
+            exp = None
+            for v in value:
+                if any:  # clear any previous exceptions
+                    exp = None
+
+                try:
+                    _do_check(check_func, v, negate, reverse)
+                except AssertionError as e:
+                    exp = e
+
+                if not any and exp:  # fail the test on first failure any=False
+                    break
+                if any and not exp:  # this value passed so test succeeded with any=True
+                    break
+
+            if exp:  # raise caught inner exception for handling
+                raise exp
+
+            break  # test succeeded!!!!
+
         except AssertionError:
             if i >= check_limit - 1:
                 raise
