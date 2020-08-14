@@ -8,8 +8,8 @@ all_states = (
     'error',
     'missingFiles',
     'uploading',
-    'pausedUp',
-    'queuedUp',
+    'pausedUP',
+    'queuedUP',
     'stalledUP',
     'checkingUP',
     'forcedUP',
@@ -40,7 +40,7 @@ uploading_states = (
     'uploading',
     'stalledUP',
     'checkingUP',
-    'queuedUp',
+    'queuedUP',
     'forcedUP'
 )
 
@@ -48,8 +48,8 @@ complete_states = (
     'uploading',
     'stalledUP',
     'checkingUP',
-    'pausedUp',
-    'queuedUp',
+    'pausedUP',
+    'queuedUP',
     'forcedUP'
 )
 
@@ -65,7 +65,7 @@ errored_states = (
 )
 
 paused_states = (
-    'pausedUp',
+    'pausedUP',
     'pausedDL'
 )
 
