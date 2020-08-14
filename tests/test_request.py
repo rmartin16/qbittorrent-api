@@ -7,10 +7,20 @@ import pytest
 from qbittorrentapi import Client, Request
 from qbittorrentapi.exceptions import *
 from .conftest import is_version_less_than
+from qbittorrentapi.request import Request
 from qbittorrentapi.torrents import TorrentDictionary
 from qbittorrentapi.torrents import TorrentInfoList
 
 MockResponse = namedtuple('MockResponse', ('status_code', 'text'))
+
+
+def test_is_version_less_than():
+    assert Request._is_version_less_than('1', '1', lteq=True) is True
+    assert Request._is_version_less_than('1', '1', lteq=False) is False
+    assert Request._is_version_less_than('1.5', '1', lteq=True) is False
+    assert Request._is_version_less_than('1.5', '1', lteq=False) is False
+    assert Request._is_version_less_than('1', '1.5', lteq=True) is True
+    assert Request._is_version_less_than('1', '1.5', lteq=False) is True
 
 
 def test_log_in():
@@ -110,7 +120,7 @@ def test_request_http400(client, api_version, torrent_hash):
     with pytest.raises(MissingRequiredParameters400Error):
         client.torrents_file_priority(hash=torrent_hash)
 
-    if Request._is_version_less_than('4.1.5', api_version, lteq=False):
+    if is_version_less_than('4.1.5', api_version, lteq=False):
         with pytest.raises(InvalidRequest400Error):
             client.torrents_file_priority(hash=torrent_hash, file_ids='asdf', priority='asdf')
 

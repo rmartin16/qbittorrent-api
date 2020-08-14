@@ -4,23 +4,37 @@ import pytest
 
 from .conftest import is_version_less_than
 from qbittorrentapi import Conflict409Error
-from qbittorrentapi.torrents import TorrentPropertiesDictionary
-from qbittorrentapi.torrents import TrackersList
-from qbittorrentapi.torrents import WebSeedsList
-from qbittorrentapi.torrents import TorrentDictionary
-from qbittorrentapi.torrents import TorrentFilesList
-from qbittorrentapi.torrents import TorrentPieceInfoList
+from qbittorrentapi import TorrentStates
+from qbittorrentapi import TorrentPropertiesDictionary
+from qbittorrentapi import TrackersList
+from qbittorrentapi import WebSeedsList
+from qbittorrentapi import TorrentDictionary
+from qbittorrentapi import TorrentFilesList
+from qbittorrentapi import TorrentPieceInfoList
 
 from tests.test_torrents import check, url1, hash1, enable_queueing, disable_queueing
 
 
 def test_info(test_torrent):
     assert test_torrent.info.hash == test_torrent.hash
+    # mimic <=v2.0.1 where torrents_info() doesn't support hash arg
+    test_torrent._client._cached_web_api_version = '2'
+    assert test_torrent.info.hash == test_torrent.hash
+    test_torrent._client._cached_web_api_version = None
 
 
 def test_sync_local(test_torrent):
     test_torrent.sync_local()
     assert isinstance(test_torrent, TorrentDictionary)
+
+
+def test_state_enum(test_torrent):
+    assert test_torrent.state_enum in TorrentStates
+    assert test_torrent.state_enum is not TorrentStates.UNKNOWN
+    assert test_torrent.state_enum.is_paused
+    # simulate an unknown torrent.state
+    test_torrent.state = 'gibberish'
+    assert test_torrent.state_enum is TorrentStates.UNKNOWN
 
 
 def test_pause_resume(client, test_torrent):
