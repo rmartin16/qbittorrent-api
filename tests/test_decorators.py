@@ -6,8 +6,17 @@ from attrdict import AttrDict
 import pytest
 
 from qbittorrentapi import Client
-from qbittorrentapi.decorators import response_json, response_text, version_implemented
+from qbittorrentapi.decorators import _is_version_less_than, response_json, response_text, version_implemented
 from qbittorrentapi import APIError
+
+
+def test_is_version_less_than():
+    assert _is_version_less_than('1', '1', lteq=True) is True
+    assert _is_version_less_than('1', '1', lteq=False) is False
+    assert _is_version_less_than('1.5', '1', lteq=True) is False
+    assert _is_version_less_than('1.5', '1', lteq=False) is False
+    assert _is_version_less_than('1', '1.5', lteq=True) is True
+    assert _is_version_less_than('1', '1.5', lteq=False) is True
 
 
 def test_login_required(caplog, app_version):

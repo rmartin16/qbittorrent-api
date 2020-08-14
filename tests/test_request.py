@@ -6,11 +6,21 @@ import pytest
 
 from qbittorrentapi import Client, Request
 from qbittorrentapi.exceptions import *
-from qbittorrentapi.helpers import is_version_less_than
+from .conftest import is_version_less_than
+from qbittorrentapi.request import Request
 from qbittorrentapi.torrents import TorrentDictionary
 from qbittorrentapi.torrents import TorrentInfoList
 
 MockResponse = namedtuple('MockResponse', ('status_code', 'text'))
+
+
+def test_is_version_less_than():
+    assert Request._is_version_less_than('1', '1', lteq=True) is True
+    assert Request._is_version_less_than('1', '1', lteq=False) is False
+    assert Request._is_version_less_than('1.5', '1', lteq=True) is False
+    assert Request._is_version_less_than('1.5', '1', lteq=False) is False
+    assert Request._is_version_less_than('1', '1.5', lteq=True) is True
+    assert Request._is_version_less_than('1', '1.5', lteq=False) is True
 
 
 def test_log_in():
@@ -32,7 +42,7 @@ def test_log_in_via_auth():
         client_bad.auth_log_in(username='asdf', password='asdfasdf')
 
 
-def test_port(app_version):
+def test_port_from_host(app_version):
     host, port = environ.get('PYTHON_QBITTORRENTAPI_HOST').split(':')
     client = Client(host=host, port=port)
     assert client.app.version == app_version

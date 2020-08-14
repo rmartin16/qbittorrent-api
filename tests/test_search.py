@@ -2,8 +2,8 @@ import time
 
 import pytest
 
+from .conftest import is_version_less_than
 from qbittorrentapi import NotFound404Error
-from qbittorrentapi.helpers import is_version_less_than
 from qbittorrentapi.search import SearchJobDictionary, SearchStatusesList, SearchResultsDictionary
 
 

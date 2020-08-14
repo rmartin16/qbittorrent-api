@@ -2,7 +2,7 @@ from time import sleep
 
 import pytest
 
-from qbittorrentapi.helpers import is_version_less_than
+from .conftest import is_version_less_than
 from qbittorrentapi.rss import RSSitemsDictionary
 
 folder_one = 'testFolderOne'
