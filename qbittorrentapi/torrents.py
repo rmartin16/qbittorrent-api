@@ -848,12 +848,8 @@ class TorrentsAPIMixIn(Request):
         :raises Conflict409: if torrent metadata has not finished downloading or at least one file was not found
         :param torrent_hash: hash for torrent
         :param file_ids: single file ID or a list.
-<<<<<<< HEAD
         :param priority: priority for file(s)
             Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#set-file-priority
-=======
-        :param priority: priority for file(s) (https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#set-file-priority)
->>>>>>> add enum for torrent states; code/doc cleanup
         :return: None
         """
         data = {'hash': torrent_hash or kwargs.pop('hash'),
