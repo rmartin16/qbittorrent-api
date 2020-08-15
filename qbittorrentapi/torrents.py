@@ -70,7 +70,7 @@ class TorrentDictionary(Dictionary):
     def state_enum(self):
         """Returns the formalized Enumeration for Torrent State instead of the raw string."""
         try:
-            return TorrentStates(self.info.state)
+            return TorrentStates(self.state)
         except ValueError:
             return TorrentStates.UNKNOWN
 

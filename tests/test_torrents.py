@@ -247,12 +247,12 @@ def test_torrents_info(client, api_version, orig_torrent_hash, client_func):
 
 @pytest.mark.parametrize('client_func', (('torrents_pause', 'torrents_resume'),
                                          ('torrents.pause', 'torrents.resume')))
-def test_pause_resume(client, orig_torrent_hash, client_func):
+def test_pause_resume(client, orig_torrent, orig_torrent_hash, client_func):
     get_func(client, client_func[0])(torrent_hashes=orig_torrent_hash)
-    check(lambda: client.torrents_info(torrents_hashes=orig_torrent_hash)[0].state, ('stalledDL', 'pausedDL'), any=True)
+    check(lambda: client.torrents_info(torrents_hashes=orig_torrent.hash)[0].state, ('stalledDL', 'pausedDL'), any=True)
 
     get_func(client, client_func[1])(torrent_hashes=orig_torrent_hash)
-    check(lambda: client.torrents_info(torrents_hashes=orig_torrent_hash)[0].state, ('pausedDL',), negate=True)
+    check(lambda: client.torrents_info(torrents_hashes=orig_torrent.hash)[0].state, 'pausedDL', negate=True)
 
 
 def test_action_for_all_torrents(client):
@@ -409,8 +409,8 @@ def test_toggle_sequential_download(client, client_func, orig_torrent):
 def test_toggle_first_last_piece_priority(client, api_version, client_func, new_torrent):
     if is_version_less_than('2.0.0', api_version, lteq=False):
         current_setting = new_torrent.info.f_l_piece_prio
+        sleep(1)
         get_func(client, client_func)(torrent_hashes=new_torrent.hash)
-        # new_torrent.sync_local()
         check(lambda: new_torrent.info.f_l_piece_prio, not current_setting)
 
 
