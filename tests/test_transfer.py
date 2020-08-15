@@ -1,7 +1,7 @@
 import pytest
 
-from .conftest import is_version_less_than
 from qbittorrentapi.transfer import TransferInfoDictionary
+from tests.conftest import is_version_less_than
 
 
 def test_info(client):

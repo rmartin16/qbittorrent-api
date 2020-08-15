@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from .conftest import is_version_less_than
+from tests.conftest import is_version_less_than
 
 
 def test_version(client, app_version):

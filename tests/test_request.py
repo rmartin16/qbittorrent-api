@@ -4,12 +4,12 @@ from os import environ
 
 import pytest
 
-from qbittorrentapi import Client, Request
+from qbittorrentapi import Client
 from qbittorrentapi.exceptions import *
-from .conftest import is_version_less_than
 from qbittorrentapi.request import Request
 from qbittorrentapi.torrents import TorrentDictionary
 from qbittorrentapi.torrents import TorrentInfoList
+from tests.conftest import is_version_less_than
 
 MockResponse = namedtuple('MockResponse', ('status_code', 'text'))
 
@@ -61,20 +61,19 @@ def test_port(api_version):
     assert client.app.web_api_version == api_version
 
 
-def test_simple_response(client, test_torrent):
+def test_simple_response(client):
     torrent = client.torrents_info()[0]
     assert isinstance(torrent, TorrentDictionary)
     torrent = client.torrents_info(SIMPLE_RESPONSE=True)[0]
     assert isinstance(torrent, dict)
 
 
-def test_request_extra_params(client, torrent_hash):
-    """ extra params can be sent directly to qBittorrent but there
-    aren't any real use-cases so force it """
-    json_response = client._post(_name='torrents', _method='info', hashes=torrent_hash).json()
+def test_request_extra_params(client, orig_torrent_hash):
+    """extra params can be sent directly to qBittorrent but there aren't any real use-cases so force it"""
+    json_response = client._post(_name='torrents', _method='info', hashes=orig_torrent_hash).json()
     torrent = TorrentInfoList(json_response, client)[0]
     assert isinstance(torrent, TorrentDictionary)
-    json_response = client._get(_name='torrents', _method='info', hashes=torrent_hash).json()
+    json_response = client._get(_name='torrents', _method='info', hashes=orig_torrent_hash).json()
     torrent = TorrentInfoList(json_response, client)[0]
     assert isinstance(torrent, TorrentDictionary)
 
@@ -116,13 +115,13 @@ def test_api_connection_error():
         Client(host='localhost:8081').auth_log_in()
 
 
-def test_request_http400(client, api_version, torrent_hash):
+def test_request_http400(client, api_version, orig_torrent_hash):
     with pytest.raises(MissingRequiredParameters400Error):
-        client.torrents_file_priority(hash=torrent_hash)
+        client.torrents_file_priority(hash=orig_torrent_hash)
 
     if is_version_less_than('4.1.5', api_version, lteq=False):
         with pytest.raises(InvalidRequest400Error):
-            client.torrents_file_priority(hash=torrent_hash, file_ids='asdf', priority='asdf')
+            client.torrents_file_priority(hash=orig_torrent_hash, file_ids='asdf', priority='asdf')
 
 
 def test_http401():

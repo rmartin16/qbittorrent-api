@@ -23,11 +23,11 @@ def test_maindata3(client):
 
 
 @pytest.mark.parametrize('rid', (None, 0, 1, 100000))
-def test_torrent_peers(client, rid, torrent):
-    assert isinstance(client.sync_torrent_peers(rid=rid, torrent_hash=torrent.hash), SyncTorrentPeersDictionary)
-    assert isinstance(client.sync.torrent_peers(rid=rid, torrent_hash=torrent.hash), SyncTorrentPeersDictionary)
+def test_torrent_peers(client, rid, orig_torrent):
+    assert isinstance(client.sync_torrent_peers(rid=rid, torrent_hash=orig_torrent.hash), SyncTorrentPeersDictionary)
+    assert isinstance(client.sync.torrent_peers(rid=rid, torrent_hash=orig_torrent.hash), SyncTorrentPeersDictionary)
 
-    assert isinstance(client.sync.torrent_peers.delta(torrent_hash=torrent.hash), SyncTorrentPeersDictionary)
+    assert isinstance(client.sync.torrent_peers.delta(torrent_hash=orig_torrent.hash), SyncTorrentPeersDictionary)
 
     client.sync.torrent_peers.reset_rid()
     assert client.sync.torrent_peers._rid == 0
