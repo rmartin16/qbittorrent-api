@@ -12,7 +12,7 @@ setup(
                       'requests>=2.16.0',
                       'urllib3>=1.24.2',
                       'six',
-                      'enum34'],
+                      'enum34; python_version < "3"'],
     url='https://github.com/rmartin16/qbittorrent-api',
     author='Russell Martin',
     description='Python client for qBittorrent v4.1+ Web API',
