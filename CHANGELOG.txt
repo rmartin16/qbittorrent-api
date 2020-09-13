@@ -1,3 +1,6 @@
+Version 2020.9.9
+ - Only request enum34 for Python 2
+
 Version 2020.8.8
  - Support adding torrents from raw torrent files as bytes or file handles. Fixes #23.
  - Introduce TorrentStates enum for qBittorrent list of torrent states.
