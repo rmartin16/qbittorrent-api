@@ -1,6 +1,6 @@
 qBittorrent Web API Client
 ================================
-[![Travis (.org) branch](https://img.shields.io/travis/rmartin16/qbittorrent-api/master?style=flat-square)](https://travis-ci.org/github/rmartin16/qbittorrent-api)
+[![Travis (.com) branch](https://img.shields.io/travis/com/rmartin16/qbittorrent-api/master?style=flat-square)](https://travis-ci.com/github/rmartin16/qbittorrent-api)
 [![Codecov branch](https://img.shields.io/codecov/c/gh/rmartin16/qbittorrent-api/master?style=flat-square)](https://codecov.io/gh/rmartin16/qbittorrent-api)
 [![Coverity Scan](https://img.shields.io/coverity/scan/21227?style=flat-square)](https://scan.coverity.com/projects/rmartin16-qbittorrent-api)
 [![Codacy grade](https://img.shields.io/codacy/grade/e924396ef8e54d918ed4c093834f3708?style=flat-square)](https://app.codacy.com/manual/rmartin16/qbittorrent-api/dashboard)
