@@ -14,20 +14,23 @@ addons:
     branch_pattern: coverity_scan
 python:
   - 2.7
-  #- 3.4  # not supported on bionic
+  # - 3.4 - not available on travis-ci
   - 3.5
   - 3.6
   - 3.7
   - 3.8
-  - 3.9-dev
+  - 3.9-dev  # remove once 3.9 is supported on travis-ci
+  - 3.9
   - 3.10-dev
-  - pypy3
+  - nightly
+  - pypy3.6-7.3.1
 jobs:
   fast_finish: true
   allow_failures:
-    - python: 3.9-dev
+    - python: 3.9  # remove once 3.9 is supported on travis-ci
     - python: 3.10-dev
-    - python: pypy3
+    - python: nightly
+    - python: pypy3.6-7.3.1
   exclude:
     - if: branch != comprehensive_tests AND env(QBT_VER) != env(LATEST_QBT_VERSION)
 env:
