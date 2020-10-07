@@ -4,7 +4,8 @@ dist: focal
 addons:
   apt:
     packages:
-      - libboost-system-dev qtbase5-dev libboost-system1.65.1
+      - libboost-dev libboost-system-dev libboost-chrono-dev libboost-random-dev
+      # - libboost-system-dev qtbase5-dev libboost-system1.65.1
   coverity_scan:
     project:
       name: "rmartin16/qbittorrent-api"
