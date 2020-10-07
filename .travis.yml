@@ -19,6 +19,7 @@ python:
   - 3.6
   - 3.7
   - 3.8
+  - 3.9-dev  # remove once 3.9 is supported on travis-ci
   - 3.9
   - 3.10-dev
   - nightly
@@ -26,6 +27,7 @@ python:
 jobs:
   fast_finish: true
   allow_failures:
+    - python: 3.9  # remove once 3.9 is supported on travis-ci
     - python: 3.10-dev
     - python: nightly
     - python: pypy3.6-7.3.1
