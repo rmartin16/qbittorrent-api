@@ -4,7 +4,7 @@ dist: focal
 addons:
   apt:
     packages:
-      - libboost-system-dev qtbase5-dev
+      - libboost-system-dev qtbase5-dev libboost-system1.65.1
   coverity_scan:
     project:
       name: "rmartin16/qbittorrent-api"
@@ -14,7 +14,7 @@ addons:
     branch_pattern: coverity_scan
 python:
   - 2.7
-  - 3.4
+  # - 3.4 - not available on travis-ci
   - 3.5
   - 3.6
   - 3.7
