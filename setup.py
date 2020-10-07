@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='qbittorrent-api',
-    version='2020.9.9',
+    version='2020.10.10',
     packages=find_packages(exclude=['*.tests', '*.tests.*', 'tests.*', 'tests']),
     include_package_data=True,
     install_requires=['attrdict>=2.0.0',
@@ -18,10 +18,11 @@ setup(
     description='Python client for qBittorrent v4.1+ Web API',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    keywords='qbittorrent api',
+    keywords='python qbittorrent api client torrent torrents',
     zip_safe=False,
     license='GPL-3',
-    classifiers=['Programming Language :: Python :: 3.8',
+    classifiers=['Programming Language :: Python :: 3.9',
+                 'Programming Language :: Python :: 3.8',
                  'Programming Language :: Python :: 3.7',
                  'Programming Language :: Python :: 3.6',
                  'Programming Language :: Python :: 3.5',
