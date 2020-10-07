@@ -1,11 +1,10 @@
 language: python
 os: linux
-dist: focal
+dist: bionic
 addons:
   apt:
     packages:
-      - libboost-dev libboost-system-dev libboost-chrono-dev libboost-random-dev
-      # - libboost-system-dev qtbase5-dev libboost-system1.65.1
+      - libboost-system-dev qtbase5-dev
   coverity_scan:
     project:
       name: "rmartin16/qbittorrent-api"
@@ -22,12 +21,14 @@ python:
   - 3.8
   - 3.9
   - 3.10-dev
-  - pypy3
+  - python-nightly
+  - pypy3.6-7.3.1
 jobs:
   fast_finish: true
   allow_failures:
     - python: 3.10-dev
-    - python: pypy3
+    - python: python-nightly
+    - python: pypy3.6-7.3.1
   exclude:
     - if: branch != comprehensive_tests AND env(QBT_VER) != env(LATEST_QBT_VERSION)
 env:
