@@ -325,7 +325,7 @@ class Request(object):
             #
             # If an error_message isn't returned, qBittorrent didn't receive all required parameters.
             # APIErrorType::BadParams
-            if response.text == '':
+            if response.text in ('', 'Bad Request'):  # the name of the HTTP error started being returned in v4.3.0
                 raise MissingRequiredParameters400Error()
             raise InvalidRequest400Error(response.text)
 

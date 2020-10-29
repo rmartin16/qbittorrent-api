@@ -49,6 +49,7 @@ env:
   - QBT_VER="4.2.3"
   - QBT_VER="4.2.4"
   - QBT_VER="4.2.5"
+  - QBT_VER="4.3.0"
 cache:
   directories:
     - $HOME/deb  # until deb downloads are more reliable...
@@ -70,6 +71,7 @@ before_install:
   - if [ ! -f $HOME/deb/libtorrent-rasterbar9_amd64.deb ]; then wget https://bit.ly/libtorrent-rasterbar9-1-1-1 -O $HOME/deb/libtorrent-rasterbar9_amd64.deb; fi
   - if [ ! -f $HOME/deb/libtorrent-rasterbar-dev_amd64.deb ]; then wget https://bit.ly/libtorrent-rasterbar-dev-1-1-1 -O $HOME/deb/libtorrent-rasterbar-dev_amd64.deb; fi
   - sudo dpkg -i $HOME/deb/libtorrent-rasterbar-dev_amd64.deb $HOME/deb/libtorrent-rasterbar9_amd64.deb
+  -
   # install qBittorrent
   - if [ ! -f $HOME/deb/qbittorrent_nox_amd64.deb ]; then wget https://bit.ly/qbittorrent-nox-amd64-$(echo "$QBT_VER" | tr . -) -O $HOME/deb/qbittorrent_nox_amd64.deb; fi
   - sudo dpkg -i $HOME/deb/qbittorrent_nox_amd64.deb
