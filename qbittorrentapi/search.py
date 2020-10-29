@@ -3,6 +3,7 @@ from qbittorrentapi.decorators import aliased
 from qbittorrentapi.decorators import login_required
 from qbittorrentapi.decorators import response_json
 from qbittorrentapi.decorators import version_implemented
+from qbittorrentapi.decorators import version_removed
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary
@@ -222,6 +223,7 @@ class SearchAPIMixIn(Request):
         self._post(_name=APINames.Search, _method='delete', data=data, **kwargs)
 
     @version_implemented('2.1.1', 'search/categories')
+    @version_removed('2.6', 'search/categories')
     @response_json(SearchCategoriesList)
     @login_required
     def search_categories(self, plugin_name=None, **kwargs):

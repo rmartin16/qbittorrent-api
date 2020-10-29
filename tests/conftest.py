@@ -29,20 +29,21 @@ api_version_map = {
     'v4.2.3': '2.4.1',
     'v4.2.4': '2.5',
     'v4.2.5': '2.5.1',
+    'v4.3.0': '2.6'
 }
 
 _check_limit = 10
 
-_orig_torrent_url = 'http://cdimage.ubuntu.com/xubuntu/releases/18.04/release/xubuntu-18.04.1-desktop-amd64.iso.torrent'
-_orig_torrent_hash = '635cbf8317ef942e8ba21ececdc7526a41b7e4b2'
+_orig_torrent_url = 'http://releases.ubuntu.com/20.04.1/ubuntu-20.04.1-desktop-amd64.iso.torrent'
+_orig_torrent_hash = 'd1101a2b9d202811a05e8c57c557a20bf974dc8a'
 
-torrent1_url = 'https://releases.ubuntu.com/18.04/ubuntu-18.04.5-desktop-amd64.iso.torrent'
+torrent1_url = 'http://cdimage.ubuntu.com/kubuntu/releases/20.04.1/release/kubuntu-20.04.1-desktop-amd64.iso.torrent'
 torrent1_filename = torrent1_url.split('/')[-1]
-torrent1_hash = '94a315e2cf8015b2f635d79aab592e6db557d5ea'
+torrent1_hash = '08d23eefbb35253773a8dc18eb77854a87ccda9a'
 
-torrent2_url = 'https://releases.ubuntu.com/20.04/ubuntu-20.04.1-desktop-amd64.iso.torrent'
+torrent2_url = 'http://cdimage.ubuntu.com/xubuntu/releases/20.04.1/release/xubuntu-20.04.1-desktop-amd64.iso.torrent'
 torrent2_filename = torrent2_url.split('/')[-1]
-torrent2_hash = 'd1101a2b9d202811a05e8c57c557a20bf974dc8a'
+torrent2_hash = '35eb6295e8e260b81c7ddcb4f5019a96064ff904'
 
 is_version_less_than = Request._is_version_less_than
 suppress_context = Request._suppress_context

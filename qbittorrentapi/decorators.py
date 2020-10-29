@@ -174,7 +174,6 @@ def version_implemented(version_introduced, endpoint, end_point_params=None):
     """
 
     def _inner(f):
-        # noinspection PyProtectedMember
         @wraps(f)
         def wrapper(obj, *args, **kwargs):
             current_version = obj._app_web_api_version_from_version_checker()
@@ -206,6 +205,33 @@ def version_implemented(version_introduced, endpoint, end_point_params=None):
                     if obj._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS:
                         raise NotImplementedError(error_message)
                     return None
+            return f(obj, *args, **kwargs)
+
+        return wrapper
+
+    return _inner
+
+
+def version_removed(version_obsoleted, endpoint):
+    """
+    Prevent hitting an endpoint that has been removed.
+
+    :param version_obsoleted: the Web API version the endpoint was removed
+    :param endpoint: name of the removed endpoint
+    """
+
+    def _inner(f):
+        @wraps(f)
+        def wrapper(obj, *args, **kwargs):
+            current_version = obj._app_web_api_version_from_version_checker()
+            if _is_version_less_than(version_obsoleted, current_version, lteq=True):
+                error_message = 'ERROR: Endpoint "%s" is Not Implemented. Web API v%s is installed. This endpoint ' \
+                                'was removed in Web API v%s.' \
+                                % (endpoint, current_version, version_obsoleted)
+                logger.debug(error_message)
+                if obj._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS:
+                    raise NotImplementedError(error_message)
+                return None
             return f(obj, *args, **kwargs)
 
         return wrapper
