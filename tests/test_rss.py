@@ -67,6 +67,14 @@ def test_add_move_refresh_remove_feed(client, api_version, client_func):
                          (('rss_add_feed', 'rss_set_rule', 'rss_rules', 'rss_rename_rule', 'rss_matching_articles', 'rss_remove_rule', 'rss_remove_item'),
                           ('rss.add_feed', 'rss.set_rule', 'rss.rules', 'rss.rename_rule', 'rss.matching_articles', 'rss.remove_rule', 'rss.remove_item'),))
 def test_rules(client, api_version, client_func):
+
+    def check_for_rule(name):
+        try:
+            get_func(client, client_func[2])()  # rss_rules
+            check(lambda: get_func(client, client_func[2])(), name, reverse=True)  # rss_rules
+        except TypeError:
+            check(lambda: get_func(client, client_func[2]), name, reverse=True)  # rss_rules
+
     rule_name = item_one + 'Rule'
     rule_name_new = rule_name + 'New'
     rule_def = {'enabled': True,
@@ -80,18 +88,11 @@ def test_rules(client, api_version, client_func):
         else:
             client.rss.refresh_item(item_path=item_two)
         get_func(client, client_func[1])(rule_name=rule_name, rule_def=rule_def)  # rss_set_rule
-        try:
-            get_func(client, client_func[2])()  # rss_rules
-            check(lambda: get_func(client, client_func[2])(), rule_name, reverse=True)  # rss_rules
-        except TypeError:
-            check(lambda: get_func(client, client_func[2]), rule_name, reverse=True)  # rss_rules
-        # rename was broken for a period in qBitorrent
-        if is_version_less_than('2.6', api_version, lteq=True):
+        check_for_rule(rule_name)
+
+        if is_version_less_than('2.6', api_version, lteq=True):  # rename was broken in qBittorrent for a period
             get_func(client, client_func[3])(orig_rule_name=rule_name, new_rule_name=rule_name_new)  # rss_rename_rule
-            if '.' in client_func[2]:
-                check(lambda: get_func(client, client_func[2]), rule_name_new, reverse=True)  # rss_rules
-            else:
-                check(get_func(client, client_func[2]), rule_name_new, reverse=True)  # rss_rules
+            check_for_rule(rule_name_new)
         if is_version_less_than(api_version, '2.5.1', lteq=False):
             with pytest.raises(NotImplementedError):
                 get_func(client, client_func[4])(rule_name=rule_name)  # rss_matching_articles
@@ -99,6 +100,7 @@ def test_rules(client, api_version, client_func):
             assert isinstance(get_func(client, client_func[4])(rule_name=rule_name), RSSitemsDictionary)  # rss_matching_articles
     finally:
         get_func(client, client_func[5])(rule_name=rule_name)  # rss_remove_rule
+        get_func(client, client_func[5])(rule_name=rule_name_new)  # rss_remove_rule
         check(lambda: client.rss_rules(), rule_name, reverse=True, negate=True)
         get_func(client, client_func[6])(item_path=item_one)  # rss_remove_item
         assert item_two not in client.rss_items()

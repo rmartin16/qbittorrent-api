@@ -229,6 +229,7 @@ class SearchAPIMixIn(Request):
     def search_categories(self, plugin_name=None, **kwargs):
         """
         Retrieve categories for search.
+        Note: endpoint was removed in qBittorrent v4.3.0
 
         :param plugin_name: Limit categories returned by plugin(s) (supports 'all' and 'enabled')
         :return: list of categories

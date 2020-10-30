@@ -241,6 +241,7 @@ class RSSAPIMixIn(Request):
     def rss_rename_rule(self, orig_rule_name=None, new_rule_name=None, **kwargs):
         """
         Rename a RSS auto-download rule. (alias: rss_renameRule)
+        Note: this endpoint did not work properly until qBittorrent v4.3.0
 
         :param orig_rule_name: current name of rule
         :param new_rule_name: new name for rule

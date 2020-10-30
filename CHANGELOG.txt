@@ -1,23 +1,27 @@
-Version 2020.10.10
+Version 2020.10.11 (29 oct 2020)
+ - Support qBittorrent v4.3.0.1 and Web API v2.6
+ - Due to qBittorrent changes, /search/categories no longer returns anything and /rss/renameRule works again
+
+Version 2020.10.10 (7 oct 2020)
  - Advertise support for Python 3.9
 
-Version 2020.9.9
+Version 2020.9.9 (12 sept 2020)
  - Only request enum34 for Python 2
 
-Version 2020.8.8
+Version 2020.8.8 (14 aug 2020)
  - Support adding torrents from raw torrent files as bytes or file handles. Fixes #23.
  - Introduce TorrentStates enum for qBittorrent list of torrent states.
 
-Version 2020.7.7
+Version 2020.7.7 (26 jul 2020)
  - Update tests and misc small fixes.
 
-Version 2020.7.6
+Version 2020.7.6 (25 jul 2020)
  - Re-release of v2020.7.5.
 
-Version 2020.7.5
+Version 2020.7.5 (25 jul 2020)
  - Add RTD documentation.
 
-Version 2020.6.4
+Version 2020.6.4 (9 jun 2020)
  - Bug fix release. Reorganized code and classes to be more logical.
  - Started returning None from many methods that were returning Requests Responses.
  - Content-Length header is now explicitly sent as "0" for any POSTs without a body.
@@ -27,66 +31,66 @@ Version 2020.6.4
  - Drop advertising Python 2.6 and 3.4 support; add PyPy3 support.
  - Implement test suite and CI that can test all supported qBittorrent versions on all pythons.
 
-Version 2020.5.3
+Version 2020.5.3 (11 may 2020)
  - Include currently supported qBittorrent version in README. Fixes #11.
 
-Version 2020.4.2
+Version 2020.4.2 (25 apr 2020)
  - Add support for rss/markAsRead and rss/matchingArticles. Added in v2.5.1. Fixes #10
 
-Version 2020.4.1
+Version 2020.4.1 (25 apr 2020)
  - Add stalled(), stalled_uploading(), and stalled_downloading() to torrents.info interaction. Added in Web API v2.4.1.
  - Implement torrent file renaming. Added in Web API v2.4.0. Fixes #3.
  - Since versioning was botched last release, implement calendar versioning.
  - List of files returned from torrents_files() now contains file ID in 'id'.
 
-Version 6.0.0
+Version 6.0.0 (22 apr 2020)
  - Performance gains for responses with payloads...especially for large payloads.
  - Fixes #6. Adds support for SIMPLE_RESPONSES for the entire client and individual methods.
 
-Version 0.5.2
+Version 0.5.2 (19 apr 2020)
  - Fixes #8. Remove whitespace from in setPreferences requests for older qBittorrent versions.
 
-Version 0.5.1
+Version 0.5.1 (2 jan 2020)
  - Add Python3.8 version for PyPI
  - Move project from beta to stable for PyPI
 
-Version 0.5.0
+Version 0.5.0 (2 jan 2020)
  - Make Web API URL derivation more robust...thereby allowing the client to actually work on Python3.8 (#5)
  - Allow port to be discretely specified during Client instantiation (#4)
  - Enhance request retry logic and expose retry configuration
 
-Version 0.4.2
+Version 0.4.2 (5 dec 2019)
  - Improve organization and clarity of README
  - Better document exceptions
  - Clarify torrent file handling exceptions better with proper exceptions
  - Clean up the request wrapper exception handling
  - Fix HTTP 404 handling to find and return problematic torrent hashes
 
-Version 0.4.1
+Version 0.4.1 (4 dec 2019)
  - Round out support for tags with qBittorrent v4.2.0 release
  - Remove upper-bound version requirements for requests and urllib3
 
-Version 0.4
+Version 0.4 (4 dec 2019)
  - Support for qBittorrent v4.2.0 release
  - Add support for app/buildInfo
  - Add support for transfer/banPeers and torrents/addPeers
  - Add support for torrents/addTags, torrents/removeTags, torrents/tags, torrents/createTags, and torrents/deleteTags
 
-Version 0.3.3
+Version 0.3.3 (29 sept 2019)
  - Fix useAutoTMM to autoTMM for client.torrents_add() so auto torrent management works
  - Add support to refresh RSS items introduced in qBittorrent v4.1.8
 
-Version 0.3.2
+Version 0.3.2 (28 jun 2019)
  - Restore python 2 compatibility
  - Allow exceptions to be imported directly from package instead of only exceptions module
 
-Version 0.3
+Version 0.3 (1 jun 2019)
  - Finalized interaction layer interfaces
 
-Version 0.2
+Version 0.2 (13 may 2019)
  - Introduced the "interaction layer" for transparent interaction with the qBittorrent API.
 
-Version 0.1
+Version 0.1 (7 may 2019)
  - Complete implementation of qBittorrent WebUI API 2.2.
  - Each API endpoint is available via the Client class.
  - Automatic re-login is supported in the event of login expiration.
