@@ -65,7 +65,7 @@ def test_add_move_refresh_remove_feed(client, api_version, client_func):
 
 @pytest.mark.parametrize('client_func',
                          (('rss_add_feed', 'rss_set_rule', 'rss_rules', 'rss_rename_rule', 'rss_matching_articles', 'rss_remove_rule', 'rss_remove_item'),
-                          ('rss.add_feed', 'rss.set_rule', 'rss.rules', 'rss.rename_rule', 'rss.matching_articles', 'rss.remove_rule', 'rss.remove_item')))
+                          ('rss.add_feed', 'rss.set_rule', 'rss.rules', 'rss.rename_rule', 'rss.matching_articles', 'rss.remove_rule', 'rss.remove_item'),))
 def test_rules(client, api_version, client_func):
     rule_name = item_one + 'Rule'
     rule_name_new = rule_name + 'New'
@@ -85,9 +85,13 @@ def test_rules(client, api_version, client_func):
             check(lambda: get_func(client, client_func[2])(), rule_name, reverse=True)  # rss_rules
         except TypeError:
             check(lambda: get_func(client, client_func[2]), rule_name, reverse=True)  # rss_rules
-        # rename is broken https://github.com/qbittorrent/qBittorrent/issues/12558
-        # get_func(client, client_func[3])(orig_rule_name=rule_name, new_rule_name=rule_name_new)
-        # check(get_func(client, client_func[2]), rule_name_new, reverse=True)
+        # rename was broken for a period in qBitorrent
+        if is_version_less_than('2.6', api_version, lteq=True):
+            get_func(client, client_func[3])(orig_rule_name=rule_name, new_rule_name=rule_name_new)  # rss_rename_rule
+            if '.' in client_func[2]:
+                check(lambda: get_func(client, client_func[2]), rule_name_new, reverse=True)  # rss_rules
+            else:
+                check(get_func(client, client_func[2]), rule_name_new, reverse=True)  # rss_rules
         if is_version_less_than(api_version, '2.5.1', lteq=False):
             with pytest.raises(NotImplementedError):
                 get_func(client, client_func[4])(rule_name=rule_name)  # rss_matching_articles

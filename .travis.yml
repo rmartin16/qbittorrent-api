@@ -76,6 +76,7 @@ before_install:
   - wget https://rebrand.ly/qbittorrent-nox-amd64-$(echo "$QBT_VER" | tr . -) -O $HOME/deb/qbittorrent_nox_amd64.deb
   - sudo dpkg -i $HOME/deb/qbittorrent_nox_amd64.deb
   # start qBittorrent
+  - $QBT_PATH/bin/qbittorrent-nox -v || qbittorrent-nox -v
   - $QBT_PATH/bin/qbittorrent-nox --daemon || qbittorrent-nox --daemon
 install:
   - pip install .
