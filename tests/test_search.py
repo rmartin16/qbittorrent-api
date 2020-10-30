@@ -67,7 +67,7 @@ def test_install_uninstall_plugin(client, api_version, client_func):
 
 @pytest.mark.parametrize('client_func', ('search_categories', 'search.categories'))
 def test_categories(client, api_version, client_func):
-    if is_version_less_than(api_version, '2.1.1', lteq=False):
+    if is_version_less_than(api_version, '2.1.1', lteq=False) or is_version_less_than('2.6', api_version, lteq=True):
         with pytest.raises(NotImplementedError):
             get_func(client, client_func)()
     else:

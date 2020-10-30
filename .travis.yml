@@ -14,7 +14,7 @@ addons:
     branch_pattern: coverity_scan
 python:
   - 2.7
-  # - 3.4 - not available on travis-ci
+  # - 3.4 # not available on travis-ci
   - 3.5
   - 3.6
   - 3.7
@@ -49,9 +49,9 @@ env:
   - QBT_VER="4.2.3"
   - QBT_VER="4.2.4"
   - QBT_VER="4.2.5"
+  - QBT_VER="4.3.0.1"
 cache:
   directories:
-    - $HOME/deb  # until deb downloads are more reliable...
     - $HOME/.cache/pip
 before_install:
   - python --version
@@ -67,16 +67,20 @@ before_install:
   - mkdir -p $HOME/Downloads  # default torrent download location
   - alias wget="wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 100"
   # install libtorrent-rasterbar
-  - if [ ! -f $HOME/deb/libtorrent-rasterbar9_amd64.deb ]; then wget https://bit.ly/libtorrent-rasterbar9-1-1-1 -O $HOME/deb/libtorrent-rasterbar9_amd64.deb; fi
-  - if [ ! -f $HOME/deb/libtorrent-rasterbar-dev_amd64.deb ]; then wget https://bit.ly/libtorrent-rasterbar-dev-1-1-1 -O $HOME/deb/libtorrent-rasterbar-dev_amd64.deb; fi
+  - wget https://bit.ly/libtorrent-rasterbar9-1-1-1 -O $HOME/deb/libtorrent-rasterbar9_amd64.deb
+  - wget https://bit.ly/libtorrent-rasterbar-dev-1-1-1 -O $HOME/deb/libtorrent-rasterbar-dev_amd64.deb
   - sudo dpkg -i $HOME/deb/libtorrent-rasterbar-dev_amd64.deb $HOME/deb/libtorrent-rasterbar9_amd64.deb
+  - wget https://rebrand.ly/libtorrent-rasterbar10-1-2-10_amd64 -O $HOME/deb/libtorrent-rasterbar10_1.2.10_amd64.deb
+  - sudo dpkg -i $HOME/deb/libtorrent-rasterbar-dev_amd64.deb $HOME/deb/libtorrent-rasterbar10_1.2.10_amd64.deb
   # install qBittorrent
-  - if [ ! -f $HOME/deb/qbittorrent_nox_amd64.deb ]; then wget https://bit.ly/qbittorrent-nox-amd64-$(echo "$QBT_VER" | tr . -) -O $HOME/deb/qbittorrent_nox_amd64.deb; fi
+  - wget https://rebrand.ly/qbittorrent-nox-amd64-$(echo "$QBT_VER" | tr . -) -O $HOME/deb/qbittorrent_nox_amd64.deb
   - sudo dpkg -i $HOME/deb/qbittorrent_nox_amd64.deb
   # start qBittorrent
-  - $QBT_PATH/bin/qbittorrent-nox --daemon
+  - $QBT_PATH/bin/qbittorrent-nox --daemon || qbittorrent-nox --daemon
 install:
   - pip install .
+  - $QBT_PATH/bin/qbittorrent-nox -v || qbittorrent-nox -v
+  - "python -c \"from qbittorrentapi import Client; qbt_client=Client(); print('qBittorrent: %s' % qbt_client.app.version); print('qBittorrent Web API: %s' % qbt_client.app.web_api_version); print(['%s: %s' % (k, v) for k, v in qbt_client.app.build_info.items()])\""
 script: |
   if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
     pytest;
