@@ -2,7 +2,6 @@
 sphinx
 pytest
 pytest-cov
-pytest-xdist
 codecov
 coveralls
 sphinx_glpi_theme
