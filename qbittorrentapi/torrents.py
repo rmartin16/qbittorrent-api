@@ -644,7 +644,9 @@ class TorrentsAPIMixIn(Request):
         prefix = 'torrent__'
         # if it's string-like and not a list|set|tuple, then make it a list
         # checking for 'read' attr since a single file handle is iterable but also needs to be in a list
-        if isinstance(user_files, six.string_types) or not isinstance(user_files, Iterable) or hasattr(user_files, 'read'):
+        is_string_like = isinstance(user_files, (bytes, six.text_type))
+        is_file_like = hasattr(user_files, 'read')
+        if is_string_like or is_file_like or not isinstance(user_files, Iterable):
             user_files = [user_files]
 
         # up convert to a dictionary to add fabricated torrent names

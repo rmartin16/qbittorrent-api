@@ -1,3 +1,6 @@
+Version 2020.11.12 (16 nov 2020)
+ - Fix support for raw bytes for torrent_files in torrents_add() for Python 3. Fixes #34.
+
 Version 2020.10.11 (29 oct 2020)
  - Support qBittorrent v4.3.0.1 and Web API v2.6
  - Due to qBittorrent changes, /search/categories no longer returns anything and /rss/renameRule works again
