@@ -644,7 +644,9 @@ class TorrentsAPIMixIn(Request):
         prefix = 'torrent__'
         # if it's string-like and not a list|set|tuple, then make it a list
         # checking for 'read' attr since a single file handle is iterable but also needs to be in a list
-        if isinstance(user_files, six.string_types) or not isinstance(user_files, Iterable) or hasattr(user_files, 'read'):
+        is_string_like = isinstance(user_files, (six.string_types, six.binary_type))
+        is_file_like = hasattr(user_files, 'read')
+        if is_string_like or is_file_like or not isinstance(user_files, Iterable):
             user_files = [user_files]
 
         # up convert to a dictionary to add fabricated torrent names
@@ -654,7 +656,7 @@ class TorrentsAPIMixIn(Request):
         for name, torrent_file in norm_files.items():
             try:
                 fh = None
-                if isinstance(torrent_file, bytes):
+                if isinstance(torrent_file, six.binary_type):
                     # since strings are bytes on python 2, simple filepaths will end up here
                     # just check if it's a file first in that case...
                     # this does prevent providing more useful IO errors on python 2....but it's dead anyway...
