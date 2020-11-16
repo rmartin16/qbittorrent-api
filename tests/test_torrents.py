@@ -66,53 +66,80 @@ def test_add_delete(client, api_version, client_func):
         check(lambda: [t.hash for t in client.torrents_info()], torrent2_hash, reverse=True, negate=True)
 
     def check_torrents_added(f):
-        def inner():
+        def inner(**kwargs):
             try:
-                f()
+                f(**kwargs)
                 check(lambda: [t.hash for t in client.torrents_info()], torrent1_hash, reverse=True)
-                check(lambda: [t.hash for t in client.torrents_info()], torrent2_hash, reverse=True)
+                if kwargs.get('single', False) is False:
+                    check(lambda: [t.hash for t in client.torrents_info()], torrent2_hash, reverse=True)
             finally:
                 sleep(1)
                 delete()
         return inner
 
     @check_torrents_added
-    def add_by_filename():
+    def add_by_filename(single):
         download_file(url=torrent1_url, filename=torrent1_filename)
         download_file(url=torrent2_url, filename=torrent2_filename)
         files = ('~/%s' % torrent1_filename, '~/%s' % torrent2_filename)
-        assert get_func(client, client_func[0])(torrent_files=files) == 'Ok.'
+
+        if single:
+            assert get_func(client, client_func[0])(torrent_files=files[0]) == 'Ok.'
+        else:
+            assert get_func(client, client_func[0])(torrent_files=files) == 'Ok.'
 
     @check_torrents_added
-    def add_by_filename_dict():
+    def add_by_filename_dict(single):
         download_file(url=torrent1_url, filename=torrent1_filename)
         download_file(url=torrent2_url, filename=torrent2_filename)
-        files = {torrent1_filename: '~/%s' % torrent1_filename, torrent2_filename: '~/%s' % torrent2_filename}
-        assert get_func(client, client_func[0])(torrent_files=files) == 'Ok.'
+
+        if single:
+            assert get_func(client, client_func[0])(torrent_files={torrent1_filename: '~/%s' % torrent1_filename}) == 'Ok.'
+        else:
+            files = {torrent1_filename: '~/%s' % torrent1_filename, torrent2_filename: '~/%s' % torrent2_filename}
+            assert get_func(client, client_func[0])(torrent_files=files) == 'Ok.'
 
     @check_torrents_added
-    def add_by_filehandles():
+    def add_by_filehandles(single):
         download_file(url=torrent1_url, filename=torrent1_filename)
         download_file(url=torrent2_url, filename=torrent2_filename)
         files = (open(path.expanduser('~/' + torrent1_filename), 'rb'), open(path.expanduser('~/' + torrent2_filename), 'rb'))
-        assert get_func(client, client_func[0])(torrent_files=files) == 'Ok.'
+
+        if single:
+            assert get_func(client, client_func[0])(torrent_files=files[0]) == 'Ok.'
+        else:
+            assert get_func(client, client_func[0])(torrent_files=files) == 'Ok.'
 
     @check_torrents_added
-    def add_by_bytes():
+    def add_by_bytes(single):
         files = (download_file(torrent1_url, return_bytes=True), download_file(torrent2_url, return_bytes=True))
-        assert get_func(client, client_func[0])(torrent_files=files) == 'Ok.'
+
+        if single:
+            assert get_func(client, client_func[0])(torrent_files=files[0]) == 'Ok.'
+        else:
+            assert get_func(client, client_func[0])(torrent_files=files) == 'Ok.'
 
     @check_torrents_added
-    def add_by_url():
-        get_func(client, client_func[0])(urls=(torrent1_url, torrent2_url))
+    def add_by_url(single):
+        urls = (torrent1_url, torrent2_url)
+
+        if single:
+            get_func(client, client_func[0])(urls=urls[0])
+        else:
+            get_func(client, client_func[0])(urls=urls)
 
     if is_version_less_than('2.0.0', api_version, lteq=False):
         # something was wrong with torrents_add on v2.0.0 (the initial version)
-        add_by_filename()
-        add_by_filename_dict()
-        add_by_url()
-        add_by_filehandles()
-        add_by_bytes()
+        add_by_filename(single=False)
+        add_by_filename(single=True)
+        add_by_filename_dict(single=False)
+        add_by_filename_dict(single=True)
+        add_by_url(single=False)
+        add_by_url(single=True)
+        add_by_filehandles(single=False)
+        add_by_filehandles(single=True)
+        add_by_bytes(single=False)
+        add_by_bytes(single=True)
 
 
 def test_add_torrent_file_fail(client):
