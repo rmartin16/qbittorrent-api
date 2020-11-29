@@ -1,3 +1,7 @@
+Version 2020.11.13 (29 nov 2020)
+ - Bump for Web API v2.6.1 release
+ - Path of torrent content now available via content_path from torrents/info
+
 Version 2020.11.12 (16 nov 2020)
  - Fix support for raw bytes for torrent_files in torrents_add() for Python 3. Fixes #34.
 
