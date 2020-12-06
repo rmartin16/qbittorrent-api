@@ -43,8 +43,12 @@ class Request(object):
         self._password = password or ''
 
         # defaults that should not change
-        self._API_URL_BASE_PATH = 'api'
-        self._API_URL_API_VERSION = 'v2'
+        self._API_URL_PATH_NAMESPACE = 'api'
+        self._API_URL_PATH_VERSION = 'v2'
+        self._API_BASE_PATH = self._API_URL_PATH_NAMESPACE + '/' + self._API_URL_PATH_VERSION
+
+        # allow users to further qualify API path
+        self._USER_URL_BASE_PATH = None
 
         # state, context, and caching variables
         #   These variables are deleted if the connection to qBittorrent is reset
@@ -61,7 +65,7 @@ class Request(object):
         self._sync = None
         self._rss = None
         self._search = None
-        self._API_URL_BASE = None
+        self._API_BASE_URL = None
 
         # Configuration variables
         self._VERIFY_WEBUI_CERTIFICATE = kwargs.pop('VERIFY_WEBUI_CERTIFICATE', True)
@@ -94,6 +98,10 @@ class Request(object):
 
         # Mocking variables until better unit testing exists
         self._MOCK_WEB_API_VERSION = kwargs.pop('MOCK_WEB_API_VERSION', None)
+
+        # turn off console-printed warnings about SSL certificate issues (e.g. untrusted since it is self-signed)
+        if not self._VERIFY_WEBUI_CERTIFICATE:
+            disable_warnings(InsecureRequestWarning)
 
     ########################################
     # Authorization Endpoints
@@ -194,7 +202,7 @@ class Request(object):
         self._cached_web_api_version = None
 
         # reset URL so the full URL is derived again (primarily allows for switching scheme for WebUI: HTTP <-> HTTPS)
-        self._API_URL_BASE = None
+        self._API_BASE_URL = None
 
         # reinitialize interaction layers
         self._application = None
@@ -208,10 +216,10 @@ class Request(object):
         self._search = None
 
     def _get(self, _name=APINames.EMPTY, _method='', **kwargs):
-        return self._request_wrapper(http_method='get', api_name=_name, api_method=_method, **kwargs)
+        return self._request_wrapper(http_method='get', api_namespace=_name, api_method=_method, **kwargs)
 
     def _post(self, _name=APINames.EMPTY, _method='', **kwargs):
-        return self._request_wrapper(http_method='post', api_name=_name, api_method=_method, **kwargs)
+        return self._request_wrapper(http_method='post', api_namespace=_name, api_method=_method, **kwargs)
 
     def _request_wrapper(self, _retries=2, _retry_backoff_factor=.3, **kwargs):
         """
@@ -257,20 +265,15 @@ class Request(object):
             logger.debug('Retry attempt %d' % (retry+1))
             self._initialize_context()
 
-    def _request(self, http_method, api_name, api_method,
+    def _request(self, http_method, api_namespace, api_method,
                  data=None, params=None, files=None, headers=None, requests_params=None, **kwargs):
         _ = kwargs.pop('SIMPLE_RESPONSES', kwargs.pop('SIMPLE_RESPONSE', False))  # ensure SIMPLE_RESPONSE(S) isn't sent
 
-        if isinstance(api_name, APINames):
-            api_name = api_name.value
-        api_path_list = (self._API_URL_BASE_PATH, self._API_URL_API_VERSION, api_name, api_method)
-        url = self._build_url(base_url=self._API_URL_BASE,
-                              host=self.host,
-                              port=self.port,
-                              api_path_list=api_path_list)
-
-        # preserve URL without the path so we don't have to rebuild it next time
-        self._API_URL_BASE = url._replace(path='')
+        self._API_BASE_URL = self._build_base_url(base_url=self._API_BASE_URL, host=self.host, port=self.port)
+        url = self._build_url_path(base_url=self._API_BASE_URL,
+                                   api_base_path=self._API_BASE_PATH,
+                                   api_namespace=api_namespace,
+                                   api_method=api_method)
 
         # mechanism to send additional arguments to Requests for individual API calls
         requests_params = requests_params or dict()
@@ -286,8 +289,8 @@ class Request(object):
 
         # set up headers
         headers = headers or dict()
-        headers['Referer'] = self._API_URL_BASE.geturl()
-        headers['Origin'] = self._API_URL_BASE.geturl()
+        headers['Referer'] = self._API_BASE_URL.geturl()
+        headers['Origin'] = self._API_BASE_URL.geturl()
         # send Content-Length zero for empty POSTs
         # Requests will not send Content-Length if data is empty
         if http_method == 'post' and not any(filter(None, data.values())):
@@ -295,10 +298,6 @@ class Request(object):
 
         # include the SID auth cookie unless we're trying to log in and get a SID
         cookies = {'SID': self._SID if 'auth/login' not in url.path else ''}
-
-        # turn off console-printed warnings about SSL certificate issues (e.g. untrusted since it is self-signed)
-        if not self._VERIFY_WEBUI_CERTIFICATE:
-            disable_warnings(InsecureRequestWarning)
 
         response = requests.request(method=http_method,
                                     url=url.geturl(),
@@ -313,6 +312,74 @@ class Request(object):
         self.verbose_logging(http_method, response, url)
         self.handle_error_responses(data, params, response)
         return response
+
+    @staticmethod
+    def _build_base_url(base_url=None, host='', port=None):
+        """
+        Determine the Base URL for the Web API endpoints.
+        If the user doesn't provide a scheme for the URL, it will try HTTP first and fall back to
+        HTTPS if that doesn't work. While this is probably backwards, qBittorrent or an intervening
+        proxy can simply redirect to HTTPS and that'll be respected.
+        Additionally, if users want to augment the path to the API endpoints, any path provided here
+        will be preserved in the returned Base URL and prefixed to all subsequent API calls.
+
+        :param base_url: if the URL was already built, this is the base URL
+        :param host: user provided hostname for WebUI
+        :return: base URL for Web API endpoint
+        """
+        # build full URL if the base URL isn't currently known.
+        # it will not be known when it's the first time we're here...or if the context was re-initialized.
+        if base_url is None:
+            # urlparse requires some sort of schema for parsing to work at all
+            if not host.lower().startswith(('http:', 'https:', '//')):
+                host = '//' + host
+            base_url = urlparse(url=host)
+            logger.debug('Parsed user URL: %s' % repr(base_url))
+            # default to HTTP if user didn't specify
+            base_url = base_url._replace(scheme='http') if not base_url.scheme else base_url
+            alt_scheme = 'https' if base_url.scheme == 'http' else 'http'
+            # add port number if host doesn't contain one
+            if port is not None and not isinstance(base_url.port, int):
+                base_url = base_url._replace(netloc='%s:%s' % (base_url.netloc, port))
+
+            # detect whether Web API is configured for HTTP or HTTPS
+            logger.debug('Detecting scheme for URL...')
+            try:
+                # skip verification here...if there's a problem, we'll catch it during the actual API call
+                r = requests.head(base_url.geturl(), allow_redirects=True, verify=False)
+                # if WebUI eventually supports sending a redirect from HTTP to HTTPS then
+                # Requests will automatically provide a URL using HTTPS.
+                # For instance, the URL returned below will use the HTTPS scheme.
+                #  >>> requests.head('http://grc.com', allow_redirects=True).url
+                scheme = urlparse(r.url).scheme
+            except requests.exceptions.RequestException:
+                # assume alternative scheme will work...we'll fail later if neither are working
+                scheme = alt_scheme
+
+            # use detected scheme
+            logger.debug('Using %s scheme' % scheme.upper())
+            base_url = base_url._replace(scheme=scheme)
+
+            logger.debug('Base URL: %s' % base_url.geturl())
+
+        return base_url
+
+    @staticmethod
+    def _build_url_path(base_url, api_base_path, api_namespace, api_method):
+        """
+        Determine the full URL path for the API endpoint.
+
+        :param base_url: base URL for API (e.g. http://localhost:8080 or http://example.com/qbt/)
+        :param api_base_path: qBittorrent defined API path prefix (i.e. api/v2/)
+        :param api_namespace: the namespace for the API endpoint (e.g. torrents)
+        :param api_method: the specific method for the API endpoint (e.g. info)
+        :return: full URL for API endpoint (e.g. http://localhost:8080/api/v2/torrents/info or http://example.com/qbt/api/v2/torrents/info)
+        """
+        api_namespace = api_namespace.value if isinstance(api_namespace, APINames) else api_namespace
+        user_base_path = base_url.path or None
+        api_path_list = list(filter(None, (user_base_path, api_base_path, api_namespace, api_method)))
+        url = base_url._replace(path='/'.join(map(lambda s: s.strip('/'), map(str, api_path_list))))
+        return url
 
     @staticmethod
     def handle_error_responses(data, params, response):
@@ -390,50 +457,3 @@ class Request(object):
         if self._PRINT_STACK_FOR_EACH_REQUEST:
             from traceback import print_stack
             print_stack()
-
-    @staticmethod
-    def _build_url(base_url=None, host='', port=None, api_path_list=None):
-        """
-        Create a fully qualified URL (minus query parameters that Requests will add later).
-
-        Supports detecting whether HTTPS is enabled for WebUI.
-
-        :param base_url: if the URL was already built, this is the base URL
-        :param host: user provided hostname for WebUI
-        :param api_path_list: list of strings for API endpoint path (e.g. ['api', 'v2', 'app', 'version'])
-        :return: full URL for WebUI API endpoint
-        """
-        # build full URL if it's the first time we're here
-        if base_url is None:
-            if not host.lower().startswith(('http:', 'https:', '//')):
-                host = '//' + host
-            base_url = urlparse(url=host)
-            # force scheme to HTTP even if host was provided with HTTPS scheme
-            base_url = base_url._replace(scheme='http')
-            # add port number if host doesn't contain one
-            if port is not None and not isinstance(base_url.port, int):
-                base_url = base_url._replace(netloc='%s:%s' % (base_url.netloc, port))
-
-            # detect whether Web API is configured for HTTP or HTTPS
-            logger.debug('Detecting scheme for URL...')
-            try:
-                r = requests.head(base_url.geturl(), allow_redirects=True)
-                # if WebUI eventually supports sending a redirect from HTTP to HTTPS then
-                # Requests will automatically provide a URL using HTTPS.
-                # For instance, the URL returned below will use the HTTPS scheme.
-                #  >>> requests.head('http://grc.com', allow_redirects=True).url
-                scheme = urlparse(r.url).scheme
-            except requests.exceptions.RequestException:
-                # qBittorrent will reject the connection if WebUI is configured for HTTPS.
-                # If something else caused this exception, we'll properly handle that
-                # later during the actual API request.
-                scheme = 'https'
-
-            # use detected scheme
-            logger.debug('Using %s scheme' % scheme.upper())
-            base_url = base_url._replace(scheme=scheme)
-
-            logger.debug('Base URL: %s' % base_url.geturl())
-
-        # add the full API path to complete the URL
-        return base_url._replace(path='/'.join(map(lambda s: s.strip('/'), map(str, api_path_list))))

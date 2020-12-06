@@ -1,3 +1,11 @@
+Version 2020.12.14 (6 dec 2020)
+ - Add support for non-standard API endpoint paths (Fixes #37)
+ - Allows users to leverage this client when qBittorrent is configured behind a reverse proxy.
+  - For instance, if the Web API is being exposed at "http://localhost/qbt/", then users can instantiate via Client(host='localhost/qbt') and all API endpoint paths will be prefixed with "/qbt".
+ - Additionally, the scheme (i.e. http or https) from the user will now be respected as the first choice for which scheme is used to communicate with qBittorrent.
+  - However, users still don't need to even specify a scheme; it'll be automatically determined on the first connection to qBittorrent.
+ - Neither of these should be breaking changes, but if you're instantiating with an incorrect scheme or an irrelevant path, you may need to prevent doing that now.
+
 Version 2020.11.13 (29 nov 2020)
  - Bump for Web API v2.6.1 release
  - Path of torrent content now available via content_path from torrents/info

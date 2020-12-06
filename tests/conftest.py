@@ -129,13 +129,15 @@ def abort_if_qbittorrent_crashes(client):
 def client():
     """qBittorrent Client for testing session"""
     try:
-        client = Client(RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True, VERBOSE_RESPONSE_LOGGING=True)
+        client = Client(RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True,
+                        VERBOSE_RESPONSE_LOGGING=True,
+                        VERIFY_WEBUI_CERTIFICATE=False)
         client.auth_log_in()
         # add orig_torrent to qBittorrent
         client.torrents_add(urls=_orig_torrent_url, upload_limit=10, download_limit=10)
         return client
-    except APIConnectionError:
-        pytest.exit('qBittorrent was not running when tests started')
+    except APIConnectionError as e:
+        pytest.exit('qBittorrent was not running when tests started: %s' % repr(e))
 
 
 @pytest.fixture(scope='session')

@@ -10,7 +10,7 @@ from qbittorrentapi.search import SearchAPIMixIn
 # Implementation
 #     Required API parameters
 #         - To avoid runtime errors, required API parameters are not explicitly
-#           enforced in the code. Instead, I found if qBittorent returns HTTP400
+#           enforced in the code. Instead, I found if qBittorrent returns HTTP400
 #           without am error message, at least one required parameter is missing.
 #           This raises a MissingRequiredParameters400 error.
 #         - Alternatively, if a parameter is malformatted, HTTP400 is returned
@@ -23,7 +23,8 @@ from qbittorrentapi.search import SearchAPIMixIn
 # API Peculiarities
 #     app/setPreferences
 #         - This was endlessly frustrating since it requires data in the
-#           form of {'json': dumps({'dht': True})}...
+#           form of {'json': dumps({'dht': True})}...this way, Requests sends the
+#           JSON dump as a key/value pair for "json" via x-www-form-urlencoded.
 #         - Sending an empty string for 'banned_ips' drops the useless message
 #           below in to the log file (same for WebUI):
 #             ' is not a valid IP address and was rejected while applying the list of banned addresses.'
@@ -70,8 +71,8 @@ class Client(AppAPIMixIn,
     :param VERIFY_WEBUI_CERTIFICATE: Set to False to skip verify certificate for HTTPS connections;
         for instance, if the connection is using a self-signed certificate. Not setting this to False for self-signed
         certs will cause a APIConnectionError exception to be raised.
-    :param RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS: Some Endpoints may not be implemented in older
-        versions of qBittorrent. Setting this to True will raise a UnimplementedError instead of just returning None.
+    :param RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS: Some Endpoints may not be implemented in older
+        versions of qBittorrent. Setting this to True will raise a NotImplementedError instead of just returning None.
     :param DISABLE_LOGGING_DEBUG_OUTPUT: Turn off debug output from logging for this package as well as Requests & urllib3.
     """
 
