@@ -21,7 +21,7 @@ def test_is_version_less_than():
 
 
 def test_login_required(caplog, app_version):
-    client = Client(RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True)
+    client = Client(RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True, VERIFY_WEBUI_CERTIFICATE=False)
     with caplog.at_level(logging.DEBUG, logger='qbittorrentapi'):
         qbt_version = client.app.version
     assert 'Not logged in...attempting login' in caplog.text
