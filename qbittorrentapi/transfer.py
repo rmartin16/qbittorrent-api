@@ -41,6 +41,7 @@ class Transfer(ClientCache):
     @property
     def speed_limits_mode(self):
         return self._client.transfer_speed_limits_mode()
+
     speedLimitsMode = speed_limits_mode
 
     @speedLimitsMode.setter
@@ -51,13 +52,16 @@ class Transfer(ClientCache):
     def speed_limits_mode(self, v):
         self.toggle_speed_limits_mode(intended_state=v)
 
-    @Alias('toggleSpeedLimitsMode')
+    @Alias("toggleSpeedLimitsMode")
     def toggle_speed_limits_mode(self, intended_state=None, **kwargs):
-        return self._client.transfer_toggle_speed_limits_mode(intended_state=intended_state, **kwargs)
+        return self._client.transfer_toggle_speed_limits_mode(
+            intended_state=intended_state, **kwargs
+        )
 
     @property
     def download_limit(self):
         return self._client.transfer_download_limit()
+
     downloadLimit = download_limit
 
     @downloadLimit.setter
@@ -71,6 +75,7 @@ class Transfer(ClientCache):
     @property
     def upload_limit(self):
         return self._client.transfer_upload_limit()
+
     uploadLimit = upload_limit
 
     @uploadLimit.setter
@@ -81,15 +86,15 @@ class Transfer(ClientCache):
     def upload_limit(self, v):
         self.set_upload_limit(limit=v)
 
-    @Alias('setDownloadLimit')
+    @Alias("setDownloadLimit")
     def set_download_limit(self, limit=None, **kwargs):
         return self._client.transfer_set_download_limit(limit=limit, **kwargs)
 
-    @Alias('setUploadLimit')
+    @Alias("setUploadLimit")
     def set_upload_limit(self, limit=None, **kwargs):
         return self._client.transfer_set_upload_limit(limit=limit, **kwargs)
 
-    @Alias('banPeers')
+    @Alias("banPeers")
     def ban_peers(self, peers=None, **kwargs):
         return self._client.transfer_ban_peers(peers=peers, **kwargs)
 
@@ -102,11 +107,11 @@ class TransferAPIMixIn(Request):
     @property
     def transfer(self):
         """
-       Allows for transparent interaction with Transfer endpoints.
+        Allows for transparent interaction with Transfer endpoints.
 
-       See Transfer class for usage.
-       :return: Transfer object
-       """
+        See Transfer class for usage.
+        :return: Transfer object
+        """
         if self._transfer is None:
             self._transfer = Transfer(client=self)
         return self._transfer
@@ -120,9 +125,9 @@ class TransferAPIMixIn(Request):
         :return: dictionary of status items
             Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-global-transfer-info
         """
-        return self._get(_name=APINames.Transfer, _method='info', **kwargs)
+        return self._get(_name=APINames.Transfer, _method="info", **kwargs)
 
-    @Alias('transfer_speedLimitsMode')
+    @Alias("transfer_speedLimitsMode")
     @response_text(str)
     @login_required
     def transfer_speed_limits_mode(self, **kwargs):
@@ -131,9 +136,9 @@ class TransferAPIMixIn(Request):
 
         :return: '1' if alternative speed limits are currently enabled, '0' otherwise
         """
-        return self._get(_name=APINames.Transfer, _method='speedLimitsMode', **kwargs)
+        return self._get(_name=APINames.Transfer, _method="speedLimitsMode", **kwargs)
 
-    @Alias('transfer_toggleSpeedLimitsMode')
+    @Alias("transfer_toggleSpeedLimitsMode")
     @login_required
     def transfer_toggle_speed_limits_mode(self, intended_state=None, **kwargs):
         """
@@ -143,10 +148,14 @@ class TransferAPIMixIn(Request):
                                Leaving None will toggle the current state.
         :return: None
         """
-        if (self.transfer_speed_limits_mode() == '1') is not intended_state or intended_state is None:
-            self._post(_name=APINames.Transfer, _method='toggleSpeedLimitsMode', **kwargs)
+        if (
+            self.transfer_speed_limits_mode() == "1"
+        ) is not intended_state or intended_state is None:
+            self._post(
+                _name=APINames.Transfer, _method="toggleSpeedLimitsMode", **kwargs
+            )
 
-    @Alias('transfer_downloadLimit')
+    @Alias("transfer_downloadLimit")
     @response_text(int)
     @login_required
     def transfer_download_limit(self, **kwargs):
@@ -155,9 +164,9 @@ class TransferAPIMixIn(Request):
 
         :return: integer
         """
-        return self._get(_name=APINames.Transfer, _method='downloadLimit', **kwargs)
+        return self._get(_name=APINames.Transfer, _method="downloadLimit", **kwargs)
 
-    @Alias('transfer_uploadLimit')
+    @Alias("transfer_uploadLimit")
     @response_text(int)
     @login_required
     def transfer_upload_limit(self, **kwargs):
@@ -166,9 +175,9 @@ class TransferAPIMixIn(Request):
 
         :return: integer
         """
-        return self._get(_name=APINames.Transfer, _method='uploadLimit', **kwargs)
+        return self._get(_name=APINames.Transfer, _method="uploadLimit", **kwargs)
 
-    @Alias('transfer_setDownloadLimit')
+    @Alias("transfer_setDownloadLimit")
     @login_required
     def transfer_set_download_limit(self, limit=None, **kwargs):
         """
@@ -177,10 +186,12 @@ class TransferAPIMixIn(Request):
         :param limit: download limit in bytes/second (0 or -1 for no limit)
         :return: None
         """
-        data = {'limit': limit}
-        self._post(_name=APINames.Transfer, _method='setDownloadLimit', data=data, **kwargs)
+        data = {"limit": limit}
+        self._post(
+            _name=APINames.Transfer, _method="setDownloadLimit", data=data, **kwargs
+        )
 
-    @Alias('transfer_setUploadLimit')
+    @Alias("transfer_setUploadLimit")
     @login_required
     def transfer_set_upload_limit(self, limit=None, **kwargs):
         """
@@ -189,11 +200,13 @@ class TransferAPIMixIn(Request):
         :param limit: upload limit in bytes/second (0 or -1 for no limit)
         :return: None
         """
-        data = {'limit': limit}
-        self._post(_name=APINames.Transfer, _method='setUploadLimit', data=data, **kwargs)
+        data = {"limit": limit}
+        self._post(
+            _name=APINames.Transfer, _method="setUploadLimit", data=data, **kwargs
+        )
 
-    @Alias('transfer_banPeers')
-    @version_implemented('2.3', 'transfer/banPeers')
+    @Alias("transfer_banPeers")
+    @version_implemented("2.3", "transfer/banPeers")
     @login_required
     def transfer_ban_peers(self, peers=None, **kwargs):
         """
@@ -202,5 +215,5 @@ class TransferAPIMixIn(Request):
         :param peers: one or more peers to ban. each peer should take the form 'host:port'
         :return: None
         """
-        data = {'peers': self._list2string(peers, '|')}
-        self._post(_name=APINames.Transfer, _method='banPeers', data=data, **kwargs)
+        data = {"peers": self._list2string(peers, "|")}
+        self._post(_name=APINames.Transfer, _method="banPeers", data=data, **kwargs)

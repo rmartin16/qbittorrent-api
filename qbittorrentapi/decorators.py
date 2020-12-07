@@ -76,7 +76,7 @@ def aliased(aliased_class):
     """
     original_methods = aliased_class.__dict__.copy()
     for method in original_methods.values():
-        if hasattr(method, '_aliases'):
+        if hasattr(method, "_aliases"):
             # Add the aliases for 'method', but don't override any
             # previously-defined attribute of 'aliased_class'
             # noinspection PyProtectedMember
@@ -91,12 +91,12 @@ def login_required(f):
     @wraps(f)
     def wrapper(obj, *args, **kwargs):
         if not obj.is_logged_in:
-            logger.debug('Not logged in...attempting login')
+            logger.debug("Not logged in...attempting login")
             obj.auth_log_in()
         try:
             return f(obj, *args, **kwargs)
         except HTTP403Error:
-            logger.debug('Login may have expired...attempting new login')
+            logger.debug("Login may have expired...attempting new login")
             obj.auth_log_in()
 
         return f(obj, *args, **kwargs)
@@ -121,8 +121,8 @@ def response_text(response_class):
             try:
                 return response_class(result.text)
             except Exception:
-                logger.debug('Exception during response parsing.', exc_info=True)
-                raise APIError('Exception during response parsing')
+                logger.debug("Exception during response parsing.", exc_info=True)
+                raise APIError("Exception during response parsing")
 
         return wrapper
 
@@ -141,7 +141,9 @@ def response_json(response_class):
     def _inner(f):
         @wraps(f)
         def wrapper(obj, *args, **kwargs):
-            simple_response = obj._SIMPLE_RESPONSES or kwargs.pop('SIMPLE_RESPONSES', kwargs.pop('SIMPLE_RESPONSE', False))
+            simple_response = obj._SIMPLE_RESPONSES or kwargs.pop(
+                "SIMPLE_RESPONSES", kwargs.pop("SIMPLE_RESPONSE", False)
+            )
             response = f(obj, *args, **kwargs)
             try:
                 if isinstance(response, response_class):
@@ -156,8 +158,8 @@ def response_json(response_class):
                         return result
                     return response_class(result, obj)
             except Exception as e:
-                logger.debug('Exception during response parsing.', exc_info=True)
-                raise APIError('Exception during response parsing. Error: %s' % repr(e))
+                logger.debug("Exception during response parsing.", exc_info=True)
+                raise APIError("Exception during response parsing. Error: %s" % repr(e))
 
         return wrapper
 
@@ -185,22 +187,36 @@ def version_implemented(version_introduced, endpoint, end_point_params=None):
                     if not isinstance(end_point_params, list):
                         parameters_list = [end_point_params]
                     # each tuple should be ('python param name', 'api param name')
-                    for parameter, api_parameter in [t for t in parameters_list if t[0] in kwargs]:
+                    for parameter, api_parameter in [
+                        t for t in parameters_list if t[0] in kwargs
+                    ]:
                         if kwargs[parameter] is None:
                             continue
-                        error_message = 'WARNING: Parameter "%s (%s)" for endpoint "%s" is Not Implemented. ' \
-                                        'Web API v%s is installed. This endpoint parameter is available starting ' \
-                                        'in Web API v%s.' \
-                                        % (api_parameter, parameter, endpoint, current_version, version_introduced)
+                        error_message = (
+                            'WARNING: Parameter "%s (%s)" for endpoint "%s" is Not Implemented. '
+                            "Web API v%s is installed. This endpoint parameter is available starting "
+                            "in Web API v%s."
+                            % (
+                                api_parameter,
+                                parameter,
+                                endpoint,
+                                current_version,
+                                version_introduced,
+                            )
+                        )
                         logger.debug(error_message)
-                        if obj._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS:
+                        if (
+                            obj._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS
+                        ):
                             raise NotImplementedError(error_message)
                         kwargs[parameter] = None
                 # or skip running unsupported API calls
                 if not end_point_params:
-                    error_message = 'ERROR: Endpoint "%s" is Not Implemented. Web API v%s is installed. This endpoint' \
-                                    ' is available starting in Web API v%s.' \
-                                    % (endpoint, current_version, version_introduced)
+                    error_message = (
+                        'ERROR: Endpoint "%s" is Not Implemented. Web API v%s is installed. This endpoint'
+                        " is available starting in Web API v%s."
+                        % (endpoint, current_version, version_introduced)
+                    )
                     logger.debug(error_message)
                     if obj._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS:
                         raise NotImplementedError(error_message)
@@ -225,9 +241,11 @@ def version_removed(version_obsoleted, endpoint):
         def wrapper(obj, *args, **kwargs):
             current_version = obj._app_web_api_version_from_version_checker()
             if _is_version_less_than(version_obsoleted, current_version, lteq=True):
-                error_message = 'ERROR: Endpoint "%s" is Not Implemented. Web API v%s is installed. This endpoint ' \
-                                'was removed in Web API v%s.' \
-                                % (endpoint, current_version, version_obsoleted)
+                error_message = (
+                    'ERROR: Endpoint "%s" is Not Implemented. Web API v%s is installed. This endpoint '
+                    "was removed in Web API v%s."
+                    % (endpoint, current_version, version_obsoleted)
+                )
                 logger.debug(error_message)
                 if obj._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS:
                     raise NotImplementedError(error_message)

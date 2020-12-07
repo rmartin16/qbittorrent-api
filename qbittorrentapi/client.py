@@ -41,13 +41,15 @@ from qbittorrentapi.search import SearchAPIMixIn
 #         - [Resolved] https://github.com/qbittorrent/qBittorrent/issues/10606
 
 
-class Client(AppAPIMixIn,
-             LogAPIMixIn,
-             SyncAPIMixIn,
-             TransferAPIMixIn,
-             TorrentsAPIMixIn,
-             RSSAPIMixIn,
-             SearchAPIMixIn):
+class Client(
+    AppAPIMixIn,
+    LogAPIMixIn,
+    SyncAPIMixIn,
+    TransferAPIMixIn,
+    TorrentsAPIMixIn,
+    RSSAPIMixIn,
+    SearchAPIMixIn,
+):
 
     """
     Initialize API for qBittorrent client.
@@ -76,5 +78,7 @@ class Client(AppAPIMixIn,
     :param DISABLE_LOGGING_DEBUG_OUTPUT: Turn off debug output from logging for this package as well as Requests & urllib3.
     """
 
-    def __init__(self, host='', port=None, username=None, password=None, **kwargs):
-        super(Client, self).__init__(host=host, port=port, username=username, password=password, **kwargs)
+    def __init__(self, host="", port=None, username=None, password=None, **kwargs):
+        super(Client, self).__init__(
+            host=host, port=port, username=username, password=password, **kwargs
+        )

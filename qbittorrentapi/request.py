@@ -36,16 +36,18 @@ logger = logging.getLogger(__name__)
 class Request(object):
     """Facilitates HTTP requests to qBittorrent."""
 
-    def __init__(self, host='', port=None, username=None, password=None, **kwargs):
+    def __init__(self, host="", port=None, username=None, password=None, **kwargs):
         self.host = host
         self.port = port
-        self.username = username or ''
-        self._password = password or ''
+        self.username = username or ""
+        self._password = password or ""
 
         # defaults that should not change
-        self._API_URL_PATH_NAMESPACE = 'api'
-        self._API_URL_PATH_VERSION = 'v2'
-        self._API_BASE_PATH = self._API_URL_PATH_NAMESPACE + '/' + self._API_URL_PATH_VERSION
+        self._API_URL_PATH_NAMESPACE = "api"
+        self._API_URL_PATH_VERSION = "v2"
+        self._API_BASE_PATH = (
+            self._API_URL_PATH_NAMESPACE + "/" + self._API_URL_PATH_VERSION
+        )
 
         # allow users to further qualify API path
         self._USER_URL_BASE_PATH = None
@@ -68,36 +70,57 @@ class Request(object):
         self._API_BASE_URL = None
 
         # Configuration variables
-        self._VERIFY_WEBUI_CERTIFICATE = kwargs.pop('VERIFY_WEBUI_CERTIFICATE', True)
+        self._VERIFY_WEBUI_CERTIFICATE = kwargs.pop("VERIFY_WEBUI_CERTIFICATE", True)
         self._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS = kwargs.pop(
-            'RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS',
-            kwargs.pop('RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS', False))
-        self._VERBOSE_RESPONSE_LOGGING = kwargs.pop('VERBOSE_RESPONSE_LOGGING', False)
-        self._PRINT_STACK_FOR_EACH_REQUEST = kwargs.pop('PRINT_STACK_FOR_EACH_REQUEST', False)
-        self._SIMPLE_RESPONSES = kwargs.pop('SIMPLE_RESPONSES', False)
+            "RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS",
+            kwargs.pop(
+                "RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS", False
+            ),
+        )
+        self._VERBOSE_RESPONSE_LOGGING = kwargs.pop("VERBOSE_RESPONSE_LOGGING", False)
+        self._PRINT_STACK_FOR_EACH_REQUEST = kwargs.pop(
+            "PRINT_STACK_FOR_EACH_REQUEST", False
+        )
+        self._SIMPLE_RESPONSES = kwargs.pop("SIMPLE_RESPONSES", False)
 
-        if kwargs.pop('DISABLE_LOGGING_DEBUG_OUTPUT', False):
-            logging.getLogger('qbittorrentapi').setLevel(logging.INFO)
-            logging.getLogger('requests').setLevel(logging.INFO)
-            logging.getLogger('urllib3').setLevel(logging.INFO)
+        if kwargs.pop("DISABLE_LOGGING_DEBUG_OUTPUT", False):
+            logging.getLogger("qbittorrentapi").setLevel(logging.INFO)
+            logging.getLogger("requests").setLevel(logging.INFO)
+            logging.getLogger("urllib3").setLevel(logging.INFO)
 
         # Environment variables have lowest priority
-        if self.host == '' and environ.get('PYTHON_QBITTORRENTAPI_HOST') is not None:
-            logger.debug('Using PYTHON_QBITTORRENTAPI_HOST env variable for qBittorrent hostname')
-            self.host = environ['PYTHON_QBITTORRENTAPI_HOST']
-        if self.username == '' and environ.get('PYTHON_QBITTORRENTAPI_USERNAME') is not None:
-            logger.debug('Using PYTHON_QBITTORRENTAPI_USERNAME env variable for username')
-            self.username = environ['PYTHON_QBITTORRENTAPI_USERNAME']
+        if self.host == "" and environ.get("PYTHON_QBITTORRENTAPI_HOST") is not None:
+            logger.debug(
+                "Using PYTHON_QBITTORRENTAPI_HOST env variable for qBittorrent hostname"
+            )
+            self.host = environ["PYTHON_QBITTORRENTAPI_HOST"]
+        if (
+            self.username == ""
+            and environ.get("PYTHON_QBITTORRENTAPI_USERNAME") is not None
+        ):
+            logger.debug(
+                "Using PYTHON_QBITTORRENTAPI_USERNAME env variable for username"
+            )
+            self.username = environ["PYTHON_QBITTORRENTAPI_USERNAME"]
 
-        if self._password == '' and environ.get('PYTHON_QBITTORRENTAPI_PASSWORD') is not None:
-            logger.debug('Using PYTHON_QBITTORRENTAPI_PASSWORD env variable for password')
-            self._password = environ['PYTHON_QBITTORRENTAPI_PASSWORD']
+        if (
+            self._password == ""
+            and environ.get("PYTHON_QBITTORRENTAPI_PASSWORD") is not None
+        ):
+            logger.debug(
+                "Using PYTHON_QBITTORRENTAPI_PASSWORD env variable for password"
+            )
+            self._password = environ["PYTHON_QBITTORRENTAPI_PASSWORD"]
 
-        if self._VERIFY_WEBUI_CERTIFICATE is True and environ.get('PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE') is not None:
+        if (
+            self._VERIFY_WEBUI_CERTIFICATE is True
+            and environ.get("PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE")
+            is not None
+        ):
             self._VERIFY_WEBUI_CERTIFICATE = False
 
         # Mocking variables until better unit testing exists
-        self._MOCK_WEB_API_VERSION = kwargs.pop('MOCK_WEB_API_VERSION', None)
+        self._MOCK_WEB_API_VERSION = kwargs.pop("MOCK_WEB_API_VERSION", None)
 
         # turn off console-printed warnings about SSL certificate issues (e.g. untrusted since it is self-signed)
         if not self._VERIFY_WEBUI_CERTIFICATE:
@@ -122,26 +145,30 @@ class Request(object):
         :return: None
         """
         if username:
-            self.username = username or ''
-            self._password = password or ''
+            self.username = username or ""
+            self._password = password or ""
 
         try:
             self._initialize_context()
-            response = self._post(_name=APINames.Authorization,
-                                  _method='login',
-                                  data={'username': self.username, 'password': self._password})
-            self._SID = response.cookies['SID']
+            response = self._post(
+                _name=APINames.Authorization,
+                _method="login",
+                data={"username": self.username, "password": self._password},
+            )
+            self._SID = response.cookies["SID"]
         except KeyError:
             logger.debug('Login failed for user "%s"' % self.username)
-            raise self._suppress_context(LoginFailed('Login authorization failed for user "%s"' % self.username))
+            raise self._suppress_context(
+                LoginFailed('Login authorization failed for user "%s"' % self.username)
+            )
         else:
             logger.debug('Login successful for user "%s"' % self.username)
-            logger.debug('SID: %s' % self._SID)
+            logger.debug("SID: %s" % self._SID)
 
     @login_required
     def auth_log_out(self, **kwargs):
         """End session with qBittorrent."""
-        self._get(_name=APINames.Authorization, _method='logout', **kwargs)
+        self._get(_name=APINames.Authorization, _method="logout", **kwargs)
 
     ########################################
     # Helpers
@@ -155,7 +182,9 @@ class Request(object):
         :param delimiter: delimiter for concatenation
         :return: if input is a list, concatenated string...else whatever the input was
         """
-        if not isinstance(input_list, six.string_types) and isinstance(input_list, Iterable):
+        if not isinstance(input_list, six.string_types) and isinstance(
+            input_list, Iterable
+        ):
             return delimiter.join(map(str, input_list))
         return input_list
 
@@ -215,13 +244,17 @@ class Request(object):
         self._rss = None
         self._search = None
 
-    def _get(self, _name=APINames.EMPTY, _method='', **kwargs):
-        return self._request_wrapper(http_method='get', api_namespace=_name, api_method=_method, **kwargs)
+    def _get(self, _name=APINames.EMPTY, _method="", **kwargs):
+        return self._request_wrapper(
+            http_method="get", api_namespace=_name, api_method=_method, **kwargs
+        )
 
-    def _post(self, _name=APINames.EMPTY, _method='', **kwargs):
-        return self._request_wrapper(http_method='post', api_namespace=_name, api_method=_method, **kwargs)
+    def _post(self, _name=APINames.EMPTY, _method="", **kwargs):
+        return self._request_wrapper(
+            http_method="post", api_namespace=_name, api_method=_method, **kwargs
+        )
 
-    def _request_wrapper(self, _retries=2, _retry_backoff_factor=.3, **kwargs):
+    def _request_wrapper(self, _retries=2, _retry_backoff_factor=0.3, **kwargs):
         """
         Wrapper to manage requests retries.
         This should retry at least twice to account for the Web API switching from HTTP to HTTPS.
@@ -237,24 +270,29 @@ class Request(object):
                     raise
             except Exception as e:
                 if retry >= max_retries:
-                    error_prologue = 'Failed to connect to qBittorrent. '
+                    error_prologue = "Failed to connect to qBittorrent. "
                     error_messages = {
-                        requests.exceptions.SSLError:
-                            'This is likely due to using an untrusted certificate (likely self-signed) '
-                            'for HTTPS qBittorrent WebUI. To suppress this error (and skip certificate '
-                            'verification consequently exposing the HTTPS connection to man-in-the-middle '
-                            'attacks), set VERIFY_WEBUI_CERTIFICATE=False when instantiating Client or set '
-                            'environment variable PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE '
-                            'to a non-null value. SSL Error: %s' % repr(e),
-                        requests.exceptions.HTTPError: 'Invalid HTTP Response: %s' % repr(e),
-                        requests.exceptions.TooManyRedirects: 'Too many redirects: %s' % repr(e),
-                        requests.exceptions.ConnectionError: 'Connection Error: %s' % repr(e),
-                        requests.exceptions.Timeout: 'Timeout Error: %s' % repr(e),
-                        requests.exceptions.RequestException: 'Requests Error: %s' % repr(e)
+                        requests.exceptions.SSLError: "This is likely due to using an untrusted certificate "
+                        "(likely self-signed) for HTTPS qBittorrent WebUI. To suppress this error (and skip "
+                        "certificate verification consequently exposing the HTTPS connection to man-in-the-middle "
+                        "attacks), set VERIFY_WEBUI_CERTIFICATE=False when instantiating Client or set "
+                        "environment variable PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE "
+                        "to a non-null value. SSL Error: %s" % repr(e),
+                        requests.exceptions.HTTPError: "Invalid HTTP Response: %s"
+                        % repr(e),
+                        requests.exceptions.TooManyRedirects: "Too many redirects: %s"
+                        % repr(e),
+                        requests.exceptions.ConnectionError: "Connection Error: %s"
+                        % repr(e),
+                        requests.exceptions.Timeout: "Timeout Error: %s" % repr(e),
+                        requests.exceptions.RequestException: "Requests Error: %s"
+                        % repr(e),
                     }
-                    error_message = error_prologue + error_messages.get(type(e), 'Unknown Error: %s' % repr(e))
+                    error_message = error_prologue + error_messages.get(
+                        type(e), "Unknown Error: %s" % repr(e)
+                    )
                     logger.debug(error_message)
-                    response = getattr(e, 'response', None)
+                    response = getattr(e, "response", None)
                     raise APIConnectionError(error_message, response=response)
 
             # back off on attempting each subsequent retry. first retry is always immediate.
@@ -262,18 +300,34 @@ class Request(object):
             if retry > 0:
                 backoff_time = _retry_backoff_factor * (2 ** ((retry + 1) - 1))
                 sleep(backoff_time if backoff_time < 30 else 30)
-            logger.debug('Retry attempt %d' % (retry+1))
+            logger.debug("Retry attempt %d" % (retry + 1))
             self._initialize_context()
 
-    def _request(self, http_method, api_namespace, api_method,
-                 data=None, params=None, files=None, headers=None, requests_params=None, **kwargs):
-        _ = kwargs.pop('SIMPLE_RESPONSES', kwargs.pop('SIMPLE_RESPONSE', False))  # ensure SIMPLE_RESPONSE(S) isn't sent
+    def _request(
+        self,
+        http_method,
+        api_namespace,
+        api_method,
+        data=None,
+        params=None,
+        files=None,
+        headers=None,
+        requests_params=None,
+        **kwargs
+    ):
+        _ = kwargs.pop(
+            "SIMPLE_RESPONSES", kwargs.pop("SIMPLE_RESPONSE", False)
+        )  # ensure SIMPLE_RESPONSE(S) isn't sent
 
-        self._API_BASE_URL = self._build_base_url(base_url=self._API_BASE_URL, host=self.host, port=self.port)
-        url = self._build_url_path(base_url=self._API_BASE_URL,
-                                   api_base_path=self._API_BASE_PATH,
-                                   api_namespace=api_namespace,
-                                   api_method=api_method)
+        self._API_BASE_URL = self._build_base_url(
+            base_url=self._API_BASE_URL, host=self.host, port=self.port
+        )
+        url = self._build_url_path(
+            base_url=self._API_BASE_URL,
+            api_base_path=self._API_BASE_PATH,
+            api_namespace=api_namespace,
+            api_method=api_method,
+        )
 
         # mechanism to send additional arguments to Requests for individual API calls
         requests_params = requests_params or dict()
@@ -282,39 +336,41 @@ class Request(object):
         data = data or dict()
         params = params or dict()
         files = files or dict()
-        if http_method == 'get':
+        if http_method == "get":
             params.update(kwargs)
-        if http_method == 'post':
+        if http_method == "post":
             data.update(kwargs)
 
         # set up headers
         headers = headers or dict()
-        headers['Referer'] = self._API_BASE_URL.geturl()
-        headers['Origin'] = self._API_BASE_URL.geturl()
+        headers["Referer"] = self._API_BASE_URL.geturl()
+        headers["Origin"] = self._API_BASE_URL.geturl()
         # send Content-Length zero for empty POSTs
         # Requests will not send Content-Length if data is empty
-        if http_method == 'post' and not any(filter(None, data.values())):
-            headers['Content-Length'] = '0'
+        if http_method == "post" and not any(filter(None, data.values())):
+            headers["Content-Length"] = "0"
 
         # include the SID auth cookie unless we're trying to log in and get a SID
-        cookies = {'SID': self._SID if 'auth/login' not in url.path else ''}
+        cookies = {"SID": self._SID if "auth/login" not in url.path else ""}
 
-        response = requests.request(method=http_method,
-                                    url=url.geturl(),
-                                    headers=headers,
-                                    cookies=cookies,
-                                    verify=self._VERIFY_WEBUI_CERTIFICATE,
-                                    data=data,
-                                    params=params,
-                                    files=files,
-                                    **requests_params)
+        response = requests.request(
+            method=http_method,
+            url=url.geturl(),
+            headers=headers,
+            cookies=cookies,
+            verify=self._VERIFY_WEBUI_CERTIFICATE,
+            data=data,
+            params=params,
+            files=files,
+            **requests_params
+        )
 
         self.verbose_logging(http_method, response, url)
         self.handle_error_responses(data, params, response)
         return response
 
     @staticmethod
-    def _build_base_url(base_url=None, host='', port=None):
+    def _build_base_url(base_url=None, host="", port=None):
         """
         Determine the Base URL for the Web API endpoints.
         If the user doesn't provide a scheme for the URL, it will try HTTP first and fall back to
@@ -331,19 +387,21 @@ class Request(object):
         # it will not be known when it's the first time we're here...or if the context was re-initialized.
         if base_url is None:
             # urlparse requires some sort of schema for parsing to work at all
-            if not host.lower().startswith(('http:', 'https:', '//')):
-                host = '//' + host
+            if not host.lower().startswith(("http:", "https:", "//")):
+                host = "//" + host
             base_url = urlparse(url=host)
-            logger.debug('Parsed user URL: %s' % repr(base_url))
+            logger.debug("Parsed user URL: %s" % repr(base_url))
             # default to HTTP if user didn't specify
-            base_url = base_url._replace(scheme='http') if not base_url.scheme else base_url
-            alt_scheme = 'https' if base_url.scheme == 'http' else 'http'
+            base_url = (
+                base_url._replace(scheme="http") if not base_url.scheme else base_url
+            )
+            alt_scheme = "https" if base_url.scheme == "http" else "http"
             # add port number if host doesn't contain one
             if port is not None and not isinstance(base_url.port, int):
-                base_url = base_url._replace(netloc='%s:%s' % (base_url.netloc, port))
+                base_url = base_url._replace(netloc="%s:%s" % (base_url.netloc, port))
 
             # detect whether Web API is configured for HTTP or HTTPS
-            logger.debug('Detecting scheme for URL...')
+            logger.debug("Detecting scheme for URL...")
             try:
                 # skip verification here...if there's a problem, we'll catch it during the actual API call
                 r = requests.head(base_url.geturl(), allow_redirects=True, verify=False)
@@ -357,10 +415,10 @@ class Request(object):
                 scheme = alt_scheme
 
             # use detected scheme
-            logger.debug('Using %s scheme' % scheme.upper())
+            logger.debug("Using %s scheme" % scheme.upper())
             base_url = base_url._replace(scheme=scheme)
 
-            logger.debug('Base URL: %s' % base_url.geturl())
+            logger.debug("Base URL: %s" % base_url.geturl())
 
         return base_url
 
@@ -375,10 +433,18 @@ class Request(object):
         :param api_method: the specific method for the API endpoint (e.g. info)
         :return: full URL for API endpoint (e.g. http://localhost:8080/api/v2/torrents/info or http://example.com/qbt/api/v2/torrents/info)
         """
-        api_namespace = api_namespace.value if isinstance(api_namespace, APINames) else api_namespace
+        api_namespace = (
+            api_namespace.value
+            if isinstance(api_namespace, APINames)
+            else api_namespace
+        )
         user_base_path = base_url.path or None
-        api_path_list = list(filter(None, (user_base_path, api_base_path, api_namespace, api_method)))
-        url = base_url._replace(path='/'.join(map(lambda s: s.strip('/'), map(str, api_path_list))))
+        api_path_list = list(
+            filter(None, (user_base_path, api_base_path, api_namespace, api_method))
+        )
+        url = base_url._replace(
+            path="/".join(map(lambda s: s.strip("/"), map(str, api_path_list)))
+        )
         return url
 
     @staticmethod
@@ -392,7 +458,8 @@ class Request(object):
             #
             # If an error_message isn't returned, qBittorrent didn't receive all required parameters.
             # APIErrorType::BadParams
-            if response.text in ('', 'Bad Request'):  # the name of the HTTP error started being returned in v4.3.0
+            # the name (i.e. Bad Response) of the HTTP error started being returned in v4.3.0
+            if response.text in ("", "Bad Request"):
                 raise MissingRequiredParameters400Error()
             raise InvalidRequest400Error(response.text)
 
@@ -409,16 +476,16 @@ class Request(object):
             # API method doesn't exist or more likely, torrent not found
             # APIErrorType::NotFound
             error_message = response.text
-            if error_message == '':
-                error_torrent_hash = ''
+            if error_message == "":
+                error_torrent_hash = ""
                 if data:
-                    error_torrent_hash = data.get('hash', error_torrent_hash)
-                    error_torrent_hash = data.get('hashes', error_torrent_hash)
-                if params and error_torrent_hash == '':
-                    error_torrent_hash = params.get('hash', error_torrent_hash)
-                    error_torrent_hash = params.get('hashes', error_torrent_hash)
+                    error_torrent_hash = data.get("hash", error_torrent_hash)
+                    error_torrent_hash = data.get("hashes", error_torrent_hash)
+                if params and error_torrent_hash == "":
+                    error_torrent_hash = params.get("hash", error_torrent_hash)
+                    error_torrent_hash = params.get("hashes", error_torrent_hash)
                 if error_torrent_hash:
-                    error_message = 'Torrent hash(es): %s' % error_torrent_hash
+                    error_message = "Torrent hash(es): %s" % error_torrent_hash
             raise NotFound404Error(error_message)
 
         elif response.status_code == 409:
@@ -442,18 +509,45 @@ class Request(object):
             resp_logger = logger.debug
             max_text_length_to_log = 254
             if response.status_code != 200:
-                max_text_length_to_log = 10000  # log as much as possible in a error condition
+                max_text_length_to_log = (
+                    10000  # log as much as possible in a error condition
+                )
 
-            resp_logger('Request URL: (%s) %s' % (http_method.upper(), response.url))
-            if str(response.request.body) not in ('None', '') and 'auth/login' not in url.path:
-                body_len = max_text_length_to_log if len(response.request.body) > max_text_length_to_log else len(response.request.body)
-                resp_logger('Request body: %s%s' % (response.request.body[:body_len], '...<truncated>' if body_len >= 80 else ''))
-
-            resp_logger('Response status: %s (%s)' % (response.status_code, response.reason))
-            if response.text:
-                text_len = max_text_length_to_log if len(response.text) > max_text_length_to_log else len(response.text)
+            resp_logger("Request URL: (%s) %s" % (http_method.upper(), response.url))
+            if (
+                str(response.request.body) not in ("None", "")
+                and "auth/login" not in url.path
+            ):
+                body_len = (
+                    max_text_length_to_log
+                    if len(response.request.body) > max_text_length_to_log
+                    else len(response.request.body)
+                )
                 resp_logger(
-                    'Response text: %s%s' % (response.text[:text_len], '...<truncated>' if text_len >= 80 else ''))
+                    "Request body: %s%s"
+                    % (
+                        response.request.body[:body_len],
+                        "...<truncated>" if body_len >= 80 else "",
+                    )
+                )
+
+            resp_logger(
+                "Response status: %s (%s)" % (response.status_code, response.reason)
+            )
+            if response.text:
+                text_len = (
+                    max_text_length_to_log
+                    if len(response.text) > max_text_length_to_log
+                    else len(response.text)
+                )
+                resp_logger(
+                    "Response text: %s%s"
+                    % (
+                        response.text[:text_len],
+                        "...<truncated>" if text_len >= 80 else "",
+                    )
+                )
         if self._PRINT_STACK_FOR_EACH_REQUEST:
             from traceback import print_stack
+
             print_stack()
