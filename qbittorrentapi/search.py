@@ -14,7 +14,7 @@ from qbittorrentapi.request import Request
 
 class SearchJobDictionary(Dictionary):
     def __init__(self, data, client):
-        self._search_job_id = data.get('id', None)
+        self._search_job_id = data.get("id", None)
         super(SearchJobDictionary, self).__init__(data=data, client=client)
 
     def stop(self, **kwargs):
@@ -24,7 +24,9 @@ class SearchJobDictionary(Dictionary):
         return self._client.search.status(search_id=self._search_job_id, **kwargs)
 
     def results(self, limit=None, offset=None, **kwargs):
-        return self._client.search.results(limit=limit, offset=offset, search_id=self._search_job_id, **kwargs)
+        return self._client.search.results(
+            limit=limit, offset=offset, search_id=self._search_job_id, **kwargs
+        )
 
     def delete(self, **kwargs):
         return self._client.search.delete(search_id=self._search_job_id, **kwargs)
@@ -36,7 +38,9 @@ class SearchResultsDictionary(Dictionary):
 
 class SearchStatusesList(List):
     def __init__(self, list_entries=None, client=None):
-        super(SearchStatusesList, self).__init__(list_entries, entry_class=SearchStatus, client=client)
+        super(SearchStatusesList, self).__init__(
+            list_entries, entry_class=SearchStatus, client=client
+        )
 
 
 class SearchStatus(ListEntry):
@@ -45,7 +49,9 @@ class SearchStatus(ListEntry):
 
 class SearchCategoriesList(List):
     def __init__(self, list_entries=None, client=None):
-        super(SearchCategoriesList, self).__init__(list_entries, entry_class=SearchCategory, client=client)
+        super(SearchCategoriesList, self).__init__(
+            list_entries, entry_class=SearchCategory, client=client
+        )
 
 
 class SearchCategory(ListEntry):
@@ -54,7 +60,9 @@ class SearchCategory(ListEntry):
 
 class SearchPluginsList(List):
     def __init__(self, list_entries=None, client=None):
-        super(SearchPluginsList, self).__init__(list_entries, entry_class=SearchPlugin, client=client)
+        super(SearchPluginsList, self).__init__(
+            list_entries, entry_class=SearchPlugin, client=client
+        )
 
 
 class SearchPlugin(ListEntry):
@@ -84,7 +92,9 @@ class Search(ClientCache):
     """
 
     def start(self, pattern=None, plugins=None, category=None, **kwargs):
-        return self._client.search_start(pattern=pattern, plugins=plugins, category=category, **kwargs)
+        return self._client.search_start(
+            pattern=pattern, plugins=plugins, category=category, **kwargs
+        )
 
     def stop(self, search_id=None, **kwargs):
         return self._client.search_stop(search_id=search_id, **kwargs)
@@ -93,7 +103,9 @@ class Search(ClientCache):
         return self._client.search_status(search_id=search_id, **kwargs)
 
     def results(self, search_id=None, limit=None, offset=None, **kwargs):
-        return self._client.search_results(search_id=search_id, limit=limit, offset=offset, **kwargs)
+        return self._client.search_results(
+            search_id=search_id, limit=limit, offset=offset, **kwargs
+        )
 
     def delete(self, search_id=None, **kwargs):
         return self._client.search_delete(search_id=search_id, **kwargs)
@@ -105,19 +117,21 @@ class Search(ClientCache):
     def plugins(self):
         return self._client.search_plugins()
 
-    @Alias('installPlugin')
+    @Alias("installPlugin")
     def install_plugin(self, sources=None, **kwargs):
         return self._client.search_install_plugin(sources=sources, **kwargs)
 
-    @Alias('uninstallPlugin')
+    @Alias("uninstallPlugin")
     def uninstall_plugin(self, sources=None, **kwargs):
         return self._client.search_uninstall_plugin(sources=sources, **kwargs)
 
-    @Alias('enablePlugin')
+    @Alias("enablePlugin")
     def enable_plugin(self, plugins=None, enable=None, **kwargs):
-        return self._client.search_enable_plugin(plugins=plugins, enable=enable, **kwargs)
+        return self._client.search_enable_plugin(
+            plugins=plugins, enable=enable, **kwargs
+        )
 
-    @Alias('updatePlugins')
+    @Alias("updatePlugins")
     def update_plugins(self, **kwargs):
         return self._client.search_update_plugins(**kwargs)
 
@@ -138,7 +152,7 @@ class SearchAPIMixIn(Request):
             self._search = Search(client=self)
         return self._search
 
-    @version_implemented('2.1.1', 'search/start')
+    @version_implemented("2.1.1", "search/start")
     @response_json(SearchJobDictionary)
     @login_required
     def search_start(self, pattern=None, plugins=None, category=None, **kwargs):
@@ -152,12 +166,14 @@ class SearchAPIMixIn(Request):
         :param category: categories to limit search; dependent on plugins. (supports 'all')
         :return: search job
         """
-        data = {'pattern': pattern,
-                'plugins': self._list2string(plugins, '|'),
-                'category': category}
-        return self._post(_name=APINames.Search, _method='start', data=data, **kwargs)
+        data = {
+            "pattern": pattern,
+            "plugins": self._list2string(plugins, "|"),
+            "category": category,
+        }
+        return self._post(_name=APINames.Search, _method="start", data=data, **kwargs)
 
-    @version_implemented('2.1.1', 'search/stop')
+    @version_implemented("2.1.1", "search/stop")
     @login_required
     def search_stop(self, search_id=None, **kwargs):
         """
@@ -168,10 +184,10 @@ class SearchAPIMixIn(Request):
         :param search_id: ID of search job to stop
         :return: None
         """
-        data = {'id': search_id}
-        self._post(_name=APINames.Search, _method='stop', data=data, **kwargs)
+        data = {"id": search_id}
+        self._post(_name=APINames.Search, _method="stop", data=data, **kwargs)
 
-    @version_implemented('2.1.1', 'search/status')
+    @version_implemented("2.1.1", "search/status")
     @response_json(SearchStatusesList)
     @login_required
     def search_status(self, search_id=None, **kwargs):
@@ -184,10 +200,12 @@ class SearchAPIMixIn(Request):
         :return: dictionary of searches
             Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-status
         """
-        params = {'id': search_id}
-        return self._get(_name=APINames.Search, _method='status', params=params, **kwargs)
+        params = {"id": search_id}
+        return self._get(
+            _name=APINames.Search, _method="status", params=params, **kwargs
+        )
 
-    @version_implemented('2.1.1', 'search/results')
+    @version_implemented("2.1.1", "search/results")
     @response_json(SearchResultsDictionary)
     @login_required
     def search_results(self, search_id=None, limit=None, offset=None, **kwargs):
@@ -203,12 +221,10 @@ class SearchAPIMixIn(Request):
         :return: Dictionary of results
             Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-results
         """
-        data = {'id': search_id,
-                'limit': limit,
-                'offset': offset}
-        return self._post(_name=APINames.Search, _method='results', data=data, **kwargs)
+        data = {"id": search_id, "limit": limit, "offset": offset}
+        return self._post(_name=APINames.Search, _method="results", data=data, **kwargs)
 
-    @version_implemented('2.1.1', 'search/delete')
+    @version_implemented("2.1.1", "search/delete")
     @login_required
     def search_delete(self, search_id=None, **kwargs):
         """
@@ -219,11 +235,11 @@ class SearchAPIMixIn(Request):
         :param search_id: ID of search to delete
         :return: None
         """
-        data = {'id': search_id}
-        self._post(_name=APINames.Search, _method='delete', data=data, **kwargs)
+        data = {"id": search_id}
+        self._post(_name=APINames.Search, _method="delete", data=data, **kwargs)
 
-    @version_implemented('2.1.1', 'search/categories')
-    @version_removed('2.6', 'search/categories')
+    @version_implemented("2.1.1", "search/categories")
+    @version_removed("2.6", "search/categories")
     @response_json(SearchCategoriesList)
     @login_required
     def search_categories(self, plugin_name=None, **kwargs):
@@ -234,10 +250,12 @@ class SearchAPIMixIn(Request):
         :param plugin_name: Limit categories returned by plugin(s) (supports 'all' and 'enabled')
         :return: list of categories
         """
-        data = {'pluginName': plugin_name}
-        return self._post(_name=APINames.Search, _method='categories', data=data, **kwargs)
+        data = {"pluginName": plugin_name}
+        return self._post(
+            _name=APINames.Search, _method="categories", data=data, **kwargs
+        )
 
-    @version_implemented('2.1.1', 'search/plugins')
+    @version_implemented("2.1.1", "search/plugins")
     @response_json(SearchPluginsList)
     @login_required
     def search_plugins(self, **kwargs):
@@ -247,10 +265,10 @@ class SearchAPIMixIn(Request):
         :return: List of plugins.
             Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-plugins
         """
-        return self._get(_name=APINames.Search, _method='plugins', **kwargs)
+        return self._get(_name=APINames.Search, _method="plugins", **kwargs)
 
-    @version_implemented('2.1.1', 'search/installPlugin')
-    @Alias('search_installPlugin')
+    @version_implemented("2.1.1", "search/installPlugin")
+    @Alias("search_installPlugin")
     @login_required
     def search_install_plugin(self, sources=None, **kwargs):
         """
@@ -259,11 +277,11 @@ class SearchAPIMixIn(Request):
         :param sources: list of URLs or filepaths
         :return: None
         """
-        data = {'sources': self._list2string(sources, '|')}
-        self._post(_name=APINames.Search, _method='installPlugin', data=data, **kwargs)
+        data = {"sources": self._list2string(sources, "|")}
+        self._post(_name=APINames.Search, _method="installPlugin", data=data, **kwargs)
 
-    @version_implemented('2.1.1', 'search/uninstallPlugin')
-    @Alias('search_uninstallPlugin')
+    @version_implemented("2.1.1", "search/uninstallPlugin")
+    @Alias("search_uninstallPlugin")
     @login_required
     def search_uninstall_plugin(self, names=None, **kwargs):
         """
@@ -272,11 +290,13 @@ class SearchAPIMixIn(Request):
         :param names: names of plugins to uninstall
         :return: None
         """
-        data = {'names': self._list2string(names, '|')}
-        self._post(_name=APINames.Search, _method='uninstallPlugin', data=data, **kwargs)
+        data = {"names": self._list2string(names, "|")}
+        self._post(
+            _name=APINames.Search, _method="uninstallPlugin", data=data, **kwargs
+        )
 
-    @version_implemented('2.1.1', 'search/enablePlugin')
-    @Alias('search_enablePlugin')
+    @version_implemented("2.1.1", "search/enablePlugin")
+    @Alias("search_enablePlugin")
     @login_required
     def search_enable_plugin(self, plugins=None, enable=None, **kwargs):
         """
@@ -286,12 +306,11 @@ class SearchAPIMixIn(Request):
         :param enable: True or False
         :return: None
         """
-        data = {'names': self._list2string(plugins, '|'),
-                'enable': enable}
-        self._post(_name=APINames.Search, _method='enablePlugin', data=data, **kwargs)
+        data = {"names": self._list2string(plugins, "|"), "enable": enable}
+        self._post(_name=APINames.Search, _method="enablePlugin", data=data, **kwargs)
 
-    @version_implemented('2.1.1', 'search/updatePlugin')
-    @Alias('search_updatePlugins')
+    @version_implemented("2.1.1", "search/updatePlugin")
+    @Alias("search_updatePlugins")
     @login_required
     def search_update_plugins(self, **kwargs):
         """
@@ -299,4 +318,4 @@ class SearchAPIMixIn(Request):
 
         :return: None
         """
-        self._post(_name=APINames.Search, _method='updatePlugins', **kwargs)
+        self._post(_name=APINames.Search, _method="updatePlugins", **kwargs)

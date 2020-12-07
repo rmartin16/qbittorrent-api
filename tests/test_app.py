@@ -19,10 +19,10 @@ def test_web_api_version(client, api_version):
 
 def test_build_info(client, api_version):
     def run_tests():
-        assert 'libtorrent' in client.app_build_info()
-        assert 'libtorrent' in client.app.build_info
+        assert "libtorrent" in client.app_build_info()
+        assert "libtorrent" in client.app.build_info
 
-    if is_version_less_than(api_version, '2.3', lteq=False):
+    if is_version_less_than(api_version, "2.3", lteq=False):
         with pytest.raises(NotImplementedError):
             run_tests()
     else:
@@ -31,9 +31,9 @@ def test_build_info(client, api_version):
 
 def test_preferences(client):
     prefs = client.app_preferences()
-    assert 'dht' in prefs
-    assert 'dht' in client.app.preferences
-    dht = prefs['dht']
+    assert "dht" in prefs
+    assert "dht" in client.app.preferences
+    dht = prefs["dht"]
     client.app.preferences = dict(dht=(not dht))
     assert not dht is client.app.preferences.dht
     client.app_set_preferences(prefs=dict(dht=dht))

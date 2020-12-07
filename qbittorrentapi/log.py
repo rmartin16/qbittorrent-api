@@ -8,7 +8,9 @@ from qbittorrentapi.request import Request
 
 class LogPeersList(List):
     def __init__(self, list_entries=None, client=None):
-        super(LogPeersList, self).__init__(list_entries, entry_class=LogPeer, client=client)
+        super(LogPeersList, self).__init__(
+            list_entries, entry_class=LogPeer, client=client
+        )
 
 
 class LogPeer(ListEntry):
@@ -17,7 +19,9 @@ class LogPeer(ListEntry):
 
 class LogMainList(List):
     def __init__(self, list_entries=None, client=None):
-        super(LogMainList, self).__init__(list_entries, entry_class=LogEntry, client=client)
+        super(LogMainList, self).__init__(
+            list_entries, entry_class=LogEntry, client=client
+        )
 
 
 class LogEntry(ListEntry):
@@ -48,13 +52,41 @@ class Log(ClientCache):
         return self._client.log_peers(last_known_id=last_known_id, **kwargs)
 
     class _Main(ClientCache):
-        def _api_call(self, normal=None, info=None, warning=None, critical=None, last_known_id=None, **kwargs):
-            return self._client.log_main(normal=normal, info=info, warning=warning, critical=critical,
-                                         last_known_id=last_known_id, **kwargs)
+        def _api_call(
+            self,
+            normal=None,
+            info=None,
+            warning=None,
+            critical=None,
+            last_known_id=None,
+            **kwargs
+        ):
+            return self._client.log_main(
+                normal=normal,
+                info=info,
+                warning=warning,
+                critical=critical,
+                last_known_id=last_known_id,
+                **kwargs
+            )
 
-        def __call__(self, normal=None, info=None, warning=None, critical=None, last_known_id=None, **kwargs):
-            return self._api_call(normal=normal, info=info, warning=warning, critial=critical,
-                                  last_known_id=last_known_id, **kwargs)
+        def __call__(
+            self,
+            normal=None,
+            info=None,
+            warning=None,
+            critical=None,
+            last_known_id=None,
+            **kwargs
+        ):
+            return self._api_call(
+                normal=normal,
+                info=info,
+                warning=warning,
+                critial=critical,
+                last_known_id=last_known_id,
+                **kwargs
+            )
 
         def info(self, last_known_id=None, **kwargs):
             return self._api_call(last_known_id=last_known_id, **kwargs)
@@ -63,10 +95,18 @@ class Log(ClientCache):
             return self._api_call(info=False, last_known_id=last_known_id, **kwargs)
 
         def warning(self, last_known_id=None, **kwargs):
-            return self._api_call(info=False, normal=False, last_known_id=last_known_id, **kwargs)
+            return self._api_call(
+                info=False, normal=False, last_known_id=last_known_id, **kwargs
+            )
 
         def critical(self, last_known_id=None, **kwargs):
-            return self._api_call(info=False, normal=False, warning=False, last_known_id=last_known_id, **kwargs)
+            return self._api_call(
+                info=False,
+                normal=False,
+                warning=False,
+                last_known_id=last_known_id,
+                **kwargs
+            )
 
 
 class LogAPIMixIn(Request):
@@ -86,7 +126,15 @@ class LogAPIMixIn(Request):
 
     @response_json(LogMainList)
     @login_required
-    def log_main(self, normal=None, info=None, warning=None, critical=None, last_known_id=None, **kwargs):
+    def log_main(
+        self,
+        normal=None,
+        info=None,
+        warning=None,
+        critical=None,
+        last_known_id=None,
+        **kwargs
+    ):
         """
         Retrieve the qBittorrent log entries. Iterate over returned object.
 
@@ -97,12 +145,16 @@ class LogAPIMixIn(Request):
         :param last_known_id: only entries with an ID greater than this value will be returned
         :return: List of log entries.
         """
-        parameters = {"normal": normal,
-                      'info': info,
-                      'warning': warning,
-                      'critical': critical,
-                      'last_known_id': last_known_id}
-        return self._get(_name=APINames.Log, _method='main', params=parameters, **kwargs)
+        parameters = {
+            "normal": normal,
+            "info": info,
+            "warning": warning,
+            "critical": critical,
+            "last_known_id": last_known_id,
+        }
+        return self._get(
+            _name=APINames.Log, _method="main", params=parameters, **kwargs
+        )
 
     @response_json(LogPeersList)
     @login_required
@@ -113,5 +165,7 @@ class LogAPIMixIn(Request):
         :param last_known_id: only entries with an ID greater than this value will be returned
         :return: list of log entries in a List
         """
-        parameters = {'last_known_id': last_known_id}
-        return self._get(_name=APINames.Log, _method='peers', params=parameters, **kwargs)
+        parameters = {"last_known_id": last_known_id}
+        return self._get(
+            _name=APINames.Log, _method="peers", params=parameters, **kwargs
+        )
