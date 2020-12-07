@@ -1,7 +1,9 @@
 -r requirements.txt
-sphinx
-pytest
-pytest-cov
+black
+flake8
 codecov
 coveralls
+pytest
+pytest-cov
+sphinx
 sphinx_glpi_theme
