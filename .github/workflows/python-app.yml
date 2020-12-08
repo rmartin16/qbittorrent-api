@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Python Checks
+name: Tests
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
 
 jobs:
   tests:
-    name: "Test on Python ${{ matrix.python-version }}"
+    name: "Python ${{ matrix.python-version }}"
     runs-on: ubuntu-latest
     continue-on-error: true
     env:
