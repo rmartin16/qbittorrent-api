@@ -1,8 +1,8 @@
 Introduction
 ======================
 
-.. |travis ci| image:: https://img.shields.io/travis/com/rmartin16/qbittorrent-api/master?style=flat-square
-   :target: https://travis-ci.com/github/rmartin16/qbittorrent-api
+.. |travis ci| image:: https://img.shields.io/github/workflow/status/rmartin16/qbittorrent-api/Tests/master?style=flat-square
+   :target: https://github.com/rmartin16/qbittorrent-api/actions?query=workflow%3ATests
 .. |codecov| image:: https://img.shields.io/codecov/c/gh/rmartin16/qbittorrent-api/master?style=flat-square
    :target: https://codecov.io/gh/rmartin16/qbittorrent-api
 .. |coverity| image:: https://img.shields.io/coverity/scan/21227?style=flat-square
