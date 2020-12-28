@@ -1,5 +1,3 @@
-from time import sleep
-
 import pytest
 
 from qbittorrentapi.rss import RSSitemsDictionary

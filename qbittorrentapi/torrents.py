@@ -912,6 +912,8 @@ class TorrentsAPIMixIn(Request):
         return self._torrent_tags
 
     @response_text(str)
+    @version_implemented("2.6.2", "torrents/add", ("tags", "tags"))
+    @version_implemented("2.7", "torrents/add", ("content_layout", "contentLayout"))
     @login_required
     def torrents_add(
         self,
@@ -929,6 +931,8 @@ class TorrentsAPIMixIn(Request):
         use_auto_torrent_management=None,
         is_sequential_download=None,
         is_first_last_piece_priority=None,
+        tags=None,
+        content_layout=None,
         **kwargs
     ):
         """
@@ -954,13 +958,15 @@ class TorrentsAPIMixIn(Request):
         :param category: category to assign to torrent(s)
         :param is_skip_checking: skip hash checking
         :param is_paused: True to start torrent(s) paused
-        :param is_root_folder: True or False to create root folder
+        :param is_root_folder: True or False to create root folder (superseded by content_layout with v4.3.2)
         :param rename: new name for torrent(s)
         :param upload_limit: upload limit in bytes/second
         :param download_limit: download limit in bytes/second
         :param use_auto_torrent_management: True or False to use automatic torrent management
         :param is_sequential_download: True or False for sequential download
         :param is_first_last_piece_priority: True or False for first and last piece download priority
+        :param tags: tag(s) to assign to torrent(s)
+        :param content_layout: Original, Subfolder, or NoSubfolder to control filesystem structure for content
         :return: "Ok." for success and "Fails." for failure
         """
 
@@ -969,9 +975,11 @@ class TorrentsAPIMixIn(Request):
             "savepath": (None, save_path),
             "cookie": (None, cookie),
             "category": (None, category),
+            "tags": (None, self._list2string(tags, ",")),
             "skip_checking": (None, is_skip_checking),
             "paused": (None, is_paused),
             "root_folder": (None, is_root_folder),
+            "contentLayout": (None, content_layout),
             "rename": (None, rename),
             "upLimit": (None, upload_limit),
             "dlLimit": (None, download_limit),
@@ -1361,7 +1369,7 @@ class TorrentsAPIMixIn(Request):
         self._post(_name=APINames.Torrents, _method="pause", data=data, **kwargs)
 
     @login_required
-    def torrents_delete(self, delete_files=None, torrent_hashes=None, **kwargs):
+    def torrents_delete(self, delete_files=False, torrent_hashes=None, **kwargs):
         """
         Remove a torrent from qBittorrent and optionally delete its files.
 
