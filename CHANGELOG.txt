@@ -1,3 +1,10 @@
+Version 2020.12.15 (27 dec 2020)
+ - Support qBittorrent v4.3.2 and Web API v2.7
+ - torrents/add supports adding torrents with tags via "tags" parameter
+ - app/preferences supports toggling internationalized domain name (IDN) support via "idn_support_enabled"
+ - BREAKING CHANGE: for torrents/add, "is_root_folder" (or "root_folder") is superseded by "content_layout"
+ - For torrents/delete, "delete_files" now defaults to False instead of required being explicitly passed
+
 Version 2020.12.14 (6 dec 2020)
  - Add support for non-standard API endpoint paths (Fixes #37)
  - Allows users to leverage this client when qBittorrent is configured behind a reverse proxy.
@@ -7,7 +14,7 @@ Version 2020.12.14 (6 dec 2020)
  - Neither of these should be breaking changes, but if you're instantiating with an incorrect scheme or an irrelevant path, you may need to prevent doing that now.
 
 Version 2020.11.13 (29 nov 2020)
- - Bump for Web API v2.6.1 release
+ - Support qBittorrent v4.3.1 and Web API v2.6.1
  - Path of torrent content now available via content_path from torrents/info
 
 Version 2020.11.12 (16 nov 2020)
