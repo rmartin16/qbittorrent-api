@@ -1,3 +1,5 @@
+from time import sleep
+
 import pytest
 
 from qbittorrentapi import NotFound404Error
@@ -172,14 +174,16 @@ def test_stop(client, api_version, client_func):
         job = get_func(client, client_func[1])(
             pattern="Ubuntu", plugins="enabled", category="all"
         )
+        sleep(1)
         get_func(client, client_func[0])(search_id=job.id)
         check(lambda: client.search.status(search_id=job["id"])[0]["status"], "Stopped")
 
         job = get_func(client, client_func[1])(
             pattern="Ubuntu", plugins="enabled", category="all"
         )
+        sleep(1)
         job.stop()
-        assert job.status()[0].status == "Stopped"
+        check(lambda: client.search.status(search_id=job["id"])[0]["status"], "Stopped")
 
 
 def test_delete(client, api_version):
