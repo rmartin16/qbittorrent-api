@@ -2,9 +2,9 @@ from json import dumps
 
 from qbittorrentapi.decorators import Alias
 from qbittorrentapi.decorators import aliased
+from qbittorrentapi.decorators import endpoint_introduced
 from qbittorrentapi.decorators import login_required
 from qbittorrentapi.decorators import response_json
-from qbittorrentapi.decorators import version_implemented
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary
@@ -195,7 +195,7 @@ class RSSAPIMixIn(Request):
         params = {"withData": include_feed_data}
         return self._get(_name=APINames.RSS, _method="items", params=params, **kwargs)
 
-    @version_implemented("2.2", "rss/refreshItem")
+    @endpoint_introduced("2.2", "rss/refreshItem")
     @Alias("rss_refreshItem")
     @login_required
     def rss_refresh_item(self, item_path=None, **kwargs):
@@ -210,7 +210,7 @@ class RSSAPIMixIn(Request):
             data = {"itemPath": item_path}
             self._post(_name=APINames.RSS, _method="refreshItem", data=data, **kwargs)
 
-    @version_implemented("2.5.1", "rss/markAsRead")
+    @endpoint_introduced("2.5.1", "rss/markAsRead")
     @Alias("rss_markAsRead")
     @login_required
     def rss_mark_as_read(self, item_path=None, article_id=None, **kwargs):
@@ -276,7 +276,7 @@ class RSSAPIMixIn(Request):
         """
         return self._get(_name=APINames.RSS, _method="rules", **kwargs)
 
-    @version_implemented("2.5.1", "rss/matchingArticles")
+    @endpoint_introduced("2.5.1", "rss/matchingArticles")
     @Alias("rss_matchingArticles")
     @response_json(RSSitemsDictionary)
     @login_required

@@ -3,7 +3,7 @@ from qbittorrentapi.decorators import aliased
 from qbittorrentapi.decorators import login_required
 from qbittorrentapi.decorators import response_json
 from qbittorrentapi.decorators import response_text
-from qbittorrentapi.decorators import version_implemented
+from qbittorrentapi.decorators import endpoint_introduced
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary
@@ -206,7 +206,7 @@ class TransferAPIMixIn(Request):
         )
 
     @Alias("transfer_banPeers")
-    @version_implemented("2.3", "transfer/banPeers")
+    @endpoint_introduced("2.3", "transfer/banPeers")
     @login_required
     def transfer_ban_peers(self, peers=None, **kwargs):
         """

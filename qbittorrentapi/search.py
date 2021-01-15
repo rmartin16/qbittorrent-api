@@ -1,8 +1,8 @@
 from qbittorrentapi.decorators import Alias
 from qbittorrentapi.decorators import aliased
+from qbittorrentapi.decorators import endpoint_introduced
 from qbittorrentapi.decorators import login_required
 from qbittorrentapi.decorators import response_json
-from qbittorrentapi.decorators import version_implemented
 from qbittorrentapi.decorators import version_removed
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
@@ -152,7 +152,7 @@ class SearchAPIMixIn(Request):
             self._search = Search(client=self)
         return self._search
 
-    @version_implemented("2.1.1", "search/start")
+    @endpoint_introduced("2.1.1", "search/start")
     @response_json(SearchJobDictionary)
     @login_required
     def search_start(self, pattern=None, plugins=None, category=None, **kwargs):
@@ -173,7 +173,7 @@ class SearchAPIMixIn(Request):
         }
         return self._post(_name=APINames.Search, _method="start", data=data, **kwargs)
 
-    @version_implemented("2.1.1", "search/stop")
+    @endpoint_introduced("2.1.1", "search/stop")
     @login_required
     def search_stop(self, search_id=None, **kwargs):
         """
@@ -187,7 +187,7 @@ class SearchAPIMixIn(Request):
         data = {"id": search_id}
         self._post(_name=APINames.Search, _method="stop", data=data, **kwargs)
 
-    @version_implemented("2.1.1", "search/status")
+    @endpoint_introduced("2.1.1", "search/status")
     @response_json(SearchStatusesList)
     @login_required
     def search_status(self, search_id=None, **kwargs):
@@ -205,7 +205,7 @@ class SearchAPIMixIn(Request):
             _name=APINames.Search, _method="status", params=params, **kwargs
         )
 
-    @version_implemented("2.1.1", "search/results")
+    @endpoint_introduced("2.1.1", "search/results")
     @response_json(SearchResultsDictionary)
     @login_required
     def search_results(self, search_id=None, limit=None, offset=None, **kwargs):
@@ -224,7 +224,7 @@ class SearchAPIMixIn(Request):
         data = {"id": search_id, "limit": limit, "offset": offset}
         return self._post(_name=APINames.Search, _method="results", data=data, **kwargs)
 
-    @version_implemented("2.1.1", "search/delete")
+    @endpoint_introduced("2.1.1", "search/delete")
     @login_required
     def search_delete(self, search_id=None, **kwargs):
         """
@@ -238,7 +238,7 @@ class SearchAPIMixIn(Request):
         data = {"id": search_id}
         self._post(_name=APINames.Search, _method="delete", data=data, **kwargs)
 
-    @version_implemented("2.1.1", "search/categories")
+    @endpoint_introduced("2.1.1", "search/categories")
     @version_removed("2.6", "search/categories")
     @response_json(SearchCategoriesList)
     @login_required
@@ -255,7 +255,7 @@ class SearchAPIMixIn(Request):
             _name=APINames.Search, _method="categories", data=data, **kwargs
         )
 
-    @version_implemented("2.1.1", "search/plugins")
+    @endpoint_introduced("2.1.1", "search/plugins")
     @response_json(SearchPluginsList)
     @login_required
     def search_plugins(self, **kwargs):
@@ -267,7 +267,7 @@ class SearchAPIMixIn(Request):
         """
         return self._get(_name=APINames.Search, _method="plugins", **kwargs)
 
-    @version_implemented("2.1.1", "search/installPlugin")
+    @endpoint_introduced("2.1.1", "search/installPlugin")
     @Alias("search_installPlugin")
     @login_required
     def search_install_plugin(self, sources=None, **kwargs):
@@ -280,7 +280,7 @@ class SearchAPIMixIn(Request):
         data = {"sources": self._list2string(sources, "|")}
         self._post(_name=APINames.Search, _method="installPlugin", data=data, **kwargs)
 
-    @version_implemented("2.1.1", "search/uninstallPlugin")
+    @endpoint_introduced("2.1.1", "search/uninstallPlugin")
     @Alias("search_uninstallPlugin")
     @login_required
     def search_uninstall_plugin(self, names=None, **kwargs):
@@ -295,7 +295,7 @@ class SearchAPIMixIn(Request):
             _name=APINames.Search, _method="uninstallPlugin", data=data, **kwargs
         )
 
-    @version_implemented("2.1.1", "search/enablePlugin")
+    @endpoint_introduced("2.1.1", "search/enablePlugin")
     @Alias("search_enablePlugin")
     @login_required
     def search_enable_plugin(self, plugins=None, enable=None, **kwargs):
@@ -309,7 +309,7 @@ class SearchAPIMixIn(Request):
         data = {"names": self._list2string(plugins, "|"), "enable": enable}
         self._post(_name=APINames.Search, _method="enablePlugin", data=data, **kwargs)
 
-    @version_implemented("2.1.1", "search/updatePlugin")
+    @endpoint_introduced("2.1.1", "search/updatePlugin")
     @Alias("search_updatePlugins")
     @login_required
     def search_update_plugins(self, **kwargs):

@@ -11,7 +11,7 @@ from qbittorrentapi.decorators import (
     response_json,
     response_text,
 )
-from qbittorrentapi.decorators import version_implemented, version_removed
+from qbittorrentapi.decorators import endpoint_introduced, version_removed
 from qbittorrentapi import APIError
 
 
@@ -103,38 +103,22 @@ def test_version_implemented():
         def _app_web_api_version_from_version_checker(self):
             return self.version
 
-        @version_implemented("1.1", "test1")
+        @endpoint_introduced("1.1", "test1")
         def endpoint_not_implemented(self):
             return
 
-        @version_implemented("0.9", "test2")
+        @endpoint_introduced("0.9", "test2")
         def endpoint_implemented(self):
             return
-
-        @version_implemented("1.1", "test3", ("var1", "var1"))
-        def endpoint_param_not_implemented(self, var1="zxcv"):
-            return var1
-
-        @version_implemented("0.9", "test3", ("var1", "var1"))
-        def endpoint_param_implemented(self, var1="zxcv"):
-            return var1
 
     with pytest.raises(NotImplementedError):
         FakeClient().endpoint_not_implemented()
 
     assert FakeClient().endpoint_implemented() is None
 
-    with pytest.raises(NotImplementedError):
-        FakeClient().endpoint_param_not_implemented(var1="asdf")
-
-    assert FakeClient().endpoint_param_not_implemented(var1=None) is None
-
     fake_client = FakeClient()
     fake_client._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS = False
-    assert fake_client.endpoint_param_not_implemented(var1="asdf") is None
     assert fake_client.endpoint_not_implemented() is None
-
-    assert FakeClient().endpoint_param_implemented(var1="asdf") == "asdf"
 
 
 def test_version_removed():

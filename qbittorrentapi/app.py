@@ -3,10 +3,10 @@ from json import dumps
 
 from qbittorrentapi.decorators import Alias
 from qbittorrentapi.decorators import aliased
+from qbittorrentapi.decorators import endpoint_introduced
 from qbittorrentapi.decorators import login_required
 from qbittorrentapi.decorators import response_json
 from qbittorrentapi.decorators import response_text
-from qbittorrentapi.decorators import version_implemented
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary
@@ -117,7 +117,6 @@ class AppAPIMixIn(Request):
     def _app_web_api_version_from_version_checker(self):
         if self._cached_web_api_version:
             return self._cached_web_api_version
-        logger.debug("Retrieving API version for version_implemented verifier")
         self._cached_web_api_version = self.app_web_api_version()
         return self._cached_web_api_version
 
@@ -134,7 +133,7 @@ class AppAPIMixIn(Request):
             return self._MOCK_WEB_API_VERSION
         return self._get(_name=APINames.Application, _method="webapiVersion", **kwargs)
 
-    @version_implemented("2.3", "app/buildInfo")
+    @endpoint_introduced("2.3", "app/buildInfo")
     @response_json(BuildInfoDictionary)
     @Alias("app_buildInfo")
     @login_required
