@@ -100,7 +100,7 @@ def test_version_implemented():
         _RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS = True
         version = "1.0"
 
-        def _app_web_api_version_from_version_checker(self):
+        def app_web_api_version(self):
             return self.version
 
         @endpoint_introduced("1.1", "test1")
@@ -126,7 +126,7 @@ def test_version_removed():
         _RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS = True
         version = "1.0"
 
-        def _app_web_api_version_from_version_checker(self):
+        def app_web_api_version(self):
             return self.version
 
         @version_removed("0.0.0", "test1")

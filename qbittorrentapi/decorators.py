@@ -172,7 +172,7 @@ def _version_too_old(client, version_to_compare):
     """
     Return True if provided API version is older than the connected API, False otherwise
     """
-    current_version = client._app_web_api_version_from_version_checker()
+    current_version = client.app_web_api_version()
     if _is_version_less_than(current_version, version_to_compare, lteq=False):
         return True
     return False
@@ -182,7 +182,7 @@ def _version_too_new(client, version_to_compare):
     """
     Return True if provided API version is newer or equal to the connected API, False otherwise
     """
-    current_version = client._app_web_api_version_from_version_checker()
+    current_version = client.app_web_api_version()
     if _is_version_less_than(version_to_compare, current_version, lteq=True):
         return True
     return False

@@ -113,13 +113,6 @@ class AppAPIMixIn(Request):
         """
         return self._get(_name=APINames.Application, _method="version", **kwargs)
 
-    @login_required
-    def _app_web_api_version_from_version_checker(self):
-        if self._cached_web_api_version:
-            return self._cached_web_api_version
-        self._cached_web_api_version = self.app_web_api_version()
-        return self._cached_web_api_version
-
     @Alias("app_webapiVersion")
     @response_text(str)
     @login_required

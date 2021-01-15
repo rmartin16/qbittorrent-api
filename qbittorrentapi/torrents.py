@@ -1,4 +1,5 @@
 import errno
+import logging
 from os import path
 from os import strerror as os_strerror
 
@@ -20,6 +21,7 @@ from qbittorrentapi.definitions import ListEntry
 from qbittorrentapi.definitions import TorrentStates
 from qbittorrentapi.decorators import Alias
 from qbittorrentapi.decorators import aliased
+from qbittorrentapi.decorators import _check_for_raise
 from qbittorrentapi.decorators import endpoint_introduced
 from qbittorrentapi.decorators import login_required
 from qbittorrentapi.decorators import response_json
@@ -28,6 +30,8 @@ from qbittorrentapi.exceptions import TorrentFileError
 from qbittorrentapi.exceptions import TorrentFileNotFoundError
 from qbittorrentapi.exceptions import TorrentFilePermissionError
 from qbittorrentapi.request import Request
+
+logger = logging.getLogger(__name__)
 
 
 @aliased
@@ -77,7 +81,7 @@ class TorrentDictionary(Dictionary):
 
     @property
     def info(self):
-        api_version = self._client._app_web_api_version_from_version_checker()
+        api_version = self._client.app.web_api_version
         if self._client._is_version_less_than(api_version, "2.0.1", lteq=False):
             info = [
                 t for t in self._client.torrents_info() if t.hash == self._torrent_hash
@@ -243,11 +247,24 @@ class TorrentDictionary(Dictionary):
         return self._client.torrents_files(torrent_hash=self._torrent_hash)
 
     @Alias("renameFile")
-    def rename_file(self, file_id=None, new_file_name=None, **kwargs):
+    def rename_file(
+        self, file_id=None, new_file_name=None, old_path=None, new_path=None, **kwargs
+    ):
         self._client.torrents_rename_file(
             torrent_hash=self._torrent_hash,
             file_id=file_id,
             new_file_name=new_file_name,
+            old_path=old_path,
+            new_path=new_path,
+            **kwargs
+        )
+
+    @Alias("renameFolder")
+    def rename_folder(self, old_path=None, new_path=None, **kwargs):
+        self._client.torrents_rename_folder(
+            torrent_hash=self._torrent_hash,
+            old_path=old_path,
+            new_path=new_path,
             **kwargs
         )
 
@@ -1276,7 +1293,13 @@ class TorrentsAPIMixIn(Request):
     @Alias("torrents_renameFile")
     @login_required
     def torrents_rename_file(
-        self, torrent_hash=None, file_id=None, new_file_name=None, **kwargs
+        self,
+        torrent_hash=None,
+        file_id=None,
+        new_file_name=None,
+        old_path=None,
+        new_path=None,
+        **kwargs
     ):
         """
         Rename a torrent file.
@@ -1286,16 +1309,78 @@ class TorrentsAPIMixIn(Request):
         :raises Conflict409Error:
 
         :param torrent_hash: hash for torrent
-        :param file_id: id for file
-        :param new_file_name: new name for file
+        :param file_id: id for file (removed in Web API v2.7)
+        :param new_file_name: new name for file (removed in Web API v2.7)
+        :param old_path: path of file to rename (added in Web API v2.7)
+        :param new_path: new path of file to rename (added in Web API v2.7)
         :return: None
         """
+        torrent_hash = torrent_hash or kwargs.pop("hash")
+
+        # convert pre-v2.7 params to post-v2.7 params if a newer qBittorrent is being used
+        # HACK: v4.3.2 and v4.3.3 both use web api v2.7 but old/new_path were introduced in v4.3.3
+        if (
+            old_path is None
+            and new_path is None
+            and isinstance(file_id, int)
+            and self._is_version_less_than("v4.3.3", self.app.version, lteq=True)
+        ):
+            try:
+                old_path = self.torrents_files(torrent_hash=torrent_hash)[file_id].name
+            except (IndexError, AttributeError):
+                logger.debug(
+                    "ERROR: File ID '%s' isn't valid...'oldPath' cannot be determined."
+                    % file_id
+                )
+                old_path = ""
+            new_path = new_file_name or ""
+
         data = {
-            "hash": torrent_hash or kwargs.pop("hash"),
+            "hash": torrent_hash,
             "id": file_id,
             "name": new_file_name,
+            "oldPath": old_path,
+            "newPath": new_path,
         }
         self._post(_name=APINames.Torrents, _method="renameFile", data=data, **kwargs)
+
+    @endpoint_introduced("2.7", "torrents/renameFolder")
+    @Alias("torrents_renameFolder")
+    @login_required
+    def torrents_rename_folder(
+        self, torrent_hash=None, old_path=None, new_path=None, **kwargs
+    ):
+        """
+        Rename a torrent folder.
+
+        :raises MissingRequiredParameters400Error:
+        :raises NotFound404Error:
+        :raises Conflict409Error:
+
+        :param torrent_hash: hash for torrent
+        :param old_path: path of file to rename (added in Web API v2.7)
+        :param new_path: new path of file to rename (added in Web API v2.7)
+        :return: None
+        """
+        # HACK: v4.3.2 and v4.3.3 both use web api v2.7 but rename_folder was introduced in v4.3.3
+        if self._is_version_less_than("v4.3.3", self.app.version, lteq=True):
+            data = {
+                "hash": torrent_hash or kwargs.pop("hash"),
+                "oldPath": old_path,
+                "newPath": new_path,
+            }
+            self._post(
+                _name=APINames.Torrents, _method="renameFolder", data=data, **kwargs
+            )
+        else:
+            # only get here on v4.3.2....so hack in raising exception
+            _check_for_raise(
+                client=self,
+                error_message=(
+                    "ERROR: Endpoint 'torrents/renameFolder' is Not Implemented in this version of qBittorrent. "
+                    "This endpoint is available starting in Web API v2.7."
+                ),
+            )
 
     ##########################################################################
     # MULTIPLE TORRENT ENDPOINTS
