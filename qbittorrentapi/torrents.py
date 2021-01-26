@@ -1,4 +1,5 @@
 import errno
+import logging
 from os import path
 from os import strerror as os_strerror
 
@@ -20,14 +21,17 @@ from qbittorrentapi.definitions import ListEntry
 from qbittorrentapi.definitions import TorrentStates
 from qbittorrentapi.decorators import Alias
 from qbittorrentapi.decorators import aliased
+from qbittorrentapi.decorators import _check_for_raise
+from qbittorrentapi.decorators import endpoint_introduced
 from qbittorrentapi.decorators import login_required
 from qbittorrentapi.decorators import response_json
 from qbittorrentapi.decorators import response_text
-from qbittorrentapi.decorators import version_implemented
 from qbittorrentapi.exceptions import TorrentFileError
 from qbittorrentapi.exceptions import TorrentFileNotFoundError
 from qbittorrentapi.exceptions import TorrentFilePermissionError
 from qbittorrentapi.request import Request
+
+logger = logging.getLogger(__name__)
 
 
 @aliased
@@ -77,7 +81,7 @@ class TorrentDictionary(Dictionary):
 
     @property
     def info(self):
-        api_version = self._client._app_web_api_version_from_version_checker()
+        api_version = self._client.app.web_api_version
         if self._client._is_version_less_than(api_version, "2.0.1", lteq=False):
             info = [
                 t for t in self._client.torrents_info() if t.hash == self._torrent_hash
@@ -243,11 +247,24 @@ class TorrentDictionary(Dictionary):
         return self._client.torrents_files(torrent_hash=self._torrent_hash)
 
     @Alias("renameFile")
-    def rename_file(self, file_id=None, new_file_name=None, **kwargs):
+    def rename_file(
+        self, file_id=None, new_file_name=None, old_path=None, new_path=None, **kwargs
+    ):
         self._client.torrents_rename_file(
             torrent_hash=self._torrent_hash,
             file_id=file_id,
             new_file_name=new_file_name,
+            old_path=old_path,
+            new_path=new_path,
+            **kwargs
+        )
+
+    @Alias("renameFolder")
+    def rename_folder(self, old_path=None, new_path=None, **kwargs):
+        self._client.torrents_rename_folder(
+            torrent_hash=self._torrent_hash,
+            old_path=old_path,
+            new_path=new_path,
             **kwargs
         )
 
@@ -912,8 +929,6 @@ class TorrentsAPIMixIn(Request):
         return self._torrent_tags
 
     @response_text(str)
-    @version_implemented("2.6.2", "torrents/add", ("tags", "tags"))
-    @version_implemented("2.7", "torrents/add", ("content_layout", "contentLayout"))
     @login_required
     def torrents_add(
         self,
@@ -965,8 +980,8 @@ class TorrentsAPIMixIn(Request):
         :param use_auto_torrent_management: True or False to use automatic torrent management
         :param is_sequential_download: True or False for sequential download
         :param is_first_last_piece_priority: True or False for first and last piece download priority
-        :param tags: tag(s) to assign to torrent(s)
-        :param content_layout: Original, Subfolder, or NoSubfolder to control filesystem structure for content
+        :param tags: tag(s) to assign to torrent(s) (added in Web API v2.6.2)
+        :param content_layout: Original, Subfolder, or NoSubfolder to control filesystem structure for content (added in Web API v2.7)
         :return: "Ok." for success and "Fails." for failure
         """
 
@@ -1189,7 +1204,7 @@ class TorrentsAPIMixIn(Request):
         }
         self._post(_name=APINames.Torrents, _method="addTrackers", data=data, **kwargs)
 
-    @version_implemented("2.2.0", "torrents/editTracker")
+    @endpoint_introduced("2.2.0", "torrents/editTracker")
     @Alias("torrents_editTracker")
     @login_required
     def torrents_edit_tracker(
@@ -1214,7 +1229,7 @@ class TorrentsAPIMixIn(Request):
         }
         self._post(_name=APINames.Torrents, _method="editTracker", data=data, **kwargs)
 
-    @version_implemented("2.2.0", "torrents/removeTrackers")
+    @endpoint_introduced("2.2.0", "torrents/removeTrackers")
     @Alias("torrents_removeTrackers")
     @login_required
     def torrents_remove_trackers(self, torrent_hash=None, urls=None, **kwargs):
@@ -1274,11 +1289,17 @@ class TorrentsAPIMixIn(Request):
         data = {"hash": torrent_hash or kwargs.pop("hash"), "name": new_torrent_name}
         self._post(_name=APINames.Torrents, _method="rename", data=data, **kwargs)
 
-    @version_implemented("2.4.0", "torrents/renameFile")
+    @endpoint_introduced("2.4.0", "torrents/renameFile")
     @Alias("torrents_renameFile")
     @login_required
     def torrents_rename_file(
-        self, torrent_hash=None, file_id=None, new_file_name=None, **kwargs
+        self,
+        torrent_hash=None,
+        file_id=None,
+        new_file_name=None,
+        old_path=None,
+        new_path=None,
+        **kwargs
     ):
         """
         Rename a torrent file.
@@ -1288,22 +1309,83 @@ class TorrentsAPIMixIn(Request):
         :raises Conflict409Error:
 
         :param torrent_hash: hash for torrent
-        :param file_id: id for file
-        :param new_file_name: new name for file
+        :param file_id: id for file (removed in Web API v2.7)
+        :param new_file_name: new name for file (removed in Web API v2.7)
+        :param old_path: path of file to rename (added in Web API v2.7)
+        :param new_path: new path of file to rename (added in Web API v2.7)
         :return: None
         """
+        torrent_hash = torrent_hash or kwargs.pop("hash")
+
+        # convert pre-v2.7 params to post-v2.7 params if a newer qBittorrent is being used
+        # HACK: v4.3.2 and v4.3.3 both use web api v2.7 but old/new_path were introduced in v4.3.3
+        if (
+            old_path is None
+            and new_path is None
+            and isinstance(file_id, int)
+            and self._is_version_less_than("v4.3.3", self.app.version, lteq=True)
+        ):
+            try:
+                old_path = self.torrents_files(torrent_hash=torrent_hash)[file_id].name
+            except (IndexError, AttributeError):
+                logger.debug(
+                    "ERROR: File ID '%s' isn't valid...'oldPath' cannot be determined."
+                    % file_id
+                )
+                old_path = ""
+            new_path = new_file_name or ""
+
         data = {
-            "hash": torrent_hash or kwargs.pop("hash"),
+            "hash": torrent_hash,
             "id": file_id,
             "name": new_file_name,
+            "oldPath": old_path,
+            "newPath": new_path,
         }
         self._post(_name=APINames.Torrents, _method="renameFile", data=data, **kwargs)
+
+    @endpoint_introduced("2.7", "torrents/renameFolder")
+    @Alias("torrents_renameFolder")
+    @login_required
+    def torrents_rename_folder(
+        self, torrent_hash=None, old_path=None, new_path=None, **kwargs
+    ):
+        """
+        Rename a torrent folder.
+
+        :raises MissingRequiredParameters400Error:
+        :raises NotFound404Error:
+        :raises Conflict409Error:
+
+        :param torrent_hash: hash for torrent
+        :param old_path: path of file to rename (added in Web API v2.7)
+        :param new_path: new path of file to rename (added in Web API v2.7)
+        :return: None
+        """
+        # HACK: v4.3.2 and v4.3.3 both use web api v2.7 but rename_folder was introduced in v4.3.3
+        if self._is_version_less_than("v4.3.3", self.app.version, lteq=True):
+            data = {
+                "hash": torrent_hash or kwargs.pop("hash"),
+                "oldPath": old_path,
+                "newPath": new_path,
+            }
+            self._post(
+                _name=APINames.Torrents, _method="renameFolder", data=data, **kwargs
+            )
+        else:
+            # only get here on v4.3.2....so hack in raising exception
+            _check_for_raise(
+                client=self,
+                error_message=(
+                    "ERROR: Endpoint 'torrents/renameFolder' is Not Implemented in this version of qBittorrent. "
+                    "This endpoint is available starting in Web API v2.7."
+                ),
+            )
 
     ##########################################################################
     # MULTIPLE TORRENT ENDPOINTS
     ##########################################################################
     @response_json(TorrentInfoList)
-    @version_implemented("2.0.1", "torrents/info", ("torrent_hashes", "hashes"))
     @login_required
     def torrents_info(
         self,
@@ -1396,7 +1478,7 @@ class TorrentsAPIMixIn(Request):
         }
         self._post(_name=APINames.Torrents, _method="recheck", data=data, **kwargs)
 
-    @version_implemented("2.0.2", "torrents/reannounce")
+    @endpoint_introduced("2.0.2", "torrents/reannounce")
     @login_required
     def torrents_reannounce(self, torrent_hashes=None, **kwargs):
         """
@@ -1510,7 +1592,7 @@ class TorrentsAPIMixIn(Request):
             _name=APINames.Torrents, _method="setDownloadLimit", data=data, **kwargs
         )
 
-    @version_implemented("2.0.1", "torrents/setShareLimits")
+    @endpoint_introduced("2.0.1", "torrents/setShareLimits")
     @Alias("torrents_setShareLimits")
     @login_required
     def torrents_set_share_limits(
@@ -1696,7 +1778,7 @@ class TorrentsAPIMixIn(Request):
         )
 
     @Alias("torrents_addPeers")
-    @version_implemented("2.3.0", "torrents/addPeers")
+    @endpoint_introduced("2.3.0", "torrents/addPeers")
     @response_json(TorrentsAddPeersDictionary)
     @login_required
     def torrents_add_peers(self, peers=None, torrent_hashes=None, **kwargs):
@@ -1718,7 +1800,7 @@ class TorrentsAPIMixIn(Request):
         )
 
     # TORRENT CATEGORIES ENDPOINTS
-    @version_implemented("2.1.1", "torrents/categories")
+    @endpoint_introduced("2.1.1", "torrents/categories")
     @response_json(TorrentCategoriesDictionary)
     @login_required
     def torrents_categories(self, **kwargs):
@@ -1731,7 +1813,6 @@ class TorrentsAPIMixIn(Request):
         return self._get(_name=APINames.Torrents, _method="categories", **kwargs)
 
     @Alias("torrents_createCategory")
-    @version_implemented("2.1.0", "torrents/createCategory", ("save_path", "savePath"))
     @login_required
     def torrents_create_category(self, name=None, save_path=None, **kwargs):
         """
@@ -1750,7 +1831,7 @@ class TorrentsAPIMixIn(Request):
             _name=APINames.Torrents, _method="createCategory", data=data, **kwargs
         )
 
-    @version_implemented("2.1.0", "torrents/editCategory")
+    @endpoint_introduced("2.1.0", "torrents/editCategory")
     @Alias("torrents_editCategory")
     @login_required
     def torrents_edit_category(self, name=None, save_path=None, **kwargs):
@@ -1783,7 +1864,7 @@ class TorrentsAPIMixIn(Request):
         )
 
     # TORRENT TAGS ENDPOINTS
-    @version_implemented("2.3.0", "torrents/tags")
+    @endpoint_introduced("2.3.0", "torrents/tags")
     @response_json(TagList)
     @login_required
     def torrents_tags(self, **kwargs):
@@ -1795,7 +1876,7 @@ class TorrentsAPIMixIn(Request):
         return self._get(_name=APINames.Torrents, _method="tags", **kwargs)
 
     @Alias("torrents_addTags")
-    @version_implemented("2.3.0", "torrents/addTags")
+    @endpoint_introduced("2.3.0", "torrents/addTags")
     @login_required
     def torrents_add_tags(self, tags=None, torrent_hashes=None, **kwargs):
         """
@@ -1813,7 +1894,7 @@ class TorrentsAPIMixIn(Request):
         self._post(_name=APINames.Torrents, _method="addTags", data=data, **kwargs)
 
     @Alias("torrents_removeTags")
-    @version_implemented("2.3.0", "torrents/removeTags")
+    @endpoint_introduced("2.3.0", "torrents/removeTags")
     @login_required
     def torrents_remove_tags(self, tags=None, torrent_hashes=None, **kwargs):
         """
@@ -1830,7 +1911,7 @@ class TorrentsAPIMixIn(Request):
         self._post(_name=APINames.Torrents, _method="removeTags", data=data, **kwargs)
 
     @Alias("torrents_createTags")
-    @version_implemented("2.3.0", "torrents/createTags")
+    @endpoint_introduced("2.3.0", "torrents/createTags")
     @login_required
     def torrents_create_tags(self, tags=None, **kwargs):
         """
@@ -1843,7 +1924,7 @@ class TorrentsAPIMixIn(Request):
         self._post(_name=APINames.Torrents, _method="createTags", data=data, **kwargs)
 
     @Alias("torrents_deleteTags")
-    @version_implemented("2.3.0", "torrents/deleteTags")
+    @endpoint_introduced("2.3.0", "torrents/deleteTags")
     @login_required
     def torrents_delete_tags(self, tags=None, **kwargs):
         """

@@ -6,7 +6,7 @@ from qbittorrentapi import APIConnectionError
 
 
 def test_shutdown(client):
-    if "TRAVIS" in environ:
+    if environ.get("CI") == "true":
         client.app.shutdown()
         with pytest.raises(APIConnectionError):
             for _ in range(100):

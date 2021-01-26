@@ -33,6 +33,7 @@ api_version_map = {
     "v4.3.0.1": "2.6",
     "v4.3.1": "2.6.1",
     "v4.3.2": "2.7",
+    "v4.3.3": "2.7",
 }
 
 _check_limit = 10
@@ -232,7 +233,7 @@ def api_version():
 
 def pytest_sessionfinish(session, exitstatus):
     try:
-        if "TRAVIS" not in environ:
+        if environ.get("CI") != "true":
             client = Client()
             # remove all torrents
             for torrent in client.torrents_info():

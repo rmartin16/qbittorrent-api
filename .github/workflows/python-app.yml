@@ -20,8 +20,8 @@ jobs:
     continue-on-error: true
     env:
       LATEST_PYTHON_VERSION: 3.9
-      LATEST_QBT_VERSION: 4.3.2
-      QBT_ALWAYS_TEST: 4.3.2, 4.3.1
+      LATEST_QBT_VERSION: 4.3.3
+      QBT_ALWAYS_TEST: 4.3.3, 4.3.2, 4.3.1
       SUBMIT_COVERAGE_VERSIONS: 2.7, 3.9
       COMPREHENSIVE_TESTS_BRANCH: comprehensive_tests
       PYTHON_QBITTORRENTAPI_HOST: localhost:8080
@@ -31,7 +31,7 @@ jobs:
       QBT_LEGACY_INSTALL: 4.2.5, 4.2.0
     strategy:
       matrix:
-        QBT_VER: [4.2.0, 4.2.5, 4.3.0.1, 4.3.1, 4.3.2]
+        QBT_VER: [4.2.0, 4.2.5, 4.3.0.1, 4.3.1, 4.3.2, 4.3.3]
         python-version: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10-dev, pypy2, pypy3]
         # python-version: [3.9]
 
@@ -171,6 +171,7 @@ jobs:
       if: contains(env.LATEST_PYTHON_VERSION, matrix.python-version) && (env.LATEST_QBT_VERSION == matrix.QBT_VER)
       run: |
         pip -q install -U black
+        black --version
         black . --check
 
     - name: Test with pytest

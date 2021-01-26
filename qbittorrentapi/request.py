@@ -57,7 +57,6 @@ class Request(object):
         #   or a new login is required. All of these (except the SID cookie) should
         #   be reset in _initialize_connection().
         self._SID = None  # authorization cookie
-        self._cached_web_api_version = None
         self._application = None
         self._transfer = None
         self._torrents = None
@@ -227,9 +226,6 @@ class Request(object):
     ########################################
     def _initialize_context(self):
         """Reset context. This is necessary when the auth cookie needs to be replaced."""
-        # cache to avoid perf hit from version checking certain endpoints
-        self._cached_web_api_version = None
-
         # reset URL so the full URL is derived again (primarily allows for switching scheme for WebUI: HTTP <-> HTTPS)
         self._API_BASE_URL = None
 
@@ -527,7 +523,7 @@ class Request(object):
                     "Request body: %s%s"
                     % (
                         response.request.body[:body_len],
-                        "...<truncated>" if body_len >= 80 else "",
+                        "...<truncated>" if body_len >= 200 else "",
                     )
                 )
 

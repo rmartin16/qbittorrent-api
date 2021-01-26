@@ -51,6 +51,20 @@ def test_log_in_via_auth():
         client_bad.auth_log_in(username="asdf", password="asdfasdf")
 
 
+@pytest.mark.parametrize(
+    "hostname",
+    (
+        "localhost:8080",
+        "http://localhost:8080",
+        "https://localhost:8080",
+        "//localhost:8080",
+    ),
+)
+def test_hostname_format(app_version, hostname):
+    client = Client(host=hostname, VERIFY_WEBUI_CERTIFICATE=False)
+    assert client.app.version == app_version
+
+
 def test_port_from_host(app_version):
     host, port = environ.get("PYTHON_QBITTORRENTAPI_HOST").split(":")
     client = Client(host=host, port=port, VERIFY_WEBUI_CERTIFICATE=False)
@@ -142,12 +156,12 @@ def test_request_http400(client, api_version, orig_torrent_hash):
 
 def test_http401():
     client = Client(VERIFY_WEBUI_CERTIFICATE=False)
-    _ = client.app.version
+    _ = client.app.preferences
     # ensure cross site scripting protection is enabled
     client.app.preferences = dict(web_ui_csrf_protection_enabled=True)
     # simulate a XSS request
     with pytest.raises(Unauthorized401Error):
-        client.app_version(headers={"X-Forwarded-Host": "http://example.com"})
+        client.app_preferences(headers={"X-Forwarded-Host": "http://example.com"})
 
 
 @pytest.mark.parametrize("params", ({}, {"hash": "asdf"}, {"hashes": "asdf|asdf"}))
@@ -195,6 +209,6 @@ def test_verbose_logging(caplog):
 
 def test_stack_printing(capsys):
     client = Client(PRINT_STACK_FOR_EACH_REQUEST=True, VERIFY_WEBUI_CERTIFICATE=False)
-    client.app.version
+    _ = client.app.version
     captured = capsys.readouterr()
     assert "print_stack()" in captured.err
