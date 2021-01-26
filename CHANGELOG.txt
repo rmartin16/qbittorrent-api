@@ -1,3 +1,9 @@
+Version 2021.1.16 (26 jan 2021)
+ - Support qBittorrent v4.3.3 and Web API v2.7 (...again)
+ - New torrents/renameFile and torrents/renameFolder endpoints
+ - Retrieve app api version when needed instead of caching
+ - Stop verifying and removing individual parameters when they aren't supported
+
 Version 2020.12.15 (27 dec 2020)
  - Support qBittorrent v4.3.2 and Web API v2.7
  - torrents/add supports adding torrents with tags via "tags" parameter
