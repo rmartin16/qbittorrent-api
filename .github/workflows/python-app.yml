@@ -172,7 +172,7 @@ jobs:
       run: |
         pip -q install -U black
         black --version
-        black . --check
+        black . --check --diff --target-version py27
 
     - name: Test with pytest
       # finally....start qBittorrent and run tests via pytest

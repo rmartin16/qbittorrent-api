@@ -9,11 +9,11 @@ from qbittorrentapi.request import Request
 
 
 class SyncMainDataDictionary(Dictionary):
-    pass
+    """Response for :meth:`~SyncAPIMixIn.sync_maindata`"""
 
 
 class SyncTorrentPeersDictionary(Dictionary):
-    pass
+    """Response for :meth:`~SyncAPIMixIn.sync_torrent_peers`"""
 
 
 class Sync(ClientCache):
@@ -30,7 +30,7 @@ class Sync(ClientCache):
         >>> # this will automatically request the changes since the last call
         >>> md = client.sync.maindata.delta()
         >>> #
-        >>> torrentPeers= client.sync.torrentPeers(hash="...'", rid='...')
+        >>> torrentPeers = client.sync.torrentPeers(hash="...'", rid='...')
         >>> torrent_peers = client.sync.torrent_peers(hash="...'", rid='...')
     """
 
@@ -79,7 +79,15 @@ class Sync(ClientCache):
 
 @aliased
 class SyncAPIMixIn(Request):
-    """Implementation of all Sync API Methods."""
+    """
+    Implementation of all Sync API Methods.
+
+    :Usage:
+        >>> from qbittorrentapi import Client
+        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> maindata = client.sync_maindata(rid="...")
+        >>> torrent_peers = client.sync_torrent_peers(torrent_hash="...'", rid='...')
+    """
 
     @property
     def sync(self):
@@ -100,8 +108,7 @@ class SyncAPIMixIn(Request):
         Retrieves sync data.
 
         :param rid: response ID
-        :return: dictionary response
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-main-data
+        :return: :class:`SyncMainDataDictionary` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-main-data
         """
         data = {"rid": rid}
         return self._post(_name=APINames.Sync, _method="maindata", data=data, **kwargs)
@@ -117,8 +124,7 @@ class SyncAPIMixIn(Request):
 
         :param torrent_hash: hash for torrent
         :param rid: response ID
-        :return: Dictionary of torrent sync data.
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-peers-data
+        :return: :class:`SyncTorrentPeersDictionary` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-peers-data
         """
         data = {"hash": torrent_hash or kwargs.pop("hash"), "rid": rid}
         return self._post(

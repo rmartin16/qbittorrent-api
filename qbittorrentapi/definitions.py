@@ -10,7 +10,7 @@ from attrdict import AttrDict
 
 class APINames(Enum):
     """
-    API names for API endpoints
+    API namespaces for API endpoints
 
     e.g 'torrents' in http://localhost:8080/api/v2/torrents/addTrackers
     """
