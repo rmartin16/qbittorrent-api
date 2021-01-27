@@ -17,13 +17,14 @@ sys.path.insert(0, os.path.abspath("../.."))
 
 
 # -- Project information -----------------------------------------------------
+from datetime import datetime
 
 project = "qbittorrent-api"
-copyright = "2020, Russell Martin"
+copyright = "%s, Russell Martin" % datetime.today().year
 author = "Russell Martin"
 
 # The full version, including alpha/beta/rc tags
-release = "2020.6.4"
+release = ""
 
 
 # -- General configuration ---------------------------------------------------
@@ -32,7 +33,12 @@ pygments_style = "sphinx"
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["sphinx.ext.todo", "sphinx.ext.githubpages", "sphinx.ext.autodoc"]
+extensions = [
+    "sphinx.ext.todo",
+    "sphinx.ext.githubpages",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.intersphinx",
+]
 
 source_suffix = ".rst"
 
@@ -49,17 +55,10 @@ exclude_patterns = []
 
 
 # -- Options for HTML output -------------------------------------------------
-
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
-# html_theme = 'alabaster'
-html_theme = "guzzle_sphinx_theme"
-
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
+## html_static_path = ["_static"]
 
 
 import sphinx_glpi_theme
@@ -73,3 +72,8 @@ html_theme_path = sphinx_glpi_theme.get_html_themes_path()
 # autoapi_dirs = ['../../qbittorrentapi']
 # autoapi_options = ['show-inheritance-diagram']
 # autoapi_ignore = ['*decorators*', '*exceptions*']
+
+# Add mappings
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+}

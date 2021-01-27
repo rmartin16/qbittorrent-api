@@ -13,30 +13,38 @@ from qbittorrentapi.request import Request
 
 
 class SearchJobDictionary(Dictionary):
+    """Response for :meth:`~SearchAPIMixIn.search_start`"""
+
     def __init__(self, data, client):
         self._search_job_id = data.get("id", None)
         super(SearchJobDictionary, self).__init__(data=data, client=client)
 
     def stop(self, **kwargs):
-        return self._client.search.stop(search_id=self._search_job_id, **kwargs)
+        """Implements :meth:`~SearchAPIMixIn.search_stop`"""
+        return self._client.search_stop(search_id=self._search_job_id, **kwargs)
 
     def status(self, **kwargs):
-        return self._client.search.status(search_id=self._search_job_id, **kwargs)
+        """Implements :meth:`~SearchAPIMixIn.search_status`"""
+        return self._client.search_status(search_id=self._search_job_id, **kwargs)
 
     def results(self, limit=None, offset=None, **kwargs):
-        return self._client.search.results(
+        """Implements :meth:`~SearchAPIMixIn.search_results`"""
+        return self._client.search_results(
             limit=limit, offset=offset, search_id=self._search_job_id, **kwargs
         )
 
     def delete(self, **kwargs):
-        return self._client.search.delete(search_id=self._search_job_id, **kwargs)
+        """Implements :meth:`~SearchAPIMixIn.search_delete`"""
+        return self._client.search_delete(search_id=self._search_job_id, **kwargs)
 
 
 class SearchResultsDictionary(Dictionary):
-    pass
+    """Response for :meth:`~SearchAPIMixIn.search_results`"""
 
 
 class SearchStatusesList(List):
+    """Response for :meth:`~SearchAPIMixIn.search_status`"""
+
     def __init__(self, list_entries=None, client=None):
         super(SearchStatusesList, self).__init__(
             list_entries, entry_class=SearchStatus, client=client
@@ -44,10 +52,12 @@ class SearchStatusesList(List):
 
 
 class SearchStatus(ListEntry):
-    pass
+    """Item in :class:`SearchStatusesList`"""
 
 
 class SearchCategoriesList(List):
+    """Response for :meth:`~SearchAPIMixIn.search_categories`"""
+
     def __init__(self, list_entries=None, client=None):
         super(SearchCategoriesList, self).__init__(
             list_entries, entry_class=SearchCategory, client=client
@@ -55,10 +65,12 @@ class SearchCategoriesList(List):
 
 
 class SearchCategory(ListEntry):
-    pass
+    """Item in :class:`SearchCategoriesList`"""
 
 
 class SearchPluginsList(List):
+    """Response for :meth:`~SearchAPIMixIn.search_plugins`"""
+
     def __init__(self, list_entries=None, client=None):
         super(SearchPluginsList, self).__init__(
             list_entries, entry_class=SearchPlugin, client=client
@@ -66,7 +78,7 @@ class SearchPluginsList(List):
 
 
 class SearchPlugin(ListEntry):
-    pass
+    """Item in :class:`SearchPluginsList`"""
 
 
 @aliased
@@ -92,53 +104,75 @@ class Search(ClientCache):
     """
 
     def start(self, pattern=None, plugins=None, category=None, **kwargs):
+        """Implements :meth:`~SearchAPIMixIn.search_start`"""
         return self._client.search_start(
             pattern=pattern, plugins=plugins, category=category, **kwargs
         )
 
     def stop(self, search_id=None, **kwargs):
+        """Implements :meth:`~SearchAPIMixIn.search_stop`"""
         return self._client.search_stop(search_id=search_id, **kwargs)
 
     def status(self, search_id=None, **kwargs):
+        """Implements :meth:`~SearchAPIMixIn.search_status`"""
         return self._client.search_status(search_id=search_id, **kwargs)
 
     def results(self, search_id=None, limit=None, offset=None, **kwargs):
+        """Implements :meth:`~SearchAPIMixIn.search_results`"""
         return self._client.search_results(
             search_id=search_id, limit=limit, offset=offset, **kwargs
         )
 
     def delete(self, search_id=None, **kwargs):
+        """Implements :meth:`~SearchAPIMixIn.search_delete`"""
         return self._client.search_delete(search_id=search_id, **kwargs)
 
     def categories(self, plugin_name=None, **kwargs):
+        """Implements :meth:`~SearchAPIMixIn.search_categories`"""
         return self._client.search_categories(plugin_name=plugin_name, **kwargs)
 
     @property
     def plugins(self):
+        """Implements :meth:`~SearchAPIMixIn.search_plugins`"""
         return self._client.search_plugins()
 
     @Alias("installPlugin")
     def install_plugin(self, sources=None, **kwargs):
+        """Implements :meth:`~SearchAPIMixIn.search_install_plugin`"""
         return self._client.search_install_plugin(sources=sources, **kwargs)
 
     @Alias("uninstallPlugin")
     def uninstall_plugin(self, sources=None, **kwargs):
+        """Implements :meth:`~SearchAPIMixIn.search_uninstall_plugin`"""
         return self._client.search_uninstall_plugin(sources=sources, **kwargs)
 
     @Alias("enablePlugin")
     def enable_plugin(self, plugins=None, enable=None, **kwargs):
+        """Implements :meth:`~SearchAPIMixIn.search_enable_plugin`"""
         return self._client.search_enable_plugin(
             plugins=plugins, enable=enable, **kwargs
         )
 
     @Alias("updatePlugins")
     def update_plugins(self, **kwargs):
+        """Implements :meth:`~SearchAPIMixIn.search_update_plugins`"""
         return self._client.search_update_plugins(**kwargs)
 
 
 @aliased
 class SearchAPIMixIn(Request):
-    """Implementation for all Search API methods."""
+    """
+    Implementation for all Search API methods.
+
+    :Usage:
+        >>> from qbittorrentapi import Client
+        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> search_job = client.search_start(pattern='Ubuntu', plugins='all', category='all')
+        >>> client.search_stop(search_id=search_job.id)
+        >>> # or
+        >>> search_job.stop()
+        >>>
+    """
 
     @property
     def search(self):
@@ -164,7 +198,7 @@ class SearchAPIMixIn(Request):
         :param pattern: term to search for
         :param plugins: list of plugins to use for searching (supports 'all' and 'enabled')
         :param category: categories to limit search; dependent on plugins. (supports 'all')
-        :return: search job
+        :return: :class:`SearchJobDictionary`
         """
         data = {
             "pattern": pattern,
@@ -197,8 +231,7 @@ class SearchAPIMixIn(Request):
         :raises NotFound404Error:
 
         :param search_id: ID of search to get status; leave emtpy for status of all jobs
-        :return: dictionary of searches
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-status
+        :return: :class:`SearchStatusesList` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-status
         """
         params = {"id": search_id}
         return self._get(
@@ -218,8 +251,7 @@ class SearchAPIMixIn(Request):
         :param search_id: ID of search job
         :param limit: number of results to return
         :param offset: where to start returning results
-        :return: Dictionary of results
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-results
+        :return: :class:`SearchResultsDictionary` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-results
         """
         data = {"id": search_id, "limit": limit, "offset": offset}
         return self._post(_name=APINames.Search, _method="results", data=data, **kwargs)
@@ -248,7 +280,7 @@ class SearchAPIMixIn(Request):
         Note: endpoint was removed in qBittorrent v4.3.0
 
         :param plugin_name: Limit categories returned by plugin(s) (supports 'all' and 'enabled')
-        :return: list of categories
+        :return: :class:`SearchCategoriesList`
         """
         data = {"pluginName": plugin_name}
         return self._post(
@@ -262,8 +294,7 @@ class SearchAPIMixIn(Request):
         """
         Retrieve details of search plugins.
 
-        :return: List of plugins.
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-plugins
+        :return: :class:`SearchPluginsList` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-plugins
         """
         return self._get(_name=APINames.Search, _method="plugins", **kwargs)
 

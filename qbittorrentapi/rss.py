@@ -12,11 +12,11 @@ from qbittorrentapi.request import Request
 
 
 class RSSitemsDictionary(Dictionary):
-    pass
+    """Response for :meth:`~RSSAPIMixIn.rss_items`"""
 
 
 class RSSRulesDictionary(Dictionary):
-    pass
+    """Response for :meth:`~RSSAPIMixIn.rss_rules`"""
 
 
 @aliased
@@ -34,8 +34,8 @@ class RSS(ClientCache):
         >>> client.rss.addFeed(url='...', item_path="TPB\\Top100")
         >>> client.rss.remove_item(item_path="TPB") # deletes TPB and Top100
         >>> client.rss.set_rule(rule_name="...", rule_def={...})
-        >>> client.rss.items.with_data
-        >>> client.rss.items.without_data
+        >>> items = client.rss.items.with_data
+        >>> items = client.rss.items.without_data
     """
 
     def __init__(self, client):
@@ -44,54 +44,65 @@ class RSS(ClientCache):
 
     @Alias("addFolder")
     def add_folder(self, folder_path=None, **kwargs):
+        """Implements :meth:`~RSSAPIMixIn.rss_add_folder`"""
         return self._client.rss_add_folder(folder_path=folder_path, **kwargs)
 
     @Alias("addFeed")
     def add_feed(self, url=None, item_path=None, **kwargs):
+        """Implements :meth:`~RSSAPIMixIn.rss_add_feed`"""
         return self._client.rss_add_feed(url=url, item_path=item_path, **kwargs)
 
     @Alias("removeItem")
     def remove_item(self, item_path=None, **kwargs):
+        """Implements :meth:`~RSSAPIMixIn.rss_remove_item`"""
         return self._client.rss_remove_item(item_path=item_path, **kwargs)
 
     @Alias("moveItem")
     def move_item(self, orig_item_path=None, new_item_path=None, **kwargs):
+        """Implements :meth:`~RSSAPIMixIn.rss_move_item`"""
         return self._client.rss_move_item(
             orig_item_path=orig_item_path, new_item_path=new_item_path, **kwargs
         )
 
     @Alias("refreshItem")
     def refresh_item(self, item_path=None):
+        """Implements :meth:`~RSSAPIMixIn.rss_refresh_item`"""
         return self._client.rss_refresh_item(item_path=item_path)
 
     @Alias("markAsRead")
     def mark_as_read(self, item_path=None, article_id=None, **kwargs):
+        """Implements :meth:`~RSSAPIMixIn.rss_mark_as_read`"""
         return self._client.rss_mark_as_read(
             item_path=item_path, article_id=article_id, **kwargs
         )
 
     @Alias("setRule")
     def set_rule(self, rule_name=None, rule_def=None, **kwargs):
+        """Implements :meth:`~RSSAPIMixIn.rss_set_rule`"""
         return self._client.rss_set_rule(
             rule_name=rule_name, rule_def=rule_def, **kwargs
         )
 
     @Alias("renameRule")
     def rename_rule(self, orig_rule_name=None, new_rule_name=None, **kwargs):
+        """Implements :meth:`~RSSAPIMixIn.rss_rename_rule`"""
         return self._client.rss_rename_rule(
             orig_rule_name=orig_rule_name, new_rule_name=new_rule_name, **kwargs
         )
 
     @Alias("removeRule")
     def remove_rule(self, rule_name=None, **kwargs):
+        """Implements :meth:`~RSSAPIMixIn.rss_remove_rule`"""
         return self._client.rss_remove_rule(rule_name=rule_name, **kwargs)
 
     @property
     def rules(self):
+        """Implements :meth:`~RSSAPIMixIn.rss_rules`"""
         return self._client.rss_rules()
 
     @Alias("matchingArticles")
     def matching_articles(self, rule_name=None, **kwargs):
+        """Implements :meth:`~RSSAPIMixIn.rss_matching_articles`"""
         return self._client.rss_matching_articles(rule_name=rule_name, **kwargs)
 
     class _Items(ClientCache):
@@ -109,7 +120,15 @@ class RSS(ClientCache):
 
 @aliased
 class RSSAPIMixIn(Request):
-    """Implementation of all RSS API methods."""
+    """
+    Implementation of all RSS API methods.
+
+    :Usage:
+        >>> from qbittorrentapi import Client
+        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> rss_rules = client.rss_rules()
+        >>> client.rss_set_rule(rule_name="...", rule_def={...})
+    """
 
     @property
     def rss(self):
@@ -190,7 +209,7 @@ class RSSAPIMixIn(Request):
         Retrieve RSS items and optionally feed data.
 
         :param include_feed_data: True or false to include feed data
-        :return: dictionary of RSS items
+        :return: :class:`RSSitemsDictionary`
         """
         params = {"withData": include_feed_data}
         return self._get(_name=APINames.RSS, _method="items", params=params, **kwargs)
@@ -233,8 +252,7 @@ class RSSAPIMixIn(Request):
         Create a new RSS auto-downloading rule. (alias: rss_setRule)
 
         :param rule_name: name for new rule
-        :param rule_def: dictionary with rule fields
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#set-auto-downloading-rule
+        :param rule_def: dictionary with rule fields - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#set-auto-downloading-rule
         :return: None
         """
         data = {"ruleName": rule_name, "ruleDef": dumps(rule_def)}
@@ -272,7 +290,7 @@ class RSSAPIMixIn(Request):
         """
         Retrieve RSS auto-download rule definitions.
 
-        :return: None
+        :return: :class:`RSSRulesDictionary`
         """
         return self._get(_name=APINames.RSS, _method="rules", **kwargs)
 
@@ -285,7 +303,7 @@ class RSSAPIMixIn(Request):
         Fetch all articles matching a rule. (alias: rss_matchingArticles)
 
         :param rule_name: Name of rule to return matching articles
-        :return: RSSitemsDictionary of articles
+        :return: :class:`RSSitemsDictionary`
         """
         data = {"ruleName": rule_name}
         return self._post(

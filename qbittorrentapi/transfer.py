@@ -11,12 +11,11 @@ from qbittorrentapi.request import Request
 
 
 class TransferInfoDictionary(Dictionary):
-    pass
+    """Response to :meth:`~TransferAPIMixIn.transfer_info`"""
 
 
 @aliased
 class Transfer(ClientCache):
-
     """
     Alows interaction with the "Transfer" API endpoints.
 
@@ -36,73 +35,94 @@ class Transfer(ClientCache):
 
     @property
     def info(self):
+        """Implements :meth:`~TransferAPIMixIn.transfer_info`"""
         return self._client.transfer_info()
 
     @property
     def speed_limits_mode(self):
+        """Implements :meth:`~TransferAPIMixIn.transfer_speed_limits_mode`"""
         return self._client.transfer_speed_limits_mode()
 
     speedLimitsMode = speed_limits_mode
 
     @speedLimitsMode.setter
     def speedLimitsMode(self, v):
+        """Implements :meth:`~TransferAPIMixIn.transfer_toggle_speed_limits_mode`"""
         self.speed_limits_mode = v
 
     @speed_limits_mode.setter
     def speed_limits_mode(self, v):
+        """Implements :meth:`~TransferAPIMixIn.transfer_toggle_speed_limits_mode`"""
         self.toggle_speed_limits_mode(intended_state=v)
 
     @Alias("toggleSpeedLimitsMode")
     def toggle_speed_limits_mode(self, intended_state=None, **kwargs):
+        """Implements :meth:`~TransferAPIMixIn.transfer_toggle_speed_limits_mode`"""
         return self._client.transfer_toggle_speed_limits_mode(
             intended_state=intended_state, **kwargs
         )
 
     @property
     def download_limit(self):
+        """Implements :meth:`~TransferAPIMixIn.transfer_download_limit`"""
         return self._client.transfer_download_limit()
 
     downloadLimit = download_limit
 
     @downloadLimit.setter
     def downloadLimit(self, v):
+        """Implements :meth:`~TransferAPIMixIn.transfer_set_download_limit`"""
         self.download_limit = v
 
     @download_limit.setter
     def download_limit(self, v):
+        """Implements :meth:`~TransferAPIMixIn.transfer_set_download_limit`"""
         self.set_download_limit(limit=v)
 
     @property
     def upload_limit(self):
+        """Implements :meth:`~TransferAPIMixIn.transfer_upload_limit`"""
         return self._client.transfer_upload_limit()
 
     uploadLimit = upload_limit
 
     @uploadLimit.setter
     def uploadLimit(self, v):
+        """Implements :meth:`~TransferAPIMixIn.transfer_set_upload_limit`"""
         self.upload_limit = v
 
     @upload_limit.setter
     def upload_limit(self, v):
+        """Implements :meth:`~TransferAPIMixIn.transfer_set_upload_limit`"""
         self.set_upload_limit(limit=v)
 
     @Alias("setDownloadLimit")
     def set_download_limit(self, limit=None, **kwargs):
+        """Implements :meth:`~TransferAPIMixIn.transfer_set_download_limit`"""
         return self._client.transfer_set_download_limit(limit=limit, **kwargs)
 
     @Alias("setUploadLimit")
     def set_upload_limit(self, limit=None, **kwargs):
+        """Implements :meth:`~TransferAPIMixIn.transfer_set_upload_limit`"""
         return self._client.transfer_set_upload_limit(limit=limit, **kwargs)
 
     @Alias("banPeers")
     def ban_peers(self, peers=None, **kwargs):
+        """Implements :meth:`~TransferAPIMixIn.transfer_ban_peers`"""
         return self._client.transfer_ban_peers(peers=peers, **kwargs)
 
 
 @aliased
 class TransferAPIMixIn(Request):
+    """
+    Implementation of all Transfer API methods
 
-    """Implementation of all Transfer API methods"""
+    :Usage:
+        >>> from qbittorrentapi import Client
+        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> transfer_info = client.transfer_info()
+        >>> client.transfer_set_download_limit(limit=1024000)
+    """
 
     @property
     def transfer(self):
@@ -122,8 +142,7 @@ class TransferAPIMixIn(Request):
         """
         Retrieves the global transfer info usually found in qBittorrent status bar.
 
-        :return: dictionary of status items
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-global-transfer-info
+        :return: :class:`TransferInfoDictionary` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-global-transfer-info
         """
         return self._get(_name=APINames.Transfer, _method="info", **kwargs)
 
@@ -148,9 +167,8 @@ class TransferAPIMixIn(Request):
                                Leaving None will toggle the current state.
         :return: None
         """
-        if (
-            self.transfer_speed_limits_mode() == "1"
-        ) is not intended_state or intended_state is None:
+        is_enabled = lambda: self.transfer_speed_limits_mode() == "1"
+        if intended_state is None or is_enabled() is not intended_state:
             self._post(
                 _name=APINames.Transfer, _method="toggleSpeedLimitsMode", **kwargs
             )

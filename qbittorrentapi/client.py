@@ -1,4 +1,5 @@
 from qbittorrentapi.app import AppAPIMixIn
+from qbittorrentapi.auth import AuthAPIMixIn
 from qbittorrentapi.log import LogAPIMixIn
 from qbittorrentapi.sync import SyncAPIMixIn
 from qbittorrentapi.transfer import TransferAPIMixIn
@@ -43,6 +44,7 @@ from qbittorrentapi.search import SearchAPIMixIn
 
 class Client(
     AppAPIMixIn,
+    AuthAPIMixIn,
     LogAPIMixIn,
     SyncAPIMixIn,
     TransferAPIMixIn,
@@ -55,8 +57,13 @@ class Client(
     Initialize API for qBittorrent client.
 
     Host must be specified. Username and password can be specified at login.
-    A call to auth_log_in is not explicitly required if username and password are
-    provided during Client construction.
+    A call to :meth:`~qbittorrentapi.auth.AuthAPIMixIn.auth_log_in` is not explicitly
+    required if username and password are provided during Client construction.
+
+    :Usage:
+        >>> from qbittorrentapi import Client
+        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> torrents = client.torrents_info()
 
     :param host: hostname for qBittorrent Web API (e.g. [http[s]://]localhost[:8080])
     :param port: port number for qBittorrent Web API (note: only used if host does not contain a port)

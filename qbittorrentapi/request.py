@@ -4,22 +4,23 @@ from pkg_resources import parse_version
 from time import sleep
 from urllib3 import disable_warnings
 from urllib3.exceptions import InsecureRequestWarning
+from urllib3.util.retry import Retry
 
 try:  # python 3
     from collections.abc import Iterable
-    from urllib.parse import urlparse
+    from urllib.parse import urlparse, urljoin
 except ImportError:  # python 2
     from collections import Iterable
-    from urlparse import urlparse
+    from urlparse import urlparse, urljoin
 
 import requests
+from requests.adapters import HTTPAdapter
 import six
 
-from qbittorrentapi.decorators import login_required
+from qbittorrentapi.definitions import APINames
 from qbittorrentapi.exceptions import APIConnectionError
 from qbittorrentapi.exceptions import HTTPError
 from qbittorrentapi.exceptions import HTTP5XXError
-from qbittorrentapi.exceptions import LoginFailed
 from qbittorrentapi.exceptions import MissingRequiredParameters400Error
 from qbittorrentapi.exceptions import InvalidRequest400Error
 from qbittorrentapi.exceptions import Unauthorized401Error
@@ -28,150 +29,15 @@ from qbittorrentapi.exceptions import NotFound404Error
 from qbittorrentapi.exceptions import Conflict409Error
 from qbittorrentapi.exceptions import UnsupportedMediaType415Error
 from qbittorrentapi.exceptions import InternalServerError500Error
-from qbittorrentapi.definitions import APINames
 
 logger = logging.getLogger(__name__)
 
 
-class Request(object):
-    """Facilitates HTTP requests to qBittorrent."""
+class HelpersMixIn(object):
+    """
+    Miscellaneous helper functions.
+    """
 
-    def __init__(self, host="", port=None, username=None, password=None, **kwargs):
-        self.host = host
-        self.port = port
-        self.username = username or ""
-        self._password = password or ""
-
-        # defaults that should not change
-        self._API_URL_PATH_NAMESPACE = "api"
-        self._API_URL_PATH_VERSION = "v2"
-        self._API_BASE_PATH = (
-            self._API_URL_PATH_NAMESPACE + "/" + self._API_URL_PATH_VERSION
-        )
-
-        # allow users to further qualify API path
-        self._USER_URL_BASE_PATH = None
-
-        # state, context, and caching variables
-        #   These variables are deleted if the connection to qBittorrent is reset
-        #   or a new login is required. All of these (except the SID cookie) should
-        #   be reset in _initialize_connection().
-        self._SID = None  # authorization cookie
-        self._application = None
-        self._transfer = None
-        self._torrents = None
-        self._torrent_categories = None
-        self._torrent_tags = None
-        self._log = None
-        self._sync = None
-        self._rss = None
-        self._search = None
-        self._API_BASE_URL = None
-
-        # Configuration variables
-        self._VERIFY_WEBUI_CERTIFICATE = kwargs.pop("VERIFY_WEBUI_CERTIFICATE", True)
-        self._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS = kwargs.pop(
-            "RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS",
-            kwargs.pop(
-                "RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS", False
-            ),
-        )
-        self._VERBOSE_RESPONSE_LOGGING = kwargs.pop("VERBOSE_RESPONSE_LOGGING", False)
-        self._PRINT_STACK_FOR_EACH_REQUEST = kwargs.pop(
-            "PRINT_STACK_FOR_EACH_REQUEST", False
-        )
-        self._SIMPLE_RESPONSES = kwargs.pop("SIMPLE_RESPONSES", False)
-
-        if kwargs.pop("DISABLE_LOGGING_DEBUG_OUTPUT", False):
-            logging.getLogger("qbittorrentapi").setLevel(logging.INFO)
-            logging.getLogger("requests").setLevel(logging.INFO)
-            logging.getLogger("urllib3").setLevel(logging.INFO)
-
-        # Environment variables have lowest priority
-        if self.host == "" and environ.get("PYTHON_QBITTORRENTAPI_HOST") is not None:
-            logger.debug(
-                "Using PYTHON_QBITTORRENTAPI_HOST env variable for qBittorrent hostname"
-            )
-            self.host = environ["PYTHON_QBITTORRENTAPI_HOST"]
-        if (
-            self.username == ""
-            and environ.get("PYTHON_QBITTORRENTAPI_USERNAME") is not None
-        ):
-            logger.debug(
-                "Using PYTHON_QBITTORRENTAPI_USERNAME env variable for username"
-            )
-            self.username = environ["PYTHON_QBITTORRENTAPI_USERNAME"]
-
-        if (
-            self._password == ""
-            and environ.get("PYTHON_QBITTORRENTAPI_PASSWORD") is not None
-        ):
-            logger.debug(
-                "Using PYTHON_QBITTORRENTAPI_PASSWORD env variable for password"
-            )
-            self._password = environ["PYTHON_QBITTORRENTAPI_PASSWORD"]
-
-        if (
-            self._VERIFY_WEBUI_CERTIFICATE is True
-            and environ.get("PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE")
-            is not None
-        ):
-            self._VERIFY_WEBUI_CERTIFICATE = False
-
-        # Mocking variables until better unit testing exists
-        self._MOCK_WEB_API_VERSION = kwargs.pop("MOCK_WEB_API_VERSION", None)
-
-        # turn off console-printed warnings about SSL certificate issues (e.g. untrusted since it is self-signed)
-        if not self._VERIFY_WEBUI_CERTIFICATE:
-            disable_warnings(InsecureRequestWarning)
-
-    ########################################
-    # Authorization Endpoints
-    ########################################
-    @property
-    def is_logged_in(self):
-        return bool(self._SID)
-
-    def auth_log_in(self, username=None, password=None):
-        """
-        Log in to qBittorrent host.
-
-        :raises LoginFailed: if credentials failed to log in
-        :raises Forbidden403Error: if user user is banned...or not logged in
-
-        :param username: user name for qBittorrent client
-        :param password: password for qBittorrent client
-        :return: None
-        """
-        if username:
-            self.username = username or ""
-            self._password = password or ""
-
-        try:
-            self._initialize_context()
-            response = self._post(
-                _name=APINames.Authorization,
-                _method="login",
-                data={"username": self.username, "password": self._password},
-            )
-            self._SID = response.cookies["SID"]
-        except KeyError:
-            logger.debug('Login failed for user "%s"' % self.username)
-            raise self._suppress_context(
-                LoginFailed('Login authorization failed for user "%s"' % self.username)
-            )
-        else:
-            logger.debug('Login successful for user "%s"' % self.username)
-            logger.debug("SID: %s" % self._SID)
-
-    @login_required
-    def auth_log_out(self, **kwargs):
-        """End session with qBittorrent."""
-        self._get(_name=APINames.Authorization, _method="logout", **kwargs)
-
-    ########################################
-    # Helpers
-    ########################################
     @classmethod
     def _list2string(cls, input_list=None, delimiter="|"):
         """
@@ -221,16 +87,110 @@ class Request(object):
             return parse_version(ver1) <= parse_version(ver2)
         return parse_version(ver1) < parse_version(ver2)
 
-    ########################################
-    # HTTP Requests
-    ########################################
+
+class Request(HelpersMixIn):
+    """Facilitates HTTP requests to qBittorrent."""
+
+    def __init__(self, host="", port=None, username=None, password=None, **kwargs):
+        self.host = host
+        self.port = port
+        self.username = username or ""
+        self._password = password or ""
+
+        # base path for all API endpoints
+        self._API_BASE_PATH = "api/v2"
+
+        # state, context, and caching variables
+        #   These variables are deleted if the connection to qBittorrent
+        #   is reset or a new login is required.
+        #   All of these should be reset in _initialize_connection().
+        self._requests_session = None
+        self._API_BASE_URL = None
+        self._application = None
+        self._authorization = None
+        self._transfer = None
+        self._torrents = None
+        self._torrent_categories = None
+        self._torrent_tags = None
+        self._log = None
+        self._sync = None
+        self._rss = None
+        self._search = None
+
+        self._initialize_lesser(kwargs)
+
+        if not self._VERIFY_WEBUI_CERTIFICATE:
+            disable_warnings(InsecureRequestWarning)
+
+    def _initialize_lesser(self, kwargs):
+        """Initialize lessor used configuration"""
+
+        # Configuration variables
+        self._VERIFY_WEBUI_CERTIFICATE = kwargs.pop("VERIFY_WEBUI_CERTIFICATE", True)
+        self._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS = kwargs.pop(
+            "RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS",
+            kwargs.pop(
+                "RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS", False
+            ),
+        )
+        self._VERBOSE_RESPONSE_LOGGING = kwargs.pop("VERBOSE_RESPONSE_LOGGING", False)
+        self._PRINT_STACK_FOR_EACH_REQUEST = kwargs.pop(
+            "PRINT_STACK_FOR_EACH_REQUEST", False
+        )
+        self._SIMPLE_RESPONSES = kwargs.pop("SIMPLE_RESPONSES", False)
+        if kwargs.pop("DISABLE_LOGGING_DEBUG_OUTPUT", False):
+            logging.getLogger("qbittorrentapi").setLevel(logging.INFO)
+            logging.getLogger("requests").setLevel(logging.INFO)
+            logging.getLogger("urllib3").setLevel(logging.INFO)
+
+        # Environment variables have lowest priority
+        if self.host == "" and environ.get("PYTHON_QBITTORRENTAPI_HOST") is not None:
+            logger.debug(
+                "Using PYTHON_QBITTORRENTAPI_HOST env variable for qBittorrent hostname"
+            )
+            self.host = environ["PYTHON_QBITTORRENTAPI_HOST"]
+        if (
+            self.username == ""
+            and environ.get("PYTHON_QBITTORRENTAPI_USERNAME") is not None
+        ):
+            logger.debug(
+                "Using PYTHON_QBITTORRENTAPI_USERNAME env variable for username"
+            )
+            self.username = environ["PYTHON_QBITTORRENTAPI_USERNAME"]
+        if (
+            self._password == ""
+            and environ.get("PYTHON_QBITTORRENTAPI_PASSWORD") is not None
+        ):
+            logger.debug(
+                "Using PYTHON_QBITTORRENTAPI_PASSWORD env variable for password"
+            )
+            self._password = environ["PYTHON_QBITTORRENTAPI_PASSWORD"]
+        if (
+            self._VERIFY_WEBUI_CERTIFICATE is True
+            and environ.get("PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE")
+            is not None
+        ):
+            self._VERIFY_WEBUI_CERTIFICATE = False
+
+        # Mocking variables until better unit testing exists
+        self._MOCK_WEB_API_VERSION = kwargs.pop("MOCK_WEB_API_VERSION", None)
+        # turn off console-printed warnings about SSL certificate issues (e.g. untrusted since it is self-signed)
+
     def _initialize_context(self):
-        """Reset context. This is necessary when the auth cookie needs to be replaced."""
+        """
+        Reset communications context with qBittorrent.
+        This is necessary when the auth cookie needs to be replaced...perhaps because
+        it expired, qBittorrent was restarted, significant settings changes, etc.
+        """
         # reset URL so the full URL is derived again (primarily allows for switching scheme for WebUI: HTTP <-> HTTPS)
         self._API_BASE_URL = None
 
+        # reset Requests session so it is rebuilt with new auth cookie and all
+        self._requests_session = None
+
         # reinitialize interaction layers
         self._application = None
+        self._authorization = None
         self._transfer = None
         self._torrents = None
         self._torrent_categories = None
@@ -253,6 +213,7 @@ class Request(object):
     def _request_wrapper(self, _retries=2, _retry_backoff_factor=0.3, **kwargs):
         """
         Wrapper to manage requests retries.
+
         This should retry at least twice to account for the Web API switching from HTTP to HTTPS.
         During the second attempt, the URL is rebuilt using HTTP or HTTPS as appropriate.
         """
@@ -299,71 +260,61 @@ class Request(object):
             logger.debug("Retry attempt %d" % (retry + 1))
             self._initialize_context()
 
-    def _request(
-        self,
-        http_method,
-        api_namespace,
-        api_method,
-        data=None,
-        params=None,
-        files=None,
-        headers=None,
-        requests_params=None,
-        **kwargs
-    ):
-        _ = kwargs.pop(
-            "SIMPLE_RESPONSES", kwargs.pop("SIMPLE_RESPONSE", False)
-        )  # ensure SIMPLE_RESPONSE(S) isn't sent
+    def _request(self, http_method, api_namespace, api_method, **kwargs):
+        """
+        Meat and potatoes of sending requests to qBittorrent.
 
+        :param http_method: 'get' or 'post'
+        :param api_namespace: the namespace for the API endpoint (e.g. torrents)
+        :param api_method: the namespace for the API endpoint (e.g. torrents)
+        :param kwargs: see _normalize_requests_params for additional support
+        :return: Requests response
+        """
+        url = self._build_url(api_namespace=api_namespace, api_method=api_method)
+        kwargs = self._trim_known_kwargs(kwargs=kwargs)
+        params = self._normalize_requests_params(http_method=http_method, kwargs=kwargs)
+
+        response = self._session.request(method=http_method, url=url, **params)
+
+        self.verbose_logging(http_method=http_method, response=response, url=url)
+        self.handle_error_responses(params=params, response=response)
+        return response
+
+    @staticmethod
+    def _trim_known_kwargs(kwargs):
+        """
+        Since any extra keyword arguments from the user are automatically
+        included in the request to qBittorrent, this removes any "known"
+        arguments that definitely shouldn't be sent to qBittorrent.
+        Generally, these are removed in previous processing, but in
+        certain circumstances, they can survive in to request.
+
+        :param kwargs: extra keywords arguments to be passed along in request
+        :return: sanitized arguments
+        """
+        kwargs.pop("SIMPLE_RESPONSES", None)
+        kwargs.pop("SIMPLE_RESPONSE", None)
+        return kwargs
+
+    def _build_url(self, api_namespace, api_method):
+        """
+        Create a fully qualified URL for the API endpoint.
+
+        :param api_namespace: the namespace for the API endpoint (e.g. torrents)
+        :param api_method: the specific method for the API endpoint (e.g. info)
+        :return: urllib URL object
+        """
         self._API_BASE_URL = self._build_base_url(
-            base_url=self._API_BASE_URL, host=self.host, port=self.port
+            base_url=self._API_BASE_URL,
+            host=self.host,
+            port=self.port,
         )
-        url = self._build_url_path(
+        return self._build_url_path(
             base_url=self._API_BASE_URL,
             api_base_path=self._API_BASE_PATH,
             api_namespace=api_namespace,
             api_method=api_method,
         )
-
-        # mechanism to send additional arguments to Requests for individual API calls
-        requests_params = requests_params or dict()
-
-        # support for custom params to API
-        data = data or dict()
-        params = params or dict()
-        files = files or dict()
-        if http_method == "get":
-            params.update(kwargs)
-        if http_method == "post":
-            data.update(kwargs)
-
-        # set up headers
-        headers = headers or dict()
-        headers["Referer"] = self._API_BASE_URL.geturl()
-        headers["Origin"] = self._API_BASE_URL.geturl()
-        # send Content-Length zero for empty POSTs
-        # Requests will not send Content-Length if data is empty
-        if http_method == "post" and not any(filter(None, data.values())):
-            headers["Content-Length"] = "0"
-
-        # include the SID auth cookie unless we're trying to log in and get a SID
-        cookies = {"SID": self._SID if "auth/login" not in url.path else ""}
-
-        response = requests.request(
-            method=http_method,
-            url=url.geturl(),
-            headers=headers,
-            cookies=cookies,
-            verify=self._VERIFY_WEBUI_CERTIFICATE,
-            data=data,
-            params=params,
-            files=files,
-            **requests_params
-        )
-
-        self.verbose_logging(http_method, response, url)
-        self.handle_error_responses(data, params, response)
-        return response
 
     @staticmethod
     def _build_base_url(base_url=None, host="", port=None):
@@ -414,7 +365,11 @@ class Request(object):
             logger.debug("Using %s scheme" % scheme.upper())
             base_url = base_url._replace(scheme=scheme)
 
-            logger.debug("Base URL: %s" % base_url.geturl())
+            # ensure URL always ends with a forward-slash
+            base_url = base_url.geturl()
+            if not base_url.endswith("/"):
+                base_url = base_url + "/"
+            logger.debug("Base URL: %s" % base_url)
 
         return base_url
 
@@ -427,24 +382,92 @@ class Request(object):
         :param api_base_path: qBittorrent defined API path prefix (i.e. api/v2/)
         :param api_namespace: the namespace for the API endpoint (e.g. torrents)
         :param api_method: the specific method for the API endpoint (e.g. info)
-        :return: full URL for API endpoint (e.g. http://localhost:8080/api/v2/torrents/info or http://example.com/qbt/api/v2/torrents/info)
+        :return: full urllib URL object for API endpoint
+                 (e.g. http://localhost:8080/api/v2/torrents/info or http://example.com/qbt/api/v2/torrents/info)
         """
-        api_namespace = (
-            api_namespace.value
-            if isinstance(api_namespace, APINames)
-            else api_namespace
-        )
-        user_base_path = base_url.path or None
-        api_path_list = list(
-            filter(None, (user_base_path, api_base_path, api_namespace, api_method))
-        )
-        url = base_url._replace(
-            path="/".join(map(lambda s: s.strip("/"), map(str, api_path_list)))
-        )
+
+        def sanitize(piece):
+            """Ensure each piece of api path is a string without slashes"""
+            return str(piece or "").strip("/")
+
+        if isinstance(api_namespace, APINames):
+            api_namespace = api_namespace.value
+        api_path = "/".join(map(sanitize, (api_base_path, api_namespace, api_method)))
+        url = urljoin(base_url, api_path)
         return url
 
+    @property
+    def _session(self):
+        """
+        Create or return existing Requests session.
+
+        :return: Requests Session object
+        """
+        if not self._requests_session:
+            self._requests_session = requests.Session()
+
+            # default headers to prevent qBittorrent throwing any alarms
+            self._requests_session.headers.update({"Referer": self._API_BASE_URL})
+            self._requests_session.headers.update({"Origin": self._API_BASE_URL})
+
+            # enable/disable TLS verification for all requests
+            self._requests_session.verify = self._VERIFY_WEBUI_CERTIFICATE
+
+            # enable retries in Requests if HTTP call fails
+            retries = 2
+            backoff_factor = 0.1
+            retry = Retry(
+                total=retries,
+                read=retries,
+                connect=retries,
+                backoff_factor=backoff_factor,
+                status_forcelist=(500, 502, 504),
+                raise_on_status=False,
+            )
+            adapter = HTTPAdapter(max_retries=retry)
+            self._requests_session.mount("http://", adapter)
+            self._requests_session.mount("https://", adapter)
+
+        return self._requests_session
+
     @staticmethod
-    def handle_error_responses(data, params, response):
+    def _normalize_requests_params(http_method, kwargs):
+        """
+        Extract several keyword arguments to send in the request.
+
+        :return: dictionary of parameters for Requests call
+        """
+        # these are completely user defined and intended to allow users
+        # of this client to control the behavior of Requests
+        requests_params = kwargs.pop("requests_params", {})
+
+        # these are expected to be populated by this client as necessary for qBittorrent
+        data = kwargs.pop("data", {})
+        params = kwargs.pop("params", {})
+        files = kwargs.pop("files", {})
+
+        # these are user-defined headers to include with the request
+        headers = kwargs.pop("headers", {})
+        # send Content-Length as 0 for empty POSTs...Requests will not send Content-Length
+        # if data is empty but qBittorrent may complain otherwise
+        if http_method == "post" and not any(filter(None, data.values())):
+            headers["Content-Length"] = "0"
+
+        # any other keyword arguments are sent to qBittorrent as part of the request.
+        # These are user-defined since this Client will put everything in data/params/files
+        # that needs to be sent to qBittorrent.
+        if kwargs:
+            if http_method == "get":
+                params.update(kwargs)
+            if http_method == "post":
+                data.update(kwargs)
+
+        d = dict(data=data, params=params, files=files, headers=headers)
+        d.update(requests_params)
+        return d
+
+    @staticmethod
+    def handle_error_responses(params, response):
         """Raise proper exception if qBittorrent returns Error HTTP Status."""
         if response.status_code < 400:
             # short circuit for non-error statuses
@@ -474,12 +497,18 @@ class Request(object):
             error_message = response.text
             if error_message == "":
                 error_torrent_hash = ""
-                if data:
-                    error_torrent_hash = data.get("hash", error_torrent_hash)
-                    error_torrent_hash = data.get("hashes", error_torrent_hash)
+                if params["data"]:
+                    error_torrent_hash = params["data"].get("hash", error_torrent_hash)
+                    error_torrent_hash = params["data"].get(
+                        "hashes", error_torrent_hash
+                    )
                 if params and error_torrent_hash == "":
-                    error_torrent_hash = params.get("hash", error_torrent_hash)
-                    error_torrent_hash = params.get("hashes", error_torrent_hash)
+                    error_torrent_hash = params["params"].get(
+                        "hash", error_torrent_hash
+                    )
+                    error_torrent_hash = params["params"].get(
+                        "hashes", error_torrent_hash
+                    )
                 if error_torrent_hash:
                     error_message = "Torrent hash(es): %s" % error_torrent_hash
             raise NotFound404Error(error_message)
@@ -505,14 +534,13 @@ class Request(object):
             resp_logger = logger.debug
             max_text_length_to_log = 254
             if response.status_code != 200:
-                max_text_length_to_log = (
-                    10000  # log as much as possible in a error condition
-                )
+                # log as much as possible in a error condition
+                max_text_length_to_log = 10000
 
             resp_logger("Request URL: (%s) %s" % (http_method.upper(), response.url))
             if (
                 str(response.request.body) not in ("None", "")
-                and "auth/login" not in url.path
+                and "auth/login" not in url
             ):
                 body_len = (
                     max_text_length_to_log

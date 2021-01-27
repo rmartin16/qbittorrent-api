@@ -37,6 +37,7 @@ logger = logging.getLogger(__name__)
 @aliased
 class TorrentDictionary(Dictionary):
     """
+    Item in :class:`TorrentInfoList`.
     Alows interaction with individual torrents via the "Torrents" API endpoints.
 
     :Usage:
@@ -81,6 +82,7 @@ class TorrentDictionary(Dictionary):
 
     @property
     def info(self):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_info`"""
         api_version = self._client.app.web_api_version
         if self._client._is_version_less_than(api_version, "2.0.1", lteq=False):
             info = [
@@ -93,46 +95,56 @@ class TorrentDictionary(Dictionary):
         return AttrDict()
 
     def resume(self, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_resume`"""
         self._client.torrents_resume(torrent_hashes=self._torrent_hash, **kwargs)
 
     def pause(self, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_pause`"""
         self._client.torrents_pause(torrent_hashes=self._torrent_hash, **kwargs)
 
     def delete(self, delete_files=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_delete`"""
         self._client.torrents_delete(
             delete_files=delete_files, torrent_hashes=self._torrent_hash, **kwargs
         )
 
     def recheck(self, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_recheck`"""
         self._client.torrents_recheck(torrent_hashes=self._torrent_hash, **kwargs)
 
     def reannounce(self, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_reannounce`"""
         self._client.torrents_reannounce(torrent_hashes=self._torrent_hash, **kwargs)
 
     @Alias("increasePrio")
     def increase_priority(self, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_increase_priority`"""
         self._client.torrents_increase_priority(
             torrent_hashes=self._torrent_hash, **kwargs
         )
 
     @Alias("decreasePrio")
     def decrease_priority(self, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_decrease_priority`"""
         self._client.torrents_decrease_priority(
             torrent_hashes=self._torrent_hash, **kwargs
         )
 
     @Alias("topPrio")
     def top_priority(self, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_top_priority`"""
         self._client.torrents_top_priority(torrent_hashes=self._torrent_hash, **kwargs)
 
     @Alias("bottomPrio")
     def bottom_priority(self, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_bottom_priority`"""
         self._client.torrents_bottom_priority(
             torrent_hashes=self._torrent_hash, **kwargs
         )
 
     @Alias("setShareLimits")
     def set_share_limits(self, ratio_limit=None, seeding_time_limit=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_share_limits`"""
         self._client.torrents_set_share_limits(
             ratio_limit=ratio_limit,
             seeding_time_limit=seeding_time_limit,
@@ -142,6 +154,7 @@ class TorrentDictionary(Dictionary):
 
     @property
     def download_limit(self, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.set_download_limit`"""
         return self._client.torrents_download_limit(
             torrent_hashes=self._torrent_hash, **kwargs
         ).get(self._torrent_hash)
@@ -150,20 +163,24 @@ class TorrentDictionary(Dictionary):
 
     @downloadLimit.setter
     def downloadLimit(self, v):
+        """Implements :meth:`~TorrentsAPIMixIn.set_download_limit`"""
         self.download_limit = v
 
     @download_limit.setter
     def download_limit(self, v):
+        """Implements :meth:`~TorrentsAPIMixIn.set_download_limit`"""
         self.set_download_limit(limit=v)
 
     @Alias("setDownloadLimit")
     def set_download_limit(self, limit=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_download_limit`"""
         self._client.torrents_set_download_limit(
             limit=limit, torrent_hashes=self._torrent_hash, **kwargs
         )
 
     @property
     def upload_limit(self, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_upload_limit`"""
         return self._client.torrents_upload_limit(
             torrent_hashes=self._torrent_hash, **kwargs
         ).get(self._torrent_hash)
@@ -172,84 +189,100 @@ class TorrentDictionary(Dictionary):
 
     @uploadLimit.setter
     def uploadLimit(self, v):
+        """Implements :meth:`~TorrentsAPIMixIn.set_upload_limit`"""
         self.upload_limit = v
 
     @upload_limit.setter
     def upload_limit(self, v):
+        """Implements :meth:`~TorrentsAPIMixIn.set_upload_limit`"""
         self.set_upload_limit(limit=v)
 
     @Alias("setUploadLimit")
     def set_upload_limit(self, limit=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_upload_limit`"""
         self._client.torrents_set_upload_limit(
             limit=limit, torrent_hashes=self._torrent_hash, **kwargs
         )
 
     @Alias("setLocation")
     def set_location(self, location=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_location`"""
         self._client.torrents_set_location(
             location=location, torrent_hashes=self._torrent_hash, **kwargs
         )
 
     @Alias("setCategory")
     def set_category(self, category=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_category`"""
         self._client.torrents_set_category(
             category=category, torrent_hashes=self._torrent_hash, **kwargs
         )
 
     @Alias("setAutoManagement")
     def set_auto_management(self, enable=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_auto_management`"""
         self._client.torrents_set_auto_management(
             enable=enable, torrent_hashes=self._torrent_hash, **kwargs
         )
 
     @Alias("toggleSequentialDownload")
     def toggle_sequential_download(self, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_toggle_sequential_download`"""
         self._client.torrents_toggle_sequential_download(
             torrent_hashes=self._torrent_hash, **kwargs
         )
 
     @Alias("toggleFirstLastPiecePrio")
     def toggle_first_last_piece_priority(self, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_toggle_first_last_piece_priority`"""
         self._client.torrents_toggle_first_last_piece_priority(
             torrent_hashes=self._torrent_hash, **kwargs
         )
 
     @Alias("setForceStart")
     def set_force_start(self, enable=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_force_start`"""
         self._client.torrents_set_force_start(
             enable=enable, torrent_hashes=self._torrent_hash, **kwargs
         )
 
     @Alias("setSuperSeeding")
     def set_super_seeding(self, enable=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_super_seeding`"""
         self._client.torrents_set_super_seeding(
             enable=enable, torrent_hashes=self._torrent_hash, **kwargs
         )
 
     @property
     def properties(self):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_properties`"""
         return self._client.torrents_properties(torrent_hash=self._torrent_hash)
 
     @property
     def trackers(self):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_trackers`"""
         return self._client.torrents_trackers(torrent_hash=self._torrent_hash)
 
     @trackers.setter
     def trackers(self, v):
+        """Implements :meth:`~TorrentsAPIMixIn.add_trackers`"""
         self.add_trackers(urls=v)
 
     @property
     def webseeds(self):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_webseeds`"""
         return self._client.torrents_webseeds(torrent_hash=self._torrent_hash)
 
     @property
     def files(self):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_files`"""
         return self._client.torrents_files(torrent_hash=self._torrent_hash)
 
     @Alias("renameFile")
     def rename_file(
         self, file_id=None, new_file_name=None, old_path=None, new_path=None, **kwargs
     ):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_rename_file`"""
         self._client.torrents_rename_file(
             torrent_hash=self._torrent_hash,
             file_id=file_id,
@@ -261,6 +294,7 @@ class TorrentDictionary(Dictionary):
 
     @Alias("renameFolder")
     def rename_folder(self, old_path=None, new_path=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_rename_folder`"""
         self._client.torrents_rename_folder(
             torrent_hash=self._torrent_hash,
             old_path=old_path,
@@ -270,24 +304,28 @@ class TorrentDictionary(Dictionary):
 
     @property
     def piece_states(self):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_piece_states`"""
         return self._client.torrents_piece_states(torrent_hash=self._torrent_hash)
 
     pieceStates = piece_states
 
     @property
     def piece_hashes(self):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_piece_hashes`"""
         return self._client.torrents_piece_hashes(torrent_hash=self._torrent_hash)
 
     pieceHashes = piece_hashes
 
     @Alias("addTrackers")
     def add_trackers(self, urls=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_add_trackers`"""
         self._client.torrents_add_trackers(
             torrent_hash=self._torrent_hash, urls=urls, **kwargs
         )
 
     @Alias("editTracker")
     def edit_tracker(self, orig_url=None, new_url=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_edit_tracker`"""
         self._client.torrents_edit_tracker(
             torrent_hash=self._torrent_hash,
             original_url=orig_url,
@@ -297,12 +335,14 @@ class TorrentDictionary(Dictionary):
 
     @Alias("removeTrackers")
     def remove_trackers(self, urls=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_remove_trackers`"""
         self._client.torrents_remove_trackers(
             torrent_hash=self._torrent_hash, urls=urls, **kwargs
         )
 
     @Alias("filePriority")
     def file_priority(self, file_ids=None, priority=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_file_priority`"""
         self._client.torrents_file_priority(
             torrent_hash=self._torrent_hash,
             file_ids=file_ids,
@@ -311,40 +351,45 @@ class TorrentDictionary(Dictionary):
         )
 
     def rename(self, new_name=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_rename`"""
         self._client.torrents_rename(
             torrent_hash=self._torrent_hash, new_torrent_name=new_name, **kwargs
         )
 
     @Alias("addTags")
     def add_tags(self, tags=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_add_tags`"""
         self._client.torrents_add_tags(
             torrent_hashes=self._torrent_hash, tags=tags, **kwargs
         )
 
     @Alias("removeTags")
     def remove_tags(self, tags=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_remove_tags`"""
         self._client.torrents_remove_tags(
             torrent_hashes=self._torrent_hash, tags=tags, **kwargs
         )
 
 
 class TorrentPropertiesDictionary(Dictionary):
-    pass
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_properties`"""
 
 
 class TorrentLimitsDictionary(Dictionary):
-    pass
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_download_limit`"""
 
 
 class TorrentCategoriesDictionary(Dictionary):
-    pass
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_categories`"""
 
 
 class TorrentsAddPeersDictionary(Dictionary):
-    pass
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_add_peers`"""
 
 
 class TorrentFilesList(List):
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_files`"""
+
     def __init__(self, list_entries=None, client=None):
         super(TorrentFilesList, self).__init__(
             list_entries, entry_class=TorrentFile, client=client
@@ -354,10 +399,12 @@ class TorrentFilesList(List):
 
 
 class TorrentFile(ListEntry):
-    pass
+    """Item in :class:`TorrentFilesList`"""
 
 
 class WebSeedsList(List):
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_webseeds`"""
+
     def __init__(self, list_entries=None, client=None):
         super(WebSeedsList, self).__init__(
             list_entries, entry_class=WebSeed, client=client
@@ -365,10 +412,12 @@ class WebSeedsList(List):
 
 
 class WebSeed(ListEntry):
-    pass
+    """Item in :class:`WebSeedsList`"""
 
 
 class TrackersList(List):
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_trackers`"""
+
     def __init__(self, list_entries=None, client=None):
         super(TrackersList, self).__init__(
             list_entries, entry_class=Tracker, client=client
@@ -376,10 +425,12 @@ class TrackersList(List):
 
 
 class Tracker(ListEntry):
-    pass
+    """Item in :class:`TrackersList`"""
 
 
 class TorrentInfoList(List):
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_info`"""
+
     def __init__(self, list_entries=None, client=None):
         super(TorrentInfoList, self).__init__(
             list_entries, entry_class=TorrentDictionary, client=client
@@ -387,6 +438,8 @@ class TorrentInfoList(List):
 
 
 class TorrentPieceInfoList(List):
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_piece_states` and :meth:`~TorrentsAPIMixIn.torrents_piece_hashes`"""
+
     def __init__(self, list_entries=None, client=None):
         super(TorrentPieceInfoList, self).__init__(
             list_entries, entry_class=TorrentPieceData, client=client
@@ -394,16 +447,18 @@ class TorrentPieceInfoList(List):
 
 
 class TorrentPieceData(ListEntry):
-    pass
+    """Item in :class:`TorrentPieceInfoList`"""
 
 
 class TagList(List):
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_tags`"""
+
     def __init__(self, list_entries=None, client=None):
         super(TagList, self).__init__(list_entries, entry_class=Tag, client=client)
 
 
 class Tag(ListEntry):
-    pass
+    """Item in :class:`TagList`"""
 
 
 class Torrents(ClientCache):
@@ -819,10 +874,12 @@ class TorrentCategories(ClientCache):
 
     @property
     def categories(self):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_categories`"""
         return self._client.torrents_categories()
 
     @categories.setter
     def categories(self, v):
+        """Implements :meth:`~TorrentsAPIMixIn.edit_category` or :meth:`~TorrentsAPIMixIn.create_category`"""
         if v.get("name", "") in self.categories:
             self.edit_category(**v)
         else:
@@ -830,18 +887,21 @@ class TorrentCategories(ClientCache):
 
     @Alias("createCategory")
     def create_category(self, name=None, save_path=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_create_category`"""
         return self._client.torrents_create_category(
             name=name, save_path=save_path, **kwargs
         )
 
     @Alias("editCategory")
     def edit_category(self, name=None, save_path=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_edit_category`"""
         return self._client.torrents_edit_category(
             name=name, save_path=save_path, **kwargs
         )
 
     @Alias("removeCategories")
     def remove_categories(self, categories=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_remove_categories`"""
         return self._client.torrents_remove_categories(categories=categories, **kwargs)
 
 
@@ -861,36 +921,50 @@ class TorrentTags(ClientCache):
 
     @property
     def tags(self):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_tags`"""
         return self._client.torrents_tags()
 
     @tags.setter
     def tags(self, v):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_create_tags`"""
         self._client.torrents_create_tags(tags=v)
 
     @Alias("addTags")
     def add_tags(self, tags=None, torrent_hashes=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_add_tags`"""
         self._client.torrents_add_tags(
             tags=tags, torrent_hashes=torrent_hashes, **kwargs
         )
 
     @Alias("removeTags")
     def remove_tags(self, tags=None, torrent_hashes=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_remove_tags`"""
         self._client.torrents_remove_tags(
             tags=tags, torrent_hashes=torrent_hashes, **kwargs
         )
 
     @Alias("createTags")
     def create_tags(self, tags=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_create_tags`"""
         self._client.torrents_create_tags(tags=tags, **kwargs)
 
     @Alias("deleteTags")
     def delete_tags(self, tags=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_delete_tags`"""
         self._client.torrents_delete_tags(tags=tags, **kwargs)
 
 
 @aliased
 class TorrentsAPIMixIn(Request):
-    """Implementation of all Torrents API methods."""
+    """
+    Implementation of all Torrents API methods.
+
+    :Usage:
+        >>> from qbittorrentapi import Client
+        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> client.torrents_add(urls='...')
+        >>> client.torrents_reannounce()
+    """
 
     @property
     def torrents(self):
@@ -1095,8 +1169,7 @@ class TorrentsAPIMixIn(Request):
         :raises NotFound404Error:
 
         :param torrent_hash: hash for torrent
-        :return: Dictionary of torrent properties
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-generic-properties
+        :return: :class:`TorrentPropertiesDictionary` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-generic-properties
         """
         data = {"hash": torrent_hash or kwargs.pop("hash")}
         return self._post(
@@ -1112,8 +1185,7 @@ class TorrentsAPIMixIn(Request):
         :raises NotFound404Error:
 
         :param torrent_hash: hash for torrent
-        :return: List of torrent's trackers
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-trackers
+        :return: :class:`TrackersList` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-trackers
         """
         data = {"hash": torrent_hash or kwargs.pop("hash")}
         return self._post(
@@ -1129,8 +1201,7 @@ class TorrentsAPIMixIn(Request):
         :raises NotFound404Error:
 
         :param torrent_hash: hash for torrent
-        :return: List of torrent's web seeds
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-web-seeds
+        :return: :class:`WebSeedsList` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-web-seeds
         """
         data = {"hash": torrent_hash or kwargs.pop("hash")}
         return self._post(
@@ -1146,8 +1217,7 @@ class TorrentsAPIMixIn(Request):
         :raises NotFound404Error:
 
         :param torrent_hash: hash for torrent
-        :return: List of torrent's files
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-contents
+        :return: :class:`TorrentFilesList` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-contents
         """
         data = {"hash": torrent_hash or kwargs.pop("hash")}
         return self._post(_name=APINames.Torrents, _method="files", data=data, **kwargs)
@@ -1162,7 +1232,7 @@ class TorrentsAPIMixIn(Request):
         :raises NotFound404Error:
 
         :param torrent_hash: hash for torrent
-        :return: list of torrent's pieces' states
+        :return: :class:`TorrentPieceInfoList`
         """
         data = {"hash": torrent_hash or kwargs.pop("hash")}
         return self._post(
@@ -1179,7 +1249,7 @@ class TorrentsAPIMixIn(Request):
         :raises NotFound404Error:
 
         :param torrent_hash: hash for torrent
-        :return: List of torrent's pieces' hashes
+        :return: :class:`TorrentPieceInfoList`
         """
         data = {"hash": torrent_hash or kwargs.pop("hash")}
         return self._post(
@@ -1261,11 +1331,10 @@ class TorrentsAPIMixIn(Request):
 
         :raises InvalidRequest400: if priority is invalid or at least one file ID is not an integer
         :raises NotFound404Error:
-        :raises Conflict409: if torrent metadata has not finished downloading or at least one file was not found
+        :raises Conflict409Error: if torrent metadata has not finished downloading or at least one file was not found
         :param torrent_hash: hash for torrent
         :param file_ids: single file ID or a list.
-        :param priority: priority for file(s)
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#set-file-priority
+        :param priority: priority for file(s) - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#set-file-priority
         :return: None
         """
         data = {
@@ -1410,8 +1479,7 @@ class TorrentsAPIMixIn(Request):
         :param limit: Limit length of list
         :param offset: Start of list (if < 0, offset from end of list)
         :param torrent_hashes: Filter list by hash (separate multiple hashes with a '|')
-        :return: List of torrents
-            Properties: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-list
+        :return: :class:`TorrentInfoList` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-list
         """
         data = {
             "filter": status_filter,
@@ -1500,7 +1568,7 @@ class TorrentsAPIMixIn(Request):
         """
         Increase the priority of a torrent. Torrent Queuing must be enabled. (alias: torrents_increasePrio)
 
-        :raises Conflict409:
+        :raises Conflict409Error:
 
         :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: None
@@ -1516,7 +1584,7 @@ class TorrentsAPIMixIn(Request):
         """
         Decrease the priority of a torrent. Torrent Queuing must be enabled. (alias: torrents_decreasePrio)
 
-        :raises Conflict409:
+        :raises Conflict409Error:
 
         :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: None
@@ -1532,7 +1600,7 @@ class TorrentsAPIMixIn(Request):
         """
         Set torrent as highest priority. Torrent Queuing must be enabled. (alias: torrents_topPrio)
 
-        :raises Conflict409:
+        :raises Conflict409Error:
 
         :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: None
@@ -1548,7 +1616,7 @@ class TorrentsAPIMixIn(Request):
         """
         Set torrent as highest priority. Torrent Queuing must be enabled. (alias: torrents_bottomPrio)
 
-        :raises Conflict409:
+        :raises Conflict409Error:
 
         :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :return: None
@@ -1565,7 +1633,7 @@ class TorrentsAPIMixIn(Request):
         """
         Retrieve the download limit for one or more torrents. (alias: torrents_downloadLimit)
 
-        :return: dictioanry {hash: limit} (-1 represents no limit)
+        :return: :class:`TorrentLimitsDictionary` - {hash: limit} (-1 represents no limit)
         """
         data = {
             "hashes": self._list2string(torrent_hashes or kwargs.get("hashes"), "|")
@@ -1623,7 +1691,7 @@ class TorrentsAPIMixIn(Request):
         Retrieve the upload limit for one or more torrents. (alias: torrents_uploadLimit)
 
         :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
-        :return: dictionary of limits
+        :return: :class:`TorrentLimitsDictionary`
         """
         data = {
             "hashes": self._list2string(torrent_hashes or kwargs.get("hashes"), "|")
@@ -1657,7 +1725,7 @@ class TorrentsAPIMixIn(Request):
         Set location for torrents's files. (alias: torrents_setLocation)
 
         :raises Forbidden403Error: if the user doesn't have permissions to write to the location
-        :raises Conflict409: if the directory cannot be created at the location
+        :raises Conflict409Error: if the directory cannot be created at the location
 
         :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :param location: disk location to move torrent's files
@@ -1675,7 +1743,7 @@ class TorrentsAPIMixIn(Request):
         """
         Set a category for one or more torrents. (alias: torrents_setCategory)
 
-        :raises Conflict409: for bad category
+        :raises Conflict409Error: for bad category
 
         :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
         :param category: category to assign to torrent
@@ -1789,7 +1857,7 @@ class TorrentsAPIMixIn(Request):
 
         :param peers: one or more peers to add. each peer should take the form 'host:port'
         :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
-        :return: dictionary - {<hash>: {'added': #, 'failed': #}}
+        :return: :class:`TorrentsAddPeersDictionary` - {<hash>: {'added': #, 'failed': #}}
         """
         data = {
             "hashes": self._list2string(torrent_hashes or kwargs.get("hashes"), "|"),
@@ -1808,7 +1876,7 @@ class TorrentsAPIMixIn(Request):
         Retrieve all category definitions
 
         Note: torrents/categories is not available until v2.1.0
-        :return: dictionary of categories
+        :return: :class:`TorrentCategoriesDictionary`
         """
         return self._get(_name=APINames.Torrents, _method="categories", **kwargs)
 
@@ -1820,7 +1888,7 @@ class TorrentsAPIMixIn(Request):
 
         Note: save_path is not available until web API version 2.1.0
 
-        :raises Conflict409: if category name is not valid or unable to create
+        :raises Conflict409Error: if category name is not valid or unable to create
 
         :param name: name for new category
         :param save_path: location to save torrents for this category
@@ -1840,7 +1908,7 @@ class TorrentsAPIMixIn(Request):
 
         Note: torrents/editCategory not available until web API version 2.1.0
 
-        :raises Conflict409:
+        :raises Conflict409Error:
 
         :param name: category to edit
         :param save_path: new location to save files for this category
@@ -1871,7 +1939,7 @@ class TorrentsAPIMixIn(Request):
         """
         Retrieve all tag definitions.
 
-        :return: list of tags
+        :return: :class:`TagList`
         """
         return self._get(_name=APINames.Torrents, _method="tags", **kwargs)
 

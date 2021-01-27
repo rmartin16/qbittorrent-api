@@ -1,8 +1,7 @@
 Torrent States
 ================================
 
-.. automodule:: qbittorrentapi
-
-.. autoclass:: TorrentStates
+.. autoclass:: qbittorrentapi.definitions.TorrentStates
     :members:
     :undoc-members:
+    :show-inheritance:

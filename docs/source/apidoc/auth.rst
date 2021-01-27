@@ -1,7 +1,12 @@
 Authentication
 ================================
 
-.. automodule:: qbittorrentapi
+.. autoclass:: qbittorrentapi.auth.AuthAPIMixIn
+    :members:
+    :undoc-members:
+    :exclude-members: auth, authorization
+    :show-inheritance:
 
-.. autoclass:: Request
-    :members: auth_log_in, auth_log_out
+.. autoclass:: qbittorrentapi.auth.Authorization
+    :members:
+    :undoc-members:
