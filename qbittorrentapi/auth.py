@@ -1,4 +1,4 @@
-import logging
+from logging import getLogger
 
 from qbittorrentapi.decorators import login_required
 from qbittorrentapi.definitions import APINames
@@ -6,7 +6,7 @@ from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.exceptions import LoginFailed
 from qbittorrentapi.request import Request
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 
 class Authorization(ClientCache):

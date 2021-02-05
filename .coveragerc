@@ -1,0 +1,11 @@
+# .coveragerc to control coverage.py
+[run]
+source = qbittorrentapi
+omit = qbittorrentapi/_attrdict.py
+branch = True
+
+[report]
+show_missing = True
+
+[html]
+skip_empty = True
