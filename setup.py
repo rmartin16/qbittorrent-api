@@ -9,7 +9,6 @@ setup(
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     include_package_data=True,
     install_requires=[
-        "attrdict>=2.0.0",
         "requests>=2.16.0",
         "urllib3>=1.24.2",
         "six",

@@ -1,4 +1,4 @@
-import logging
+from logging import getLogger
 from functools import wraps
 from json import loads
 from pkg_resources import parse_version
@@ -6,7 +6,7 @@ from pkg_resources import parse_version
 from qbittorrentapi.exceptions import APIError
 from qbittorrentapi.exceptions import HTTP403Error
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 
 def _is_version_less_than(ver1, ver2, lteq=True):

@@ -5,7 +5,7 @@ try:
 except ImportError:
     from UserList import UserList
 
-from attrdict import AttrDict
+from qbittorrentapi._attrdict import AttrDict
 
 
 class APINames(Enum):

@@ -1,5 +1,5 @@
 import errno
-import logging
+from logging import getLogger
 from os import path
 from os import strerror as os_strerror
 
@@ -10,8 +10,7 @@ except ImportError:
     from collections import Iterable
     from collections import Mapping
 
-import six
-from attrdict import AttrDict
+from six import text_type as six_text_type
 
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
@@ -31,7 +30,7 @@ from qbittorrentapi.exceptions import TorrentFileNotFoundError
 from qbittorrentapi.exceptions import TorrentFilePermissionError
 from qbittorrentapi.request import Request
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 
 @aliased
@@ -92,7 +91,7 @@ class TorrentDictionary(Dictionary):
             info = self._client.torrents_info(torrent_hashes=self._torrent_hash)
         if len(info) == 1:
             return info[0]
-        return AttrDict()
+        return TorrentDictionary(data={}, client=self._client)
 
     def resume(self, **kwargs):
         """Implements :meth:`~TorrentsAPIMixIn.torrents_resume`"""
@@ -1098,7 +1097,7 @@ class TorrentsAPIMixIn(Request):
         prefix = "torrent__"
         # if it's string-like and not a list|set|tuple, then make it a list
         # checking for 'read' attr since a single file handle is iterable but also needs to be in a list
-        is_string_like = isinstance(user_files, (bytes, six.text_type))
+        is_string_like = isinstance(user_files, (bytes, six_text_type))
         is_file_like = hasattr(user_files, "read")
         if is_string_like or is_file_like or not isinstance(user_files, Iterable):
             user_files = [user_files]

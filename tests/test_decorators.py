@@ -1,8 +1,6 @@
 import logging
 from json import dumps
 
-from attrdict import AttrDict
-
 import pytest
 
 from qbittorrentapi import Client
@@ -11,6 +9,7 @@ from qbittorrentapi.decorators import (
     response_json,
     response_text,
 )
+from qbittorrentapi._attrdict import AttrDict
 from qbittorrentapi.decorators import endpoint_introduced, version_removed
 from qbittorrentapi import APIError
 
