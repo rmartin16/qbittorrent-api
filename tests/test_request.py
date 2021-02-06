@@ -1,6 +1,7 @@
 from collections import namedtuple
 import logging
 from os import environ
+import re
 
 import pytest
 
@@ -29,9 +30,17 @@ def test_log_in():
         username="asdf", password="asdfasdf", VERIFY_WEBUI_CERTIFICATE=False
     )
 
+    client_good.auth_log_out()
     assert client_good.auth_log_in() is None
+    assert client_good.is_logged_in is True
+    client_good.auth_log_out()
+    assert client_good.auth.log_in() is None
+    assert client_good.auth.is_logged_in is True
+    assert client_good.auth.is_logged_in is True
     with pytest.raises(LoginFailed):
         client_bad.auth_log_in()
+    with pytest.raises(LoginFailed):
+        client_bad.auth.log_in()
 
 
 def test_log_in_via_auth():
@@ -55,14 +64,36 @@ def test_log_in_via_auth():
     "hostname",
     (
         "localhost:8080",
+        "localhost:8080/",
         "http://localhost:8080",
+        "http://localhost:8080/",
         "https://localhost:8080",
+        "https://localhost:8080/",
         "//localhost:8080",
+        "//localhost:8080/",
     ),
 )
 def test_hostname_format(app_version, hostname):
     client = Client(host=hostname, VERIFY_WEBUI_CERTIFICATE=False)
     assert client.app.version == app_version
+    # ensure the base URL is always normalized
+    assert re.match(r"(http|https)://localhost:8080/", client._API_BASE_URL)
+
+
+@pytest.mark.parametrize(
+    "hostname",
+    (
+        "localhost:8080/qbt",
+        "localhost:8080/qbt/",
+    ),
+)
+def test_hostname_user_base_path(hostname):
+    client = Client(host=hostname, VERIFY_WEBUI_CERTIFICATE=False)
+    # the command will fail but the URL will be built
+    with pytest.raises(APIConnectionError):
+        _ = client.app.version
+    # ensure user provided base paths are preserved
+    assert re.match(r"(http|https)://localhost:8080/qbt/", client._API_BASE_URL)
 
 
 def test_port_from_host(app_version):
@@ -73,6 +104,11 @@ def test_port_from_host(app_version):
 
 def test_log_out(client):
     client.auth_log_out()
+    with pytest.raises(Forbidden403Error):
+        # cannot call client.app.version directly since it will auto log back in
+        client._get("app", "version")
+    client.auth_log_in()
+    client.auth.log_out()
     with pytest.raises(Forbidden403Error):
         # cannot call client.app.version directly since it will auto log back in
         client._get("app", "version")
@@ -121,6 +157,12 @@ def test_disable_logging():
     assert logging.getLogger("requests").level == logging.INFO
     assert logging.getLogger("urllib3").level == logging.INFO
 
+    logging.getLogger("qbittorrentapi").setLevel(level=logging.CRITICAL)
+    _ = Client(DISABLE_LOGGING_DEBUG_OUTPUT=True)
+    assert logging.getLogger("qbittorrentapi").level == logging.CRITICAL
+    assert logging.getLogger("requests").level == logging.INFO
+    assert logging.getLogger("urllib3").level == logging.INFO
+
 
 def test_verify_cert(api_version):
     client = Client(VERIFY_WEBUI_CERTIFICATE=False)
@@ -140,14 +182,23 @@ def test_verify_cert(api_version):
 
 def test_api_connection_error():
     with pytest.raises(APIConnectionError):
-        Client(host="localhost:8081").auth_log_in()
+        Client(host="localhost:8081").auth_log_in(_retries=0)
+
+    with pytest.raises(APIConnectionError):
+        Client(host="localhost:8081").auth_log_in(_retries=1)
+
+    with pytest.raises(APIConnectionError):
+        Client(host="localhost:8081").auth_log_in(_retries=2)
+
+    with pytest.raises(APIConnectionError):
+        Client(host="localhost:8081").auth_log_in(_retries=3)
 
 
-def test_request_http400(client, api_version, orig_torrent_hash):
+def test_http400(client, app_version, orig_torrent_hash):
     with pytest.raises(MissingRequiredParameters400Error):
         client.torrents_file_priority(hash=orig_torrent_hash)
 
-    if is_version_less_than("4.1.5", api_version, lteq=False):
+    if is_version_less_than("4.1.5", app_version, lteq=False):
         with pytest.raises(InvalidRequest400Error):
             client.torrents_file_priority(
                 hash=orig_torrent_hash, file_ids="asdf", priority="asdf"
@@ -166,8 +217,15 @@ def test_http401():
 
 @pytest.mark.parametrize("params", ({}, {"hash": "asdf"}, {"hashes": "asdf|asdf"}))
 def test_http404(client, params):
+    # 404 for a post
     with pytest.raises(NotFound404Error):
         client.torrents_rename(hash="asdf", new_torrent_name="erty")
+
+    # 404 for a get
+    with pytest.raises(NotFound404Error):
+        client._get(
+            _name="torrents", _method="rename", params={"hash": "asdf", "name": "erty"}
+        )
 
     response = MockResponse(status_code=404, text="")
     with pytest.raises(HTTPError):
@@ -175,10 +233,10 @@ def test_http404(client, params):
         Request.handle_error_responses(params=p, response=response)
 
 
-def test_http409(client, api_version):
-    if is_version_less_than("4.1.5", api_version, lteq=False):
+def test_http409(client, app_version):
+    if is_version_less_than("4.1.5", app_version, lteq=False):
         with pytest.raises(Conflict409Error):
-            client.torrents.increase_priority(hashes="asdf")
+            client.torrents_set_location(torrent_hashes="asdf", location="/etc/asdf/")
 
 
 def test_http415(client):

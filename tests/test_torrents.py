@@ -1,4 +1,6 @@
+import errno
 from os import path
+import platform
 from sys import version_info
 from time import sleep
 
@@ -13,6 +15,7 @@ import requests
 from qbittorrentapi.exceptions import Forbidden403Error
 from qbittorrentapi.exceptions import Conflict409Error
 from qbittorrentapi.exceptions import InvalidRequest400Error
+from qbittorrentapi.exceptions import TorrentFileError
 from qbittorrentapi.exceptions import TorrentFileNotFoundError
 from qbittorrentapi.exceptions import TorrentFilePermissionError
 from qbittorrentapi.torrents import TorrentPropertiesDictionary
@@ -184,7 +187,7 @@ def test_add_delete(client, api_version, client_func):
         add_by_bytes(single=True)
 
 
-def test_add_torrent_file_fail(client):
+def test_add_torrent_file_fail(client, monkeypatch):
     # torrent add is wonky in python2 because of support for raw bytes...
     if version_info[0] > 2:
         with pytest.raises(TorrentFileNotFoundError):
@@ -192,6 +195,16 @@ def test_add_torrent_file_fail(client):
 
         with pytest.raises(TorrentFilePermissionError):
             client.torrents_add(torrent_files="/etc/shadow")
+
+        if platform.python_implementation() == "CPython":
+            with pytest.raises(TorrentFileError):
+
+                def fake_open(*arg, **kwargs):
+                    raise IOError(errno.ENODEV)
+
+                with monkeypatch.context() as m:
+                    m.setitem(__builtins__, "open", fake_open)
+                    client.torrents_add(torrent_files="/etc/hosts")
 
 
 def test_add_options(api_version, new_torrent):

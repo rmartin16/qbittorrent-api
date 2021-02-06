@@ -1,3 +1,5 @@
+from time import sleep
+
 import pytest
 
 from qbittorrentapi.rss import RSSitemsDictionary
@@ -11,101 +13,127 @@ item_two = "YTS1080pNew"
 url = "https://yts.mx/rss/"
 
 
-@pytest.mark.parametrize(
-    "client_func",
-    (
-        ("rss_add_folder", "rss_remove_item", "rss_items"),
-        ("rss.add_folder", "rss.remove_item", "rss.items"),
-    ),
-)
-def test_add_remove_folder(client, client_func):
-    get_func(client, client_func[0])(folder_path=folder_one)  # rss_add_folder
-    check(lambda: client.rss_items(), folder_one, reverse=True)
-    get_func(client, client_func[1])(item_path=folder_one)  # rss_remove_item
-    check(
-        lambda: get_func(client, client_func[2])(),
-        folder_one,
-        reverse=True,
-        negate=True,
-    )  # rss_items
-
-
-@pytest.mark.parametrize(
-    "client_func",
-    (
-        (
-            "rss_add_feed",
-            "rss_move_item",
-            "rss_refresh_item",
-            "rss_items",
-            "rss_mark_as_read",
-            "rss_remove_item",
-        ),
-        (
-            "rss.add_feed",
-            "rss.move_item",
-            "rss.refresh_item",
-            "rss.items",
-            "rss.mark_as_read",
-            "rss.remove_item",
-        ),
-    ),
-)
-def test_add_move_refresh_remove_feed(client, api_version, client_func):
-    try:
-        get_func(client, client_func[0])(item_path=item_one, url=url)  # rss_add_feed
+def test_refresh_item(client, api_version, rss_feed):
+    if is_version_less_than(api_version, "2.2", lteq=False):
+        with pytest.raises(NotImplementedError):
+            client.rss_refresh_item(item_path=rss_feed)
+    else:
+        # client.rss_refresh_item(item_path=rss_feed)
         check(
-            lambda: get_func(client, client_func[3])(), item_one, reverse=True
-        )  # rss_items
-        get_func(client, client_func[1])(
-            orig_item_path=item_one, new_item_path=item_two
-        )  # rss_move_item
-        check(
-            lambda: get_func(client, client_func[3])(), item_two, reverse=True
-        )  # rss_items
-
-        # update item_two
-        if is_version_less_than(api_version, "2.2", lteq=False):
-            with pytest.raises(NotImplementedError):
-                get_func(client, client_func[2])(item_path=item_two)  # rss_refresh_item
-        else:
-            get_func(client, client_func[2])(item_path=item_two)  # rss_refresh_item
-
-        items = get_func(client, client_func[3])(include_feed_data=True)  # rss_items
-        assert isinstance(items, RSSitemsDictionary)
-        try:
-            items = getattr(
-                get_func(client, client_func[3]), "without_data"
-            )  # rss_items
-            assert isinstance(items, RSSitemsDictionary)
-            items = getattr(get_func(client, client_func[3]), "with_data")  # rss_items
-            assert isinstance(items, RSSitemsDictionary)
-        except AttributeError:
-            pass
-
-        if is_version_less_than(api_version, "2.5.1", lteq=False):
-            with pytest.raises(NotImplementedError):
-                get_func(client, client_func[4])()  # rss_mark_as_read
-        else:
-            check(lambda: client.rss_items(), item_two, reverse=True)
-            check(
-                lambda: client.rss_items(include_feed_data=True)[item_two],
-                "articles",
-                reverse=True,
-            )
-            items = client.rss_items(include_feed_data=True)  # rss_items
-            if items[item_two]["articles"]:
-                get_func(client, client_func[4])(
-                    item_path=item_two, article_id=items[item_two]["articles"][0]
-                )  # rss_mark_as_read
-    finally:
-        get_func(client, client_func[5])(item_path=item_two)  # rss_remove_item
-        check(
-            lambda: get_func(client, client_func[3])(),
-            item_two,
-            reverse=True,
+            lambda: client.rss_items(include_feed_data=True)[rss_feed]["lastBuildDate"],
+            "",
             negate=True,
-        )  # rss_items
+        )
+        last_refresh = client.rss_items(include_feed_data=True)[rss_feed][
+            "lastBuildDate"
+        ]
+        sleep(1)
+        client.rss_refresh_item(item_path=rss_feed)
+        check(
+            lambda: client.rss_items(include_feed_data=True)[rss_feed]["lastBuildDate"],
+            last_refresh,
+            negate=True,
+        )
+
+    if is_version_less_than(api_version, "2.2", lteq=False):
+        with pytest.raises(NotImplementedError):
+            client.rss.refresh_item(item_path=rss_feed)
+    else:
+        client.rss.refresh_item(item_path=rss_feed)
+        check(
+            lambda: client.rss_items(include_feed_data=True)[rss_feed]["lastBuildDate"],
+            "",
+            negate=True,
+        )
+        last_refresh = client.rss_items(include_feed_data=True)[rss_feed][
+            "lastBuildDate"
+        ]
+        sleep(1)
+        client.rss.refresh_item(item_path=rss_feed)
+        check(
+            lambda: client.rss_items(include_feed_data=True)[rss_feed]["lastBuildDate"],
+            last_refresh,
+            negate=True,
+        )
+
+
+def test_items(client, rss_feed):
+    check(lambda: client.rss_items(), rss_feed, reverse=True)
+    check(lambda: client.rss_items(include_feed_data=True), rss_feed, reverse=True)
+    check(
+        lambda: client.rss_items(include_feed_data=True)[rss_feed],
+        "articles",
+        reverse=True,
+    )
+
+    check(lambda: client.rss.items(), rss_feed, reverse=True)
+    check(lambda: client.rss.items.without_data, rss_feed, reverse=True)
+    check(lambda: client.rss.items.with_data[rss_feed], "articles", reverse=True)
+
+
+def test_add_feed(client, rss_feed):
+    if rss_feed not in client.rss_items():
+        raise Exception("rss feed not found", client.rss_items())
+
+
+def test_remove_feed1(client, rss_feed):
+    client.rss_remove_item(item_path=rss_feed)
+    check(lambda: client.rss_items(), rss_feed, reverse=True, negate=True)
+
+
+def test_remove_feed2(client, rss_feed):
+    client.rss.remove_item(item_path=rss_feed)
+    check(lambda: client.rss_items(), rss_feed, reverse=True, negate=True)
+
+
+def test_add_remove_folder(client):
+    name = "test_isos"
+
+    client.rss_add_folder(folder_path=name)
+    check(lambda: client.rss_items(), name, reverse=True)
+    client.rss_remove_item(item_path=name)
+    check(lambda: client.rss_items(), name, reverse=True, negate=True)
+
+    client.rss.add_folder(folder_path=name)
+    check(lambda: client.rss.items(), name, reverse=True)
+    client.rss.remove_item(item_path=name)
+    check(lambda: client.rss.items(), name, reverse=True, negate=True)
+
+
+def test_move(client, rss_feed):
+    new_name = "new_loc"
+
+    client.rss_move_item(orig_item_path=rss_feed, new_item_path=new_name)
+    check(lambda: client.rss_items(), new_name, reverse=True)
+
+    client.rss.move_item(orig_item_path=new_name, new_item_path=rss_feed)
+    check(lambda: client.rss.items(), rss_feed, reverse=True)
+
+
+def test_mark_as_read(client, api_version, rss_feed):
+    item_id = client.rss.items.with_data[rss_feed]["articles"][0]["id"]
+    if is_version_less_than(api_version, "2.5.1", lteq=False):
+        with pytest.raises(NotImplementedError):
+            client.rss_mark_as_read(item_path=rss_feed, article_id=item_id)
+    else:
+        client.rss_mark_as_read(item_path=rss_feed, article_id=item_id)
+        check(
+            lambda: client.rss.items.with_data[rss_feed]["articles"][0],
+            "isRead",
+            reverse=True,
+        )
+
+    item_id = client.rss.items.with_data[rss_feed]["articles"][1]["id"]
+    if is_version_less_than(api_version, "2.5.1", lteq=False):
+        with pytest.raises(NotImplementedError):
+            client.rss.mark_as_read(item_path=rss_feed, article_id=item_id)
+    else:
+        client.rss.mark_as_read(item_path=rss_feed, article_id=item_id)
+        check(
+            lambda: client.rss.items.with_data[rss_feed]["articles"][1],
+            "isRead",
+            reverse=True,
+        )
 
 
 @pytest.mark.parametrize(
@@ -131,7 +159,7 @@ def test_add_move_refresh_remove_feed(client, api_version, client_func):
         ),
     ),
 )
-def test_rules(client, api_version, client_func):
+def test_rules(client, api_version, client_func, rss_feed):
     def check_for_rule(name):
         try:
             get_func(client, client_func[2])()  # rss_rules
@@ -147,12 +175,6 @@ def test_rules(client, api_version, client_func):
     rule_name_new = rule_name + "New"
     rule_def = {"enabled": True, "affectedFeeds": url, "addPaused": True}
     try:
-        get_func(client, client_func[0])(item_path=item_one, url=url)  # rss_add_feed
-        if is_version_less_than(api_version, "2.2", lteq=False):
-            with pytest.raises(NotImplementedError):
-                client.rss.refresh_item(item_path=item_two)
-        else:
-            client.rss.refresh_item(item_path=item_two)
         get_func(client, client_func[1])(
             rule_name=rule_name, rule_def=rule_def
         )  # rss_set_rule

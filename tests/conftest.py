@@ -7,6 +7,7 @@ import six
 
 from qbittorrentapi import APIConnectionError
 from qbittorrentapi import Client
+from qbittorrentapi.exceptions import APIError
 from qbittorrentapi.request import Request
 
 qbt_version = "v" + environ["QBT_VER"]
@@ -146,6 +147,8 @@ def client():
         client.auth_log_in()
         # add orig_torrent to qBittorrent
         client.torrents_add(urls=_orig_torrent_url, upload_limit=10, download_limit=10)
+        # enable RSS fetching
+        client.app.preferences = dict(rss_processing_enabled=True)
         return client
     except APIConnectionError as e:
         pytest.exit("qBittorrent was not running when tests started: %s" % repr(e))
@@ -229,6 +232,29 @@ def app_version():
 def api_version():
     """qBittorrent App API Version being used for testing"""
     return api_version_map[qbt_version]
+
+
+@pytest.fixture(scope="function")
+def rss_feed(client):
+    def delete_feed():
+        try:
+            client.rss_remove_item(item_path=name)  # remove it just in case first
+        except:
+            pass
+
+    name = "YTS1080p"
+    url = "https://yts.mx/rss/"
+    delete_feed()
+    client.rss.add_feed(url=url, item_path=name)
+    # wait until the rss feed exists and is downloaded
+    check(lambda: client.rss_items(), name, reverse=True)
+    check(
+        lambda: len(client.rss_items(include_feed_data=True)[name].get("articles", [])),
+        [0],
+        negate=True,
+    )
+    yield name
+    delete_feed()
 
 
 def pytest_sessionfinish(session, exitstatus):
