@@ -1,4 +1,5 @@
 from os import path
+import platform
 from time import sleep
 
 import pytest
@@ -22,12 +23,23 @@ from tests.test_torrents import (
 )
 
 
-def test_info(orig_torrent):
+def test_info(orig_torrent, monkeypatch):
     assert orig_torrent.info.hash == orig_torrent.hash
     # mimic <=v2.0.1 where torrents_info() doesn't support hash arg
     orig_torrent._client._MOCK_WEB_API_VERSION = "2"
     assert orig_torrent.info.hash == orig_torrent.hash
     orig_torrent._client._MOCK_WEB_API_VERSION = None
+
+    # ensure if things are really broken, an empty TorrentDictionary is returned...
+    if platform.python_implementation() == "CPython":
+        with monkeypatch.context() as m:
+
+            def fake_info(*args, **kwargs):
+                return []
+
+            m.setattr(orig_torrent._client, "torrents_info", fake_info)
+            assert isinstance(orig_torrent.info, TorrentDictionary)
+            assert bool(orig_torrent.info) is False
 
 
 def test_sync_local(orig_torrent):

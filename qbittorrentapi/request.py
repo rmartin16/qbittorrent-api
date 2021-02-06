@@ -545,7 +545,7 @@ class Request(HelpersMixIn):
             # API method doesn't exist or more likely, torrent not found
             # APIErrorType::NotFound
             error_message = response.text
-            if error_message == "":
+            if error_message in ("", "Not Found"):
                 error_torrent_hash = ""
                 if params["data"]:
                     error_torrent_hash = params["data"].get("hash", error_torrent_hash)

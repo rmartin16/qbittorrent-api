@@ -13,6 +13,14 @@ Host, Username and Password
 * These can be provided when instantiating Client or calling ``qbt_client.auth_log_in(username='...', password='...')``.
 * Alternatively, set environment variables ``PYTHON_QBITTORRENTAPI_HOST``, ``PYTHON_QBITTORRENTAPI_USERNAME`` and ``PYTHON_QBITTORRENTAPI_PASSWORD``.
 
+Custom HTTP Headers
+***************************
+* To send a custom HTTP header in all requests made from an instantiated client, declare them during instantiation.
+    * ``qbt_client = Client(..., EXTRA_HEADERS={'X-My-Fav-Header': 'header value')``
+* Alternatively, you can send custom headers in individual requests.
+    * ``qbt_client.torrents.add(..., headers={'X-My-Fav-Header': 'header value')``
+    * These headers will be merged with other headers otherwise configured to be sent.
+
 Unimplemented API Endpoints
 ***************************
 * Since the qBittorrent Web API has evolved over time, some endpoints may not be available from the qBittorrent host.

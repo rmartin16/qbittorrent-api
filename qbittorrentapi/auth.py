@@ -73,7 +73,7 @@ class AuthAPIMixIn(Request):
         """
         return bool(self._SID)
 
-    def auth_log_in(self, username=None, password=None):
+    def auth_log_in(self, username=None, password=None, **kwargs):
         """
         Log in to qBittorrent host.
 
@@ -93,6 +93,7 @@ class AuthAPIMixIn(Request):
             _name=APINames.Authorization,
             _method="login",
             data={"username": self.username, "password": self._password},
+            **kwargs
         )
 
         if not self.is_logged_in:
