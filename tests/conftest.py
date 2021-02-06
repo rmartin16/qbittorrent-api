@@ -63,7 +63,9 @@ def get_func(client, func_str):
     return func
 
 
-def check(check_func, value, reverse=False, negate=False, any=False):
+def check(
+    check_func, value, reverse=False, negate=False, any=False, check_limit=_check_limit
+):
     """
     Compare the return value of an arbitrary function to expected value with retries.
     Since some requests take some time to take affect in qBittorrent, the retries every second for 10 seconds.
@@ -72,6 +74,7 @@ def check(check_func, value, reverse=False, negate=False, any=False):
     :param value: str, int, or iterator of values to look for
     :param reverse: False: look for check_func return in value; True: look for value in check_func return
     :param negate: False: value must be found; True: value must not be found
+    :param check_limit: seconds to spend checking
     :param any: False: all values must be (not) found; True: any value must be (not) found
     """
 
@@ -95,8 +98,8 @@ def check(check_func, value, reverse=False, negate=False, any=False):
             try:
                 exp = None
                 for v in value:
-                    if any:  # clear any previous exceptions
-                        exp = None
+                    # clear any previous exceptions if any=True
+                    exp = None if any else exp
 
                     try:
                         # get val here so pytest includes value in failures
@@ -105,24 +108,43 @@ def check(check_func, value, reverse=False, negate=False, any=False):
                     except AssertionError as e:
                         exp = e
 
-                    if not any and exp:  # fail the test on first failure any=False
+                    # fail the test on first failure if any=False
+                    if not any and exp:
                         break
-                    if (
-                        any and not exp
-                    ):  # this value passed so test succeeded with any=True
+                    # this value passed so test succeeded if any=True
+                    if any and not exp:
                         break
 
-                if exp:  # raise caught inner exception for handling
+                # raise caught inner exception for handling
+                if exp:
                     raise exp
 
-                break  # test succeeded!!!!
+                # test succeeded!!!!
+                break
 
             except AssertionError:
-                if i >= _check_limit - 1:
+                if i >= check_limit - 1:
                     raise
                 sleep(1)
     except APIConnectionError:
         raise suppress_context(AssertionError("qBittrorrent crashed..."))
+
+
+def retry(retries=3):
+    """decorator to retry a function if there's an exception"""
+
+    def inner(f):
+        def wrapper(*args, **kwargs):
+            for retry_count in range(retries):
+                try:
+                    return f(*args, **kwargs)
+                except:
+                    if retry_count >= (retries - 1):
+                        raise
+
+        return wrapper
+
+    return inner
 
 
 @pytest.fixture(autouse=True)
@@ -180,17 +202,17 @@ def new_torrent(client):
     """Torrent that is added on demand to qBittorrent and then removed"""
 
     def add_test_torrent(client):
-        client.torrents.add(
-            urls=torrent1_url,
-            save_path=path.expanduser("~/test_download/"),
-            category="test_category",
-            is_paused=True,
-            upload_limit=1024,
-            download_limit=2048,
-            is_sequential_download=True,
-            is_first_last_piece_priority=True,
-        )
         for attempt in range(_check_limit):
+            client.torrents.add(
+                urls=torrent1_url,
+                save_path=path.expanduser("~/test_download/"),
+                category="test_category",
+                is_paused=True,
+                upload_limit=1024,
+                download_limit=2048,
+                is_sequential_download=True,
+                is_first_last_piece_priority=True,
+            )
             try:
                 # not all versions of torrents_info() support passing a hash
                 return list(
@@ -201,6 +223,7 @@ def new_torrent(client):
                     raise
                 sleep(1)
 
+    @retry
     def delete_test_torrent(torrent):
         torrent.delete(delete_files=True)
         check(
@@ -238,21 +261,24 @@ def api_version():
 def rss_feed(client):
     def delete_feed():
         try:
-            client.rss_remove_item(item_path=name)  # remove it just in case first
+            client.rss_remove_item(item_path=name)
+            check(lambda: client.rss_items(), name, reverse=True, negate=True)
         except:
             pass
 
     name = "YTS1080p"
     url = "https://yts.mx/rss/"
-    delete_feed()
-    client.rss.add_feed(url=url, item_path=name)
-    # wait until the rss feed exists and is downloaded
-    check(lambda: client.rss_items(), name, reverse=True)
-    check(
-        lambda: len(client.rss_items(include_feed_data=True)[name].get("articles", [])),
-        [0],
-        negate=True,
-    )
+    # refreshing the feed is finicky...so try several times if necessary
+    for i in range(3):
+        delete_feed()
+        client.rss.add_feed(url=url, item_path=name)
+        # wait until the rss feed exists and is refreshed
+        check(lambda: client.rss_items(), name, reverse=True)
+        # wait until feed is refreshed
+        for j in range(10):
+            if client.rss.items.with_data[name]["isLoading"] is False:
+                break
+            sleep(1)
     yield name
     delete_feed()
 

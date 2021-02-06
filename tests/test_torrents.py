@@ -31,6 +31,7 @@ from qbittorrentapi.torrents import TagList
 
 from tests.conftest import (
     check,
+    retry,
     torrent1_filename,
     torrent2_filename,
     torrent1_hash,
@@ -439,6 +440,7 @@ def test_pause_resume(client, orig_torrent, orig_torrent_hash, client_func):
         lambda: client.torrents_info(torrents_hashes=orig_torrent.hash)[0].state,
         ("stalledDL", "pausedDL"),
         any=True,
+        check_limit=20,
     )
 
     get_func(client, client_func[1])(torrent_hashes=orig_torrent_hash)
@@ -446,6 +448,7 @@ def test_pause_resume(client, orig_torrent, orig_torrent_hash, client_func):
         lambda: client.torrents_info(torrents_hashes=orig_torrent.hash)[0].state,
         "pausedDL",
         negate=True,
+        check_limit=20,
     )
 
 
@@ -511,21 +514,34 @@ def test_priority(client, new_torrent, client_func):
 
     enable_queueing(client)
 
-    current_priority = new_torrent.info.priority
-    get_func(client, client_func[0])(torrent_hashes=new_torrent.hash)
-    check(lambda: new_torrent.info.priority < current_priority, True)
+    @retry
+    def test1(current_priority):
+        get_func(client, client_func[0])(torrent_hashes=new_torrent.hash)
+        check(lambda: new_torrent.info.priority < current_priority, True)
+
+    @retry
+    def test2(current_priority):
+        get_func(client, client_func[1])(torrent_hashes=new_torrent.hash)
+        check(lambda: new_torrent.info.priority > current_priority, True)
+
+    @retry
+    def test3(current_priority):
+        get_func(client, client_func[2])(torrent_hashes=new_torrent.hash)
+        check(lambda: new_torrent.info.priority < current_priority, True)
+
+    @retry
+    def test4(current_priority):
+        get_func(client, client_func[3])(torrent_hashes=new_torrent.hash)
+        check(lambda: new_torrent.info.priority > current_priority, True)
 
     current_priority = new_torrent.info.priority
-    get_func(client, client_func[1])(torrent_hashes=new_torrent.hash)
-    check(lambda: new_torrent.info.priority > current_priority, True)
-
+    test1(current_priority)
     current_priority = new_torrent.info.priority
-    get_func(client, client_func[2])(torrent_hashes=new_torrent.hash)
-    check(lambda: new_torrent.info.priority < current_priority, True)
-
+    test2(current_priority)
     current_priority = new_torrent.info.priority
-    get_func(client, client_func[3])(torrent_hashes=new_torrent.hash)
-    check(lambda: new_torrent.info.priority > current_priority, True)
+    test3(current_priority)
+    current_priority = new_torrent.info.priority
+    test4(current_priority)
 
 
 @pytest.mark.parametrize(
