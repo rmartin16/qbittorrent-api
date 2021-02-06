@@ -6,12 +6,16 @@ import pytest
 from qbittorrentapi import Client
 from qbittorrentapi.decorators import (
     _is_version_less_than,
+    handle_hashes,
     response_json,
     response_text,
 )
+from qbittorrentapi import APIError
 from qbittorrentapi._attrdict import AttrDict
 from qbittorrentapi.decorators import endpoint_introduced, version_removed
-from qbittorrentapi import APIError
+from qbittorrentapi.request import HelpersMixIn
+
+list2str = HelpersMixIn._list2string
 
 
 def test_is_version_less_than():
@@ -38,6 +42,38 @@ def test_login_required(caplog, app_version):
         qbt_version = client.app.version
     assert "Not logged in...attempting login" in caplog.text
     assert qbt_version == app_version
+
+
+@pytest.mark.parametrize("test_hash", (None, "", "xcvbxcvbxcvb"))
+@pytest.mark.parametrize("other_param", (None, "", "irivgjkd"))
+def test_hash_handler_single_hash(test_hash, other_param):
+    class FakeClient:
+        @handle_hashes
+        def single_torrent_func(self, torrent_hash=None, param=None):
+            assert torrent_hash == test_hash
+            assert param == other_param
+
+    FakeClient().single_torrent_func(test_hash, other_param)
+    FakeClient().single_torrent_func(test_hash, param=other_param)
+    FakeClient().single_torrent_func(hash=test_hash, param=other_param)
+    FakeClient().single_torrent_func(torrent_hash=test_hash, param=other_param)
+
+
+@pytest.mark.parametrize(
+    "test_hashes", (None, "", "xcvbxcvbxcvb", ("xcvbxcvbxcvb", "ertyertye"))
+)
+@pytest.mark.parametrize("other_param", (None, "", "irivgjkd"))
+def test_hash_handler_multiple_hashes(test_hashes, other_param):
+    class FakeClient:
+        @handle_hashes
+        def multiple_torrent_func(self, torrent_hashes=None, param=None):
+            assert list2str(torrent_hashes) == list2str(test_hashes)
+            assert param == other_param
+
+    FakeClient().multiple_torrent_func(test_hashes, other_param)
+    FakeClient().multiple_torrent_func(test_hashes, param=other_param)
+    FakeClient().multiple_torrent_func(hashes=test_hashes, param=other_param)
+    FakeClient().multiple_torrent_func(torrent_hashes=test_hashes, param=other_param)
 
 
 def test_response_text():

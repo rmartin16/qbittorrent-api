@@ -1,5 +1,6 @@
 from qbittorrentapi.decorators import Alias
 from qbittorrentapi.decorators import aliased
+from qbittorrentapi.decorators import handle_hashes
 from qbittorrentapi.decorators import login_required
 from qbittorrentapi.decorators import response_json
 from qbittorrentapi.definitions import APINames
@@ -114,6 +115,7 @@ class SyncAPIMixIn(Request):
         return self._post(_name=APINames.Sync, _method="maindata", data=data, **kwargs)
 
     @Alias("sync_torrentPeers")
+    @handle_hashes
     @response_json(SyncTorrentPeersDictionary)
     @login_required
     def sync_torrent_peers(self, torrent_hash=None, rid=0, **kwargs):
@@ -126,7 +128,7 @@ class SyncAPIMixIn(Request):
         :param rid: response ID
         :return: :class:`SyncTorrentPeersDictionary` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-peers-data
         """
-        data = {"hash": torrent_hash or kwargs.pop("hash"), "rid": rid}
+        data = {"hash": torrent_hash, "rid": rid}
         return self._post(
             _name=APINames.Sync, _method="torrentPeers", data=data, **kwargs
         )

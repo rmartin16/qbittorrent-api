@@ -91,17 +91,40 @@ def login_required(f):
     """
 
     @wraps(f)
-    def wrapper(obj, *args, **kwargs):
-        if not obj.is_logged_in:
+    def wrapper(client, *args, **kwargs):
+        if not client.is_logged_in:
             logger.debug("Not logged in...attempting login")
-            obj.auth_log_in()
+            client.auth_log_in()
         try:
-            return f(obj, *args, **kwargs)
+            return f(client, *args, **kwargs)
         except HTTP403Error:
             logger.debug("Login may have expired...attempting new login")
-            obj.auth_log_in()
+            client.auth_log_in()
 
-        return f(obj, *args, **kwargs)
+        return f(client, *args, **kwargs)
+
+    return wrapper
+
+
+def handle_hashes(f):
+    """
+    Normalize torrent hash arguments.
+
+    Initial implementations of this client used 'hash' and 'hashes'
+    as function arguments for torrent hashes. Since 'hash' collides
+    with an internal python name, all arguments were updated to
+    'torrent_hash' or 'torrent_hashes'. Since both versions of argument
+    names remain respected, this decorator normalizes torrent hash
+    arguments into either 'torrent_hash' or 'torrent_hashes'.
+    """
+
+    @wraps(f)
+    def wrapper(client, *args, **kwargs):
+        if "torrent_hash" not in kwargs and "hash" in kwargs:
+            kwargs["torrent_hash"] = kwargs.pop("hash")
+        elif "torrent_hashes" not in kwargs and "hashes" in kwargs:
+            kwargs["torrent_hashes"] = kwargs.pop("hashes")
+        return f(client, *args, **kwargs)
 
     return wrapper
 
