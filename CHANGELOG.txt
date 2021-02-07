@@ -1,3 +1,10 @@
+Version 2021.2.17 (7 feb 2021)
+ - Generally refactor requests.py so it's better and easier to read
+ - Persist a Requests Session between API calls instead of always creating a new one...small perf benefit
+ - Move auth endpoints back to a dedicated module
+ - Since attrdict is apparently going to break in Python 3.10 and it is no longer maintained, i've vendored a modified version (fixes #45).
+ - Created handle_hashes decorator to hide the cruft of continuing to support hash and hashes arguments
+
 Version 2021.1.16 (26 jan 2021)
  - Support qBittorrent v4.3.3 and Web API v2.7 (...again)
  - New torrents/renameFile and torrents/renameFolder endpoints
