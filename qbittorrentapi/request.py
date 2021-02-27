@@ -1,7 +1,6 @@
-from logging import getLogger
 from logging import NullHandler
+from logging import getLogger
 from os import environ
-from pkg_resources import parse_version
 from time import sleep
 
 try:  # python 3
@@ -13,6 +12,7 @@ except ImportError:  # python 2
     from urlparse import urljoin
     from urlparse import urlparse
 
+from pkg_resources import parse_version
 from requests import exceptions as requests_exceptions
 from requests import head as requests_head
 from requests import Session
@@ -248,7 +248,7 @@ class Request(HelpersMixIn):
                 # then will sleep for 0s then .3s, then .6s, etc. between retries.
                 backoff_time = _retry_backoff_factor * (2 ** ((retry_count + 1) - 1))
                 sleep(backoff_time if backoff_time <= 10 else 10)
-            logger.debug("Retry attempt %d" % (retry_count + 1))
+            logger.debug("Retry attempt %d", retry_count + 1)
 
         max_retries = _retries if _retries > 1 else 2
         for retry in range(0, (max_retries + 1)):
@@ -353,7 +353,7 @@ class Request(HelpersMixIn):
         if not host.lower().startswith(("http:", "https:", "//")):
             host = "//" + host
         base_url = urlparse(url=host)
-        logger.debug("Parsed user URL: %s" % repr(base_url))
+        logger.debug("Parsed user URL: %s", repr(base_url))
         # default to HTTP if user didn't specify
         user_scheme = base_url.scheme
         base_url = base_url._replace(scheme="http") if not user_scheme else base_url
@@ -366,7 +366,9 @@ class Request(HelpersMixIn):
         logger.debug("Detecting scheme for URL...")
         try:
             # skip verification here...if there's a problem, we'll catch it during the actual API call
-            r = requests_head(base_url.geturl(), allow_redirects=True, verify=False)
+            r = requests_head(
+                base_url.geturl(), allow_redirects=True, verify=False, timeout=30
+            )
             # if WebUI eventually supports sending a redirect from HTTP to HTTPS then
             # Requests will automatically provide a URL using HTTPS.
             # For instance, the URL returned below will use the HTTPS scheme.
@@ -377,19 +379,20 @@ class Request(HelpersMixIn):
             scheme = alt_scheme
 
         # use detected scheme
-        logger.debug("Using %s scheme" % scheme.upper())
+        logger.debug("Using %s scheme", scheme.upper())
         base_url = base_url._replace(scheme=scheme)
         if user_scheme and user_scheme != scheme:
             logger.warning(
-                "Using '%s' instead of requested '%s' to communicate with qBittorrent"
-                % (scheme, user_scheme)
+                "Using '%s' instead of requested '%s' to communicate with qBittorrent",
+                scheme,
+                user_scheme,
             )
 
         # ensure URL always ends with a forward-slash
         base_url = base_url.geturl()
         if not base_url.endswith("/"):
             base_url = base_url + "/"
-        logger.debug("Base URL: %s" % base_url)
+        logger.debug("Base URL: %s", base_url)
 
         return base_url
 
@@ -522,7 +525,7 @@ class Request(HelpersMixIn):
         if response.status_code < 400:
             # short circuit for non-error statuses
             return
-        elif response.status_code == 400:
+        if response.status_code == 400:
             # Returned for malformed requests such as missing or invalid parameters.
             #
             # If an error_message isn't returned, qBittorrent didn't receive all required parameters.
@@ -532,16 +535,16 @@ class Request(HelpersMixIn):
                 raise MissingRequiredParameters400Error()
             raise InvalidRequest400Error(response.text)
 
-        elif response.status_code == 401:
+        if response.status_code == 401:
             # Primarily reserved for XSS and host header issues. Is also
             raise Unauthorized401Error(response.text)
 
-        elif response.status_code == 403:
+        if response.status_code == 403:
             # Not logged in or calling an API method that isn't public
             # APIErrorType::AccessDenied
             raise Forbidden403Error(response.text)
 
-        elif response.status_code == 404:
+        if response.status_code == 404:
             # API method doesn't exist or more likely, torrent not found
             # APIErrorType::NotFound
             error_message = response.text
@@ -563,18 +566,18 @@ class Request(HelpersMixIn):
                     error_message = "Torrent hash(es): %s" % error_torrent_hash
             raise NotFound404Error(error_message)
 
-        elif response.status_code == 409:
+        if response.status_code == 409:
             # APIErrorType::Conflict
             raise Conflict409Error(response.text)
 
-        elif response.status_code == 415:
+        if response.status_code == 415:
             # APIErrorType::BadData
             raise UnsupportedMediaType415Error(response.text)
 
-        elif response.status_code >= 500:
+        if response.status_code >= 500:
             raise InternalServerError500Error(response.text)
 
-        elif response.status_code >= 400:
+        if response.status_code >= 400:
             # Unaccounted for errors from API
             raise HTTPError(response.text)
 
@@ -587,8 +590,8 @@ class Request(HelpersMixIn):
                 # log as much as possible in a error condition
                 max_text_length_to_log = 10000
 
-            resp_logger("Request URL: (%s) %s" % (http_method.upper(), response.url))
-            resp_logger("Request Headers: %s" % response.request.headers)
+            resp_logger("Request URL: (%s) %s", http_method.upper(), response.url)
+            resp_logger("Request Headers: %s", response.request.headers)
             if (
                 str(response.request.body) not in ("None", "")
                 and "auth/login" not in url
@@ -599,15 +602,13 @@ class Request(HelpersMixIn):
                     else len(response.request.body)
                 )
                 resp_logger(
-                    "Request body: %s%s"
-                    % (
-                        response.request.body[:body_len],
-                        "...<truncated>" if body_len >= 200 else "",
-                    )
+                    "Request body: %s%s",
+                    response.request.body[:body_len],
+                    "...<truncated>" if body_len >= 200 else "",
                 )
 
             resp_logger(
-                "Response status: %s (%s)" % (response.status_code, response.reason)
+                "Response status: %s (%s)", response.status_code, response.reason
             )
             if response.text:
                 text_len = (
@@ -616,11 +617,9 @@ class Request(HelpersMixIn):
                     else len(response.text)
                 )
                 resp_logger(
-                    "Response text: %s%s"
-                    % (
-                        response.text[:text_len],
-                        "...<truncated>" if text_len >= 80 else "",
-                    )
+                    "Response text: %s%s",
+                    response.text[:text_len],
+                    "...<truncated>" if text_len >= 80 else "",
                 )
         if self._PRINT_STACK_FOR_EACH_REQUEST:
             from traceback import print_stack
