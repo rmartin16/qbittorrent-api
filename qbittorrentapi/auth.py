@@ -97,13 +97,13 @@ class AuthAPIMixIn(Request):
         )
 
         if not self.is_logged_in:
-            logger.debug('Login failed for user "%s"' % self.username)
+            logger.debug('Login failed for user "%s"', self.username)
             raise self._suppress_context(
-                LoginFailed('Login authorization failed for user "%s"' % self.username)
+                LoginFailed('Login authorization failed for user "%s"', self.username)
             )
         else:
-            logger.debug('Login successful for user "%s"' % self.username)
-            logger.debug("SID: %s" % self._SID)
+            logger.debug('Login successful for user "%s"', self.username)
+            logger.debug("SID: %s", self._SID)
 
     @property
     def _SID(self):
