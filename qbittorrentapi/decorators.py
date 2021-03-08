@@ -94,12 +94,20 @@ def login_required(f):
     def wrapper(client, *args, **kwargs):
         if not client.is_logged_in:
             logger.debug("Not logged in...attempting login")
-            client.auth_log_in()
+            client.auth_log_in(
+                requests_args=client._trim_api_kwargs(
+                    **client._get_requests_args(**kwargs)
+                )
+            )
         try:
             return f(client, *args, **kwargs)
         except HTTP403Error:
             logger.debug("Login may have expired...attempting new login")
-            client.auth_log_in()
+            client.auth_log_in(
+                requests_args=client._trim_api_kwargs(
+                    **client._get_requests_args(**kwargs)
+                )
+            )
 
         return f(client, *args, **kwargs)
 
@@ -155,7 +163,6 @@ def response_text(response_class):
 
 
 def response_json(response_class):
-
     """
     Return the JSON in the API response. JSON is parsed as instance of response_class.
 

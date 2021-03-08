@@ -230,7 +230,7 @@ def test_http404(client, params):
     response = MockResponse(status_code=404, text="")
     with pytest.raises(HTTPError):
         p = dict(data={}, params=params)
-        Request.handle_error_responses(params=p, response=response)
+        Request._handle_error_responses(args=p, response=response)
 
 
 def test_http409(client, app_version):
@@ -249,7 +249,7 @@ def test_http500(status_code):
     response = MockResponse(status_code=status_code, text="asdf")
     with pytest.raises(InternalServerError500Error):
         p = dict(data={}, params={})
-        Request.handle_error_responses(params=p, response=response)
+        Request._handle_error_responses(args=p, response=response)
 
 
 @pytest.mark.parametrize("status_code", (402, 406))
@@ -257,7 +257,7 @@ def test_http_error(status_code):
     response = MockResponse(status_code=status_code, text="asdf")
     with pytest.raises(HTTPError):
         p = dict(data={}, params={})
-        Request.handle_error_responses(params=p, response=response)
+        Request._handle_error_responses(args=p, response=response)
 
 
 def test_verbose_logging(caplog):
