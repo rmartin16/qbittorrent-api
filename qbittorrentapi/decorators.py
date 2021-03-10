@@ -94,20 +94,12 @@ def login_required(f):
     def wrapper(client, *args, **kwargs):
         if not client.is_logged_in:
             logger.debug("Not logged in...attempting login")
-            client.auth_log_in(
-                requests_args=client._trim_api_kwargs(
-                    **client._get_requests_args(**kwargs)
-                )
-            )
+            client.auth_log_in(**client._trim_api_kwargs(**kwargs))
         try:
             return f(client, *args, **kwargs)
         except HTTP403Error:
             logger.debug("Login may have expired...attempting new login")
-            client.auth_log_in(
-                requests_args=client._trim_api_kwargs(
-                    **client._get_requests_args(**kwargs)
-                )
-            )
+            client.auth_log_in(**client._trim_api_kwargs(**kwargs))
 
         return f(client, *args, **kwargs)
 

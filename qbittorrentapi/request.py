@@ -283,7 +283,6 @@ class Request(HelpersMixIn):
         :param kwargs: see _normalize_requests_params for additional support
         :return: Requests response
         """
-        kwargs = self._trim_known_kwargs(**kwargs)
         api_args, requests_args = self._normalize_args(http_method, **kwargs)
         url = self._build_url(api_namespace, api_method, requests_args=requests_args)
 
@@ -346,8 +345,7 @@ class Request(HelpersMixIn):
             api_method=api_method,
         )
 
-    @staticmethod
-    def _build_base_url(base_url=None, host="", port=None, requests_args=None):
+    def _build_base_url(self, base_url=None, host="", port=None, requests_args=None):
         """
         Determine the Base URL for the Web API endpoints.
 
@@ -390,9 +388,7 @@ class Request(HelpersMixIn):
         for scheme in (default_scheme, alt_scheme):
             try:
                 base_url = base_url._replace(scheme=scheme)
-                head_args = Request._trim_api_kwargs(**requests_args)
-                head_args.update(allow_redirects=True)
-                r = requests_head(base_url.geturl(), **head_args)
+                r = self._session.request("head", base_url.geturl(), **requests_args)
                 scheme_to_use = urlparse(r.url).scheme
                 break
             except requests_exceptions.SSLError:
@@ -424,6 +420,9 @@ class Request(HelpersMixIn):
         if not base_url.endswith("/"):
             base_url = base_url + "/"
         logger.debug("Base URL: %s", base_url)
+
+        # force a new session to be created now that the URL is known
+        self._requests_session = None
 
         return base_url
 
@@ -464,7 +463,7 @@ class Request(HelpersMixIn):
             """
             Wrapper to augment Requests Session.
             Requests doesn't allow Session to default certain configuration
-            globally. This gets around that by setting defaults for each call.
+            globally. This gets around that by setting defaults for each request.
             """
 
             def request(self, *args, **kwargs):
@@ -532,16 +531,17 @@ class Request(HelpersMixIn):
         :param data: key/value pairs to send as body
         :param params: key/value pairs to send as query parameters
         :param files: key/value pairs to include as multipart POST requests
+        :param requests_params: original name for requests_args
         :param requests_args: keyword arguments for call to Requests
         :return: dictionary of parameters for Requests call
         """
+        kwargs = self._trim_known_kwargs(**kwargs)
+
         # these are completely user defined and intended to allow users
         # of this client to control the behavior of Requests
         override_requests_args = self._get_requests_args(
             requests_params=requests_params or {}, requests_args=requests_args or {}
         )
-        requests_args = self._REQUESTS_ARGS.copy()
-        requests_args.update(override_requests_args)
 
         # these are expected to be populated by this client as necessary for qBittorrent
         data = data or {}
@@ -565,8 +565,11 @@ class Request(HelpersMixIn):
             if http_method == "post":
                 data.update(kwargs)
 
-        api_params = dict(data=data, params=params, files=files, headers=headers)
-        return api_params, requests_args
+        requests_args = self._REQUESTS_ARGS.copy()
+        requests_args.update(override_requests_args)
+        requests_args.setdefault("headers", {}).update(**headers)
+        api_args = dict(data=data, params=params, files=files)
+        return api_args, requests_args
 
     @staticmethod
     def _handle_error_responses(args, response):
