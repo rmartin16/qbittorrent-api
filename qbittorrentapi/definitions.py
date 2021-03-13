@@ -61,7 +61,7 @@ class TorrentStates(Enum):
     METADATA_DOWNLOAD = "metaDL"
     PAUSED_DOWNLOAD = "pausedDL"
     QUEUED_DOWNLOAD = "queuedDL"
-    FORCE_DOWNLOAD = "forceDL"
+    FORCED_DOWNLOAD = "forcedDL"
     STALLED_DOWNLOAD = "stalledDL"
     CHECKING_DOWNLOAD = "checkingDL"
     CHECKING_RESUME_DATA = "checkingResumeData"
@@ -78,7 +78,7 @@ class TorrentStates(Enum):
             TorrentStates.CHECKING_DOWNLOAD,
             TorrentStates.PAUSED_DOWNLOAD,
             TorrentStates.QUEUED_DOWNLOAD,
-            TorrentStates.FORCE_DOWNLOAD,
+            TorrentStates.FORCED_DOWNLOAD,
         )
 
     @property

@@ -18,7 +18,7 @@ all_states = (
     "metaDL",
     "pausedDL",
     "queuedDL",
-    "forceDL",
+    "forcedDL",
     "stalledDL",
     "checkingDL",
     "checkingResumeData",
@@ -33,7 +33,7 @@ downloading_states = (
     "checkingDL",
     "pausedDL",
     "queuedDL",
-    "forceDL",
+    "forcedDL",
 )
 
 uploading_states = ("uploading", "stalledUP", "checkingUP", "queuedUP", "forcedUP")
