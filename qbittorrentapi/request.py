@@ -317,7 +317,10 @@ class Request(HelpersMixIn):
         """
         Return any user-supplied arguments for Requests.
         """
-        return kwargs.get("requests_args", kwargs.get("requests_params", {}))
+        args = kwargs.get("requests_args", kwargs.get("requests_params", {})) or {}
+        if kwargs.get("headers"):
+            args.setdefault("headers", {}).update(kwargs["headers"])
+        return args
 
     @staticmethod
     def _trim_api_kwargs(**kwargs):
@@ -348,7 +351,14 @@ class Request(HelpersMixIn):
             api_method=api_method,
         )
 
-    def _build_base_url(self, base_url=None, host="", port=None, force_user_scheme=False, requests_args=None):
+    def _build_base_url(
+        self,
+        base_url=None,
+        host="",
+        port=None,
+        force_user_scheme=False,
+        requests_args=None,
+    ):
         """
         Determine the Base URL for the Web API endpoints.
 
@@ -388,11 +398,15 @@ class Request(HelpersMixIn):
         # detect whether Web API is configured for HTTP or HTTPS
         if not (user_scheme and force_user_scheme):
             logger.debug("Detecting scheme for URL...")
+            logger.debug("HTTP HEAD args: %s", requests_args)
             prefer_https = False
             for scheme in (default_scheme, alt_scheme):
                 try:
                     base_url = base_url._replace(scheme=scheme)
-                    r = self._session.request("head", base_url.geturl(), **requests_args)
+                    r = self._session.request(
+                        "head", base_url.geturl(), **requests_args
+                    )
+                    logger.debug("HTTP HEAD Headers: %s", r.request.headers)
                     scheme_to_use = urlparse(r.url).scheme
                     break
                 except requests_exceptions.SSLError:
@@ -544,7 +558,9 @@ class Request(HelpersMixIn):
         # these are completely user defined and intended to allow users
         # of this client to control the behavior of Requests
         override_requests_args = self._get_requests_args(
-            requests_params=requests_params or {}, requests_args=requests_args or {}
+            headers=headers,
+            requests_params=requests_params,
+            requests_args=requests_args,
         )
 
         # these are expected to be populated by this client as necessary for qBittorrent
@@ -552,13 +568,13 @@ class Request(HelpersMixIn):
         params = params or {}
         files = files or {}
 
-        # these are user-defined headers to include with the request
-        headers = headers or {}
-
         # send Content-Length as 0 for empty POSTs...Requests will not send Content-Length
-        # if data is empty but qBittorrent may complain otherwise
-        if http_method == "post" and not any(filter(None, data.values())):
-            headers["Content-Length"] = "0"
+        # if data is empty but qBittorrent will complain otherwise
+        is_data_content = any(filter(lambda x: x is None, data.values()))
+        if http_method.lower() == "post" and not is_data_content:
+            override_requests_args.setdefault("headers", {}).update(
+                {"Content-Length": "0"}
+            )
 
         # any other keyword arguments are sent to qBittorrent as part of the request.
         # These are user-defined since this Client will put everything in data/params/files
@@ -569,9 +585,11 @@ class Request(HelpersMixIn):
             if http_method == "post":
                 data.update(kwargs)
 
+        # arguments specified during Client construction
         requests_args = self._REQUESTS_ARGS.copy()
+        # incorporate arguments specified for this specific API call
         requests_args.update(override_requests_args)
-        requests_args.setdefault("headers", {}).update(**headers)
+        # qbittorrent api call arguments
         api_args = dict(data=data, params=params, files=files)
         return api_args, requests_args
 
