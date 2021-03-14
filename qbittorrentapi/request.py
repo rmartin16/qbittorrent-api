@@ -315,7 +315,10 @@ class Request(HelpersMixIn):
         """
         Return any user-supplied arguments for Requests.
         """
-        return kwargs.get("requests_args", kwargs.get("requests_params", {}))
+        args = kwargs.get("requests_args", kwargs.get("requests_params", {})) or {}
+        if "headers" in kwargs and kwargs["headers"]:
+            args.setdefault("headers", {}).update(**kwargs["headers"])
+        return args
 
     @staticmethod
     def _trim_api_kwargs(**kwargs):
@@ -384,11 +387,13 @@ class Request(HelpersMixIn):
 
         # detect whether Web API is configured for HTTP or HTTPS
         logger.debug("Detecting scheme for URL...")
+        logger.debug("HTTP HEAD args: %s", requests_args)
         prefer_https = False
         for scheme in (default_scheme, alt_scheme):
             try:
                 base_url = base_url._replace(scheme=scheme)
                 r = self._session.request("head", base_url.geturl(), **requests_args)
+                logger.debug("HTTP HEAD Headers: %s", r.request.headers)
                 scheme_to_use = urlparse(r.url).scheme
                 break
             except requests_exceptions.SSLError:
@@ -540,7 +545,9 @@ class Request(HelpersMixIn):
         # these are completely user defined and intended to allow users
         # of this client to control the behavior of Requests
         override_requests_args = self._get_requests_args(
-            requests_params=requests_params or {}, requests_args=requests_args or {}
+            headers=headers,
+            requests_params=requests_params,
+            requests_args=requests_args,
         )
 
         # these are expected to be populated by this client as necessary for qBittorrent
@@ -567,7 +574,6 @@ class Request(HelpersMixIn):
 
         requests_args = self._REQUESTS_ARGS.copy()
         requests_args.update(override_requests_args)
-        requests_args.setdefault("headers", {}).update(**headers)
         api_args = dict(data=data, params=params, files=files)
         return api_args, requests_args
 
