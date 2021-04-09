@@ -7,7 +7,6 @@ import six
 
 from qbittorrentapi import APIConnectionError
 from qbittorrentapi import Client
-from qbittorrentapi.exceptions import APIError
 from qbittorrentapi.request import Request
 
 qbt_version = "v" + environ["QBT_VER"]
