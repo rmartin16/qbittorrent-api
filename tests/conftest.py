@@ -35,6 +35,7 @@ api_version_map = {
     "v4.3.1": "2.6.1",
     "v4.3.2": "2.7",
     "v4.3.3": "2.7",
+    "v4.3.4.1": "2.8.1",
 }
 
 _check_limit = 10
@@ -44,13 +45,13 @@ _orig_torrent_url = (
 )
 _orig_torrent_hash = "d1101a2b9d202811a05e8c57c557a20bf974dc8a"
 
-torrent1_url = "http://cdimage.ubuntu.com/kubuntu/releases/20.04.1/release/kubuntu-20.04.1-desktop-amd64.iso.torrent"
+torrent1_url = "http://cdimage.ubuntu.com/kubuntu/releases/20.04.1/release/kubuntu-20.04.2.0-desktop-amd64.iso.torrent"
 torrent1_filename = torrent1_url.split("/")[-1]
-torrent1_hash = "08d23eefbb35253773a8dc18eb77854a87ccda9a"
+torrent1_hash = "2ea1327a1758400827fe091a9bb2a35dee9ea5e8"
 
-torrent2_url = "http://cdimage.ubuntu.com/xubuntu/releases/20.04.1/release/xubuntu-20.04.1-desktop-amd64.iso.torrent"
+torrent2_url = "http://cdimage.ubuntu.com/xubuntu/releases/20.04.1/release/xubuntu-20.04.2.0-desktop-amd64.iso.torrent"
 torrent2_filename = torrent2_url.split("/")[-1]
-torrent2_hash = "35eb6295e8e260b81c7ddcb4f5019a96064ff904"
+torrent2_hash = "3d75247029ffa408e52714d371b6c0f15a63ff41"
 
 is_version_less_than = Request._is_version_less_than
 suppress_context = Request._suppress_context
