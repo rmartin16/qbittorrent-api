@@ -1,3 +1,6 @@
+Version 2021.4.19 (8 apr 2021)
+ - Update license in setup to match gpl->mit license change on github
+
 Version 2021.3.18 (13 mar 2021)
  - Replace TorrentStates.FORCE_DOWNLOAD='forceDL' with TorrentStates.FORCED_DOWNLOAD='forcedDL'
 
