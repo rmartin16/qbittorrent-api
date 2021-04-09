@@ -38,7 +38,7 @@ import qbittorrentapi
 qbt_client = qbittorrentapi.Client(host='localhost', port=8080, username='admin', password='adminadmin')
 
 # the Client will automatically acquire/maintain a logged in state in line with any request.
-# therefore, this is not necessary; however, you many want to test the provided login credentials.
+# therefore, this is not necessary; however, you may want to test the provided login credentials.
 try:
     qbt_client.auth_log_in()
 except qbittorrentapi.LoginFailed as e:

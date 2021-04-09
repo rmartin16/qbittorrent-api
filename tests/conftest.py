@@ -1,5 +1,6 @@
 from os import environ
-from os import path
+from os import path as os_path
+from sys import path as sys_path
 from time import sleep
 
 import pytest
@@ -44,6 +45,11 @@ _orig_torrent_url = (
 )
 _orig_torrent_hash = "d1101a2b9d202811a05e8c57c557a20bf974dc8a"
 
+with open(
+    os_path.join(sys_path[0], "tests", "kubuntu-20.04.2.0-desktop-amd64.iso.torrent"),
+    mode="rb",
+) as f:
+    torrent1_file = f.read()
 torrent1_url = "http://cdimage.ubuntu.com/kubuntu/releases/20.04.1/release/kubuntu-20.04.2.0-desktop-amd64.iso.torrent"
 torrent1_filename = torrent1_url.split("/")[-1]
 torrent1_hash = "2ea1327a1758400827fe091a9bb2a35dee9ea5e8"
@@ -51,6 +57,10 @@ torrent1_hash = "2ea1327a1758400827fe091a9bb2a35dee9ea5e8"
 torrent2_url = "http://cdimage.ubuntu.com/xubuntu/releases/20.04.1/release/xubuntu-20.04.2.0-desktop-amd64.iso.torrent"
 torrent2_filename = torrent2_url.split("/")[-1]
 torrent2_hash = "3d75247029ffa408e52714d371b6c0f15a63ff41"
+
+with open(os_path.join(sys_path[0], "tests", "root_folder.torrent"), mode="rb") as f:
+    root_folder_torrent_file = f.read()
+root_folder_torrent_hash = "a14553bd936a6d496402082454a70ea7a9521adc"
 
 is_version_less_than = Request._is_version_less_than
 suppress_context = Request._suppress_context
@@ -200,23 +210,29 @@ def orig_torrent(client, orig_torrent_hash):
 @pytest.fixture
 def new_torrent(client):
     """Torrent that is added on demand to qBittorrent and then removed"""
+    yield next(new_torrent_standalone(client))
 
+
+def new_torrent_standalone(client, torrent_hash=torrent1_hash, **kwargs):
     def add_test_torrent(client):
         for attempt in range(_check_limit):
-            client.torrents.add(
-                urls=torrent1_url,
-                save_path=path.expanduser("~/test_download/"),
-                category="test_category",
-                is_paused=True,
-                upload_limit=1024,
-                download_limit=2048,
-                is_sequential_download=True,
-                is_first_last_piece_priority=True,
-            )
+            if kwargs:
+                client.torrents.add(**kwargs)
+            else:
+                client.torrents.add(
+                    torrent_files=torrent1_file,
+                    save_path=os_path.expanduser("~/test_download/"),
+                    category="test_category",
+                    is_paused=True,
+                    upload_limit=1024,
+                    download_limit=2048,
+                    is_sequential_download=True,
+                    is_first_last_piece_priority=True,
+                )
             try:
                 # not all versions of torrents_info() support passing a hash
                 return list(
-                    filter(lambda t: t.hash == torrent1_hash, client.torrents_info())
+                    filter(lambda t: t.hash == torrent_hash, client.torrents_info())
                 )[0]
             except:
                 if attempt >= _check_limit - 1:

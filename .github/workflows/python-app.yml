@@ -21,7 +21,7 @@ jobs:
     env:
       LATEST_PYTHON_VERSION: 3.9
       LATEST_QBT_VERSION: 4.3.4.1
-      QBT_ALWAYS_TEST: 4.3.4.1, 4.3.3, 4.3.2
+      QBT_ALWAYS_TEST: 4.3.4.1, 4.3.3, 4.3.2, 4.3.1
       SUBMIT_COVERAGE_VERSIONS: 2.7, 3.9
       COMPREHENSIVE_TESTS_BRANCH: comprehensive_tests
       PYTHON_QBITTORRENTAPI_HOST: localhost:8080

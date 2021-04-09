@@ -1,4 +1,4 @@
-Version 2021.4.20 (9 apr 2021)
+Version 2021.4.20 (11 apr 2021)
  - Add support for ratio limit and seeding time limit when adding torrents
 
 Version 2021.4.19 (8 apr 2021)
