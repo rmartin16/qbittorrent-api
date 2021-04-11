@@ -586,6 +586,10 @@ class Torrents(ClientCache):
         use_auto_torrent_management=None,
         is_sequential_download=None,
         is_first_last_piece_priority=None,
+        tags=None,
+        content_layout=None,
+        ratio_limit=None,
+        seeding_time_limit=None,
         **kwargs
     ):
         return self._client.torrents_add(
@@ -603,6 +607,10 @@ class Torrents(ClientCache):
             is_sequential_download=is_sequential_download,
             use_auto_torrent_management=use_auto_torrent_management,
             is_first_last_piece_priority=is_first_last_piece_priority,
+            tags=tags,
+            content_layout=content_layout,
+            ratio_limit=ratio_limit,
+            seeding_time_limit=seeding_time_limit,
             **kwargs
         )
 
@@ -1022,6 +1030,8 @@ class TorrentsAPIMixIn(Request):
         is_first_last_piece_priority=None,
         tags=None,
         content_layout=None,
+        ratio_limit=None,
+        seeding_time_limit=None,
         **kwargs
     ):
         """
@@ -1056,8 +1066,27 @@ class TorrentsAPIMixIn(Request):
         :param is_first_last_piece_priority: True or False for first and last piece download priority
         :param tags: tag(s) to assign to torrent(s) (added in Web API v2.6.2)
         :param content_layout: Original, Subfolder, or NoSubfolder to control filesystem structure for content (added in Web API v2.7)
+        :param ratio_limit: share limit as ratio of upload amt over download amt; e.g. 0.5 or 2.0 (added in Web API v2.8.1)
+        :param seeding_time_limit: number of minutes to seed torrent (added in Web API v2.8.1)
         :return: "Ok." for success and "Fails." for failure
         """
+
+        # convert pre-v2.7 params to post-v2.7 params...or post-v2.7 to pre-v.2.7
+        api_version = self.app_web_api_version()
+        if (
+            content_layout is None
+            and is_root_folder is not None
+            and self._is_version_less_than("2.7", api_version, lteq=True)
+        ):
+            content_layout = "Original" if is_root_folder else "NoSubfolder"
+            is_root_folder = None
+        elif (
+            content_layout is not None
+            and is_root_folder is None
+            and self._is_version_less_than(api_version, "2.7", lteq=False)
+        ):
+            is_root_folder = content_layout in {"Subfolder", "Original"}
+            content_layout = None
 
         data = {
             "urls": (None, self._list2string(urls, "\n")),
@@ -1072,6 +1101,8 @@ class TorrentsAPIMixIn(Request):
             "rename": (None, rename),
             "upLimit": (None, upload_limit),
             "dlLimit": (None, download_limit),
+            "ratioLimit": (None, ratio_limit),
+            "seedingTimeLimit": (None, seeding_time_limit),
             "autoTMM": (None, use_auto_torrent_management),
             "sequentialDownload": (None, is_sequential_download),
             "firstLastPiecePrio": (None, is_first_last_piece_priority),
@@ -1398,23 +1429,41 @@ class TorrentsAPIMixIn(Request):
         """
         torrent_hash = torrent_hash
 
-        # convert pre-v2.7 params to post-v2.7 params if a newer qBittorrent is being used
+        # convert pre-v2.7 params to post-v2.7...or post-v2.7 to pre-v2.7
         # HACK: v4.3.2 and v4.3.3 both use web api v2.7 but old/new_path were introduced in v4.3.3
         if (
             old_path is None
             and new_path is None
-            and isinstance(file_id, int)
-            and self._is_version_less_than("v4.3.3", self.app.version, lteq=True)
+            and file_id is not None
+            and self._is_version_less_than("v4.3.3", self.app_version(), lteq=True)
         ):
             try:
                 old_path = self.torrents_files(torrent_hash=torrent_hash)[file_id].name
-            except (IndexError, AttributeError):
+            except (IndexError, AttributeError, TypeError):
                 logger.debug(
-                    "ERROR: File ID '%s' isn't valid...'oldPath' cannot be determined."
-                    % file_id
+                    "ERROR: File ID '%s' isn't valid...'oldPath' cannot be determined.",
+                    file_id,
                 )
                 old_path = ""
             new_path = new_file_name or ""
+        elif (
+            old_path is not None
+            and new_path is not None
+            and file_id is None
+            and self._is_version_less_than(self.app_version(), "v4.3.3", lteq=False)
+        ):
+            # previous only allowed renaming the file...not also moving it
+            new_file_name = new_path.split("/")[-1]
+            for file in self.torrents_files(torrent_hash=torrent_hash):
+                if file.name == old_path:
+                    file_id = file.id
+                    break
+            else:
+                logger.debug(
+                    "ERROR: old_path '%s' isn't valid...'file_id' cannot be determined.",
+                    old_path,
+                )
+                file_id = ""
 
         data = {
             "hash": torrent_hash,

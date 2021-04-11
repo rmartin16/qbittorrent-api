@@ -15,6 +15,7 @@ import requests
 from qbittorrentapi.exceptions import Forbidden403Error
 from qbittorrentapi.exceptions import Conflict409Error
 from qbittorrentapi.exceptions import InvalidRequest400Error
+from qbittorrentapi.exceptions import MissingRequiredParameters400Error
 from qbittorrentapi.exceptions import TorrentFileError
 from qbittorrentapi.exceptions import TorrentFileNotFoundError
 from qbittorrentapi.exceptions import TorrentFilePermissionError
@@ -31,7 +32,10 @@ from qbittorrentapi.torrents import TagList
 
 from tests.conftest import (
     check,
+    new_torrent_standalone,
     retry,
+    root_folder_torrent_hash,
+    root_folder_torrent_file,
     torrent1_filename,
     torrent2_filename,
     torrent1_hash,
@@ -208,20 +212,78 @@ def test_add_torrent_file_fail(client, monkeypatch):
                     client.torrents_add(torrent_files="/etc/hosts")
 
 
-def test_add_options(api_version, new_torrent):
-    check(lambda: new_torrent.category, "test_category")
+@pytest.mark.parametrize("keep_root_folder", (True, False, None))
+@pytest.mark.parametrize(
+    "content_layout", (None, "Original", "Subfolder", "NoSubfolder")
+)
+def test_add_options(client, api_version, keep_root_folder, content_layout):
+    client.torrents_delete(torrent_hashes=root_folder_torrent_hash, delete_files=True)
+    if is_version_less_than("2.3.0", api_version, lteq=True):
+        client.torrents_create_tags("option-tag")
+    torrent = next(
+        new_torrent_standalone(
+            torrent_hash=root_folder_torrent_hash,
+            client=client,
+            torrent_files=root_folder_torrent_file,
+            save_path=path.expanduser("~/test_download/"),
+            category="test_category",
+            is_paused=True,
+            upload_limit=1024,
+            download_limit=2048,
+            is_sequential_download=True,
+            is_first_last_piece_priority=True,
+            is_root_folder=keep_root_folder,
+            rename="this is a new name for the torrent",
+            use_auto_torrent_management=False,
+            tags="option-tag",
+            content_layout=content_layout,
+            ratio_limit=2,
+            seeding_time_limit=120,
+        )
+    )
+    check(lambda: torrent.category, "test_category")
     check(
-        lambda: new_torrent.state,
+        lambda: torrent.state,
         ("pausedDL", "checkingResumeData"),
         reverse=True,
         any=True,
     )
-    check(lambda: new_torrent.save_path, path.expanduser("~/test_download/"))
-    check(lambda: new_torrent.up_limit, 1024)
-    check(lambda: new_torrent.dl_limit, 2048)
-    check(lambda: new_torrent.seq_dl, True)
-    if is_version_less_than("2.0.0", api_version, lteq=False):
-        check(lambda: new_torrent.f_l_piece_prio, True)
+    check(lambda: torrent.save_path, path.expanduser("~/test_download/"))
+    check(lambda: torrent.up_limit, 1024)
+    check(lambda: torrent.dl_limit, 2048)
+    check(lambda: torrent.seq_dl, True)
+    if is_version_less_than("2.0.1", api_version, lteq=True):
+        check(lambda: torrent.f_l_piece_prio, True)
+    if content_layout is None:
+        check(
+            lambda: torrent.files[0]["name"].startswith("root_folder"),
+            keep_root_folder in {True, None},
+        )
+    check(lambda: torrent.name, "this is a new name for the torrent")
+    check(lambda: torrent.auto_tmm, False)
+    if is_version_less_than("2.6.2", api_version, lteq=True):
+        check(lambda: torrent.tags, "option-tag")
+
+    if is_version_less_than("2.7", api_version, lteq=True):
+        # after web api v2.7...root dir is driven by content_layout
+        if content_layout is None:
+            should_root_dir_exists = keep_root_folder in {None, True}
+        else:
+            should_root_dir_exists = content_layout in {"Original", "Subfolder"}
+    else:
+        # before web api v2.7...it is driven by is_root_folder
+        if content_layout is not None and keep_root_folder is None:
+            should_root_dir_exists = content_layout in {"Original", "Subfolder"}
+        else:
+            should_root_dir_exists = keep_root_folder in {None, True}
+    check(
+        lambda: any(f["name"].startswith("root_folder") for f in torrent.files),
+        should_root_dir_exists,
+    )
+
+    if is_version_less_than("2.8.1", api_version, lteq=True):
+        check(lambda: torrent.ratio_limit, 2)
+        check(lambda: torrent.seeding_time_limit, 120)
 
 
 def test_properties(client, orig_torrent):
@@ -353,24 +415,28 @@ def test_rename_file(
                 torrent_hash=new_torrent.hash, file_id=0, new_file_name=new_name
             )
     else:
+        # pre-v4.3.3 rename_file signature
         getattr(client, client_func)(
             torrent_hash=new_torrent.hash, file_id=0, new_file_name=new_name
         )
         check(lambda: new_torrent.files[0].name.replace("+", " "), new_name)
-
         # test invalid file ID is rejected
         with pytest.raises(Conflict409Error):
             getattr(client, client_func)(
                 torrent_hash=new_torrent.hash, file_id=10, new_file_name=new_name
             )
-
-    if is_version_less_than("v4.3.2", app_version, lteq=False):
+        # post-v4.3.3 rename_file signature
         getattr(client, client_func)(
             torrent_hash=new_torrent.hash,
             old_path=new_torrent.files[0].name,
             new_path=new_name + "_new",
         )
         check(lambda: new_torrent.files[0].name.replace("+", " "), new_name + "_new")
+        # test invalid old_path is rejected
+        with pytest.raises(Conflict409Error):
+            getattr(client, client_func)(
+                torrent_hash=new_torrent.hash, old_path="asdf", new_path="xcvb"
+            )
 
 
 @pytest.mark.parametrize("new_name", ("asdf zxcv", "asdf_zxcv"))
