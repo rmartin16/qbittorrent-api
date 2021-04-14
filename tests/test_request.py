@@ -120,11 +120,58 @@ def test_port(api_version):
     assert client.app.web_api_version == api_version
 
 
-def test_simple_response(client):
+def test_simple_response(client, orig_torrent):
     torrent = client.torrents_info()[0]
     assert isinstance(torrent, TorrentDictionary)
     torrent = client.torrents_info(SIMPLE_RESPONSE=True)[0]
     assert isinstance(torrent, dict)
+    torrent = client.torrents_info(SIMPLE_RESPONSES=True)[0]
+    assert isinstance(torrent, dict)
+    torrent = client.torrents_info(SIMPLE_RESPONSE=False)[0]
+    assert isinstance(torrent, TorrentDictionary)
+    torrent = client.torrents_info(SIMPLE_RESPONSES=False)[0]
+    assert isinstance(torrent, TorrentDictionary)
+    client = Client(VERIFY_WEBUI_CERTIFICATE=False, SIMPLE_RESPONSES=True)
+    torrent = client.torrents_info()[0]
+    assert isinstance(torrent, dict)
+    client = Client(VERIFY_WEBUI_CERTIFICATE=False, SIMPLE_RESPONSES=False)
+    torrent = client.torrents_info()[0]
+    assert isinstance(torrent, TorrentDictionary)
+
+
+def test_request_extra_headers():
+    client = Client(
+        VERIFY_WEBUI_CERTIFICATE=False, EXTRA_HEADERS={"X-MY-HEADER": "asdf"}
+    )
+    client.auth.log_in()
+
+    r = client._get(_name="app", _method="version")
+    assert r.request.headers["X-MY-HEADER"] == "asdf"
+
+    r = client._get(_name="app", _method="version", headers={"X-MY-HEADER-TWO": "zxcv"})
+    assert r.request.headers["X-MY-HEADER"] == "asdf"
+    assert r.request.headers["X-MY-HEADER-TWO"] == "zxcv"
+
+    r = client._get(
+        _name="app",
+        _method="version",
+        headers={"X-MY-HEADER-TWO": "zxcv"},
+        requests_args={"headers": {"X-MY-HEADER-THREE": "tyui"}},
+    )
+    assert r.request.headers["X-MY-HEADER"] == "asdf"
+    assert r.request.headers["X-MY-HEADER-TWO"] == "zxcv"
+    assert r.request.headers["X-MY-HEADER-THREE"] == "tyui"
+
+    r = client._get(
+        _name="app",
+        _method="version",
+        headers={"X-MY-HEADER": "zxcv"},
+        requests_args={"headers": {"X-MY-HEADER": "tyui"}},
+    )
+    assert r.request.headers["X-MY-HEADER"] == "zxcv"
+
+    r = client._get(_name="app", _method="version", headers={"X-MY-HEADER": "zxcv"})
+    assert r.request.headers["X-MY-HEADER"] == "zxcv"
 
 
 def test_request_extra_params(client, orig_torrent_hash):
@@ -230,7 +277,7 @@ def test_http404(client, params):
     response = MockResponse(status_code=404, text="")
     with pytest.raises(HTTPError):
         p = dict(data={}, params=params)
-        Request.handle_error_responses(params=p, response=response)
+        Request._handle_error_responses(args=p, response=response)
 
 
 def test_http409(client, app_version):
@@ -249,7 +296,7 @@ def test_http500(status_code):
     response = MockResponse(status_code=status_code, text="asdf")
     with pytest.raises(InternalServerError500Error):
         p = dict(data={}, params={})
-        Request.handle_error_responses(params=p, response=response)
+        Request._handle_error_responses(args=p, response=response)
 
 
 @pytest.mark.parametrize("status_code", (402, 406))
@@ -257,7 +304,7 @@ def test_http_error(status_code):
     response = MockResponse(status_code=status_code, text="asdf")
     with pytest.raises(HTTPError):
         p = dict(data={}, params={})
-        Request.handle_error_responses(params=p, response=response)
+        Request._handle_error_responses(args=p, response=response)
 
 
 def test_verbose_logging(caplog):

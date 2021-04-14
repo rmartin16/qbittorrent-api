@@ -1,7 +1,6 @@
-from logging import getLogger
 from logging import NullHandler
+from logging import getLogger
 from os import environ
-from pkg_resources import parse_version
 from time import sleep
 
 try:  # python 3
@@ -13,6 +12,7 @@ except ImportError:  # python 2
     from urlparse import urljoin
     from urlparse import urlparse
 
+from pkg_resources import parse_version
 from requests import exceptions as requests_exceptions
 from requests import head as requests_head
 from requests import Session
@@ -95,7 +95,9 @@ class HelpersMixIn(object):
 
 
 class Request(HelpersMixIn):
-    """Facilitates HTTP requests to qBittorrent."""
+    """
+    Facilitates HTTP requests to qBittorrent's Web API.
+    """
 
     def __init__(self, host="", port=None, username=None, password=None, **kwargs):
         self.host = host
@@ -119,6 +121,7 @@ class Request(HelpersMixIn):
         This is necessary on startup or when the auth cookie needs to be replaced...perhaps
         because it expired, qBittorrent was restarted, significant settings changes, etc.
         """
+        logger.debug("Re-initializing context...")
         # base path for all API endpoints
         self._API_BASE_PATH = "api/v2"
 
@@ -143,6 +146,7 @@ class Request(HelpersMixIn):
     def _initialize_lesser(
         self,
         EXTRA_HEADERS=None,
+        REQUESTS_ARGS=None,
         VERIFY_WEBUI_CERTIFICATE=True,
         RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=False,
         RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=False,
@@ -155,7 +159,8 @@ class Request(HelpersMixIn):
         """Initialize lessor used configuration"""
 
         # Configuration parameters
-        self._EXTRA_HEADERS = EXTRA_HEADERS if isinstance(EXTRA_HEADERS, dict) else {}
+        self._EXTRA_HEADERS = EXTRA_HEADERS or {}
+        self._REQUESTS_ARGS = REQUESTS_ARGS or {}
         self._VERIFY_WEBUI_CERTIFICATE = bool(VERIFY_WEBUI_CERTIFICATE)
         self._VERBOSE_RESPONSE_LOGGING = bool(VERBOSE_RESPONSE_LOGGING)
         self._PRINT_STACK_FOR_EACH_REQUEST = bool(PRINT_STACK_FOR_EACH_REQUEST)
@@ -211,11 +216,11 @@ class Request(HelpersMixIn):
             http_method="post", api_namespace=_name, api_method=_method, **kwargs
         )
 
-    def _request_manager(self, _retries=2, _retry_backoff_factor=0.3, **kwargs):
+    def _request_manager(self, _retries=1, _retry_backoff_factor=0.3, **kwargs):
         """
         Wrapper to manage request retries and severe exceptions.
 
-        This should retry at least twice to account for the Web API switching from HTTP to HTTPS.
+        This should retry at least once to account for the Web API switching from HTTP to HTTPS.
         During the second attempt, the URL is rebuilt using HTTP or HTTPS as appropriate.
         """
 
@@ -248,9 +253,9 @@ class Request(HelpersMixIn):
                 # then will sleep for 0s then .3s, then .6s, etc. between retries.
                 backoff_time = _retry_backoff_factor * (2 ** ((retry_count + 1) - 1))
                 sleep(backoff_time if backoff_time <= 10 else 10)
-            logger.debug("Retry attempt %d" % (retry_count + 1))
+            logger.debug("Retry attempt %d", retry_count + 1)
 
-        max_retries = _retries if _retries > 1 else 2
+        max_retries = _retries if _retries >= 1 else 1
         for retry in range(0, (max_retries + 1)):
             try:
                 return self._request(**kwargs)
@@ -278,18 +283,19 @@ class Request(HelpersMixIn):
         :param kwargs: see _normalize_requests_params for additional support
         :return: Requests response
         """
-        url = self._build_url(api_namespace=api_namespace, api_method=api_method)
-        kwargs = self._trim_known_kwargs(kwargs=kwargs)
-        params = self._normalize_requests_params(http_method=http_method, **kwargs)
+        api_args, requests_args = self._normalize_args(http_method, **kwargs)
+        url = self._build_url(api_namespace, api_method, requests_args=requests_args)
 
-        response = self._session.request(method=http_method, url=url, **params)
+        http_args = api_args.copy()
+        http_args.update(requests_args)
+        response = self._session.request(http_method, url, **http_args)
 
-        self.verbose_logging(http_method=http_method, response=response, url=url)
-        self.handle_error_responses(params=params, response=response)
+        self._verbose_logging(http_method=http_method, response=response, url=url)
+        self._handle_error_responses(args=api_args, response=response)
         return response
 
     @staticmethod
-    def _trim_known_kwargs(kwargs):
+    def _trim_known_kwargs(**kwargs):
         """
         Since any extra keyword arguments from the user are automatically
         included in the request to qBittorrent, this removes any "known"
@@ -304,7 +310,24 @@ class Request(HelpersMixIn):
         kwargs.pop("SIMPLE_RESPONSE", None)
         return kwargs
 
-    def _build_url(self, api_namespace, api_method):
+    @staticmethod
+    def _get_requests_args(**kwargs):
+        """
+        Return any user-supplied arguments for Requests.
+        """
+        args = kwargs.get("requests_args", kwargs.get("requests_params", {})) or {}
+        if "headers" in kwargs and kwargs["headers"]:
+            args.setdefault("headers", {}).update(**kwargs["headers"])
+        return args
+
+    @staticmethod
+    def _trim_api_kwargs(**kwargs):
+        """
+        Return Requests arguments that aren't part of the API payload for qBittorrent.
+        """
+        return {k: v for k, v in kwargs.items() if k not in {"data", "params", "files"}}
+
+    def _build_url(self, api_namespace, api_method, requests_args):
         """
         Create a fully qualified URL for the API endpoint.
 
@@ -316,6 +339,7 @@ class Request(HelpersMixIn):
             base_url=self._API_BASE_URL,
             host=self.host,
             port=self.port,
+            requests_args=requests_args,
         )
         return self._build_url_path(
             base_url=self._API_BASE_URL,
@@ -324,8 +348,7 @@ class Request(HelpersMixIn):
             api_method=api_method,
         )
 
-    @staticmethod
-    def _build_base_url(base_url=None, host="", port=None):
+    def _build_base_url(self, base_url=None, host="", port=None, requests_args=None):
         """
         Determine the Base URL for the Web API endpoints.
 
@@ -353,43 +376,58 @@ class Request(HelpersMixIn):
         if not host.lower().startswith(("http:", "https:", "//")):
             host = "//" + host
         base_url = urlparse(url=host)
-        logger.debug("Parsed user URL: %s" % repr(base_url))
+        logger.debug("Parsed user URL: %s", repr(base_url))
         # default to HTTP if user didn't specify
         user_scheme = base_url.scheme
-        base_url = base_url._replace(scheme="http") if not user_scheme else base_url
-        alt_scheme = "https" if base_url.scheme == "http" else "http"
+        default_scheme = user_scheme or "http"
+        alt_scheme = "https" if default_scheme == "http" else "http"
         # add port number if host doesn't contain one
         if port is not None and not isinstance(base_url.port, int):
             base_url = base_url._replace(netloc="%s:%s" % (base_url.netloc, port))
 
         # detect whether Web API is configured for HTTP or HTTPS
         logger.debug("Detecting scheme for URL...")
-        try:
-            # skip verification here...if there's a problem, we'll catch it during the actual API call
-            r = requests_head(base_url.geturl(), allow_redirects=True, verify=False)
-            # if WebUI eventually supports sending a redirect from HTTP to HTTPS then
-            # Requests will automatically provide a URL using HTTPS.
-            # For instance, the URL returned below will use the HTTPS scheme.
-            #  >>> requests.head('http://grc.com', allow_redirects=True).url
-            scheme = urlparse(r.url).scheme
-        except requests_exceptions.RequestException:
-            # assume alternative scheme will work...we'll fail later if neither are working
-            scheme = alt_scheme
+        logger.debug("HTTP HEAD args: %s", requests_args)
+        prefer_https = False
+        for scheme in (default_scheme, alt_scheme):
+            try:
+                base_url = base_url._replace(scheme=scheme)
+                r = self._session.request("head", base_url.geturl(), **requests_args)
+                logger.debug("HTTP HEAD Headers: %s", r.request.headers)
+                scheme_to_use = urlparse(r.url).scheme
+                break
+            except requests_exceptions.SSLError:
+                # an SSLError means that qBittorrent is likely listening on HTTPS
+                # but the TLS connection is not trusted...so, if the attempt to
+                # connect on HTTP also fails, this will tell us to switch back to HTTPS
+                if base_url.scheme.lower() == "https":
+                    logger.debug(
+                        "Encountered SSLError: will prefer HTTPS if HTTP fails"
+                    )
+                    prefer_https = True
+            except requests_exceptions.RequestException:
+                logger.debug("Failed connection attempt with %s", scheme.upper())
+        else:
+            scheme_to_use = "https" if prefer_https else "http"
 
         # use detected scheme
-        logger.debug("Using %s scheme" % scheme.upper())
-        base_url = base_url._replace(scheme=scheme)
-        if user_scheme and user_scheme != scheme:
+        logger.debug("Using %s scheme", scheme_to_use.upper())
+        base_url = base_url._replace(scheme=scheme_to_use)
+        if user_scheme and user_scheme != scheme_to_use:
             logger.warning(
-                "Using '%s' instead of requested '%s' to communicate with qBittorrent"
-                % (scheme, user_scheme)
+                "Using '%s' instead of requested '%s' to communicate with qBittorrent",
+                scheme_to_use,
+                user_scheme,
             )
 
         # ensure URL always ends with a forward-slash
         base_url = base_url.geturl()
         if not base_url.endswith("/"):
             base_url = base_url + "/"
-        logger.debug("Base URL: %s" % base_url)
+        logger.debug("Base URL: %s", base_url)
+
+        # force a new session to be created now that the URL is known
+        self._requests_session = None
 
         return base_url
 
@@ -425,10 +463,23 @@ class Request(HelpersMixIn):
 
         :return: Requests Session object
         """
+
+        class QbittorrentSession(Session):
+            """
+            Wrapper to augment Requests Session.
+            Requests doesn't allow Session to default certain configuration
+            globally. This gets around that by setting defaults for each request.
+            """
+
+            def request(self, *args, **kwargs):
+                kwargs.setdefault("timeout", 30)
+                kwargs.setdefault("allow_redirects", True)
+                return super(QbittorrentSession, self).request(*args, **kwargs)
+
         if self._requests_session:
             return self._requests_session
 
-        self._requests_session = Session()
+        self._requests_session = QbittorrentSession()
 
         # default headers to prevent qBittorrent throwing any alarms
         self._requests_session.headers.update(
@@ -453,28 +504,29 @@ class Request(HelpersMixIn):
         # at any rate, the retries count in request_manager should always be
         # at least 2 to accommodate significant settings changes in qBittorrent
         # such as enabling HTTPs in Web UI settings.
-        retries = 1
-        retry = Retry(
-            total=retries,
-            read=retries,
-            connect=retries,
-            status_forcelist={500, 502, 504},
-            raise_on_status=False,
+        adapter = HTTPAdapter(
+            max_retries=Retry(
+                total=1,
+                read=1,
+                connect=1,
+                status_forcelist={500, 502, 504},
+                raise_on_status=False,
+            )
         )
-        adapter = HTTPAdapter(max_retries=retry)
         self._requests_session.mount("http://", adapter)
         self._requests_session.mount("https://", adapter)
 
         return self._requests_session
 
-    @staticmethod
-    def _normalize_requests_params(
+    def _normalize_args(
+        self,
         http_method,
         headers=None,
         data=None,
         params=None,
         files=None,
         requests_params=None,
+        requests_args=None,
         **kwargs
     ):
         """
@@ -484,12 +536,19 @@ class Request(HelpersMixIn):
         :param data: key/value pairs to send as body
         :param params: key/value pairs to send as query parameters
         :param files: key/value pairs to include as multipart POST requests
-        :param requests_params: keyword arguments for call to Requests
+        :param requests_params: original name for requests_args
+        :param requests_args: keyword arguments for call to Requests
         :return: dictionary of parameters for Requests call
         """
+        kwargs = self._trim_known_kwargs(**kwargs)
+
         # these are completely user defined and intended to allow users
         # of this client to control the behavior of Requests
-        requests_params = requests_params or {}
+        override_requests_args = self._get_requests_args(
+            headers=headers,
+            requests_params=requests_params,
+            requests_args=requests_args,
+        )
 
         # these are expected to be populated by this client as necessary for qBittorrent
         data = data or {}
@@ -498,6 +557,7 @@ class Request(HelpersMixIn):
 
         # these are user-defined headers to include with the request
         headers = headers or {}
+
         # send Content-Length as 0 for empty POSTs...Requests will not send Content-Length
         # if data is empty but qBittorrent may complain otherwise
         if http_method == "post" and not any(filter(None, data.values())):
@@ -512,17 +572,18 @@ class Request(HelpersMixIn):
             if http_method == "post":
                 data.update(kwargs)
 
-        d = dict(data=data, params=params, files=files, headers=headers)
-        d.update(requests_params)
-        return d
+        requests_args = self._REQUESTS_ARGS.copy()
+        requests_args.update(override_requests_args)
+        api_args = dict(data=data, params=params, files=files)
+        return api_args, requests_args
 
     @staticmethod
-    def handle_error_responses(params, response):
+    def _handle_error_responses(args, response):
         """Raise proper exception if qBittorrent returns Error HTTP Status."""
         if response.status_code < 400:
             # short circuit for non-error statuses
             return
-        elif response.status_code == 400:
+        if response.status_code == 400:
             # Returned for malformed requests such as missing or invalid parameters.
             #
             # If an error_message isn't returned, qBittorrent didn't receive all required parameters.
@@ -532,53 +593,49 @@ class Request(HelpersMixIn):
                 raise MissingRequiredParameters400Error()
             raise InvalidRequest400Error(response.text)
 
-        elif response.status_code == 401:
+        if response.status_code == 401:
             # Primarily reserved for XSS and host header issues. Is also
             raise Unauthorized401Error(response.text)
 
-        elif response.status_code == 403:
+        if response.status_code == 403:
             # Not logged in or calling an API method that isn't public
             # APIErrorType::AccessDenied
             raise Forbidden403Error(response.text)
 
-        elif response.status_code == 404:
+        if response.status_code == 404:
             # API method doesn't exist or more likely, torrent not found
             # APIErrorType::NotFound
             error_message = response.text
             if error_message in ("", "Not Found"):
                 error_torrent_hash = ""
-                if params["data"]:
-                    error_torrent_hash = params["data"].get("hash", error_torrent_hash)
-                    error_torrent_hash = params["data"].get(
-                        "hashes", error_torrent_hash
-                    )
-                if params and error_torrent_hash == "":
-                    error_torrent_hash = params["params"].get(
-                        "hash", error_torrent_hash
-                    )
-                    error_torrent_hash = params["params"].get(
+                if args["data"]:
+                    error_torrent_hash = args["data"].get("hash", error_torrent_hash)
+                    error_torrent_hash = args["data"].get("hashes", error_torrent_hash)
+                if args and error_torrent_hash == "":
+                    error_torrent_hash = args["params"].get("hash", error_torrent_hash)
+                    error_torrent_hash = args["params"].get(
                         "hashes", error_torrent_hash
                     )
                 if error_torrent_hash:
                     error_message = "Torrent hash(es): %s" % error_torrent_hash
             raise NotFound404Error(error_message)
 
-        elif response.status_code == 409:
+        if response.status_code == 409:
             # APIErrorType::Conflict
             raise Conflict409Error(response.text)
 
-        elif response.status_code == 415:
+        if response.status_code == 415:
             # APIErrorType::BadData
             raise UnsupportedMediaType415Error(response.text)
 
-        elif response.status_code >= 500:
+        if response.status_code >= 500:
             raise InternalServerError500Error(response.text)
 
-        elif response.status_code >= 400:
+        if response.status_code >= 400:
             # Unaccounted for errors from API
             raise HTTPError(response.text)
 
-    def verbose_logging(self, http_method, response, url):
+    def _verbose_logging(self, http_method, response, url):
         """Log verbose information about request. Can be useful during development."""
         if self._VERBOSE_RESPONSE_LOGGING:
             resp_logger = logger.debug
@@ -587,8 +644,8 @@ class Request(HelpersMixIn):
                 # log as much as possible in a error condition
                 max_text_length_to_log = 10000
 
-            resp_logger("Request URL: (%s) %s" % (http_method.upper(), response.url))
-            resp_logger("Request Headers: %s" % response.request.headers)
+            resp_logger("Request URL: (%s) %s", http_method.upper(), response.url)
+            resp_logger("Request Headers: %s", response.request.headers)
             if (
                 str(response.request.body) not in ("None", "")
                 and "auth/login" not in url
@@ -599,15 +656,13 @@ class Request(HelpersMixIn):
                     else len(response.request.body)
                 )
                 resp_logger(
-                    "Request body: %s%s"
-                    % (
-                        response.request.body[:body_len],
-                        "...<truncated>" if body_len >= 200 else "",
-                    )
+                    "Request body: %s%s",
+                    response.request.body[:body_len],
+                    "...<truncated>" if body_len >= 200 else "",
                 )
 
             resp_logger(
-                "Response status: %s (%s)" % (response.status_code, response.reason)
+                "Response status: %s (%s)", response.status_code, response.reason
             )
             if response.text:
                 text_len = (
@@ -616,11 +671,9 @@ class Request(HelpersMixIn):
                     else len(response.text)
                 )
                 resp_logger(
-                    "Response text: %s%s"
-                    % (
-                        response.text[:text_len],
-                        "...<truncated>" if text_len >= 80 else "",
-                    )
+                    "Response text: %s%s",
+                    response.text[:text_len],
+                    "...<truncated>" if text_len >= 80 else "",
                 )
         if self._PRINT_STACK_FOR_EACH_REQUEST:
             from traceback import print_stack

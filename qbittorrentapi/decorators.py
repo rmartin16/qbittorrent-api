@@ -94,12 +94,12 @@ def login_required(f):
     def wrapper(client, *args, **kwargs):
         if not client.is_logged_in:
             logger.debug("Not logged in...attempting login")
-            client.auth_log_in()
+            client.auth_log_in(requests_args=client._get_requests_args(**kwargs))
         try:
             return f(client, *args, **kwargs)
         except HTTP403Error:
             logger.debug("Login may have expired...attempting new login")
-            client.auth_log_in()
+            client.auth_log_in(requests_args=client._get_requests_args(**kwargs))
 
         return f(client, *args, **kwargs)
 
@@ -139,8 +139,8 @@ def response_text(response_class):
 
     def _inner(f):
         @wraps(f)
-        def wrapper(obj, *args, **kwargs):
-            result = f(obj, *args, **kwargs)
+        def wrapper(client, *args, **kwargs):
+            result = f(client, *args, **kwargs)
             if isinstance(result, response_class):
                 return result
             try:
@@ -155,7 +155,6 @@ def response_text(response_class):
 
 
 def response_json(response_class):
-
     """
     Return the JSON in the API response. JSON is parsed as instance of response_class.
 
@@ -165,11 +164,11 @@ def response_json(response_class):
 
     def _inner(f):
         @wraps(f)
-        def wrapper(obj, *args, **kwargs):
-            simple_response = obj._SIMPLE_RESPONSES or kwargs.pop(
+        def wrapper(client, *args, **kwargs):
+            simple_response = client._SIMPLE_RESPONSES or kwargs.pop(
                 "SIMPLE_RESPONSES", kwargs.pop("SIMPLE_RESPONSE", False)
             )
-            response = f(obj, *args, **kwargs)
+            response = f(client, *args, **kwargs)
             try:
                 if isinstance(response, response_class):
                     return response
@@ -181,7 +180,7 @@ def response_json(response_class):
                         result = loads(response.text)
                     if simple_response:
                         return result
-                    return response_class(result, obj)
+                    return response_class(result, client)
             except Exception as e:
                 logger.debug("Exception during response parsing.", exc_info=True)
                 raise APIError("Exception during response parsing. Error: %s" % repr(e))

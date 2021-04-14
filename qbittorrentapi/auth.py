@@ -26,13 +26,13 @@ class Authorization(ClientCache):
         """Implements :meth:`~AuthAPIMixIn.is_logged_in`"""
         return self._client.is_logged_in
 
-    def log_in(self, username=None, password=None):
+    def log_in(self, username=None, password=None, **kwargs):
         """Implements :meth:`~AuthAPIMixIn.auth_log_in`"""
-        return self._client.auth_log_in(username=username, password=password)
+        return self._client.auth_log_in(username=username, password=password, **kwargs)
 
-    def log_out(self):
+    def log_out(self, **kwargs):
         """Implements :meth:`~AuthAPIMixIn.auth_log_out`"""
-        return self._client.auth_log_out()
+        return self._client.auth_log_out(**kwargs)
 
 
 class AuthAPIMixIn(Request):
@@ -97,13 +97,13 @@ class AuthAPIMixIn(Request):
         )
 
         if not self.is_logged_in:
-            logger.debug('Login failed for user "%s"' % self.username)
+            logger.debug('Login failed for user "%s"', self.username)
             raise self._suppress_context(
                 LoginFailed('Login authorization failed for user "%s"' % self.username)
             )
         else:
-            logger.debug('Login successful for user "%s"' % self.username)
-            logger.debug("SID: %s" % self._SID)
+            logger.debug('Login successful for user "%s"', self.username)
+            logger.debug("SID: %s", self._SID)
 
     @property
     def _SID(self):
