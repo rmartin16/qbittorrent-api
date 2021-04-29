@@ -364,17 +364,19 @@ class Request(HelpersMixIn):
 
         # detect whether Web API is configured for HTTP or HTTPS
         logger.debug("Detecting scheme for URL...")
-        try:
-            # skip verification here...if there's a problem, we'll catch it during the actual API call
-            r = requests_head(base_url.geturl(), allow_redirects=True, verify=False)
-            # if WebUI eventually supports sending a redirect from HTTP to HTTPS then
-            # Requests will automatically provide a URL using HTTPS.
-            # For instance, the URL returned below will use the HTTPS scheme.
-            #  >>> requests.head('http://grc.com', allow_redirects=True).url
-            scheme = urlparse(r.url).scheme
-        except requests_exceptions.RequestException:
-            # assume alternative scheme will work...we'll fail later if neither are working
-            scheme = alt_scheme
+        # If user specify to use http or https, do not modify the scheme
+        if host.startswith("//"):            
+            try:
+                # skip verification here...if there's a problem, we'll catch it during the actual API call
+                r = requests_head(base_url.geturl(), allow_redirects=True, verify=False)
+                # if WebUI eventually supports sending a redirect from HTTP to HTTPS then
+                # Requests will automatically provide a URL using HTTPS.
+                # For instance, the URL returned below will use the HTTPS scheme.
+                #  >>> requests.head('http://grc.com', allow_redirects=True).url
+                scheme = urlparse(r.url).scheme
+            except requests_exceptions.RequestException:
+                # assume alternative scheme will work...we'll fail later if neither are working
+                scheme = alt_scheme
 
         # use detected scheme
         logger.debug("Using %s scheme" % scheme.upper())
