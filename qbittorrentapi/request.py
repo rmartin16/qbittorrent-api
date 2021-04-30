@@ -377,6 +377,8 @@ class Request(HelpersMixIn):
             except requests_exceptions.RequestException:
                 # assume alternative scheme will work...we'll fail later if neither are working
                 scheme = alt_scheme
+        else:
+            scheme = 'https' if host.startswith('https') else 'http'
 
         # use detected scheme
         logger.debug("Using %s scheme" % scheme.upper())
