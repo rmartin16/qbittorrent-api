@@ -144,6 +144,7 @@ class Request(HelpersMixIn):
         self,
         EXTRA_HEADERS=None,
         VERIFY_WEBUI_CERTIFICATE=True,
+        FORCE_SCHEME_FROM_HOST=False,
         RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=False,
         RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=False,
         VERBOSE_RESPONSE_LOGGING=False,
@@ -160,6 +161,7 @@ class Request(HelpersMixIn):
         self._VERBOSE_RESPONSE_LOGGING = bool(VERBOSE_RESPONSE_LOGGING)
         self._PRINT_STACK_FOR_EACH_REQUEST = bool(PRINT_STACK_FOR_EACH_REQUEST)
         self._SIMPLE_RESPONSES = bool(SIMPLE_RESPONSES)
+        self._FORCE_SCHEME_FROM_HOST = bool(FORCE_SCHEME_FROM_HOST)
         self._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS = bool(
             RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS
             or RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS
@@ -248,7 +250,7 @@ class Request(HelpersMixIn):
                 # then will sleep for 0s then .3s, then .6s, etc. between retries.
                 backoff_time = _retry_backoff_factor * (2 ** ((retry_count + 1) - 1))
                 sleep(backoff_time if backoff_time <= 10 else 10)
-            logger.debug("Retry attempt %d" % (retry_count + 1))
+            logger.debug("Retry attempt %d", (retry_count + 1))
 
         max_retries = _retries if _retries > 1 else 2
         for retry in range(0, (max_retries + 1)):
@@ -257,7 +259,7 @@ class Request(HelpersMixIn):
             except HTTPError as e:
                 # retry the request for HTTP 500 statuses;
                 # raise immediately for other HTTP errors (e.g. 4XX statuses)
-                if not isinstance(e, HTTP5XXError) or retry >= max_retries:
+                if retry >= max_retries or not isinstance(e, HTTP5XXError):
                     raise
             except Exception as e:
                 if retry >= max_retries:
@@ -316,6 +318,7 @@ class Request(HelpersMixIn):
             base_url=self._API_BASE_URL,
             host=self.host,
             port=self.port,
+            force_user_scheme=self._FORCE_SCHEME_FROM_HOST,
         )
         return self._build_url_path(
             base_url=self._API_BASE_URL,
@@ -325,7 +328,7 @@ class Request(HelpersMixIn):
         )
 
     @staticmethod
-    def _build_base_url(base_url=None, host="", port=None):
+    def _build_base_url(base_url=None, host="", port=None, force_user_scheme=False):
         """
         Determine the Base URL for the Web API endpoints.
 
@@ -353,7 +356,7 @@ class Request(HelpersMixIn):
         if not host.lower().startswith(("http:", "https:", "//")):
             host = "//" + host
         base_url = urlparse(url=host)
-        logger.debug("Parsed user URL: %s" % repr(base_url))
+        logger.debug("Parsed user URL: %r", base_url)
         # default to HTTP if user didn't specify
         user_scheme = base_url.scheme
         base_url = base_url._replace(scheme="http") if not user_scheme else base_url
@@ -363,33 +366,35 @@ class Request(HelpersMixIn):
             base_url = base_url._replace(netloc="%s:%s" % (base_url.netloc, port))
 
         # detect whether Web API is configured for HTTP or HTTPS
-        logger.debug("Detecting scheme for URL...")
-        try:
-            # skip verification here...if there's a problem, we'll catch it during the actual API call
-            r = requests_head(base_url.geturl(), allow_redirects=True, verify=False)
-            # if WebUI eventually supports sending a redirect from HTTP to HTTPS then
-            # Requests will automatically provide a URL using HTTPS.
-            # For instance, the URL returned below will use the HTTPS scheme.
-            #  >>> requests.head('http://grc.com', allow_redirects=True).url
-            scheme = urlparse(r.url).scheme
-        except requests_exceptions.RequestException:
-            # assume alternative scheme will work...we'll fail later if neither are working
-            scheme = alt_scheme
+        if not (user_scheme and force_user_scheme):
+            logger.debug("Detecting scheme for URL...")
+            try:
+                # skip verification here...if there's a problem, we'll catch it during the actual API call
+                r = requests_head(base_url.geturl(), allow_redirects=True, verify=False)
+                # if WebUI eventually supports sending a redirect from HTTP to HTTPS then
+                # Requests will automatically provide a URL using HTTPS.
+                # For instance, the URL returned below will use the HTTPS scheme.
+                #  >>> requests.head('http://grc.com', allow_redirects=True).url
+                scheme = urlparse(r.url).scheme
+            except requests_exceptions.RequestException:
+                # assume alternative scheme will work...we'll fail later if neither are working
+                scheme = alt_scheme
 
-        # use detected scheme
-        logger.debug("Using %s scheme" % scheme.upper())
-        base_url = base_url._replace(scheme=scheme)
-        if user_scheme and user_scheme != scheme:
-            logger.warning(
-                "Using '%s' instead of requested '%s' to communicate with qBittorrent"
-                % (scheme, user_scheme)
-            )
+            # use detected scheme
+            logger.debug("Using %s scheme", scheme.upper())
+            base_url = base_url._replace(scheme=scheme)
+            if user_scheme and user_scheme != scheme:
+                logger.warning(
+                    "Using '%s' instead of requested '%s' to communicate with qBittorrent",
+                    scheme,
+                    user_scheme,
+                )
 
         # ensure URL always ends with a forward-slash
         base_url = base_url.geturl()
         if not base_url.endswith("/"):
             base_url = base_url + "/"
-        logger.debug("Base URL: %s" % base_url)
+        logger.debug("Base URL: %s", base_url)
 
         return base_url
 

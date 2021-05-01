@@ -102,6 +102,33 @@ def test_port_from_host(app_version):
     assert client.app.version == app_version
 
 
+def test_force_user_scheme(app_version):
+    default_host = environ["PYTHON_QBITTORRENTAPI_HOST"]
+
+    client = Client(
+        host="http://" + default_host,
+        VERIFY_WEBUI_CERTIFICATE=False,
+        FORCE_SCHEME_FROM_HOST=True,
+    )
+    assert client.app.version == app_version
+    assert client._API_BASE_URL.startswith("http://")
+
+    client = Client(
+        host=default_host, VERIFY_WEBUI_CERTIFICATE=False, FORCE_SCHEME_FROM_HOST=True
+    )
+    assert client.app.version == app_version
+    assert client._API_BASE_URL.startswith("http://")
+
+    client = Client(
+        host="https://" + default_host,
+        VERIFY_WEBUI_CERTIFICATE=False,
+        FORCE_SCHEME_FROM_HOST=True,
+    )
+    with pytest.raises(APIConnectionError):
+        assert client.app.version == app_version
+    assert client._API_BASE_URL.startswith("https://")
+
+
 def test_log_out(client):
     client.auth_log_out()
     with pytest.raises(Forbidden403Error):
