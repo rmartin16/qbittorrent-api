@@ -1,3 +1,6 @@
+Version 2021.5.21 (1 may 2021)
+ - Allow users to force a specific communications scheme with FORCE_SCHEME_FROM_HOST (fixes #54)
+
 Version 2021.4.20 (11 apr 2021)
  - Add support for ratio limit and seeding time limit when adding torrents
 
