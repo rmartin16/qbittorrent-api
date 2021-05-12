@@ -1,3 +1,7 @@
+Version 2021.5.22 (12 may 2021)
+ - Support for qBittorrent v4.3.5
+ - torrents/files includes "index" for each file; "index" officially replaces "id" but "id" will still be populated
+
 Version 2021.5.21 (1 may 2021)
  - Allow users to force a specific communications scheme with FORCE_SCHEME_FROM_HOST (fixes #54)
 

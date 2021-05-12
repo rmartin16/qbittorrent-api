@@ -306,6 +306,8 @@ def test_files(client, orig_torrent):
     assert isinstance(files, TorrentFilesList)
     assert "availability" in files[0]
 
+    assert all(file["id"] == file["index"] for file in files)
+
 
 @pytest.mark.parametrize(
     "client_func", ("torrents_piece_states", "torrents_pieceStates")

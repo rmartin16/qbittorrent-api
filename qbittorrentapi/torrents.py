@@ -394,8 +394,10 @@ class TorrentFilesList(List):
         super(TorrentFilesList, self).__init__(
             list_entries, entry_class=TorrentFile, client=client
         )
+        # until v4.3.5, the index key wasn't returned...default it to ID for older versions.
+        # when index is returned, maintain backwards compatibility and populate id with index value.
         for i, entry in enumerate(self):
-            entry.update({"id": i})
+            entry.update({"id": entry.setdefault("index", i)})
 
 
 class TorrentFile(ListEntry):
