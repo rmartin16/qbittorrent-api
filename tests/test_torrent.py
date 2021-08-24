@@ -323,11 +323,11 @@ def test_files(orig_torrent):
     assert "id" in orig_torrent.files[0]
 
 
-def test_recheck(client, orig_torrent):
+def test_recheck(orig_torrent):
     orig_torrent.recheck()
 
 
-def test_reannounce(client, api_version, orig_torrent):
+def test_reannounce(api_version, orig_torrent):
     if is_version_less_than(api_version, "2.0.2", lteq=False):
         with pytest.raises(NotImplementedError):
             orig_torrent.reannounce()

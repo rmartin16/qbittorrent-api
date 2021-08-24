@@ -59,6 +59,7 @@ class TorrentStates(Enum):
     ALLOCATING = "allocating"
     DOWNLOADING = "downloading"
     METADATA_DOWNLOAD = "metaDL"
+    FORCED_METADATA_DOWNLOAD = "forcedMetaDL"
     PAUSED_DOWNLOAD = "pausedDL"
     QUEUED_DOWNLOAD = "queuedDL"
     FORCED_DOWNLOAD = "forcedDL"
@@ -74,6 +75,7 @@ class TorrentStates(Enum):
         return self in (
             TorrentStates.DOWNLOADING,
             TorrentStates.METADATA_DOWNLOAD,
+            TorrentStates.FORCED_METADATA_DOWNLOAD,
             TorrentStates.STALLED_DOWNLOAD,
             TorrentStates.CHECKING_DOWNLOAD,
             TorrentStates.PAUSED_DOWNLOAD,

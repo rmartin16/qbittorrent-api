@@ -637,6 +637,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -647,6 +648,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -658,6 +660,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -668,6 +671,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -679,6 +683,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -689,6 +694,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -700,6 +706,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -710,6 +717,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -721,6 +729,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -731,6 +740,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -742,6 +752,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -752,6 +763,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -763,6 +775,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -773,6 +786,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -784,6 +798,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -794,6 +809,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -805,6 +821,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -815,6 +832,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -826,6 +844,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -836,6 +855,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -847,6 +867,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -857,6 +878,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -1530,6 +1552,7 @@ class TorrentsAPIMixIn(Request):
         limit=None,
         offset=None,
         torrent_hashes=None,
+        tag=None,
         **kwargs
     ):
         """
@@ -1544,6 +1567,7 @@ class TorrentsAPIMixIn(Request):
         :param limit: Limit length of list
         :param offset: Start of list (if < 0, offset from end of list)
         :param torrent_hashes: Filter list by hash (separate multiple hashes with a '|')
+        :param tag: Filter list by tag (empty string means "untagged"; no "tag" param means "any tag"; added in Web API v2.8.3)
         :return: :class:`TorrentInfoList` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-list
         """
         data = {
@@ -1554,6 +1578,7 @@ class TorrentsAPIMixIn(Request):
             "limit": limit,
             "offset": offset,
             "hashes": self._list2string(torrent_hashes, "|"),
+            "tag": tag,
         }
         return self._post(_name=APINames.Torrents, _method="info", data=data, **kwargs)
 

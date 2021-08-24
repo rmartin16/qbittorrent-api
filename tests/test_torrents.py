@@ -15,7 +15,6 @@ import requests
 from qbittorrentapi.exceptions import Forbidden403Error
 from qbittorrentapi.exceptions import Conflict409Error
 from qbittorrentapi.exceptions import InvalidRequest400Error
-from qbittorrentapi.exceptions import MissingRequiredParameters400Error
 from qbittorrentapi.exceptions import TorrentFileError
 from qbittorrentapi.exceptions import TorrentFileNotFoundError
 from qbittorrentapi.exceptions import TorrentFilePermissionError
@@ -406,7 +405,6 @@ def test_rename(client, orig_torrent_hash, orig_torrent, new_name):
 def test_rename_file(
     client,
     api_version,
-    app_version,
     new_torrent,
     new_name,
     client_func,
@@ -496,6 +494,18 @@ def test_torrents_info(client, api_version, orig_torrent_hash, client_func):
     if is_version_less_than(api_version, "2.0.1", lteq=False):
         with pytest.raises(NotImplementedError):
             get_func(client, client_func)(torrent_hashes=orig_torrent_hash)
+
+
+@pytest.mark.parametrize("client_func", ("torrents_info", "torrents.info"))
+def test_torrents_info_tag(client, api_version, new_torrent, client_func):
+    if is_version_less_than(api_version, "2.8.3", lteq=False):
+        return
+    tag_name = "tag_filter_name"
+    client.torrents_add_tags(tags=tag_name, torrent_hashes=new_torrent.hash)
+    torrents = get_func(client, client_func)(
+        torrent_hashes=new_torrent.hash, tag=tag_name
+    )
+    assert new_torrent.hash in {t.hash for t in torrents}
 
 
 @pytest.mark.parametrize(
