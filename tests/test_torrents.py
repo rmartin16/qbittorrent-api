@@ -496,6 +496,18 @@ def test_torrents_info(client, api_version, orig_torrent_hash, client_func):
             get_func(client, client_func)(torrent_hashes=orig_torrent_hash)
 
 
+@pytest.mark.parametrize("client_func", ("torrents_info", "torrents.info"))
+def test_torrents_info_tag(client, api_version, new_torrent, client_func):
+    if is_version_less_than(api_version, "2.8.3", lteq=False):
+        return
+    tag_name = "tag_filter_name"
+    client.torrents_add_tags(tags=tag_name, torrent_hashes=new_torrent.hash)
+    torrents = get_func(client, client_func)(
+        torrent_hashes=new_torrent.hash, tag=tag_name
+    )
+    assert new_torrent.hash in {t.hash for t in torrents}
+
+
 @pytest.mark.parametrize(
     "client_func",
     (("torrents_pause", "torrents_resume"), ("torrents.pause", "torrents.resume")),
