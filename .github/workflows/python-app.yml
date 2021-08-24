@@ -16,22 +16,25 @@ on:
 jobs:
   tests:
     name: "Python ${{ matrix.python-version }} - v${{ matrix.QBT_VER }}"
-    runs-on: ubuntu-20.04  # TODO: update back to ubuntu-latest once 20.04 is the default
+    runs-on: ubuntu-20.04  # update Qt PPA when moving beyond 20.04
     continue-on-error: true
     env:
       LATEST_PYTHON_VERSION: 3.9
-      LATEST_QBT_VERSION: 4.3.8
-      QBT_ALWAYS_TEST: 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2
+      LATEST_QBT_VERSION: 4.4.0beta3
+      # QBT_ALWAYS_TEST: 4.4.0beta3, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1
+      QBT_ALWAYS_TEST: 4.4.0beta3, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1, 4.2.5, 4.2.0
+      QT_USE_DEFAULT_PAA: 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1, 4.2.5, 4.2.0
       SUBMIT_COVERAGE_VERSIONS: 2.7, 3.9
       COMPREHENSIVE_TESTS_BRANCH: comprehensive_tests
       PYTHON_QBITTORRENTAPI_HOST: localhost:8080
       PYTHON_QBITTORRENTAPI_PASSWORD: adminadmin
       PYTHON_QBITTORRENTAPI_USERNAME: admin
-      LIBTOR_VER: 1.2.12
+      LIBTOR_VER: 1.2.14
       QBT_LEGACY_INSTALL: 4.2.5, 4.2.0
     strategy:
       matrix:
-        QBT_VER: [4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1, 4.2.5, 4.2.0]
+        QBT_VER: [4.4.0beta3, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1, 4.2.5, 4.2.0]
+        # QBT_VER: [4.4.0beta3]
         python-version: [3.9, 3.8, 3.7, 3.6, 2.7, 3.10-dev, pypy2, pypy3]
         # python-version: [3.9]
 
@@ -52,9 +55,26 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install OS Dependencies
+    - name: Install OS Dependencies (post v4.4.0)
       # dependencies to compile and run libtorrent and qBittorrent
-      if: (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
+      # qBt v4.4.0 requires >Qt v5.15.2....but that Qt isn't available from ubuntu PPAs until 21.04
+      if: |
+        (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER)
+        && ! contains(env.QT_USE_DEFAULT_PAA, matrix.QBT_VER))
+      run: |
+        sudo add-apt-repository ppa:beineri/opt-qt-5.15.2-focal
+        sudo apt update
+        sudo apt search qt515tools
+        sudo apt install build-essential cmake ninja-build pkg-config git zlib1g-dev libssl-dev libgeoip-dev \
+          automake libtool libboost-dev libboost-system-dev libboost-chrono-dev libboost-random-dev
+        #sudo apt install --no-install-recommends qtbase5-dev qttools5-dev libqt5svg5-dev
+        sudo apt install --no-install-recommends qt515base qt515tools libqt5svg5-dev
+
+    - name: Install OS Dependencies (pre v4.4.0)
+      # dependencies to compile and run libtorrent and qBittorrent
+      if: |
+        (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER)
+        && contains(env.QT_USE_DEFAULT_PAA, matrix.QBT_VER))
       run: |
         sudo apt update
         sudo apt install build-essential cmake ninja-build pkg-config git zlib1g-dev libssl-dev libgeoip-dev \
