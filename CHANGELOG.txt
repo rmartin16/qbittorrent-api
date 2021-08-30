@@ -1,3 +1,7 @@
+Version 2021.8.23 (28 aug 2021)
+ - Advertise support for qBittorrent 4.3.8
+ - Drop support for Python 3.5
+
 Version 2021.5.22 (12 may 2021)
  - Support for qBittorrent v4.3.5
  - torrents/files includes "index" for each file; "index" officially replaces "id" but "id" will still be populated

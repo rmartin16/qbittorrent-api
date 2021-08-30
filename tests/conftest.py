@@ -37,27 +37,30 @@ api_version_map = {
     "v4.3.3": "2.7",
     "v4.3.4.1": "2.8.1",
     "v4.3.5": "2.8.2",
+    "v4.3.6": "2.8.2",
+    "v4.3.7": "2.8.2",
+    "v4.3.8": "2.8.2",
 }
 
 _check_limit = 10
 
 _orig_torrent_url = (
-    "http://releases.ubuntu.com/20.04.1/ubuntu-20.04.1-desktop-amd64.iso.torrent"
+    "http://releases.ubuntu.com/21.04/ubuntu-21.04-desktop-amd64.iso.torrent"
 )
-_orig_torrent_hash = "d1101a2b9d202811a05e8c57c557a20bf974dc8a"
+_orig_torrent_hash = "64a980abe6e448226bb930ba061592e44c3781a1"
 
 with open(
-    os_path.join(sys_path[0], "tests", "kubuntu-20.04.2.0-desktop-amd64.iso.torrent"),
+    os_path.join(sys_path[0], "tests", "kubuntu-21.04-desktop-amd64.iso.torrent"),
     mode="rb",
 ) as f:
     torrent1_file = f.read()
-torrent1_url = "http://cdimage.ubuntu.com/kubuntu/releases/20.04.1/release/kubuntu-20.04.2.0-desktop-amd64.iso.torrent"
+torrent1_url = "http://cdimage.ubuntu.com/kubuntu/releases/21.04/release/kubuntu-21.04-desktop-amd64.iso.torrent"
 torrent1_filename = torrent1_url.split("/")[-1]
-torrent1_hash = "2ea1327a1758400827fe091a9bb2a35dee9ea5e8"
+torrent1_hash = "d65d07329264aecb2d2be7a6c0e86b6613b2a600"
 
-torrent2_url = "http://cdimage.ubuntu.com/xubuntu/releases/20.04.1/release/xubuntu-20.04.2.0-desktop-amd64.iso.torrent"
+torrent2_url = "http://cdimage.ubuntu.com/xubuntu/releases/21.04/release/xubuntu-21.04-desktop-amd64.iso.torrent"
 torrent2_filename = torrent2_url.split("/")[-1]
-torrent2_hash = "3d75247029ffa408e52714d371b6c0f15a63ff41"
+torrent2_hash = "80d773cbf111e906608077967683a0ffcc3a7668"
 
 with open(os_path.join(sys_path[0], "tests", "root_folder.torrent"), mode="rb") as f:
     root_folder_torrent_file = f.read()
