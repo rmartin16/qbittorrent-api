@@ -214,6 +214,41 @@ def test_simple_response(client, orig_torrent):
     assert isinstance(torrent, TorrentDictionary)
 
 
+def test_request_extra_headers():
+    client = Client(
+        VERIFY_WEBUI_CERTIFICATE=False, EXTRA_HEADERS={"X-MY-HEADER": "asdf"}
+    )
+    client.auth.log_in()
+
+    r = client._get(_name="app", _method="version")
+    assert r.request.headers["X-MY-HEADER"] == "asdf"
+
+    r = client._get(_name="app", _method="version", headers={"X-MY-HEADER-TWO": "zxcv"})
+    assert r.request.headers["X-MY-HEADER"] == "asdf"
+    assert r.request.headers["X-MY-HEADER-TWO"] == "zxcv"
+
+    r = client._get(
+        _name="app",
+        _method="version",
+        headers={"X-MY-HEADER-TWO": "zxcv"},
+        requests_args={"headers": {"X-MY-HEADER-THREE": "tyui"}},
+    )
+    assert r.request.headers["X-MY-HEADER"] == "asdf"
+    assert r.request.headers["X-MY-HEADER-TWO"] == "zxcv"
+    assert r.request.headers["X-MY-HEADER-THREE"] == "tyui"
+
+    r = client._get(
+        _name="app",
+        _method="version",
+        headers={"X-MY-HEADER": "zxcv"},
+        requests_args={"headers": {"X-MY-HEADER": "tyui"}},
+    )
+    assert r.request.headers["X-MY-HEADER"] == "zxcv"
+
+    r = client._get(_name="app", _method="version", headers={"X-MY-HEADER": "zxcv"})
+    assert r.request.headers["X-MY-HEADER"] == "zxcv"
+
+
 def test_request_extra_params(client, orig_torrent_hash):
     """extra params can be sent directly to qBittorrent but there aren't any real use-cases so force it"""
     json_response = client._post(
@@ -317,7 +352,7 @@ def test_http404(client, params):
     response = MockResponse(status_code=404, text="")
     with pytest.raises(exceptions.HTTPError):
         p = dict(data={}, params=params)
-        Request.handle_error_responses(params=p, response=response)
+        Request._handle_error_responses(args=p, response=response)
 
 
 def test_http409(client, app_version):
@@ -336,7 +371,7 @@ def test_http500(status_code):
     response = MockResponse(status_code=status_code, text="asdf")
     with pytest.raises(exceptions.InternalServerError500Error):
         p = dict(data={}, params={})
-        Request.handle_error_responses(params=p, response=response)
+        Request._handle_error_responses(args=p, response=response)
 
 
 def test_request_retry_success(monkeypatch, caplog):
@@ -367,7 +402,7 @@ def test_http_error(status_code):
     response = MockResponse(status_code=status_code, text="asdf")
     with pytest.raises(exceptions.HTTPError):
         p = dict(data={}, params={})
-        Request.handle_error_responses(params=p, response=response)
+        Request._handle_error_responses(args=p, response=response)
 
 
 def test_verbose_logging(caplog):
