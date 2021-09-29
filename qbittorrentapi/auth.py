@@ -89,21 +89,16 @@ class AuthAPIMixIn(Request):
             self._password = password or ""
 
         self._initialize_context()
-        self._post(
-            _name=APINames.Authorization,
-            _method="login",
-            data={"username": self.username, "password": self._password},
-            **kwargs
-        )
+        creds = {"username": self.username, "password": self._password}
+        self._post(_name=APINames.Authorization, _method="login", data=creds, **kwargs)
 
         if not self.is_logged_in:
             logger.debug('Login failed for user "%s"', self.username)
             raise self._suppress_context(
                 LoginFailed('Login authorization failed for user "%s"' % self.username)
             )
-        else:
-            logger.debug('Login successful for user "%s"', self.username)
-            logger.debug("SID: %s", self._SID)
+        logger.debug('Login successful for user "%s"', self.username)
+        logger.debug("SID: %s", self._SID)
 
     @property
     def _SID(self):

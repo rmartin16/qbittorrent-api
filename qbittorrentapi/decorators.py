@@ -85,28 +85,28 @@ def aliased(aliased_class):
     return aliased_class
 
 
-def login_required(f):
+def login_required(func):
     """
     Ensure client is logged in before calling API methods.
     """
 
-    @wraps(f)
+    @wraps(func)
     def wrapper(client, *args, **kwargs):
         if not client.is_logged_in:
             logger.debug("Not logged in...attempting login")
             client.auth_log_in(requests_args=client._get_requests_args(**kwargs))
         try:
-            return f(client, *args, **kwargs)
+            return func(client, *args, **kwargs)
         except HTTP403Error:
             logger.debug("Login may have expired...attempting new login")
             client.auth_log_in(requests_args=client._get_requests_args(**kwargs))
 
-        return f(client, *args, **kwargs)
+        return func(client, *args, **kwargs)
 
     return wrapper
 
 
-def handle_hashes(f):
+def handle_hashes(func):
     """
     Normalize torrent hash arguments.
 
@@ -118,13 +118,13 @@ def handle_hashes(f):
     arguments into either 'torrent_hash' or 'torrent_hashes'.
     """
 
-    @wraps(f)
+    @wraps(func)
     def wrapper(client, *args, **kwargs):
         if "torrent_hash" not in kwargs and "hash" in kwargs:
             kwargs["torrent_hash"] = kwargs.pop("hash")
         elif "torrent_hashes" not in kwargs and "hashes" in kwargs:
             kwargs["torrent_hashes"] = kwargs.pop("hashes")
-        return f(client, *args, **kwargs)
+        return func(client, *args, **kwargs)
 
     return wrapper
 
@@ -137,10 +137,10 @@ def response_text(response_class):
     :return: Text of the response casted to the specified class
     """
 
-    def _inner(f):
-        @wraps(f)
+    def _inner(func):
+        @wraps(func)
         def wrapper(client, *args, **kwargs):
-            result = f(client, *args, **kwargs)
+            result = func(client, *args, **kwargs)
             if isinstance(result, response_class):
                 return result
             try:
@@ -162,13 +162,13 @@ def response_json(response_class):
     :return: JSON as the response class
     """
 
-    def _inner(f):
-        @wraps(f)
+    def _inner(func):
+        @wraps(func)
         def wrapper(client, *args, **kwargs):
             simple_response = client._SIMPLE_RESPONSES or kwargs.pop(
                 "SIMPLE_RESPONSES", kwargs.pop("SIMPLE_RESPONSE", False)
             )
-            response = f(client, *args, **kwargs)
+            response = func(client, *args, **kwargs)
             try:
                 if isinstance(response, response_class):
                     return response
@@ -227,8 +227,8 @@ def endpoint_introduced(version_introduced, endpoint):
     :param endpoint: API endpoint (e.g. /torrents/categories)
     """
 
-    def _inner(f):
-        @wraps(f)
+    def _inner(func):
+        @wraps(func)
         def wrapper(client, *args, **kwargs):
 
             # if the endpoint doesn't exist, return None or log an error / raise an Exception
@@ -242,7 +242,7 @@ def endpoint_introduced(version_introduced, endpoint):
                 return None
 
             # send request to endpoint
-            return f(client, *args, **kwargs)
+            return func(client, *args, **kwargs)
 
         return wrapper
 
@@ -257,8 +257,8 @@ def version_removed(version_obsoleted, endpoint):
     :param endpoint: name of the removed endpoint
     """
 
-    def _inner(f):
-        @wraps(f)
+    def _inner(func):
+        @wraps(func)
         def wrapper(client, *args, **kwargs):
 
             # if the endpoint doesn't exist, return None or log an error / raise an Exception
@@ -272,7 +272,7 @@ def version_removed(version_obsoleted, endpoint):
                 return None
 
             # send request to endpoint
-            return f(client, *args, **kwargs)
+            return func(client, *args, **kwargs)
 
         return wrapper
 

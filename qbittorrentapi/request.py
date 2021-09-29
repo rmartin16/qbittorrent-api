@@ -292,8 +292,8 @@ class Request(HelpersMixIn):
         http_args.update(requests_args)
         response = self._session.request(http_method, url, **http_args)
 
-        self._verbose_logging(http_method=http_method, response=response, url=url)
-        self._handle_error_responses(args=api_args, response=response)
+        self._verbose_logging(http_method, url, http_args, response)
+        self._handle_error_responses(api_args, response)
         return response
 
     @staticmethod
@@ -318,16 +318,9 @@ class Request(HelpersMixIn):
         Return any user-supplied arguments for Requests.
         """
         args = kwargs.get("requests_args", kwargs.get("requests_params", {})) or {}
-        if kwargs.get("headers"):
-            args.setdefault("headers", {}).update(kwargs["headers"])
+        if "headers" in kwargs:
+            args.setdefault("headers", {}).update(kwargs["headers"] or {})
         return args
-
-    @staticmethod
-    def _trim_api_kwargs(**kwargs):
-        """
-        Return Requests arguments that aren't part of the API payload for qBittorrent.
-        """
-        return {k: v for k, v in kwargs.items() if k not in {"data", "params", "files"}}
 
     def _build_url(self, api_namespace, api_method, requests_args):
         """
@@ -386,19 +379,19 @@ class Request(HelpersMixIn):
         if not host.lower().startswith(("http:", "https:", "//")):
             host = "//" + host
         base_url = urlparse(url=host)
-        logger.debug("Parsed user URL: %s", repr(base_url))
+        logger.debug("Parsed user URL: %r", base_url)
         # default to HTTP if user didn't specify
         user_scheme = base_url.scheme
         default_scheme = user_scheme or "http"
         alt_scheme = "https" if default_scheme == "http" else "http"
         # add port number if host doesn't contain one
-        if port is not None and not isinstance(base_url.port, int):
-            base_url = base_url._replace(netloc="%s:%s" % (base_url.netloc, port))
+        if port is not None and not base_url.port:
+            host = "".join((base_url.netloc, ":", str(port)))
+            base_url = base_url._replace(netloc=host)
 
         # detect whether Web API is configured for HTTP or HTTPS
         if not (user_scheme and force_user_scheme):
             logger.debug("Detecting scheme for URL...")
-            logger.debug("HTTP HEAD args: %s", requests_args)
             prefer_https = False
             for scheme in (default_scheme, alt_scheme):
                 try:
@@ -406,7 +399,6 @@ class Request(HelpersMixIn):
                     r = self._session.request(
                         "head", base_url.geturl(), **requests_args
                     )
-                    logger.debug("HTTP HEAD Headers: %s", r.request.headers)
                     scheme_to_use = urlparse(r.url).scheme
                     break
                 except requests_exceptions.SSLError:
@@ -651,7 +643,7 @@ class Request(HelpersMixIn):
             # Unaccounted for errors from API
             raise HTTPError(response.text)
 
-    def _verbose_logging(self, http_method, response, url):
+    def _verbose_logging(self, http_method, url, http_args, response):
         """Log verbose information about request. Can be useful during development."""
         if self._VERBOSE_RESPONSE_LOGGING:
             resp_logger = logger.debug
@@ -661,6 +653,7 @@ class Request(HelpersMixIn):
                 max_text_length_to_log = 10000
 
             resp_logger("Request URL: (%s) %s", http_method.upper(), response.url)
+            resp_logger("Request HTTP Args: %s", http_args)
             resp_logger("Request Headers: %s", response.request.headers)
             if (
                 str(response.request.body) not in ("None", "")
