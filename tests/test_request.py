@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import sys
 from collections import namedtuple
 from os import environ
 
@@ -76,7 +77,9 @@ def test_log_in_via_auth():
     ),
 )
 def test_hostname_format(app_version, hostname):
-    client = Client(host=hostname, VERIFY_WEBUI_CERTIFICATE=False)
+    client = Client(
+        host=hostname, VERIFY_WEBUI_CERTIFICATE=False, REQUESTS_ARGS={"timeout": 1}
+    )
     assert client.app.version == app_version
     # ensure the base URL is always normalized
     assert re.match(r"(http|https)://localhost:8080/", client._API_BASE_URL)
@@ -125,12 +128,16 @@ def test_force_user_scheme(client, app_version, use_https):
 
     _enable_disable_https(client, use_https)
 
+    is_https_enabled = client._API_BASE_URL.startswith(("https", "HTTPS"))
+
     client = Client(
         host="http://" + default_host,
         VERIFY_WEBUI_CERTIFICATE=False,
         FORCE_SCHEME_FROM_HOST=True,
+        REQUESTS_ARGS={"timeout": 3},
     )
-    if use_https:
+
+    if is_https_enabled:
         with pytest.raises(exceptions.APIConnectionError):
             assert client.app.version == app_version
     else:
@@ -141,9 +148,10 @@ def test_force_user_scheme(client, app_version, use_https):
         host=default_host,
         VERIFY_WEBUI_CERTIFICATE=False,
         FORCE_SCHEME_FROM_HOST=True,
+        REQUESTS_ARGS={"timeout": 3},
     )
     assert client.app.version == app_version
-    if use_https:
+    if is_https_enabled:
         assert client._API_BASE_URL.startswith("https://")
     else:
         assert client._API_BASE_URL.startswith("http://")
@@ -152,8 +160,10 @@ def test_force_user_scheme(client, app_version, use_https):
         host="https://" + default_host,
         VERIFY_WEBUI_CERTIFICATE=False,
         FORCE_SCHEME_FROM_HOST=True,
+        REQUESTS_ARGS={"timeout": 3},
     )
-    if not use_https:
+
+    if not is_https_enabled:
         with pytest.raises(exceptions.APIConnectionError):
             assert client.app.version == app_version
     else:
@@ -247,6 +257,39 @@ def test_request_extra_headers():
 
     r = client._get(_name="app", _method="version", headers={"X-MY-HEADER": "zxcv"})
     assert r.request.headers["X-MY-HEADER"] == "zxcv"
+
+
+def test_requests_timeout():
+    # timeouts are weird on python 2...just skip it...
+    if sys.version_info[0] < 3:
+        return
+
+    class MyTimeoutError(Exception):
+        pass
+
+    logger = logging.getLogger("test_requests_timeout")
+
+    timeout = 1e-100
+    loops = 1000
+    client = Client(VERIFY_WEBUI_CERTIFICATE=False)
+    with pytest.raises(MyTimeoutError):
+        try:
+            for _ in range(loops):
+                client.torrents_info(requests_args={"timeout": timeout})
+        except exceptions.APIConnectionError as exp:
+            logger.error("%r", exp)
+            if "ReadTimeoutError" in str(exp) or "RemoteDisconnected" in str(exp):
+                raise MyTimeoutError
+
+    client = Client(VERIFY_WEBUI_CERTIFICATE=False, REQUESTS_ARGS={"timeout": timeout})
+    with pytest.raises(MyTimeoutError):
+        try:
+            for _ in range(loops):
+                client.torrents_info()
+        except exceptions.APIConnectionError as exp:
+            logger.error("%r", exp)
+            if "ReadTimeoutError" in str(exp) or "RemoteDisconnected" in str(exp):
+                raise MyTimeoutError
 
 
 def test_request_extra_params(client, orig_torrent_hash):

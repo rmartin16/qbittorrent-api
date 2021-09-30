@@ -107,8 +107,8 @@ class AuthAPIMixIn(Request):
 
         :return: SID auth cookie from qBittorrent or None if one isn't already acquired
         """
-        if self._requests_session:
-            return self._requests_session.cookies.get("SID", None)
+        if self._http_session:
+            return self._http_session.cookies.get("SID", None)
         return None
 
     @login_required

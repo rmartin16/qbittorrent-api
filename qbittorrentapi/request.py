@@ -1,3 +1,4 @@
+from copy import deepcopy
 from logging import NullHandler
 from logging import getLogger
 from os import environ
@@ -16,7 +17,6 @@ except ImportError:  # python 2
 
 from pkg_resources import parse_version
 from requests import exceptions as requests_exceptions
-from requests import head as requests_head
 from requests import Session
 from requests.adapters import HTTPAdapter
 from six import string_types as six_string_types
@@ -131,7 +131,7 @@ class Request(HelpersMixIn):
         self._API_BASE_URL = None
 
         # reset Requests session so it is rebuilt with new auth cookie and all
-        self._requests_session = None
+        self._trigger_session_initialization()
 
         # reinitialize interaction layers
         self._application = None
@@ -251,10 +251,12 @@ class Request(HelpersMixIn):
             return err_msg
 
         def retry_backoff(retry_count):
-            """Back off on attempting each subsequent request retry."""
+            """
+            Back off on attempting each subsequent request retry.
+            The first retry is always immediate. if the backoff factor is 0.3,
+            then will sleep for 0s then .3s, then .6s, etc. between retries.
+            """
             if retry_count > 0:
-                # The first retry is always immediate. if the backoff factor is 0.3,
-                # then will sleep for 0s then .3s, then .6s, etc. between retries.
                 backoff_time = _retry_backoff_factor * (2 ** ((retry_count + 1) - 1))
                 sleep(backoff_time if backoff_time <= 10 else 10)
             logger.debug("Retry attempt %d", retry_count + 1)
@@ -263,15 +265,15 @@ class Request(HelpersMixIn):
         for retry in range(0, (max_retries + 1)):
             try:
                 return self._request(**kwargs)
-            except HTTPError as e:
+            except HTTPError as exc:
                 # retry the request for HTTP 500 statuses;
                 # raise immediately for other HTTP errors (e.g. 4XX statuses)
-                if retry >= max_retries or not isinstance(e, HTTP5XXError):
+                if retry >= max_retries or not isinstance(exc, HTTP5XXError):
                     raise
-            except Exception as e:
+            except Exception as exc:
                 if retry >= max_retries:
-                    error_message = build_error_msg(exc=e)
-                    response = getattr(e, "response", None)
+                    error_message = build_error_msg(exc=exc)
+                    response = getattr(exc, "response", None)
                     raise APIConnectionError(error_message, response=response)
 
             retry_backoff(retry_count=retry)
@@ -297,233 +299,6 @@ class Request(HelpersMixIn):
         self._verbose_logging(http_method, url, http_args, response)
         self._handle_error_responses(api_args, response)
         return response
-
-    @staticmethod
-    def _trim_known_kwargs(**kwargs):
-        """
-        Since any extra keyword arguments from the user are automatically
-        included in the request to qBittorrent, this removes any "known"
-        arguments that definitely shouldn't be sent to qBittorrent.
-        Generally, these are removed in previous processing, but in
-        certain circumstances, they can survive in to request.
-
-        :param kwargs: extra keywords arguments to be passed along in request
-        :return: sanitized arguments
-        """
-        kwargs.pop("SIMPLE_RESPONSES", None)
-        kwargs.pop("SIMPLE_RESPONSE", None)
-        return kwargs
-
-    @staticmethod
-    def _get_requests_args(**kwargs):
-        """
-        Return any user-supplied arguments for Requests.
-        """
-        args = kwargs.get("requests_args", kwargs.get("requests_params", {})) or {}
-        if "headers" in kwargs:
-            args.setdefault("headers", {}).update(kwargs["headers"] or {})
-        return args
-
-    def _build_url(self, api_namespace, api_method, requests_args):
-        """
-        Create a fully qualified URL for the API endpoint.
-
-        :param api_namespace: the namespace for the API endpoint (e.g. torrents)
-        :param api_method: the specific method for the API endpoint (e.g. info)
-        :return: urllib URL object
-        """
-        self._API_BASE_URL = self._build_base_url(
-            base_url=self._API_BASE_URL,
-            host=self.host,
-            port=self.port,
-            force_user_scheme=self._FORCE_SCHEME_FROM_HOST,
-            requests_args=requests_args,
-        )
-        return self._build_url_path(
-            base_url=self._API_BASE_URL,
-            api_base_path=self._API_BASE_PATH,
-            api_namespace=api_namespace,
-            api_method=api_method,
-        )
-
-    def _build_base_url(
-        self,
-        base_url=None,
-        host="",
-        port=None,
-        force_user_scheme=False,
-        requests_args=None,
-    ):
-        """
-        Determine the Base URL for the Web API endpoints.
-
-        A URL is only actually built here if it's the first time here or
-        the context was re-initialized. Otherwise, the most recently
-        built URL is used.
-
-        If the user doesn't provide a scheme for the URL, it will try HTTP
-        first and fall back to HTTPS if that doesn't work. While this is
-        probably backwards, qBittorrent or an intervening proxy can simply
-        redirect to HTTPS and that'll be respected.
-
-        Additionally, if users want to augment the path to the API endpoints,
-        any path provided here will be preserved in the returned Base URL
-        and prefixed to all subsequent API calls.
-
-        :param base_url: if the URL was already built, this is the base URL
-        :param host: user provided hostname for WebUI
-        :return: base URL for Web API endpoint
-        """
-        if base_url is not None:
-            return base_url
-
-        # urlparse requires some sort of schema for parsing to work at all
-        if not host.lower().startswith(("http:", "https:", "//")):
-            host = "//" + host
-        base_url = urlparse(url=host)
-        logger.debug("Parsed user URL: %r", base_url)
-        # default to HTTP if user didn't specify
-        user_scheme = base_url.scheme
-        default_scheme = user_scheme or "http"
-        alt_scheme = "https" if default_scheme == "http" else "http"
-        # add port number if host doesn't contain one
-        if port is not None and not base_url.port:
-            host = "".join((base_url.netloc, ":", str(port)))
-            base_url = base_url._replace(netloc=host)
-
-        # detect whether Web API is configured for HTTP or HTTPS
-        if not (user_scheme and force_user_scheme):
-            logger.debug("Detecting scheme for URL...")
-            prefer_https = False
-            for scheme in (default_scheme, alt_scheme):
-                try:
-                    base_url = base_url._replace(scheme=scheme)
-                    r = self._session.request(
-                        "head", base_url.geturl(), **requests_args
-                    )
-                    scheme_to_use = urlparse(r.url).scheme
-                    break
-                except requests_exceptions.SSLError:
-                    # an SSLError means that qBittorrent is likely listening on HTTPS
-                    # but the TLS connection is not trusted...so, if the attempt to
-                    # connect on HTTP also fails, this will tell us to switch back to HTTPS
-                    if base_url.scheme.lower() == "https":
-                        logger.debug(
-                            "Encountered SSLError: will prefer HTTPS if HTTP fails"
-                        )
-                        prefer_https = True
-                except requests_exceptions.RequestException:
-                    logger.debug("Failed connection attempt with %s", scheme.upper())
-            else:
-                scheme_to_use = "https" if prefer_https else "http"
-
-            # use detected scheme
-            logger.debug("Using %s scheme", scheme_to_use.upper())
-            base_url = base_url._replace(scheme=scheme_to_use)
-            if user_scheme and user_scheme != scheme_to_use:
-                logger.warning(
-                    "Using '%s' instead of requested '%s' to communicate with qBittorrent",
-                    scheme_to_use,
-                    user_scheme,
-                )
-
-        # ensure URL always ends with a forward-slash
-        base_url = base_url.geturl()
-        if not base_url.endswith("/"):
-            base_url = base_url + "/"
-        logger.debug("Base URL: %s", base_url)
-
-        # force a new session to be created now that the URL is known
-        self._requests_session = None
-
-        return base_url
-
-    @staticmethod
-    def _build_url_path(base_url, api_base_path, api_namespace, api_method):
-        """
-        Determine the full URL path for the API endpoint.
-
-        :param base_url: base URL for API (e.g. http://localhost:8080 or http://example.com/qbt/)
-        :param api_base_path: qBittorrent defined API path prefix (i.e. api/v2/)
-        :param api_namespace: the namespace for the API endpoint (e.g. torrents)
-        :param api_method: the specific method for the API endpoint (e.g. info)
-        :return: full urllib URL object for API endpoint
-                 (e.g. http://localhost:8080/api/v2/torrents/info or http://example.com/qbt/api/v2/torrents/info)
-        """
-
-        def sanitize(piece):
-            """Ensure each piece of api path is a string without leading or trailing slashes"""
-            return str(piece or "").strip("/")
-
-        if isinstance(api_namespace, APINames):
-            api_namespace = api_namespace.value
-        api_path = "/".join(map(sanitize, (api_base_path, api_namespace, api_method)))
-        # since base_url is guaranteed to end in a slash and api_path will never
-        # start with a slash, this join only ever append to the path in base_url
-        url = urljoin(base_url, api_path)
-        return url
-
-    @property
-    def _session(self):
-        """
-        Create or return existing Requests session.
-
-        :return: Requests Session object
-        """
-
-        class QbittorrentSession(Session):
-            """
-            Wrapper to augment Requests Session.
-            Requests doesn't allow Session to default certain configuration
-            globally. This gets around that by setting defaults for each request.
-            """
-
-            def request(self, *args, **kwargs):
-                kwargs.setdefault("timeout", 30)
-                kwargs.setdefault("allow_redirects", True)
-                return super(QbittorrentSession, self).request(*args, **kwargs)
-
-        if self._requests_session:
-            return self._requests_session
-
-        self._requests_session = QbittorrentSession()
-
-        # default headers to prevent qBittorrent throwing any alarms
-        self._requests_session.headers.update(
-            {"Referer": self._API_BASE_URL, "Origin": self._API_BASE_URL}
-        )
-
-        # add any user-defined headers to be sent in all requests
-        self._requests_session.headers.update(self._EXTRA_HEADERS)
-
-        # enable/disable TLS verification for all requests
-        self._requests_session.verify = self._VERIFY_WEBUI_CERTIFICATE
-
-        # enable retries in Requests if HTTP call fails.
-        # this is sorta doubling up on retries since request_manager() will
-        # attempt retries as well. however, these retries will not delay.
-        # so, if the problem is just a network blip then Requests will
-        # automatically retry (with zero delay) and probably fix the issue
-        # without coming all the way back to requests_wrapper. if this retries
-        # is increased much above 1, and backoff_factor is non-zero, this
-        # will start adding noticeable delays in these retry attempts...which
-        # would then compound with similar delay logic in request_manager.
-        # at any rate, the retries count in request_manager should always be
-        # at least 2 to accommodate significant settings changes in qBittorrent
-        # such as enabling HTTPs in Web UI settings.
-        adapter = HTTPAdapter(
-            max_retries=Retry(
-                total=1,
-                read=1,
-                connect=1,
-                status_forcelist={500, 502, 504},
-                raise_on_status=False,
-            )
-        )
-        self._requests_session.mount("http://", adapter)
-        self._requests_session.mount("https://", adapter)
-
-        return self._requests_session
 
     def _normalize_args(
         self,
@@ -566,9 +341,8 @@ class Request(HelpersMixIn):
         # if data is empty but qBittorrent will complain otherwise
         is_data_content = any(filter(lambda x: x is None, data.values()))
         if http_method.lower() == "post" and not is_data_content:
-            override_requests_args.setdefault("headers", {}).update(
-                {"Content-Length": "0"}
-            )
+            override_requests_args.setdefault("headers", {})
+            override_requests_args["headers"].update({"Content-Length": "0"})
 
         # any other keyword arguments are sent to qBittorrent as part of the request.
         # These are user-defined since this Client will put everything in data/params/files
@@ -580,12 +354,262 @@ class Request(HelpersMixIn):
                 data.update(kwargs)
 
         # arguments specified during Client construction
-        requests_args = self._REQUESTS_ARGS.copy()
+        requests_args = deepcopy(self._REQUESTS_ARGS)
         # incorporate arguments specified for this specific API call
         requests_args.update(override_requests_args)
         # qbittorrent api call arguments
         api_args = dict(data=data, params=params, files=files)
         return api_args, requests_args
+
+    @staticmethod
+    def _trim_known_kwargs(**kwargs):
+        """
+        Since any extra keyword arguments from the user are automatically
+        included in the request to qBittorrent, this removes any "known"
+        arguments that definitely shouldn't be sent to qBittorrent.
+        Generally, these are removed in previous processing, but in
+        certain circumstances, they can survive in to request.
+
+        :param kwargs: extra keywords arguments to be passed along in request
+        :return: sanitized arguments
+        """
+        kwargs.pop("SIMPLE_RESPONSES", None)
+        kwargs.pop("SIMPLE_RESPONSE", None)
+        return kwargs
+
+    @staticmethod
+    def _get_requests_args(**kwargs):
+        """
+        Return any user-supplied arguments for Requests.
+        Users are expected to specify requests-specific parameters in requests_args.
+        Headers have historically been treated specially and are supported as a
+        naked argument to the generalized request methods (i.e. _get, _post, _request).
+        Going forward, additional parameters for managing the behavior of Requests
+        should only be supported the requests_args parameter.
+        """
+        args = kwargs.get("requests_args") or kwargs.get("requests_params") or {}
+        if "headers" in kwargs:
+            args.setdefault("headers", {}).update(kwargs["headers"] or {})
+        return args
+
+    def _build_url(self, api_namespace, api_method, requests_args):
+        """
+        Create a fully qualified URL for the API endpoint.
+
+        :param api_namespace: the namespace for the API endpoint (e.g. torrents)
+        :param api_method: the specific method for the API endpoint (e.g. info)
+        :return: urllib URL object
+        """
+
+        def build_base_url(
+            client,
+            base_url=None,
+            host="",
+            port=None,
+            force_user_scheme=False,
+            requests_args=None,
+        ):
+            """
+            Determine the Base URL for the Web API endpoints.
+
+            A URL is only actually built here if it's the first time here or
+            the context was re-initialized. Otherwise, the most recently
+            built URL is used.
+
+            If the user doesn't provide a scheme for the URL, it will try HTTP
+            first and fall back to HTTPS if that doesn't work. While this is
+            probably backwards, qBittorrent or an intervening proxy can simply
+            redirect to HTTPS and that'll be respected.
+
+            Additionally, if users want to augment the path to the API endpoints,
+            any path provided here will be preserved in the returned Base URL
+            and prefixed to all subsequent API calls.
+
+            :param client: this larger qbittorrent client
+            :param base_url: if the URL was already built, this is the base URL
+            :param host: user provided hostname for WebUI
+            :param port: TCP port to attempt HTTP connection on
+            :param force_user_scheme: use the scheme in the host instead of detecting the proper scheme
+            :param requests_args: additional parameters from user for making HTTP HEAD request
+            :return: base URL for Web API endpoint
+            """
+            if base_url is not None:
+                return base_url
+
+            # Parse user host - urlparse requires some sort of schema for parsing to work at all
+            if not host.lower().startswith(("http:", "https:", "//")):
+                host = "//" + host
+            base_url = urlparse(url=host)
+            logger.debug("Parsed user URL: %r", base_url)
+
+            # default to HTTP if user didn't specify
+            user_scheme = base_url.scheme
+            default_scheme = user_scheme or "http"
+            alt_scheme = "https" if default_scheme == "http" else "http"
+
+            # add port number if host doesn't contain one
+            if port is not None and not base_url.port:
+                host = "".join((base_url.netloc, ":", str(port)))
+                base_url = base_url._replace(netloc=host)
+
+            # detect whether Web API is configured for HTTP or HTTPS
+            if not (user_scheme and force_user_scheme):
+                logger.debug("Detecting scheme for URL...")
+                prefer_https = False
+                for scheme in (default_scheme, alt_scheme):
+                    try:
+                        base_url = base_url._replace(scheme=scheme)
+                        r = client._session.request(
+                            "head", base_url.geturl(), **requests_args
+                        )
+                        scheme_to_use = urlparse(r.url).scheme
+                        break
+                    except requests_exceptions.SSLError:
+                        # an SSLError means that qBittorrent is likely listening on HTTPS
+                        # but the TLS connection is not trusted...so, if the attempt to
+                        # connect on HTTP also fails, this will tell us to switch back to HTTPS
+                        if base_url.scheme.lower() == "https":
+                            logger.debug(
+                                "Encountered SSLError: will prefer HTTPS if HTTP fails"
+                            )
+                            prefer_https = True
+                    except requests_exceptions.RequestException:
+                        logger.debug(
+                            "Failed connection attempt with %s", scheme.upper()
+                        )
+                else:
+                    scheme_to_use = "https" if prefer_https else "http"
+
+                # use detected scheme
+                logger.debug("Using %s scheme", scheme_to_use.upper())
+                base_url = base_url._replace(scheme=scheme_to_use)
+                if user_scheme and user_scheme != scheme_to_use:
+                    logger.warning(
+                        "Using '%s' instead of requested '%s' to communicate with qBittorrent",
+                        scheme_to_use,
+                        user_scheme,
+                    )
+
+            # ensure URL always ends with a forward-slash
+            base_url = base_url.geturl()
+            if not base_url.endswith("/"):
+                base_url = base_url + "/"
+            logger.debug("Base URL: %s", base_url)
+
+            # force a new session to be created now that the URL is known
+            client._trigger_session_initialization()
+
+            return base_url
+
+        def build_url_path(base_url, api_base_path, api_namespace, api_method):
+            """
+            Determine the full URL path for the API endpoint.
+
+            :param base_url: base URL for API (e.g. http://localhost:8080 or http://example.com/qbt/)
+            :param api_base_path: qBittorrent defined API path prefix (i.e. api/v2/)
+            :param api_namespace: the namespace for the API endpoint (e.g. torrents)
+            :param api_method: the specific method for the API endpoint (e.g. info)
+            :return: full urllib URL object for API endpoint
+                     (e.g. http://localhost:8080/api/v2/torrents/info or http://example.com/qbt/api/v2/torrents/info)
+            """
+
+            def sanitize(piece):
+                """Ensure each piece of api path is a string without leading or trailing slashes"""
+                return str(piece or "").strip("/")
+
+            if isinstance(api_namespace, APINames):
+                api_namespace = api_namespace.value
+            api_path = "/".join(
+                map(sanitize, (api_base_path, api_namespace, api_method))
+            )
+            # since base_url is guaranteed to end in a slash and api_path will never
+            # start with a slash, this join only ever append to the path in base_url
+            url = urljoin(base_url, api_path)
+            return url
+
+        self._API_BASE_URL = build_base_url(
+            client=self,
+            base_url=self._API_BASE_URL,
+            host=self.host,
+            port=self.port,
+            force_user_scheme=self._FORCE_SCHEME_FROM_HOST,
+            requests_args=requests_args,
+        )
+        return build_url_path(
+            base_url=self._API_BASE_URL,
+            api_base_path=self._API_BASE_PATH,
+            api_namespace=api_namespace,
+            api_method=api_method,
+        )
+
+    @property
+    def _session(self):
+        """
+        Create or return existing HTTP session.
+
+        :return: Requests Session object
+        """
+
+        class QbittorrentSession(Session):
+            """
+            Wrapper to augment Requests Session.
+            Requests doesn't allow Session to default certain configuration
+            globally. This gets around that by setting defaults for each request.
+            """
+
+            def request(self, *args, **kwargs):
+                kwargs.setdefault("timeout", 15.1)
+                kwargs.setdefault("allow_redirects", True)
+                return super(QbittorrentSession, self).request(*args, **kwargs)
+
+        if self._http_session:
+            return self._http_session
+
+        self._http_session = QbittorrentSession()
+
+        # default headers to prevent qBittorrent throwing any alarms
+        self._http_session.headers.update(
+            {"Referer": self._API_BASE_URL, "Origin": self._API_BASE_URL}
+        )
+
+        # add any user-defined headers to be sent in all requests
+        self._http_session.headers.update(self._EXTRA_HEADERS)
+
+        # enable/disable TLS verification for all requests
+        self._http_session.verify = self._VERIFY_WEBUI_CERTIFICATE
+
+        # enable retries in Requests if HTTP call fails.
+        # this is sorta doubling up on retries since request_manager() will
+        # attempt retries as well. however, these retries will not delay.
+        # so, if the problem is just a network blip then Requests will
+        # automatically retry (with zero delay) and probably fix the issue
+        # without coming all the way back to requests_wrapper. if this retries
+        # is increased much above 1, and backoff_factor is non-zero, this
+        # will start adding noticeable delays in these retry attempts...which
+        # would then compound with similar delay logic in request_manager.
+        # at any rate, the retries count in request_manager should always be
+        # at least 2 to accommodate significant settings changes in qBittorrent
+        # such as enabling HTTPs in Web UI settings.
+        adapter = HTTPAdapter(
+            max_retries=Retry(
+                total=1,
+                read=1,
+                connect=1,
+                status_forcelist={500, 502, 504},
+                raise_on_status=False,
+            )
+        )
+        self._http_session.mount("http://", adapter)
+        self._http_session.mount("https://", adapter)
+
+        return self._http_session
+
+    def _trigger_session_initialization(self):
+        """
+        Effectively resets the HTTP session by removing the reference to it.
+        During the next request, a new session will be created.
+        """
+        self._http_session = None
 
     @staticmethod
     def _handle_error_responses(args, response):

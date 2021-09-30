@@ -1,6 +1,7 @@
-from logging import getLogger
 from functools import wraps
 from json import loads
+from logging import getLogger
+
 from pkg_resources import parse_version
 
 from qbittorrentapi.exceptions import APIError
@@ -181,9 +182,9 @@ def response_json(response_class):
                     if simple_response:
                         return result
                     return response_class(result, client)
-            except Exception as e:
+            except Exception as exc:
                 logger.debug("Exception during response parsing.", exc_info=True)
-                raise APIError("Exception during response parsing. Error: %s" % repr(e))
+                raise APIError("Exception during response parsing. Error: %r" % exc)
 
         return wrapper
 

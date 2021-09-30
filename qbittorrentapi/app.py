@@ -1,5 +1,5 @@
-from logging import getLogger
 from json import dumps
+from logging import getLogger
 
 from qbittorrentapi.decorators import Alias
 from qbittorrentapi.decorators import aliased
