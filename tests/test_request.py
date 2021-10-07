@@ -151,7 +151,7 @@ def test_force_user_scheme(client, app_version, use_https):
         REQUESTS_ARGS={"timeout": 3},
     )
     assert client.app.version == app_version
-    if is_https_enabled:
+    if use_https:
         assert client._API_BASE_URL.startswith("https://")
     else:
         assert client._API_BASE_URL.startswith("http://")
@@ -179,6 +179,7 @@ def test_both_https_http_not_working(client, app_version, scheme):
     # rerun with verify=True
     test_client = Client(
         host=scheme + default_host,
+        REQUESTS_ARGS={"timeout": 3},
     )
     with pytest.raises(exceptions.APIConnectionError):
         assert test_client.app.version == app_version
@@ -414,7 +415,7 @@ def test_http500(status_code):
     response = MockResponse(status_code=status_code, text="asdf")
     with pytest.raises(exceptions.InternalServerError500Error):
         p = dict(data={}, params={})
-        Request._handle_error_responses(args=p, response=response)
+        Request()._handle_error_responses(args=p, response=response)
 
 
 def test_request_retry_success(monkeypatch, caplog):

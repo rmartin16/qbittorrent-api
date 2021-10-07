@@ -1143,7 +1143,7 @@ class TorrentsAPIMixIn(Request):
         """
         Normalize the torrent file(s) from the user.
         The file(s) can be the raw bytes, file handle, filepath for a torrent file,
-        or a Sequence (e.g. list|set|tuple) of any of these "files".
+        or an iterable (e.g. list|set|tuple) of any of these "files".
         Further, the file(s) can be in a dictionary with the "names" of the torrents as the keys.
         These "names" can be anything...but are mostly useful as identifiers for each file.
         """
@@ -1205,7 +1205,7 @@ class TorrentsAPIMixIn(Request):
                     raise TorrentFileNotFoundError(
                         errno.ENOENT, os_strerror(errno.ENOENT), torrent_file
                     )
-                elif io_err.errno == errno.EACCES:
+                if io_err.errno == errno.EACCES:
                     raise TorrentFilePermissionError(
                         errno.ENOENT, os_strerror(errno.EACCES), torrent_file
                     )
@@ -1451,8 +1451,6 @@ class TorrentsAPIMixIn(Request):
         :param new_path: new path of file to rename (added in Web API v2.7)
         :return: None
         """
-        torrent_hash = torrent_hash
-
         # convert pre-v2.7 params to post-v2.7...or post-v2.7 to pre-v2.7
         # HACK: v4.3.2 and v4.3.3 both use web api v2.7 but old/new_path were introduced in v4.3.3
         if (
@@ -1518,7 +1516,7 @@ class TorrentsAPIMixIn(Request):
         :return: None
         """
         # HACK: v4.3.2 and v4.3.3 both use web api v2.7 but rename_folder was introduced in v4.3.3
-        if self._is_version_less_than("v4.3.3", self.app.version, lteq=True):
+        if self._is_version_less_than("v4.3.3", self.app_version(), lteq=True):
             data = {
                 "hash": torrent_hash,
                 "oldPath": old_path,

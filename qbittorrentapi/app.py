@@ -76,9 +76,9 @@ class Application(ClientCache):
         return self._client.app_preferences()
 
     @preferences.setter
-    def preferences(self, v):
+    def preferences(self, value):
         """Implements :meth:`~AppAPIMixIn.app_set_preferences`"""
-        self.set_preferences(prefs=v)
+        self.set_preferences(prefs=value)
 
     @Alias("setPreferences")
     def set_preferences(self, prefs=None, **kwargs):
@@ -138,9 +138,9 @@ class AppAPIMixIn(Request):
 
         :return: string
         """
-        if self._MOCK_WEB_API_VERSION:
-            return self._MOCK_WEB_API_VERSION
-        return self._get(_name=APINames.Application, _method="webapiVersion", **kwargs)
+        return self._MOCK_WEB_API_VERSION or self._get(
+            _name=APINames.Application, _method="webapiVersion", **kwargs
+        )
 
     @endpoint_introduced("2.3", "app/buildInfo")
     @response_json(BuildInfoDictionary)

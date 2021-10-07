@@ -42,7 +42,7 @@ class AuthAPIMixIn(Request):
     :Usage:
         >>> from qbittorrentapi import Client
         >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
-        >>> client.is_logged_in
+        >>> _ = client.is_logged_in
         >>> client.auth_log_in(username='admin', password='adminadmin')
         >>> client.auth_log_out()
     """
@@ -85,7 +85,7 @@ class AuthAPIMixIn(Request):
         :return: None
         """
         if username:
-            self.username = username or ""
+            self.username = username
             self._password = password or ""
 
         self._initialize_context()

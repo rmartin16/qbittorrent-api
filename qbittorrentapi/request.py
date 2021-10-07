@@ -55,9 +55,9 @@ class HelpersMixIn(object):
         :param delimiter: delimiter for concatenation
         :return: if input is a list, concatenated string...else whatever the input was
         """
-        if not isinstance(input_list, six_string_types) and isinstance(
-            input_list, Iterable
-        ):
+        is_string = isinstance(input_list, six_string_types)
+        is_iterable = isinstance(input_list, Iterable)
+        if is_iterable and not is_string:
             return delimiter.join(map(str, input_list))
         return input_list
 
@@ -127,7 +127,8 @@ class Request(HelpersMixIn):
         # base path for all API endpoints
         self._API_BASE_PATH = "api/v2"
 
-        # reset URL so the full URL is derived again (primarily allows for switching scheme for WebUI: HTTP <-> HTTPS)
+        # reset URL so the full URL is derived again
+        # (primarily allows for switching scheme for WebUI: HTTP <-> HTTPS)
         self._API_BASE_URL = None
 
         # reset Requests session so it is rebuilt with new auth cookie and all
@@ -468,11 +469,10 @@ class Request(HelpersMixIn):
                         # an SSLError means that qBittorrent is likely listening on HTTPS
                         # but the TLS connection is not trusted...so, if the attempt to
                         # connect on HTTP also fails, this will tell us to switch back to HTTPS
-                        if base_url.scheme.lower() == "https":
-                            logger.debug(
-                                "Encountered SSLError: will prefer HTTPS if HTTP fails"
-                            )
-                            prefer_https = True
+                        logger.debug(
+                            "Encountered SSLError: will prefer HTTPS if HTTP fails"
+                        )
+                        prefer_https = True
                     except requests_exceptions.RequestException:
                         logger.debug(
                             "Failed connection attempt with %s", scheme.upper()

@@ -138,26 +138,23 @@ class Dictionary(ClientCache, AttrDict):
     """Base definition of dictionary-like objects returned from qBittorrent."""
 
     def __init__(self, data=None, client=None):
-
-        # iterate through a dictionary converting any nested dictionaries to AttrDicts
-        def convert_dict_values_to_attrdicts(d):
-            converted_dict = AttrDict()
-            if isinstance(d, dict):
-                for key, value in d.items():
-                    # if the value is a dictionary, convert it to a AttrDict
-                    if isinstance(value, dict):
-                        # recursively send each value to convert its dictionary children
-                        converted_dict[key] = convert_dict_values_to_attrdicts(
-                            AttrDict(value)
-                        )
-                    else:
-                        converted_dict[key] = value
-                return converted_dict
-
-        data = convert_dict_values_to_attrdicts(data)
-        super(Dictionary, self).__init__(data or dict(), client=client)
+        data = self._normalize_data(data)
+        super(Dictionary, self).__init__(data or {}, client=client)
         # allows updating properties that aren't necessarily a part of the AttrDict
         self._setattr("_allow_invalid_attributes", True)
+
+    @classmethod
+    def _normalize_data(cls, data):
+        """iterate through a dictionary converting any nested dictionaries to AttrDicts"""
+        converted_dict = AttrDict()
+        for key, value in (data or {}).items():
+            # if the value is a dictionary, convert it to a AttrDict
+            if isinstance(value, dict):
+                # recursively send each value to convert its dictionary children
+                converted_dict[key] = cls._normalize_data(AttrDict(value))
+            else:
+                converted_dict[key] = value
+        return converted_dict
 
 
 class List(ClientCache, UserList):
@@ -166,7 +163,7 @@ class List(ClientCache, UserList):
     def __init__(self, list_entries=None, entry_class=None, client=None):
 
         entries = []
-        for entry in list_entries:
+        for entry in list_entries or ():
             if isinstance(entry, dict):
                 entries.append(entry_class(data=entry, client=client))
             else:

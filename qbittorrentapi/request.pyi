@@ -28,7 +28,7 @@ class Request(HelpersMixIn):
     username: Text
     _password: Text
 
-    _requests_session: Session | None
+    _http_session: Session | None
 
     _application: Application | None
     _authorization: Authorization | None
@@ -91,23 +91,23 @@ class Request(HelpersMixIn):
         api_method: Text,
         **kwargs
     ) -> Response: ...
-    def _normalize_requests_params(self, http_method: Text, **kwargs): ...
+    def _normalize_args(
+        self,
+        http_method: Text,
+        headers: Dict = None,
+        data: Dict = None,
+        params: Dict = None,
+        files: Dict = None,
+        requests_params: Dict = None,
+        requests_args: Dict = None,
+        **kwargs
+    ): ...
     def _trim_known_kwargs(self, **kwargs) -> Dict: ...
     def _get_requests_args(self, **kwargs) -> Dict: ...
-    def _build_url(self, api_namespace, api_method): ...
-    @staticmethod
-    def _build_base_url(
-        base_url: Text = None,
-        host: Text = "",
-        port: Text | int = None,
-        force_user_scheme: bool = False,
-    ): ...
-    @staticmethod
-    def _build_url_path(
-        base_url: Text, api_base_path: Text, api_namespace: Text, api_method: Text
-    ): ...
+    def _build_url(self, api_namespace, api_method, requests_args): ...
     @property
     def _session(self) -> Session: ...
-    @staticmethod
-    def handle_error_responses(params: Dict, response: Response): ...
-    def verbose_logging(self, http_method: Text, response: Response, url: Text): ...
+    def _handle_error_responses(self, args: Dict, response: Response): ...
+    def _verbose_logging(
+        self, http_method: Text, url: Text, http_args: Dict, response: Response
+    ): ...
