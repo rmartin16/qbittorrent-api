@@ -18,7 +18,6 @@ all_states = (
     "allocating",
     "downloading",
     "metaDL",
-    "forcedMetaDL",
     "pausedDL",
     "queuedDL",
     "forcedDL",
@@ -32,7 +31,6 @@ all_states = (
 downloading_states = (
     "downloading",
     "metaDL",
-    "forcedMetaDL",
     "stalledDL",
     "checkingDL",
     "pausedDL",

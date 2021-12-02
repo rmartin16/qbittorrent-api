@@ -31,7 +31,7 @@ class Application(ClientCache):
     :Usage:
         >>> from qbittorrentapi import Client
         >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
-        >>> # this are all the same attributes that are available as named in the
+        >>> # these are all the same attributes that are available as named in the
         >>> #  endpoints or the more pythonic names in Client (with or without 'app_' prepended)
         >>> webapiVersion = client.application.webapiVersion
         >>> web_api_version = client.application.web_api_version

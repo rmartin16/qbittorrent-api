@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="qbittorrent-api",
-    version="2021.8.23",
+    version="2021.12.24",
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     include_package_data=True,
     install_requires=[
@@ -23,6 +23,7 @@ setup(
     zip_safe=False,
     license="MIT",
     classifiers=[
+        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.7",

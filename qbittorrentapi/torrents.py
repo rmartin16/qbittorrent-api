@@ -588,7 +588,6 @@ class Torrents(ClientCache):
         use_auto_torrent_management=None,
         is_sequential_download=None,
         is_first_last_piece_priority=None,
-        tags=None,
         content_layout=None,
         ratio_limit=None,
         seeding_time_limit=None,
@@ -609,7 +608,6 @@ class Torrents(ClientCache):
             is_sequential_download=is_sequential_download,
             use_auto_torrent_management=use_auto_torrent_management,
             is_first_last_piece_priority=is_first_last_piece_priority,
-            tags=tags,
             content_layout=content_layout,
             ratio_limit=ratio_limit,
             seeding_time_limit=seeding_time_limit,
@@ -637,7 +635,6 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
-            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -648,7 +645,6 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
-                tag=tag,
                 **kwargs
             )
 
@@ -660,7 +656,6 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
-            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -671,7 +666,6 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
-                tag=tag,
                 **kwargs
             )
 
@@ -683,7 +677,6 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
-            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -694,7 +687,6 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
-                tag=tag,
                 **kwargs
             )
 
@@ -706,7 +698,6 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
-            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -717,7 +708,6 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
-                tag=tag,
                 **kwargs
             )
 
@@ -729,7 +719,6 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
-            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -740,7 +729,6 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
-                tag=tag,
                 **kwargs
             )
 
@@ -752,7 +740,6 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
-            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -763,7 +750,6 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
-                tag=tag,
                 **kwargs
             )
 
@@ -775,7 +761,6 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
-            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -786,7 +771,6 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
-                tag=tag,
                 **kwargs
             )
 
@@ -798,7 +782,6 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
-            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -809,7 +792,6 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
-                tag=tag,
                 **kwargs
             )
 
@@ -821,7 +803,6 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
-            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -832,7 +813,6 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
-                tag=tag,
                 **kwargs
             )
 
@@ -844,7 +824,6 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
-            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -855,7 +834,6 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
-                tag=tag,
                 **kwargs
             )
 
@@ -867,7 +845,6 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
-            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -878,7 +855,6 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
-                tag=tag,
                 **kwargs
             )
 
@@ -891,7 +867,7 @@ class TorrentCategories(ClientCache):
     :Usage:
         >>> from qbittorrentapi import Client
         >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
-        >>> # this are all the same attributes that are available as named in the
+        >>> # these are all the same attributes that are available as named in the
         >>> #  endpoints or the more pythonic names in Client (with or without 'torrents_' prepended)
         >>> categories = client.torrent_categories.categories
         >>> # create or edit categories
@@ -1550,7 +1526,6 @@ class TorrentsAPIMixIn(Request):
         limit=None,
         offset=None,
         torrent_hashes=None,
-        tag=None,
         **kwargs
     ):
         """
@@ -1565,7 +1540,6 @@ class TorrentsAPIMixIn(Request):
         :param limit: Limit length of list
         :param offset: Start of list (if < 0, offset from end of list)
         :param torrent_hashes: Filter list by hash (separate multiple hashes with a '|')
-        :param tag: Filter list by tag (empty string means "untagged"; no "tag" param means "any tag"; added in Web API v2.8.3)
         :return: :class:`TorrentInfoList` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-list
         """
         data = {
@@ -1576,7 +1550,6 @@ class TorrentsAPIMixIn(Request):
             "limit": limit,
             "offset": offset,
             "hashes": self._list2string(torrent_hashes, "|"),
-            "tag": tag,
         }
         return self._post(_name=APINames.Torrents, _method="info", data=data, **kwargs)
 

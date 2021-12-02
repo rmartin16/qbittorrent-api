@@ -128,16 +128,13 @@ def test_force_user_scheme(client, app_version, use_https):
 
     _enable_disable_https(client, use_https)
 
-    is_https_enabled = client._API_BASE_URL.startswith(("https", "HTTPS"))
-
     client = Client(
         host="http://" + default_host,
         VERIFY_WEBUI_CERTIFICATE=False,
         FORCE_SCHEME_FROM_HOST=True,
         REQUESTS_ARGS={"timeout": 3},
     )
-
-    if is_https_enabled:
+    if use_https:
         with pytest.raises(exceptions.APIConnectionError):
             assert client.app.version == app_version
     else:
@@ -162,8 +159,7 @@ def test_force_user_scheme(client, app_version, use_https):
         FORCE_SCHEME_FROM_HOST=True,
         REQUESTS_ARGS={"timeout": 3},
     )
-
-    if not is_https_enabled:
+    if not use_https:
         with pytest.raises(exceptions.APIConnectionError):
             assert client.app.version == app_version
     else:
@@ -415,7 +411,7 @@ def test_http500(status_code):
     response = MockResponse(status_code=status_code, text="asdf")
     with pytest.raises(exceptions.InternalServerError500Error):
         p = dict(data={}, params={})
-        Request()._handle_error_responses(args=p, response=response)
+        Request._handle_error_responses(args=p, response=response)
 
 
 def test_request_retry_success(monkeypatch, caplog):

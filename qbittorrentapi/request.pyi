@@ -1,4 +1,4 @@
-from typing import Dict, Iterable, Text
+from typing import Dict, Mapping, Iterable, Text
 
 from requests import Response, Session
 
@@ -28,7 +28,7 @@ class Request(HelpersMixIn):
     username: Text
     _password: Text
 
-    _requests_session: Session | None
+    _http_session: Session | None
 
     _application: Application | None
     _authorization: Authorization | None
@@ -44,8 +44,8 @@ class Request(HelpersMixIn):
     _API_BASE_URL: Text | None
     _API_BASE_PATH: Text | None
 
-    _EXTRA_HEADERS: Dict | None
-    _REQUESTS_ARGS: Dict | None
+    _EXTRA_HEADERS: Mapping | None
+    _REQUESTS_ARGS: Mapping | None
     _VERIFY_WEBUI_CERTIFICATE: bool | None
     _FORCE_SCHEME_FROM_HOST: bool | None
     _RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS: bool | None
@@ -66,8 +66,8 @@ class Request(HelpersMixIn):
     def _initialize_context(self) -> None: ...
     def _initialize_lesser(
         self,
-        EXTRA_HEADERS: Dict = None,
-        REQUESTS_ARGS: Dict = None,
+        EXTRA_HEADERS: Mapping = None,
+        REQUESTS_ARGS: Mapping = None,
         VERIFY_WEBUI_CERTIFICATE: bool = True,
         FORCE_SCHEME_FROM_HOST: bool = False,
         RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS: bool = False,
@@ -91,23 +91,25 @@ class Request(HelpersMixIn):
         api_method: Text,
         **kwargs
     ) -> Response: ...
-    def _normalize_requests_params(self, http_method: Text, **kwargs): ...
+    def _normalize_args(
+        self,
+        http_method: Text,
+        headers: Mapping = None,
+        data: Mapping = None,
+        params: Mapping = None,
+        files: Mapping = None,
+        requests_params: Mapping = None,
+        requests_args: Mapping = None,
+    ): ...
     def _trim_known_kwargs(self, **kwargs) -> Dict: ...
     def _get_requests_args(self, **kwargs) -> Dict: ...
-    def _build_url(self, api_namespace, api_method): ...
-    @staticmethod
-    def _build_base_url(
-        base_url: Text = None,
-        host: Text = "",
-        port: Text | int = None,
-        force_user_scheme: bool = False,
-    ): ...
-    @staticmethod
-    def _build_url_path(
-        base_url: Text, api_base_path: Text, api_namespace: Text, api_method: Text
+    def _build_url(
+        self, api_namespace: APINames | Text, api_method: Text, requests_args: Mapping
     ): ...
     @property
     def _session(self) -> Session: ...
     @staticmethod
-    def handle_error_responses(params: Dict, response: Response): ...
-    def verbose_logging(self, http_method: Text, response: Response, url: Text): ...
+    def _handle_error_responses(args: Mapping, response: Response): ...
+    def _verbose_logging(
+        self, http_method: Text, url: Text, http_args: Mapping, response: Response
+    ): ...

@@ -675,7 +675,7 @@ class Request(HelpersMixIn):
             resp_logger = logger.debug
             max_text_length_to_log = 254
             if response.status_code != 200:
-                # log as much as possible in a error condition
+                # log as much as possible in an error condition
                 max_text_length_to_log = 10000
 
             resp_logger("Request URL: (%s) %s", http_method.upper(), response.url)
