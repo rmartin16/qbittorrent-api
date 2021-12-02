@@ -1,5 +1,4 @@
-from os import environ
-from os import path as os_path
+import os
 from sys import path as sys_path
 from time import sleep
 
@@ -10,7 +9,7 @@ from qbittorrentapi import APIConnectionError
 from qbittorrentapi import Client
 from qbittorrentapi.request import Request
 
-qbt_version = "v" + environ["QBT_VER"]
+qbt_version = "v" + os.environ["QBT_VER"]
 
 api_version_map = {
     "v4.1.0": "2.0",
@@ -40,8 +39,11 @@ api_version_map = {
     "v4.3.6": "2.8.2",
     "v4.3.7": "2.8.2",
     "v4.3.8": "2.8.2",
+    "v4.3.9": "2.8.2",
+    "v4.4.0rc1": "2.8.3",
 }
 
+BASE_PATH = sys_path[0]
 _check_limit = 10
 
 _orig_torrent_url = (
@@ -50,7 +52,9 @@ _orig_torrent_url = (
 _orig_torrent_hash = "64a980abe6e448226bb930ba061592e44c3781a1"
 
 with open(
-    os_path.join(sys_path[0], "tests", "kubuntu-21.04-desktop-amd64.iso.torrent"),
+    os.path.join(
+        BASE_PATH, "tests", "resources", "kubuntu-21.04-desktop-amd64.iso.torrent"
+    ),
     mode="rb",
 ) as f:
     torrent1_file = f.read()
@@ -62,7 +66,9 @@ torrent2_url = "http://cdimage.ubuntu.com/xubuntu/releases/21.04/release/xubuntu
 torrent2_filename = torrent2_url.split("/")[-1]
 torrent2_hash = "80d773cbf111e906608077967683a0ffcc3a7668"
 
-with open(os_path.join(sys_path[0], "tests", "root_folder.torrent"), mode="rb") as f:
+with open(
+    os.path.join(BASE_PATH, "tests", "resources", "root_folder.torrent"), mode="rb"
+) as f:
     root_folder_torrent_file = f.read()
 root_folder_torrent_hash = "a14553bd936a6d496402082454a70ea7a9521adc"
 
@@ -225,7 +231,7 @@ def new_torrent_standalone(client, torrent_hash=torrent1_hash, **kwargs):
             else:
                 client.torrents.add(
                     torrent_files=torrent1_file,
-                    save_path=os_path.expanduser("~/test_download/"),
+                    save_path=os.path.expanduser("~/test_download/"),
                     category="test_category",
                     is_paused=True,
                     upload_limit=1024,
@@ -305,7 +311,7 @@ def rss_feed(client):
 
 def pytest_sessionfinish(session, exitstatus):
     try:
-        if environ.get("CI") != "true":
+        if os.environ.get("CI") != "true":
             client = Client()
             # remove all torrents
             for torrent in client.torrents_info():

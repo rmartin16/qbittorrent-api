@@ -6,10 +6,12 @@ from time import sleep
 
 try:  # python 3
     from collections.abc import Iterable
+    from collections.abc import Mapping
     from urllib.parse import urljoin
     from urllib.parse import urlparse
 except ImportError:  # python 2
     from collections import Iterable
+    from collections import Mapping
     from urlparse import urljoin
     from urlparse import urlparse
 
@@ -156,7 +158,9 @@ class Request(HelpersMixIn):
         """Initialize lessor used configuration"""
 
         # Configuration parameters
-        self._EXTRA_HEADERS = EXTRA_HEADERS if isinstance(EXTRA_HEADERS, dict) else {}
+        self._EXTRA_HEADERS = (
+            EXTRA_HEADERS if isinstance(EXTRA_HEADERS, Mapping) else {}
+        )
         self._VERIFY_WEBUI_CERTIFICATE = bool(VERIFY_WEBUI_CERTIFICATE)
         self._VERBOSE_RESPONSE_LOGGING = bool(VERBOSE_RESPONSE_LOGGING)
         self._PRINT_STACK_FOR_EACH_REQUEST = bool(PRINT_STACK_FOR_EACH_REQUEST)

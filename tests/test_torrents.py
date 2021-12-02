@@ -15,7 +15,6 @@ import requests
 from qbittorrentapi.exceptions import Forbidden403Error
 from qbittorrentapi.exceptions import Conflict409Error
 from qbittorrentapi.exceptions import InvalidRequest400Error
-from qbittorrentapi.exceptions import MissingRequiredParameters400Error
 from qbittorrentapi.exceptions import TorrentFileError
 from qbittorrentapi.exceptions import TorrentFileNotFoundError
 from qbittorrentapi.exceptions import TorrentFilePermissionError
@@ -241,28 +240,28 @@ def test_add_options(client, api_version, keep_root_folder, content_layout):
             seeding_time_limit=120,
         )
     )
-    check(lambda: torrent.category, "test_category")
+    check(lambda: torrent.info.category, "test_category")
     check(
-        lambda: torrent.state,
+        lambda: torrent.info.state,
         ("pausedDL", "checkingResumeData"),
         reverse=True,
         any=True,
     )
-    check(lambda: torrent.save_path, path.expanduser("~/test_download/"))
-    check(lambda: torrent.up_limit, 1024)
-    check(lambda: torrent.dl_limit, 2048)
-    check(lambda: torrent.seq_dl, True)
+    check(lambda: torrent.info.save_path, path.expanduser("~/test_download/"))
+    check(lambda: torrent.info.up_limit, 1024)
+    check(lambda: torrent.info.dl_limit, 2048)
+    check(lambda: torrent.info.seq_dl, True)
     if is_version_less_than("2.0.1", api_version, lteq=True):
-        check(lambda: torrent.f_l_piece_prio, True)
+        check(lambda: torrent.info.f_l_piece_prio, True)
     if content_layout is None:
         check(
             lambda: torrent.files[0]["name"].startswith("root_folder"),
             keep_root_folder in {True, None},
         )
-    check(lambda: torrent.name, "this is a new name for the torrent")
-    check(lambda: torrent.auto_tmm, False)
+    check(lambda: torrent.info.name, "this is a new name for the torrent")
+    check(lambda: torrent.info.auto_tmm, False)
     if is_version_less_than("2.6.2", api_version, lteq=True):
-        check(lambda: torrent.tags, "option-tag")
+        check(lambda: torrent.info.tags, "option-tag")
 
     if is_version_less_than("2.7", api_version, lteq=True):
         # after web api v2.7...root dir is driven by content_layout
@@ -282,8 +281,8 @@ def test_add_options(client, api_version, keep_root_folder, content_layout):
     )
 
     if is_version_less_than("2.8.1", api_version, lteq=True):
-        check(lambda: torrent.ratio_limit, 2)
-        check(lambda: torrent.seeding_time_limit, 120)
+        check(lambda: torrent.info.ratio_limit, 2)
+        check(lambda: torrent.info.seeding_time_limit, 120)
 
 
 def test_properties(client, orig_torrent):
@@ -406,7 +405,6 @@ def test_rename(client, orig_torrent_hash, orig_torrent, new_name):
 def test_rename_file(
     client,
     api_version,
-    app_version,
     new_torrent,
     new_name,
     client_func,

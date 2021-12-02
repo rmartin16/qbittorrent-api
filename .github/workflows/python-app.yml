@@ -16,191 +16,218 @@ on:
 jobs:
   tests:
     name: "Python ${{ matrix.python-version }} - v${{ matrix.QBT_VER }}"
-    runs-on: ubuntu-20.04  # TODO: update back to ubuntu-latest once 20.04 is the default
+    runs-on: ubuntu-20.04  # update Qt PPA when moving beyond 20.04
     continue-on-error: true
     env:
-      LATEST_PYTHON_VERSION: 3.9
-      LATEST_QBT_VERSION: 4.3.8
-      QBT_ALWAYS_TEST: 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2
-      SUBMIT_COVERAGE_VERSIONS: 2.7, 3.9
+      LATEST_PYTHON_VERSION: "3.10"
+      LATEST_QBT_VERSION: 4.4.0rc1
+      QBT_ALWAYS_TEST: 4.4.0rc1, 4.3.9, 4.3.8, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1, 4.2.0
+      QT_USE_DEFAULT_PAA: 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1, 4.2.5, 4.2.0
+      SUBMIT_COVERAGE_VERSIONS: 2.7, 3.10
       COMPREHENSIVE_TESTS_BRANCH: comprehensive_tests
       PYTHON_QBITTORRENTAPI_HOST: localhost:8080
       PYTHON_QBITTORRENTAPI_PASSWORD: adminadmin
       PYTHON_QBITTORRENTAPI_USERNAME: admin
-      LIBTOR_VER: 1.2.12
+      LIBTOR_VER: 1.2.14
       QBT_LEGACY_INSTALL: 4.2.5, 4.2.0
     strategy:
       matrix:
-        QBT_VER: [4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1, 4.2.5, 4.2.0]
-        python-version: [3.9, 3.8, 3.7, 3.6, 2.7, 3.10-dev, pypy2, pypy3]
+        QBT_VER: [4.4.0rc1, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1, 4.2.5, 4.2.0]
+        # QBT_VER: [4.4.0beta3]
+        python-version: ["3.10", "3.9", "3.8", "3.7", "3.6", "2.7", "pypy2", "pypy3"]
         # python-version: [3.9]
 
     # TODO: each step currently has an over-complicated conditional to prevent always running all tests.
     # TODO: this can be removed once the matrix supports conditions
 
     steps:
-    - name: Branch
-      run: echo Branch ${{ github.ref }} ${{ github.head_ref }}
+      - name: Branch
+        run: echo Branch ${{ github.ref }} ${{ github.head_ref }}
 
-    - name: Checkout Repo
-      if: (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
-      uses: actions/checkout@v2
-    
-    - name: Set up Python ${{ matrix.python-version }}
-      if: (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Checkout Repo
+        if: (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
+        uses: actions/checkout@v2
 
-    - name: Install OS Dependencies
-      # dependencies to compile and run libtorrent and qBittorrent
-      if: (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
-      run: |
-        sudo apt update
-        sudo apt install build-essential cmake ninja-build pkg-config git zlib1g-dev libssl-dev libgeoip-dev \
-          automake libtool libboost-dev libboost-system-dev libboost-chrono-dev libboost-random-dev
-        sudo apt install --no-install-recommends qtbase5-dev qttools5-dev libqt5svg5-dev
+      - name: Set up Python ${{ matrix.python-version }}
+        if: (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Cache libtorrent
-      # set up cache for libtorrent library
-      if: (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
-      id: cache-libtorrent
-      uses: actions/cache@v2
-      with:
-        path: ~/libtor_installs
-        key: ${{ runner.os }}-libtor-installs-3-${{ env.LIBTOR_VER }}
+      - name: Install OS Dependencies (post v4.4.0)
+        # dependencies to compile and run libtorrent and qBittorrent
+        # qBt v4.4.0 requires >Qt v5.15.2....but that Qt isn't available from ubuntu PPAs until 21.04
+        if: |
+          (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER)
+          && ! contains(env.QT_USE_DEFAULT_PAA, matrix.QBT_VER))
+        run: |
+          sudo add-apt-repository ppa:beineri/opt-qt-5.15.2-focal
+          sudo apt update
+          sudo apt install build-essential cmake ninja-build pkg-config git zlib1g-dev libssl-dev libgeoip-dev \
+            automake libtool libboost-dev libboost-system-dev libboost-chrono-dev libboost-random-dev
+          sudo apt install --no-install-recommends qt515base qt515tools libqt5svg5-dev
 
-    - name: Build libtorrent
-      # if cache missed, build libtorrent library.
-      # right now, all relevant qBittorrent versions can be compiled using libtorrent 1.2.12
-      if: |
-        (steps.cache-libtorrent.outputs.cache-hit != 'true')
-        && (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
-      run: |
-        set -x
-        BASE_DIR="$HOME/libtor_installs"
-        SRC_DIR="$BASE_DIR/src"
-        LIBTOR_DIR="$BASE_DIR/libtorrent_${{ env.LIBTOR_VER }}"
-        mkdir -p "$SRC_DIR" && mkdir -p "$LIBTOR_DIR"
+      - name: Install OS Dependencies (pre v4.4.0)
+        # dependencies to compile and run libtorrent and qBittorrent
+        if: |
+          (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER)
+          && contains(env.QT_USE_DEFAULT_PAA, matrix.QBT_VER))
+        run: |
+          sudo apt update
+          sudo apt install build-essential cmake ninja-build pkg-config git zlib1g-dev libssl-dev libgeoip-dev \
+            automake libtool libboost-dev libboost-system-dev libboost-chrono-dev libboost-random-dev
+          sudo apt install --no-install-recommends qtbase5-dev qttools5-dev libqt5svg5-dev
 
-        cd "$SRC_DIR"
-        git clone https://github.com/arvidn/libtorrent.git --branch v${{ env.LIBTOR_VER }} --depth 1
-        cd libtorrent
-        cmake -B cmake-build-dir/Release -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$LIBTOR_DIR"
-        cmake --build cmake-build-dir/Release --parallel $(nproc) && cmake --install cmake-build-dir/Release
+      - name: Cache libtorrent
+        # set up cache for libtorrent library
+        if: (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
+        id: cache-libtorrent
+        uses: actions/cache@v2
+        with:
+          path: ~/libtor_installs
+          key: ${{ runner.os }}-libtor-installs-3-${{ env.LIBTOR_VER }}
 
-    - name: Cache qBittorrent
-      # set up cache for qBittorrent binary
-      if: (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
-      id: cache-qbittorrent
-      uses: actions/cache@v2
-      with:
-        path: ~/qbt_installs
-        key: ${{ runner.os }}-qbt-installs-3-${{ matrix.QBT_VER }}
+      - name: Build libtorrent
+        # if cache missed, build libtorrent library.
+        # right now, all relevant qBittorrent versions can be compiled using libtorrent 1.2.12
+        if: |
+          (steps.cache-libtorrent.outputs.cache-hit != 'true')
+          && (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
+        run: |
+          set -x
+          BASE_DIR="$HOME/libtor_installs"
+          SRC_DIR="$BASE_DIR/src"
+          LIBTOR_DIR="$BASE_DIR/libtorrent_${{ env.LIBTOR_VER }}"
+          mkdir -p "$SRC_DIR" && mkdir -p "$LIBTOR_DIR"
 
-    - name: Build qBittorrent (legacy)
-      # if cache missed, compile an older version of qBittorrent, i.e. < v4.2.5
-      if: |
-        (steps.cache-qbittorrent.outputs.cache-hit != 'true' && contains(env.QBT_LEGACY_INSTALL, matrix.QBT_VER))
-        && (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
-      run: |
-        set -x
-        QBT_BASE="$HOME/qbt_installs"
-        SRC_DIR="$QBT_BASE/src"
-        QBT_DIR="$QBT_BASE/qbt_${{ matrix.QBT_VER }}"
-        LIBTOR_DIR="$HOME/libtor_installs/libtorrent_${{ env.LIBTOR_VER }}"
-        mkdir -p "$SRC_DIR" && mkdir -p "$QBT_DIR"
+          cd "$SRC_DIR"
+          git clone https://github.com/arvidn/libtorrent.git --branch v${{ env.LIBTOR_VER }} --depth 1
+          cd libtorrent
+          cmake -B cmake-build-dir/Release -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$LIBTOR_DIR"
+          cmake --build cmake-build-dir/Release --parallel $(nproc) && cmake --install cmake-build-dir/Release
 
-        cd "$SRC_DIR"
-        git clone https://github.com/qbittorrent/qBittorrent.git --branch release-${{ matrix.QBT_VER }} --depth 1
-        cd qBittorrent
-        export libtorrent_CFLAGS="$LIBTOR_DIR/include/" && export libtorrent_LIBS="$LIBTOR_DIR/lib/libtorrent-rasterbar.so"
-        ./configure CXXFLAGS="-std=c++17" CFLAGS="-I$LIBTOR_DIR/include/libtorrent" --disable-gui --prefix="$QBT_DIR"
-        make -j$(nproc) install
+      - name: Cache qBittorrent
+        # set up cache for qBittorrent binary
+        if: (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
+        id: cache-qbittorrent
+        uses: actions/cache@v2
+        with:
+          path: ~/qbt_installs
+          key: ${{ runner.os }}-qbt-installs-3-${{ matrix.QBT_VER }}
 
-    - name: Build qBittorrent
-      # if cache missed, compile qBittorrent binary
-      if: |
-        ((steps.cache-qbittorrent.outputs.cache-hit != 'true') && ! contains(env.QBT_LEGACY_INSTALL, matrix.QBT_VER))
-        && (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
-      run: |
-        set -x
-        QBT_BASE="$HOME/qbt_installs"
-        SRC_DIR="$QBT_BASE/src"
-        QBT_DIR="$QBT_BASE/qbt_${{ matrix.QBT_VER }}"
-        LIBTOR_DIR="$HOME/libtor_installs/libtorrent_${{ env.LIBTOR_VER }}"
-        mkdir -p "$SRC_DIR" && mkdir -p "$QBT_DIR"
+      - name: Build qBittorrent (legacy)
+        # if cache missed, compile an older version of qBittorrent, i.e. < v4.2.5
+        if: |
+          (steps.cache-qbittorrent.outputs.cache-hit != 'true' && contains(env.QBT_LEGACY_INSTALL, matrix.QBT_VER))
+          && (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
+        run: |
+          set -x
+          QBT_BASE="$HOME/qbt_installs"
+          SRC_DIR="$QBT_BASE/src"
+          QBT_DIR="$QBT_BASE/qbt_${{ matrix.QBT_VER }}"
+          LIBTOR_DIR="$HOME/libtor_installs/libtorrent_${{ env.LIBTOR_VER }}"
+          mkdir -p "$SRC_DIR" && mkdir -p "$QBT_DIR"
 
-        cd "$SRC_DIR"
-        git clone https://github.com/qbittorrent/qBittorrent.git --branch release-${{ matrix.QBT_VER }} --depth 1
-        cd qBittorrent
-        cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$LIBTOR_DIR" -DVERBOSE_CONFIGURE=ON \
-          -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE -DQBT_VER_STATUS= -DGUI=OFF -DCMAKE_INSTALL_PREFIX="$QBT_DIR"
-        cmake --build build --parallel $(nproc) && cmake --install build
+          cd "$SRC_DIR"
+          git clone https://github.com/qbittorrent/qBittorrent.git --branch release-${{ matrix.QBT_VER }} --depth 1
+          cd qBittorrent
+          export libtorrent_CFLAGS="$LIBTOR_DIR/include/" && export libtorrent_LIBS="$LIBTOR_DIR/lib/libtorrent-rasterbar.so"
+          ./configure CXXFLAGS="-std=c++17" CFLAGS="-I$LIBTOR_DIR/include/libtorrent" --disable-gui --prefix="$QBT_DIR"
+          make -j$(nproc) install
 
-    - name: Cache pip
-      # cache the pip cache
-      if: (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
-      uses: actions/cache@v2
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-3-${{ hashFiles('requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-3-
+      - name: Build qBittorrent
+        # if cache missed, compile qBittorrent binary
+        if: |
+          ((steps.cache-qbittorrent.outputs.cache-hit != 'true') && ! contains(env.QBT_LEGACY_INSTALL, matrix.QBT_VER))
+          && (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
+        run: |
+          set -x
+          QBT_BASE="$HOME/qbt_installs"
+          SRC_DIR="$QBT_BASE/src"
+          QBT_DIR="$QBT_BASE/qbt_${{ matrix.QBT_VER }}"
+          LIBTOR_DIR="$HOME/libtor_installs/libtorrent_${{ env.LIBTOR_VER }}"
+          mkdir -p "$SRC_DIR" && mkdir -p "$QBT_DIR"
 
-    - name: Install Python Dependencies
-      # install the python dependencies to test qbittorrent-api
-      if: (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
-      run: |
-        python -m pip install -U pip wheel setuptools
-        pip install -U codecov coveralls pytest pytest-cov
-        pip install .
-    
-    - name: Lint with flake8
-      # lint the python code
-      if: contains(env.LATEST_PYTHON_VERSION, matrix.python-version) && (env.LATEST_QBT_VERSION == matrix.QBT_VER)
-      run: |
-        pip -q install -U flake8
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          cd "$SRC_DIR"
+          git clone https://github.com/qbittorrent/qBittorrent.git --branch release-${{ matrix.QBT_VER }} --depth 1
+          cd qBittorrent
+          cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$LIBTOR_DIR" -DVERBOSE_CONFIGURE=ON \
+            -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE -DQBT_VER_STATUS= -DGUI=OFF -DCMAKE_INSTALL_PREFIX="$QBT_DIR"
+          cmake --build build --parallel $(nproc) && cmake --install build
 
-    - name: Black
-      # verify code format with Black
-      if: contains(env.LATEST_PYTHON_VERSION, matrix.python-version) && (env.LATEST_QBT_VERSION == matrix.QBT_VER)
-      run: |
-        pip -q install -U black
-        black --version
-        black . --check --diff --target-version py27
+      - name: Cache pip
+        # cache the pip cache
+        if: (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-3-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-3-
 
-    - name: Test with pytest
-      # finally....start qBittorrent and run tests via pytest
-      if: contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER)
-      run: |
-        mkdir -p $HOME/Downloads  # default download location for qbittorrent
-        export LD_LIBRARY_PATH="$HOME/libtor_installs/libtorrent_${{ env.LIBTOR_VER }}/lib/:$LD_LIBRARY_PATH"
-        $HOME/qbt_installs/qbt_${{ matrix.QBT_VER }}/bin/qbittorrent-nox --daemon
-        python -c "import sys; print(sys.version)"
-        $HOME/qbt_installs/qbt_${{ matrix.QBT_VER }}/bin/qbittorrent-nox -v
-        export QBT_VER=${{ matrix.QBT_VER }}  # tell pytest which qbittorrent is being tested
-        pytest
+      - name: Install Python Dependencies
+        # install the python dependencies to test qbittorrent-api
+        if: (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
+        run: |
+          python -m pip install -U pip wheel setuptools
+          pip install -U codecov coveralls pytest pytest-cov
+          pip install .
 
-    - name: Upload Coverage to Codecov
-      # send coverage report from pytest to codecov
-      if: |
-        contains(env.SUBMIT_COVERAGE_VERSIONS, matrix.python-version)
-        && (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
-      uses: codecov/codecov-action@v1
-      with:
-        fail_ci_if_error: true
+      - name: Lint API with flake8
+        # lint the API code
+        if: contains(env.LATEST_PYTHON_VERSION, matrix.python-version) && (env.LATEST_QBT_VERSION == matrix.QBT_VER)
+        run: |
+          pip -q install -U flake8
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 ./qbittorrentapi --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 ./qbittorrentapi --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-    # just sticking to codecov for now
-    #- name: Upload Coverage to Coveralls
-    #  if: contains(env.SUBMIT_COVERAGE_VERSIONS, matrix.python-version)
-    #  env:
-    #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #  run: coveralls
+      - name: Lint Tests with flake8
+        # lint the API code
+        if: contains(env.LATEST_PYTHON_VERSION, matrix.python-version) && (env.LATEST_QBT_VERSION == matrix.QBT_VER)
+        run: |
+          pip -q install -U flake8
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 ./tests --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 ./tests --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Black
+        # verify code format with Black
+        if: contains(env.LATEST_PYTHON_VERSION, matrix.python-version) && (env.LATEST_QBT_VERSION == matrix.QBT_VER)
+        run: |
+          pip -q install -U black
+          black --version
+          black . --check --diff
+
+      - name: Test with pytest
+        # finally....start qBittorrent and run tests via pytest
+        if: contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER)
+        run: |
+          mkdir -p $HOME/Downloads  # default download location for qbittorrent
+          export LD_LIBRARY_PATH="$HOME/libtor_installs/libtorrent_${{ env.LIBTOR_VER }}/lib/:$LD_LIBRARY_PATH"
+          $HOME/qbt_installs/qbt_${{ matrix.QBT_VER }}/bin/qbittorrent-nox --daemon
+          python -c "import sys; print(sys.version)"
+          $HOME/qbt_installs/qbt_${{ matrix.QBT_VER }}/bin/qbittorrent-nox -v
+          export QBT_VER=${{ matrix.QBT_VER }}  # tell pytest which qbittorrent is being tested
+          pytest
+
+      - name: Upload Coverage to Codecov
+        # send coverage report from pytest to codecov
+        if: |
+          contains(env.SUBMIT_COVERAGE_VERSIONS, matrix.python-version)
+          && (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
+        uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true
+
+          # just sticking to codecov for now
+          #- name: Upload Coverage to Coveralls
+          #  if: contains(env.SUBMIT_COVERAGE_VERSIONS, matrix.python-version)
+          #  env:
+          #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          #  run: coveralls
 
   install-dev:
     strategy:

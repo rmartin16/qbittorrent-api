@@ -2,6 +2,8 @@ from enum import Enum
 
 import pytest
 
+from qbittorrentapi import Dictionary
+from qbittorrentapi import List, ListEntry
 from qbittorrentapi import TorrentStates
 
 all_states = (
@@ -94,7 +96,7 @@ def test_paused_states(state):
 
 
 def test_testing_groups():
-    assert set(all_states) == {s.value for s in TorrentStates}
+    assert set(all_states) == {s.value for s in iter(TorrentStates)}
     assert set(downloading_states) == {
         s.value for s in TorrentStates if s.is_downloading
     }
@@ -102,3 +104,18 @@ def test_testing_groups():
     assert set(complete_states) == {s.value for s in TorrentStates if s.is_complete}
     assert set(checking_states) == {s.value for s in TorrentStates if s.is_checking}
     assert set(errored_states) == {s.value for s in TorrentStates if s.is_errored}
+
+
+def test_dictionary():
+    assert len(Dictionary()) == 0
+    assert len(Dictionary({"one": {"two": 2}})) == 1
+    assert Dictionary({"one": {"two": 2}}).one.two == 2
+
+
+def test_list():
+    assert len(List([])) == 0
+    list_entries = ({"one": "1"}, {"two": "2"}, {"three": "3"})
+    test_list = List(list_entries=list_entries, entry_class=ListEntry)
+    assert len(test_list) == 3
+    assert issubclass(type(test_list[0]), ListEntry)
+    assert test_list[0].one == "1"

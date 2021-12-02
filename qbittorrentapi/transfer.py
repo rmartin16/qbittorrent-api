@@ -22,7 +22,7 @@ class Transfer(ClientCache):
     :Usage:
         >>> from qbittorrentapi import Client
         >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
-        >>> # this are all the same attributes that are available as named in the
+        >>> # these are all the same attributes that are available as named in the
         >>> #  endpoints or the more pythonic names in Client (with or without 'transfer_' prepended)
         >>> transfer_info = client.transfer.info
         >>> # access and set download/upload limits as attributes

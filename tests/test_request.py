@@ -1,16 +1,18 @@
-from collections import namedtuple
 import logging
-from os import environ
+import os
 import re
+from collections import namedtuple
+from os import environ
 
 import pytest
 
 from qbittorrentapi import Client
-from qbittorrentapi.exceptions import *
+from qbittorrentapi import exceptions
 from qbittorrentapi.request import Request
 from qbittorrentapi.torrents import TorrentDictionary
 from qbittorrentapi.torrents import TorrentInfoList
 from tests.conftest import is_version_less_than
+from tests.conftest import BASE_PATH
 
 MockResponse = namedtuple("MockResponse", ("status_code", "text"))
 
@@ -37,9 +39,9 @@ def test_log_in():
     assert client_good.auth.log_in() is None
     assert client_good.auth.is_logged_in is True
     assert client_good.auth.is_logged_in is True
-    with pytest.raises(LoginFailed):
+    with pytest.raises(exceptions.LoginFailed):
         client_bad.auth_log_in()
-    with pytest.raises(LoginFailed):
+    with pytest.raises(exceptions.LoginFailed):
         client_bad.auth.log_in()
 
 
@@ -56,7 +58,7 @@ def test_log_in_via_auth():
         )
         is None
     )
-    with pytest.raises(LoginFailed):
+    with pytest.raises(exceptions.LoginFailed):
         client_bad.auth_log_in(username="asdf", password="asdfasdf")
 
 
@@ -90,7 +92,7 @@ def test_hostname_format(app_version, hostname):
 def test_hostname_user_base_path(hostname):
     client = Client(host=hostname, VERIFY_WEBUI_CERTIFICATE=False)
     # the command will fail but the URL will be built
-    with pytest.raises(APIConnectionError):
+    with pytest.raises(exceptions.APIConnectionError):
         _ = client.app.version
     # ensure user provided base paths are preserved
     assert re.match(r"(http|https)://localhost:8080/qbt/", client._API_BASE_URL)
@@ -102,41 +104,87 @@ def test_port_from_host(app_version):
     assert client.app.version == app_version
 
 
-def test_force_user_scheme(app_version):
+def _enable_disable_https(client, use_https):
+    if use_https:
+        client.app.preferences = {
+            "use_https": True,
+            "web_ui_https_cert_path": os.path.join(
+                BASE_PATH, "tests", "resources", "server.crt"
+            ),
+            "web_ui_https_key_path": os.path.join(
+                BASE_PATH, "tests", "resources", "server.key"
+            ),
+        }
+    else:
+        client.app.preferences = {"use_https": False}
+
+
+@pytest.mark.parametrize("use_https", (True, False))
+def test_force_user_scheme(client, app_version, use_https):
     default_host = environ["PYTHON_QBITTORRENTAPI_HOST"]
+
+    _enable_disable_https(client, use_https)
 
     client = Client(
         host="http://" + default_host,
         VERIFY_WEBUI_CERTIFICATE=False,
         FORCE_SCHEME_FROM_HOST=True,
     )
-    assert client.app.version == app_version
+    if use_https:
+        with pytest.raises(exceptions.APIConnectionError):
+            assert client.app.version == app_version
+    else:
+        assert client.app.version == app_version
     assert client._API_BASE_URL.startswith("http://")
 
     client = Client(
-        host=default_host, VERIFY_WEBUI_CERTIFICATE=False, FORCE_SCHEME_FROM_HOST=True
+        host=default_host,
+        VERIFY_WEBUI_CERTIFICATE=False,
+        FORCE_SCHEME_FROM_HOST=True,
     )
     assert client.app.version == app_version
-    assert client._API_BASE_URL.startswith("http://")
+    if use_https:
+        assert client._API_BASE_URL.startswith("https://")
+    else:
+        assert client._API_BASE_URL.startswith("http://")
 
     client = Client(
         host="https://" + default_host,
         VERIFY_WEBUI_CERTIFICATE=False,
         FORCE_SCHEME_FROM_HOST=True,
     )
-    with pytest.raises(APIConnectionError):
+    if not use_https:
+        with pytest.raises(exceptions.APIConnectionError):
+            assert client.app.version == app_version
+    else:
         assert client.app.version == app_version
     assert client._API_BASE_URL.startswith("https://")
 
 
+@pytest.mark.parametrize("scheme", ("http://", "https://"))
+def test_both_https_http_not_working(client, app_version, scheme):
+    default_host = environ["PYTHON_QBITTORRENTAPI_HOST"]
+    _enable_disable_https(client, use_https=True)
+
+    # rerun with verify=True
+    test_client = Client(
+        host=scheme + default_host,
+    )
+    with pytest.raises(exceptions.APIConnectionError):
+        assert test_client.app.version == app_version
+    assert test_client._API_BASE_URL.startswith("https://")
+
+    _enable_disable_https(client, use_https=False)
+
+
 def test_log_out(client):
     client.auth_log_out()
-    with pytest.raises(Forbidden403Error):
+    with pytest.raises(exceptions.Forbidden403Error):
         # cannot call client.app.version directly since it will auto log back in
         client._get("app", "version")
     client.auth_log_in()
     client.auth.log_out()
-    with pytest.raises(Forbidden403Error):
+    with pytest.raises(exceptions.Forbidden403Error):
         # cannot call client.app.version directly since it will auto log back in
         client._get("app", "version")
     client.auth_log_in()
@@ -147,11 +195,23 @@ def test_port(api_version):
     assert client.app.web_api_version == api_version
 
 
-def test_simple_response(client):
+def test_simple_response(client, orig_torrent):
     torrent = client.torrents_info()[0]
     assert isinstance(torrent, TorrentDictionary)
     torrent = client.torrents_info(SIMPLE_RESPONSE=True)[0]
     assert isinstance(torrent, dict)
+    torrent = client.torrents_info(SIMPLE_RESPONSES=True)[0]
+    assert isinstance(torrent, dict)
+    torrent = client.torrents_info(SIMPLE_RESPONSE=False)[0]
+    assert isinstance(torrent, TorrentDictionary)
+    torrent = client.torrents_info(SIMPLE_RESPONSES=False)[0]
+    assert isinstance(torrent, TorrentDictionary)
+    client = Client(VERIFY_WEBUI_CERTIFICATE=False, SIMPLE_RESPONSES=True)
+    torrent = client.torrents_info()[0]
+    assert isinstance(torrent, dict)
+    client = Client(VERIFY_WEBUI_CERTIFICATE=False, SIMPLE_RESPONSES=False)
+    torrent = client.torrents_info()[0]
+    assert isinstance(torrent, TorrentDictionary)
 
 
 def test_request_extra_params(client, orig_torrent_hash):
@@ -208,25 +268,25 @@ def test_verify_cert(api_version):
 
 
 def test_api_connection_error():
-    with pytest.raises(APIConnectionError):
+    with pytest.raises(exceptions.APIConnectionError):
         Client(host="localhost:8081").auth_log_in(_retries=0)
 
-    with pytest.raises(APIConnectionError):
+    with pytest.raises(exceptions.APIConnectionError):
         Client(host="localhost:8081").auth_log_in(_retries=1)
 
-    with pytest.raises(APIConnectionError):
+    with pytest.raises(exceptions.APIConnectionError):
         Client(host="localhost:8081").auth_log_in(_retries=2)
 
-    with pytest.raises(APIConnectionError):
+    with pytest.raises(exceptions.APIConnectionError):
         Client(host="localhost:8081").auth_log_in(_retries=3)
 
 
 def test_http400(client, app_version, orig_torrent_hash):
-    with pytest.raises(MissingRequiredParameters400Error):
+    with pytest.raises(exceptions.MissingRequiredParameters400Error):
         client.torrents_file_priority(hash=orig_torrent_hash)
 
     if is_version_less_than("4.1.5", app_version, lteq=False):
-        with pytest.raises(InvalidRequest400Error):
+        with pytest.raises(exceptions.InvalidRequest400Error):
             client.torrents_file_priority(
                 hash=orig_torrent_hash, file_ids="asdf", priority="asdf"
             )
@@ -238,51 +298,74 @@ def test_http401():
     # ensure cross site scripting protection is enabled
     client.app.preferences = dict(web_ui_csrf_protection_enabled=True)
     # simulate a XSS request
-    with pytest.raises(Unauthorized401Error):
+    with pytest.raises(exceptions.Unauthorized401Error):
         client.app_preferences(headers={"X-Forwarded-Host": "http://example.com"})
 
 
 @pytest.mark.parametrize("params", ({}, {"hash": "asdf"}, {"hashes": "asdf|asdf"}))
 def test_http404(client, params):
     # 404 for a post
-    with pytest.raises(NotFound404Error):
+    with pytest.raises(exceptions.NotFound404Error):
         client.torrents_rename(hash="asdf", new_torrent_name="erty")
 
     # 404 for a get
-    with pytest.raises(NotFound404Error):
+    with pytest.raises(exceptions.NotFound404Error):
         client._get(
             _name="torrents", _method="rename", params={"hash": "asdf", "name": "erty"}
         )
 
     response = MockResponse(status_code=404, text="")
-    with pytest.raises(HTTPError):
+    with pytest.raises(exceptions.HTTPError):
         p = dict(data={}, params=params)
         Request.handle_error_responses(params=p, response=response)
 
 
 def test_http409(client, app_version):
     if is_version_less_than("4.1.5", app_version, lteq=False):
-        with pytest.raises(Conflict409Error):
+        with pytest.raises(exceptions.Conflict409Error):
             client.torrents_set_location(torrent_hashes="asdf", location="/etc/asdf/")
 
 
 def test_http415(client):
-    with pytest.raises(UnsupportedMediaType415Error):
+    with pytest.raises(exceptions.UnsupportedMediaType415Error):
         client.torrents.add(torrent_files="/etc/hosts")
 
 
 @pytest.mark.parametrize("status_code", (500, 503))
 def test_http500(status_code):
     response = MockResponse(status_code=status_code, text="asdf")
-    with pytest.raises(InternalServerError500Error):
+    with pytest.raises(exceptions.InternalServerError500Error):
         p = dict(data={}, params={})
         Request.handle_error_responses(params=p, response=response)
+
+
+def test_request_retry_success(monkeypatch, caplog):
+    def request500(*arg, **kwargs):
+        raise exceptions.HTTP500Error()
+
+    client = Client(VERIFY_WEBUI_CERTIFICATE=False)
+    _ = client.app.version  # do the login first
+    with monkeypatch.context() as m:
+        m.setattr(client, "_request", request500)
+        with caplog.at_level(logging.DEBUG, logger="qbittorrentapi"):
+            with pytest.raises(exceptions.HTTP500Error):
+                client.app_version()
+        assert "Retry attempt" in caplog.text
+
+
+def test_request_retry_skip(caplog):
+    client = Client(VERIFY_WEBUI_CERTIFICATE=False)
+    _ = client.app.version  # do the login first
+    with caplog.at_level(logging.DEBUG, logger="qbittorrentapi"):
+        with pytest.raises(exceptions.MissingRequiredParameters400Error):
+            client.torrents_rename()
+    assert "Retry attempt" not in caplog.text
 
 
 @pytest.mark.parametrize("status_code", (402, 406))
 def test_http_error(status_code):
     response = MockResponse(status_code=status_code, text="asdf")
-    with pytest.raises(HTTPError):
+    with pytest.raises(exceptions.HTTPError):
         p = dict(data={}, params={})
         Request.handle_error_responses(params=p, response=response)
 
@@ -290,7 +373,7 @@ def test_http_error(status_code):
 def test_verbose_logging(caplog):
     client = Client(VERBOSE_RESPONSE_LOGGING=True, VERIFY_WEBUI_CERTIFICATE=False)
     with caplog.at_level(logging.DEBUG, logger="qbittorrentapi"):
-        with pytest.raises(NotFound404Error):
+        with pytest.raises(exceptions.NotFound404Error):
             client.torrents_rename(hash="asdf", new_torrent_name="erty")
     assert "Response status" in caplog.text
 

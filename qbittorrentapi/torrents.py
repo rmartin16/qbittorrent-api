@@ -43,7 +43,7 @@ class TorrentDictionary(Dictionary):
     :Usage:
         >>> from qbittorrentapi import Client
         >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
-        >>> # this are all the same attributes that are available as named in the
+        >>> # these are all the same attributes that are available as named in the
         >>> #  endpoints or the more pythonic names in Client (with or without 'transfer_' prepended)
         >>> torrent = client.torrents.info()[0]
         >>> torrent_hash = torrent.info.hash

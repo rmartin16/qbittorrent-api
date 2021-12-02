@@ -16,7 +16,7 @@ class Authorization(ClientCache):
     :Usage:
         >>> from qbittorrentapi import Client
         >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
-        >>> client.auth.is_logged_in
+        >>> is_logged_in = client.auth.is_logged_in
         >>> client.auth.log_in(username='admin', password='adminadmin')
         >>> client.auth.log_out()
     """
@@ -42,7 +42,7 @@ class AuthAPIMixIn(Request):
     :Usage:
         >>> from qbittorrentapi import Client
         >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
-        >>> client.auth_is_logged_in()
+        >>> client.is_logged_in
         >>> client.auth_log_in(username='admin', password='adminadmin')
         >>> client.auth_log_out()
     """
