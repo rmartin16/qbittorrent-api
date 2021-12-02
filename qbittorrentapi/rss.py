@@ -35,7 +35,7 @@ class RSS(ClientCache):
         >>> client.rss.remove_item(item_path="TPB") # deletes TPB and Top100
         >>> client.rss.set_rule(rule_name="...", rule_def={...})
         >>> items = client.rss.items.with_data
-        >>> items = client.rss.items.without_data
+        >>> items_no_data = client.rss.items.without_data
     """
 
     def __init__(self, client):
@@ -150,7 +150,7 @@ class RSSAPIMixIn(Request):
 
         :raises Conflict409Error:
 
-        :param folder_path: path to new folder (e.g. Linux\ISOs)
+        :param folder_path: path to new folder (e.g. Linux\\ISOs)
         :return: None
         """
         data = {"path": folder_path}
@@ -164,8 +164,8 @@ class RSSAPIMixIn(Request):
 
         :raises Conflict409Error:
 
-        :param url: URL of RSS feed (e.g http://thepiratebay.org/rss/top100/200)
-        :param item_path: Name and/or path for new feed (e.g. Folder\Subfolder\FeedName)
+        :param url: URL of RSS feed (e.g https://thepiratebay.org/rss/top100/200)
+        :param item_path: Name and/or path for new feed (e.g. Folder\\Subfolder\\FeedName)
         :return: None
         """
         data = {"url": url, "path": item_path}
@@ -181,7 +181,7 @@ class RSSAPIMixIn(Request):
 
         :raises Conflict409Error:
 
-        :param item_path: path to item to be removed (e.g. Folder\Subfolder\ItemName)
+        :param item_path: path to item to be removed (e.g. Folder\\Subfolder\\ItemName)
         :return: None
         """
         data = {"path": item_path}
@@ -195,8 +195,8 @@ class RSSAPIMixIn(Request):
 
         :raises Conflict409Error:
 
-        :param orig_item_path: path to item to be removed (e.g. Folder\Subfolder\ItemName)
-        :param new_item_path: path to item to be removed (e.g. Folder\Subfolder\ItemName)
+        :param orig_item_path: path to item to be removed (e.g. Folder\\Subfolder\\ItemName)
+        :param new_item_path: path to item to be removed (e.g. Folder\\Subfolder\\ItemName)
         :return: None
         """
         data = {"itemPath": orig_item_path, "destPath": new_item_path}
@@ -221,7 +221,7 @@ class RSSAPIMixIn(Request):
         """
         Trigger a refresh for a RSS item (alias: rss_refreshItem)
 
-        :param item_path: path to item to be refreshed (e.g. Folder\Subfolder\ItemName)
+        :param item_path: path to item to be refreshed (e.g. Folder\\Subfolder\\ItemName)
         :return: None
         """
         # HACK: v4.1.7 and v4.1.8 both use api v2.2; however, refreshItem was introduced in v4.1.8
@@ -234,11 +234,12 @@ class RSSAPIMixIn(Request):
     @login_required
     def rss_mark_as_read(self, item_path=None, article_id=None, **kwargs):
         """
-        Mark RSS article as read. If article ID is not provider, the entire feed is marked as read. (alias: rss_markAsRead)
+        Mark RSS article as read. If article ID is not provider,
+        the entire feed is marked as read. (alias: rss_markAsRead)
 
         :raises NotFound404Error:
 
-        :param item_path: path to item to be refreshed (e.g. Folder\Subfolder\ItemName)
+        :param item_path: path to item to be refreshed (e.g. Folder\\Subfolder\\ItemName)
         :param article_id: article ID from rss_items()
         :return: None
         """

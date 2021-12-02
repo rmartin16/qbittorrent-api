@@ -35,7 +35,7 @@ def test_preferences(client):
     assert "dht" in client.app.preferences
     dht = prefs["dht"]
     client.app.preferences = dict(dht=(not dht))
-    assert not dht is client.app.preferences.dht
+    assert dht is not client.app.preferences.dht
     client.app_set_preferences(prefs=dict(dht=dht))
     assert dht is client.app.preferences.dht
 

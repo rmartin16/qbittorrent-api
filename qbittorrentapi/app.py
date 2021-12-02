@@ -35,7 +35,7 @@ class Application(ClientCache):
         >>> #  endpoints or the more pythonic names in Client (with or without 'app_' prepended)
         >>> webapiVersion = client.application.webapiVersion
         >>> web_api_version = client.application.web_api_version
-        >>> app_web_api_version = client.application.app_web_api_version
+        >>> app_web_api_version = client.application.web_api_version
         >>> # access and set preferences as attributes
         >>> is_dht_enabled = client.application.preferences.dht
         >>> # supports sending a just subset of preferences to update

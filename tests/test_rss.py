@@ -171,6 +171,7 @@ def test_rules(client, api_version, client_func, rss_feed):
                 lambda: get_func(client, client_func[2]), name, reverse=True
             )  # rss_rules
 
+    _ = rss_feed  # reference to avoid errors; needed to load RSS feed in to qbt
     rule_name = item_one + "Rule"
     rule_name_new = rule_name + "New"
     rule_def = {"enabled": True, "affectedFeeds": url, "addPaused": True}

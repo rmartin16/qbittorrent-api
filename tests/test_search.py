@@ -22,7 +22,7 @@ def test_update_plugins(client, api_version, client_func):
         with pytest.raises(NotImplementedError):
             client.search_update_plugins()
     else:
-        client.search.update_plugins()
+        get_func(client, client_func)()
         check(
             lambda: any(
                 entry["message"].startswith("Updating plugin ")
@@ -45,28 +45,35 @@ def test_enable_plugin(client, api_version, client_func):
         with pytest.raises(NotImplementedError):
             get_func(client, client_func[1])()
     else:
-        try:
-            plugins = get_func(client, client_func[0])()
-        except TypeError:
-            plugins = get_func(client, client_func[0])
-        get_func(client, client_func[1])(
-            plugins=(p["name"] for p in plugins), enable=False
-        )
-        check(
-            lambda: (p["enabled"] for p in client.search_plugins()),
-            True,
-            reverse=True,
-            negate=True,
-        )
-        get_func(client, client_func[1])(
-            plugins=(p["name"] for p in plugins), enable=True
-        )
-        check(
-            lambda: (p["enabled"] for p in client.search_plugins()),
-            False,
-            reverse=True,
-            negate=True,
-        )
+        loop_limit = 3
+        for loop_count in range(loop_limit):
+            try:
+                try:
+                    plugins = get_func(client, client_func[0])()
+                except TypeError:
+                    plugins = get_func(client, client_func[0])
+                get_func(client, client_func[1])(
+                    plugins=(p["name"] for p in plugins), enable=False
+                )
+                check(
+                    lambda: (p["enabled"] for p in client.search_plugins()),
+                    True,
+                    reverse=True,
+                    negate=True,
+                )
+                get_func(client, client_func[1])(
+                    plugins=(p["name"] for p in plugins), enable=True
+                )
+                check(
+                    lambda: (p["enabled"] for p in client.search_plugins()),
+                    False,
+                    reverse=True,
+                    negate=True,
+                )
+                break
+            except Exception as e:
+                if loop_count >= (loop_limit - 1):
+                    raise e
 
 
 @pytest.mark.parametrize(
