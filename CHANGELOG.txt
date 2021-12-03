@@ -1,5 +1,6 @@
-Version 2021.12.XX (XX dec XXXX)
- - Added Type Hints for all public and private functions, methods, and variables
+Version 2021.12.24 (3 dec 2021)
+ - Add Type Hints for all public and private functions, methods, and variables
+ - Support HTTP timeouts as well as arbitrary Requests configurations
 
 Version 2021.8.23 (28 aug 2021)
  - Advertise support for qBittorrent 4.3.8

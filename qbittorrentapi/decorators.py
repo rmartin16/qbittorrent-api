@@ -1,28 +1,12 @@
-from logging import getLogger
 from functools import wraps
 from json import loads
-from pkg_resources import parse_version
+from logging import getLogger
 
 from qbittorrentapi.exceptions import APIError
 from qbittorrentapi.exceptions import HTTP403Error
+from qbittorrentapi.request import HelpersMixIn
 
 logger = getLogger(__name__)
-
-
-def _is_version_less_than(ver1, ver2, lteq=True):
-    """
-    Determine if ver1 is equal to or later than ver2.
-
-    Note: changes need to be reflected in request.Request._is_version_less_than as well
-
-    :param ver1: version to check
-    :param ver2: current version of application
-    :param lteq: True for Less Than or Equals; False for just Less Than
-    :return: True or False
-    """
-    if lteq:
-        return parse_version(ver1) <= parse_version(ver2)
-    return parse_version(ver1) < parse_version(ver2)
 
 
 class Alias(object):
@@ -42,7 +26,7 @@ class Alias(object):
     def __init__(self, *aliases):
         self.aliases = set(aliases)
 
-    def __call__(self, f):
+    def __call__(self, func):
         """
         Method call wrapper. As this decorator has arguments, this method will
         only be called once as a part of the decoration process, receiving only
@@ -50,8 +34,8 @@ class Alias(object):
         decorator, this method must return the callable that will wrap the
         decorated function.
         """
-        f._aliases = self.aliases
-        return f
+        func._aliases = self.aliases
+        return func
 
 
 def aliased(aliased_class):
@@ -85,28 +69,28 @@ def aliased(aliased_class):
     return aliased_class
 
 
-def login_required(f):
+def login_required(func):
     """
     Ensure client is logged in before calling API methods.
     """
 
-    @wraps(f)
+    @wraps(func)
     def wrapper(client, *args, **kwargs):
         if not client.is_logged_in:
             logger.debug("Not logged in...attempting login")
-            client.auth_log_in()
+            client.auth_log_in(requests_args=client._get_requests_args(**kwargs))
         try:
-            return f(client, *args, **kwargs)
+            return func(client, *args, **kwargs)
         except HTTP403Error:
             logger.debug("Login may have expired...attempting new login")
-            client.auth_log_in()
+            client.auth_log_in(requests_args=client._get_requests_args(**kwargs))
 
-        return f(client, *args, **kwargs)
+        return func(client, *args, **kwargs)
 
     return wrapper
 
 
-def handle_hashes(f):
+def handle_hashes(func):
     """
     Normalize torrent hash arguments.
 
@@ -118,13 +102,13 @@ def handle_hashes(f):
     arguments into either 'torrent_hash' or 'torrent_hashes'.
     """
 
-    @wraps(f)
+    @wraps(func)
     def wrapper(client, *args, **kwargs):
         if "torrent_hash" not in kwargs and "hash" in kwargs:
             kwargs["torrent_hash"] = kwargs.pop("hash")
         elif "torrent_hashes" not in kwargs and "hashes" in kwargs:
             kwargs["torrent_hashes"] = kwargs.pop("hashes")
-        return f(client, *args, **kwargs)
+        return func(client, *args, **kwargs)
 
     return wrapper
 
@@ -137,10 +121,10 @@ def response_text(response_class):
     :return: Text of the response casted to the specified class
     """
 
-    def _inner(f):
-        @wraps(f)
-        def wrapper(obj, *args, **kwargs):
-            result = f(obj, *args, **kwargs)
+    def _inner(func):
+        @wraps(func)
+        def wrapper(client, *args, **kwargs):
+            result = func(client, *args, **kwargs)
             if isinstance(result, response_class):
                 return result
             try:
@@ -155,7 +139,6 @@ def response_text(response_class):
 
 
 def response_json(response_class):
-
     """
     Return the JSON in the API response. JSON is parsed as instance of response_class.
 
@@ -163,28 +146,27 @@ def response_json(response_class):
     :return: JSON as the response class
     """
 
-    def _inner(f):
-        @wraps(f)
-        def wrapper(obj, *args, **kwargs):
-            simple_response = obj._SIMPLE_RESPONSES or kwargs.pop(
+    def _inner(func):
+        @wraps(func)
+        def wrapper(client, *args, **kwargs):
+            simple_response = client._SIMPLE_RESPONSES or kwargs.pop(
                 "SIMPLE_RESPONSES", kwargs.pop("SIMPLE_RESPONSE", False)
             )
-            response = f(obj, *args, **kwargs)
+            response = func(client, *args, **kwargs)
             try:
                 if isinstance(response, response_class):
                     return response
-                else:
-                    try:
-                        result = response.json()
-                    except AttributeError:
-                        # just in case the requests package is old and doesn't contain json()
-                        result = loads(response.text)
-                    if simple_response:
-                        return result
-                    return response_class(result, obj)
-            except Exception as e:
+                try:
+                    result = response.json()
+                except AttributeError:
+                    # just in case the requests package is old and doesn't contain json()
+                    result = loads(response.text)
+                if simple_response:
+                    return result
+                return response_class(result, client)
+            except Exception as exc:
                 logger.debug("Exception during response parsing.", exc_info=True)
-                raise APIError("Exception during response parsing. Error: %s" % repr(e))
+                raise APIError("Exception during response parsing. Error: %r" % exc)
 
         return wrapper
 
@@ -196,7 +178,9 @@ def _version_too_old(client, version_to_compare):
     Return True if provided API version is older than the connected API, False otherwise
     """
     current_version = client.app_web_api_version()
-    if _is_version_less_than(current_version, version_to_compare, lteq=False):
+    if HelpersMixIn._is_version_less_than(
+        current_version, version_to_compare, lteq=False
+    ):
         return True
     return False
 
@@ -206,7 +190,9 @@ def _version_too_new(client, version_to_compare):
     Return True if provided API version is newer or equal to the connected API, False otherwise
     """
     current_version = client.app_web_api_version()
-    if _is_version_less_than(version_to_compare, current_version, lteq=True):
+    if HelpersMixIn._is_version_less_than(
+        version_to_compare, current_version, lteq=True
+    ):
         return True
     return False
 
@@ -228,8 +214,8 @@ def endpoint_introduced(version_introduced, endpoint):
     :param endpoint: API endpoint (e.g. /torrents/categories)
     """
 
-    def _inner(f):
-        @wraps(f)
+    def _inner(func):
+        @wraps(func)
         def wrapper(client, *args, **kwargs):
 
             # if the endpoint doesn't exist, return None or log an error / raise an Exception
@@ -243,7 +229,7 @@ def endpoint_introduced(version_introduced, endpoint):
                 return None
 
             # send request to endpoint
-            return f(client, *args, **kwargs)
+            return func(client, *args, **kwargs)
 
         return wrapper
 
@@ -258,8 +244,8 @@ def version_removed(version_obsoleted, endpoint):
     :param endpoint: name of the removed endpoint
     """
 
-    def _inner(f):
-        @wraps(f)
+    def _inner(func):
+        @wraps(func)
         def wrapper(client, *args, **kwargs):
 
             # if the endpoint doesn't exist, return None or log an error / raise an Exception
@@ -273,7 +259,7 @@ def version_removed(version_obsoleted, endpoint):
                 return None
 
             # send request to endpoint
-            return f(client, *args, **kwargs)
+            return func(client, *args, **kwargs)
 
         return wrapper
 

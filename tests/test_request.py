@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import sys
 from collections import namedtuple
 from os import environ
 
@@ -76,7 +77,9 @@ def test_log_in_via_auth():
     ),
 )
 def test_hostname_format(app_version, hostname):
-    client = Client(host=hostname, VERIFY_WEBUI_CERTIFICATE=False)
+    client = Client(
+        host=hostname, VERIFY_WEBUI_CERTIFICATE=False, REQUESTS_ARGS={"timeout": 1}
+    )
     assert client.app.version == app_version
     # ensure the base URL is always normalized
     assert re.match(r"(http|https)://localhost:8080/", client._API_BASE_URL)
@@ -129,6 +132,7 @@ def test_force_user_scheme(client, app_version, use_https):
         host="http://" + default_host,
         VERIFY_WEBUI_CERTIFICATE=False,
         FORCE_SCHEME_FROM_HOST=True,
+        REQUESTS_ARGS={"timeout": 3},
     )
     if use_https:
         with pytest.raises(exceptions.APIConnectionError):
@@ -141,6 +145,7 @@ def test_force_user_scheme(client, app_version, use_https):
         host=default_host,
         VERIFY_WEBUI_CERTIFICATE=False,
         FORCE_SCHEME_FROM_HOST=True,
+        REQUESTS_ARGS={"timeout": 3},
     )
     assert client.app.version == app_version
     if use_https:
@@ -152,6 +157,7 @@ def test_force_user_scheme(client, app_version, use_https):
         host="https://" + default_host,
         VERIFY_WEBUI_CERTIFICATE=False,
         FORCE_SCHEME_FROM_HOST=True,
+        REQUESTS_ARGS={"timeout": 3},
     )
     if not use_https:
         with pytest.raises(exceptions.APIConnectionError):
@@ -169,6 +175,7 @@ def test_both_https_http_not_working(client, app_version, scheme):
     # rerun with verify=True
     test_client = Client(
         host=scheme + default_host,
+        REQUESTS_ARGS={"timeout": 3},
     )
     with pytest.raises(exceptions.APIConnectionError):
         assert test_client.app.version == app_version
@@ -212,6 +219,74 @@ def test_simple_response(client, orig_torrent):
     client = Client(VERIFY_WEBUI_CERTIFICATE=False, SIMPLE_RESPONSES=False)
     torrent = client.torrents_info()[0]
     assert isinstance(torrent, TorrentDictionary)
+
+
+def test_request_extra_headers():
+    client = Client(
+        VERIFY_WEBUI_CERTIFICATE=False, EXTRA_HEADERS={"X-MY-HEADER": "asdf"}
+    )
+    client.auth.log_in()
+
+    r = client._get(_name="app", _method="version")
+    assert r.request.headers["X-MY-HEADER"] == "asdf"
+
+    r = client._get(_name="app", _method="version", headers={"X-MY-HEADER-TWO": "zxcv"})
+    assert r.request.headers["X-MY-HEADER"] == "asdf"
+    assert r.request.headers["X-MY-HEADER-TWO"] == "zxcv"
+
+    r = client._get(
+        _name="app",
+        _method="version",
+        headers={"X-MY-HEADER-TWO": "zxcv"},
+        requests_args={"headers": {"X-MY-HEADER-THREE": "tyui"}},
+    )
+    assert r.request.headers["X-MY-HEADER"] == "asdf"
+    assert r.request.headers["X-MY-HEADER-TWO"] == "zxcv"
+    assert r.request.headers["X-MY-HEADER-THREE"] == "tyui"
+
+    r = client._get(
+        _name="app",
+        _method="version",
+        headers={"X-MY-HEADER": "zxcv"},
+        requests_args={"headers": {"X-MY-HEADER": "tyui"}},
+    )
+    assert r.request.headers["X-MY-HEADER"] == "zxcv"
+
+    r = client._get(_name="app", _method="version", headers={"X-MY-HEADER": "zxcv"})
+    assert r.request.headers["X-MY-HEADER"] == "zxcv"
+
+
+def test_requests_timeout():
+    # timeouts are weird on python 2...just skip it...
+    if sys.version_info[0] < 3:
+        return
+
+    class MyTimeoutError(Exception):
+        pass
+
+    logger = logging.getLogger("test_requests_timeout")
+
+    timeout = 1e-100
+    loops = 1000
+    client = Client(VERIFY_WEBUI_CERTIFICATE=False)
+    with pytest.raises(MyTimeoutError):
+        try:
+            for _ in range(loops):
+                client.torrents_info(requests_args={"timeout": timeout})
+        except exceptions.APIConnectionError as exp:
+            logger.error("%r", exp)
+            if "ReadTimeoutError" in str(exp) or "RemoteDisconnected" in str(exp):
+                raise MyTimeoutError
+
+    client = Client(VERIFY_WEBUI_CERTIFICATE=False, REQUESTS_ARGS={"timeout": timeout})
+    with pytest.raises(MyTimeoutError):
+        try:
+            for _ in range(loops):
+                client.torrents_info()
+        except exceptions.APIConnectionError as exp:
+            logger.error("%r", exp)
+            if "ReadTimeoutError" in str(exp) or "RemoteDisconnected" in str(exp):
+                raise MyTimeoutError
 
 
 def test_request_extra_params(client, orig_torrent_hash):
@@ -317,7 +392,7 @@ def test_http404(client, params):
     response = MockResponse(status_code=404, text="")
     with pytest.raises(exceptions.HTTPError):
         p = dict(data={}, params=params)
-        Request.handle_error_responses(params=p, response=response)
+        Request._handle_error_responses(args=p, response=response)
 
 
 def test_http409(client, app_version):
@@ -336,7 +411,7 @@ def test_http500(status_code):
     response = MockResponse(status_code=status_code, text="asdf")
     with pytest.raises(exceptions.InternalServerError500Error):
         p = dict(data={}, params={})
-        Request.handle_error_responses(params=p, response=response)
+        Request._handle_error_responses(args=p, response=response)
 
 
 def test_request_retry_success(monkeypatch, caplog):
@@ -367,7 +442,7 @@ def test_http_error(status_code):
     response = MockResponse(status_code=status_code, text="asdf")
     with pytest.raises(exceptions.HTTPError):
         p = dict(data={}, params={})
-        Request.handle_error_responses(params=p, response=response)
+        Request._handle_error_responses(args=p, response=response)
 
 
 def test_verbose_logging(caplog):

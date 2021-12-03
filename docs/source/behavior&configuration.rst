@@ -10,16 +10,28 @@ Untrusted WebUI Certificate
 
 Host, Username and Password
 ***************************
-* These can be provided when instantiating Client or calling ``qbt_client.auth_log_in(username='...', password='...')``.
+* These can be provided when instantiating ``Client`` or calling ``qbt_client.auth_log_in(username='...', password='...')``.
 * Alternatively, set environment variables ``PYTHON_QBITTORRENTAPI_HOST``, ``PYTHON_QBITTORRENTAPI_USERNAME`` and ``PYTHON_QBITTORRENTAPI_PASSWORD``.
 
-Custom HTTP Headers
-***************************
-* To send a custom HTTP header in all requests made from an instantiated client, declare them during instantiation.
+Requests Configuration
+**********************
+* The `Requests <https://docs.python-requests.org/en/latest/>`_ package is used to issue HTTP requests to qBittorrent to facilitate this API.
+* Much of ``Requests`` configuration for making HTTP calls can be controlled with parameters passed along with the request payload.
+* For instance, HTTP Basic Authorization credentials can be provided via ``auth``, timeouts via ``timeout``, or Cookies via ``cookies``.
+* These parameters are exposed here in two ways; the examples below tell ``Requests`` to use a connect timeout of 3.1 seconds and a read timeout of 30 seconds.
+* When you instantiate ``Client``, you can specify the parameters to use in all HTTP requests to qBittorrent:
+    * ``qbt_client = Client(..., requests_args={'timeout': (3.1, 30)}``
+* Alternatively, parameters can be specified for individual requests:
+    * ``qbt_client.torrents_info(..., requests_args={'timeout': (3.1, 30))``
+
+Additional HTTP Headers
+***********************
+* For consistency, HTTP Headers can be specified using the method above; for backwards compatability, the methods below are supported as well.
+* Either way, these additional headers will be incorporated (using clobbering) into the rest of the headers to be sent.
+* To send a custom HTTP header in all requests made from an instantiated client, declare them during instantiation:
     * ``qbt_client = Client(..., EXTRA_HEADERS={'X-My-Fav-Header': 'header value')``
-* Alternatively, you can send custom headers in individual requests.
+* Alternatively, you can send custom headers in individual requests:
     * ``qbt_client.torrents.add(..., headers={'X-My-Fav-Header': 'header value')``
-    * These headers will be merged with other headers otherwise configured to be sent.
 
 Unimplemented API Endpoints
 ***************************
@@ -30,7 +42,6 @@ Unimplemented API Endpoints
 Disable Logging Debug Output
 ****************************
 * Instantiate Client with `DISABLE_LOGGING_DEBUG_OUTPUT=True` or manually disable logging for the relevant packages:
-
     * ``logging.getLogger('qbittorrentapi').setLevel(logging.INFO)``
     * ``logging.getLogger('requests').setLevel(logging.INFO)``
     * ``logging.getLogger('urllib3').setLevel(logging.INFO)``

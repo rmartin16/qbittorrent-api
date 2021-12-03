@@ -1,5 +1,5 @@
-from requests.exceptions import RequestException
 from requests.exceptions import HTTPError as RequestsHTTPError
+from requests.exceptions import RequestException
 
 
 class APIError(Exception):

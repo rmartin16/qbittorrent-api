@@ -1,11 +1,12 @@
 from qbittorrentapi.app import AppAPIMixIn
 from qbittorrentapi.auth import AuthAPIMixIn
 from qbittorrentapi.log import LogAPIMixIn
-from qbittorrentapi.sync import SyncAPIMixIn
-from qbittorrentapi.transfer import TransferAPIMixIn
-from qbittorrentapi.torrents import TorrentsAPIMixIn
 from qbittorrentapi.rss import RSSAPIMixIn
 from qbittorrentapi.search import SearchAPIMixIn
+from qbittorrentapi.sync import SyncAPIMixIn
+from qbittorrentapi.torrents import TorrentsAPIMixIn
+from qbittorrentapi.transfer import TransferAPIMixIn
+
 
 # NOTES
 # Implementation

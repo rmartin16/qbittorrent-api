@@ -113,7 +113,7 @@ def test_dictionary():
 
 
 def test_list():
-    assert len(List([])) == 0
+    assert len(List()) == 0
     list_entries = ({"one": "1"}, {"two": "2"}, {"three": "3"})
     test_list = List(list_entries=list_entries, entry_class=ListEntry)
     assert len(test_list) == 3

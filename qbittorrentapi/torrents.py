@@ -588,7 +588,6 @@ class Torrents(ClientCache):
         use_auto_torrent_management=None,
         is_sequential_download=None,
         is_first_last_piece_priority=None,
-        tags=None,
         content_layout=None,
         ratio_limit=None,
         seeding_time_limit=None,
@@ -609,7 +608,6 @@ class Torrents(ClientCache):
             is_sequential_download=is_sequential_download,
             use_auto_torrent_management=use_auto_torrent_management,
             is_first_last_piece_priority=is_first_last_piece_priority,
-            tags=tags,
             content_layout=content_layout,
             ratio_limit=ratio_limit,
             seeding_time_limit=seeding_time_limit,
@@ -869,7 +867,7 @@ class TorrentCategories(ClientCache):
     :Usage:
         >>> from qbittorrentapi import Client
         >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
-        >>> # this are all the same attributes that are available as named in the
+        >>> # these are all the same attributes that are available as named in the
         >>> #  endpoints or the more pythonic names in Client (with or without 'torrents_' prepended)
         >>> categories = client.torrent_categories.categories
         >>> # create or edit categories
@@ -1121,7 +1119,7 @@ class TorrentsAPIMixIn(Request):
         """
         Normalize the torrent file(s) from the user.
         The file(s) can be the raw bytes, file handle, filepath for a torrent file,
-        or a Sequence (e.g. list|set|tuple) of any of these "files".
+        or an iterable (e.g. list|set|tuple) of any of these "files".
         Further, the file(s) can be in a dictionary with the "names" of the torrents as the keys.
         These "names" can be anything...but are mostly useful as identifiers for each file.
         """
@@ -1183,7 +1181,7 @@ class TorrentsAPIMixIn(Request):
                     raise TorrentFileNotFoundError(
                         errno.ENOENT, os_strerror(errno.ENOENT), torrent_file
                     )
-                elif io_err.errno == errno.EACCES:
+                if io_err.errno == errno.EACCES:
                     raise TorrentFilePermissionError(
                         errno.ENOENT, os_strerror(errno.EACCES), torrent_file
                     )
@@ -1429,8 +1427,6 @@ class TorrentsAPIMixIn(Request):
         :param new_path: new path of file to rename (added in Web API v2.7)
         :return: None
         """
-        torrent_hash = torrent_hash
-
         # convert pre-v2.7 params to post-v2.7...or post-v2.7 to pre-v2.7
         # HACK: v4.3.2 and v4.3.3 both use web api v2.7 but old/new_path were introduced in v4.3.3
         if (
@@ -1496,7 +1492,7 @@ class TorrentsAPIMixIn(Request):
         :return: None
         """
         # HACK: v4.3.2 and v4.3.3 both use web api v2.7 but rename_folder was introduced in v4.3.3
-        if self._is_version_less_than("v4.3.3", self.app.version, lteq=True):
+        if self._is_version_less_than("v4.3.3", self.app_version(), lteq=True):
             data = {
                 "hash": torrent_hash,
                 "oldPath": old_path,
