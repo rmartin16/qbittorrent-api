@@ -7,47 +7,16 @@ import six
 
 from qbittorrentapi import APIConnectionError
 from qbittorrentapi import Client
-from qbittorrentapi.request import Request
+
+from .version_map import api_version_map
 
 qbt_version = "v" + os.environ["QBT_VER"]
-
-api_version_map = {
-    "v4.1.0": "2.0",
-    "v4.1.1": "2.0.1",
-    "v4.1.2": "2.0.2",
-    "v4.1.3": "2.1",
-    "v4.1.4": "2.1.1",
-    "v4.1.5": "2.2",
-    "v4.1.6": "2.2",
-    "v4.1.7": "2.2",
-    "v4.1.8": "2.2",
-    "v4.1.9": "2.2.1",
-    "v4.1.9.1": "2.2.1",
-    "v4.2.0": "2.3",
-    "v4.2.1": "2.4",
-    "v4.2.2": "2.4.1",
-    "v4.2.3": "2.4.1",
-    "v4.2.4": "2.5",
-    "v4.2.5": "2.5.1",
-    "v4.3.0": "2.6",
-    "v4.3.0.1": "2.6",
-    "v4.3.1": "2.6.1",
-    "v4.3.2": "2.7",
-    "v4.3.3": "2.7",
-    "v4.3.4.1": "2.8.1",
-    "v4.3.5": "2.8.2",
-    "v4.3.6": "2.8.2",
-    "v4.3.7": "2.8.2",
-    "v4.3.8": "2.8.2",
-    "v4.3.9": "2.8.2",
-    "v4.4.0rc1": "2.8.3",
-}
 
 BASE_PATH = sys_path[0]
 _check_limit = 10
 
 _orig_torrent_url = (
-    "http://releases.ubuntu.com/21.04/ubuntu-21.04-desktop-amd64.iso.torrent"
+    "https://releases.ubuntu.com/21.04/ubuntu-21.04-desktop-amd64.iso.torrent"
 )
 _orig_torrent_hash = "64a980abe6e448226bb930ba061592e44c3781a1"
 
@@ -58,11 +27,11 @@ with open(
     mode="rb",
 ) as f:
     torrent1_file = f.read()
-torrent1_url = "http://cdimage.ubuntu.com/kubuntu/releases/21.04/release/kubuntu-21.04-desktop-amd64.iso.torrent"
+torrent1_url = "https://cdimage.ubuntu.com/kubuntu/releases/21.04/release/kubuntu-21.04-desktop-amd64.iso.torrent"
 torrent1_filename = torrent1_url.split("/")[-1]
 torrent1_hash = "d65d07329264aecb2d2be7a6c0e86b6613b2a600"
 
-torrent2_url = "http://cdimage.ubuntu.com/xubuntu/releases/21.04/release/xubuntu-21.04-desktop-amd64.iso.torrent"
+torrent2_url = "https://cdimage.ubuntu.com/xubuntu/releases/21.04/release/xubuntu-21.04-desktop-amd64.iso.torrent"
 torrent2_filename = torrent2_url.split("/")[-1]
 torrent2_hash = "80d773cbf111e906608077967683a0ffcc3a7668"
 

@@ -1,3 +1,9 @@
+Version 2022.1.27 (9 jan 2022)
+ - Support for qBittorrent v4.4.0
+ - torrents/info results can now be filtered by a torrent tag
+ - Added new torrent state "Forced Metadata Downloading"
+ - Support per-torrent/per-category "download folder"
+
 Version 2021.12.26 (11 dec 2021)
  - Stop sending Origin and Referer headers (Fixes #63)
 
