@@ -197,6 +197,10 @@ class Torrents(ClientCache):
     setUploadLimit: _ActionForAllTorrents
     set_location: _ActionForAllTorrents
     setLocation: _ActionForAllTorrents
+    set_save_path: _ActionForAllTorrents
+    setSavePath: _ActionForAllTorrents
+    set_download_path: _ActionForAllTorrents
+    setDownloadPath: _ActionForAllTorrents
     set_category: _ActionForAllTorrents
     setCategory: _ActionForAllTorrents
     set_auto_management: _ActionForAllTorrents
@@ -367,9 +371,23 @@ class TorrentCategories(ClientCache):
     def categories(self) -> TorrentCategoriesDictionary: ...
     @categories.setter
     def categories(self, v: Iterable[Text]) -> None: ...
-    def create_category(self, name: Text = None, save_path: Text = None, **kwargs): ...
+    def create_category(
+        self,
+        name: Text = None,
+        save_path: Text = None,
+        download_path: Text = None,
+        enable_download_path: bool = None,
+        **kwargs
+    ): ...
     createCategory = create_category
-    def edit_category(self, name: Text = None, save_path: Text = None, **kwargs): ...
+    def edit_category(
+        self,
+        name: Text = None,
+        save_path: Text = None,
+        download_path: Text = None,
+        enable_download_path: bool = None,
+        **kwargs
+    ): ...
     editCategory = edit_category
     def remove_categories(self, categories: Iterable[Text] = None, **kwargs): ...
     removeCategories = remove_categories
@@ -421,6 +439,8 @@ class TorrentsAPIMixIn(Request):
         content_layout: Literal["Original", "Subfolder", "NoSubFolder"] = None,
         ratio_limit: Text | float = None,
         seeding_time_limit: Text | int = None,
+        download_path: Text = None,
+        use_download_path: bool = None,
         **kwargs
     ) -> Text: ...
     @staticmethod
@@ -566,6 +586,17 @@ class TorrentsAPIMixIn(Request):
         self, location: Text = None, torrent_hashes: Iterable[Text] = None, **kwargs
     ) -> None: ...
     torrents_setLocation = torrents_set_location
+    def torrents_set_save_path(
+        self, save_path: Text = None, torrents_hashes: Iterable[Text] = None, **kwargs
+    ) -> None: ...
+    torrents_setSavePath = torrents_set_save_path
+    def torrents_set_download_path(
+        self,
+        download_path: Text = None,
+        torrents_hashes: Iterable[Text] = None,
+        **kwargs
+    ) -> None: ...
+    torrents_setDownloadPath = torrents_set_download_path
     def torrents_set_category(
         self, category: Text = None, torrent_hashes: Iterable[Text] = None, **kwargs
     ) -> None: ...
@@ -599,11 +630,21 @@ class TorrentsAPIMixIn(Request):
     torrents_addPeers = torrents_add_peers
     def torrents_categories(self, **kwargs) -> TorrentCategoriesDictionary: ...
     def torrents_create_category(
-        self, name: Text = None, save_path: Text = None, **kwargs
+        self,
+        name: Text = None,
+        save_path: Text = None,
+        download_path: Text = None,
+        enable_download_path: bool = None,
+        **kwargs
     ) -> None: ...
     torrents_createCategory = torrents_create_category
     def torrents_edit_category(
-        self, name: Text = None, save_path: Text = None, **kwargs
+        self,
+        name: Text = None,
+        save_path: Text = None,
+        download_path: Text = None,
+        enable_download_path: bool = None,
+        **kwargs
     ) -> None: ...
     torrents_editCategory = torrents_edit_category
     def torrents_remove_categories(

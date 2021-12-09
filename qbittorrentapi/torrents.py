@@ -212,6 +212,20 @@ class TorrentDictionary(Dictionary):
             location=location, torrent_hashes=self._torrent_hash, **kwargs
         )
 
+    @Alias("setSavePath")
+    def set_save_path(self, save_path=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_save_path`"""
+        self._client.torrents_set_save_path(
+            save_path=save_path, torrent_hashes=self._torrent_hash, **kwargs
+        )
+
+    @Alias("setDownloadPath")
+    def set_download_path(self, download_path=None, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_download_path`"""
+        self._client.torrents_set_download_path(
+            download_path=download_path, torrent_hashes=self._torrent_hash, **kwargs
+        )
+
     @Alias("setCategory")
     def set_category(self, category=None, **kwargs):
         """Implements :meth:`~TorrentsAPIMixIn.torrents_set_category`"""
@@ -543,6 +557,14 @@ class Torrents(ClientCache):
         self.set_location = self._ActionForAllTorrents(
             client=client, func=client.torrents_set_location
         )
+        self.set_save_path = self._ActionForAllTorrents(
+            client=client, func=client.torrents_set_save_path
+        )
+        self.setSavePath = self.set_save_path
+        self.set_download_path = self._ActionForAllTorrents(
+            client=client, func=client.torrents_set_download_path
+        )
+        self.setDownloadPath = self.set_download_path
         self.setLocation = self.set_location
         self.set_category = self._ActionForAllTorrents(
             client=client, func=client.torrents_set_category
@@ -593,6 +615,8 @@ class Torrents(ClientCache):
         content_layout=None,
         ratio_limit=None,
         seeding_time_limit=None,
+        download_path=None,
+        use_download_path=None,
         **kwargs
     ):
         return self._client.torrents_add(
@@ -614,6 +638,8 @@ class Torrents(ClientCache):
             content_layout=content_layout,
             ratio_limit=ratio_limit,
             seeding_time_limit=seeding_time_limit,
+            download_path=download_path,
+            use_download_path=use_download_path,
             **kwargs
         )
 
@@ -638,6 +664,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -648,6 +675,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -659,6 +687,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -669,6 +698,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -680,6 +710,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -690,6 +721,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -701,6 +733,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -711,6 +744,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -722,6 +756,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -732,6 +767,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -743,6 +779,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -753,6 +790,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -764,6 +802,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -774,6 +813,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -785,6 +825,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -795,6 +836,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -806,6 +848,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -816,6 +859,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -827,6 +871,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -837,6 +882,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -848,6 +894,7 @@ class Torrents(ClientCache):
             limit=None,
             offset=None,
             torrent_hashes=None,
+            tag=None,
             **kwargs
         ):
             return self._client.torrents_info(
@@ -858,6 +905,7 @@ class Torrents(ClientCache):
                 limit=limit,
                 offset=offset,
                 torrent_hashes=torrent_hashes,
+                tag=tag,
                 **kwargs
             )
 
@@ -897,17 +945,39 @@ class TorrentCategories(ClientCache):
             self.create_category(**v)
 
     @Alias("createCategory")
-    def create_category(self, name=None, save_path=None, **kwargs):
+    def create_category(
+        self,
+        name=None,
+        save_path=None,
+        download_path=None,
+        enable_download_path=None,
+        **kwargs
+    ):
         """Implements :meth:`~TorrentsAPIMixIn.torrents_create_category`"""
         return self._client.torrents_create_category(
-            name=name, save_path=save_path, **kwargs
+            name=name,
+            save_path=save_path,
+            download_path=download_path,
+            enable_download_path=enable_download_path,
+            **kwargs
         )
 
     @Alias("editCategory")
-    def edit_category(self, name=None, save_path=None, **kwargs):
+    def edit_category(
+        self,
+        name=None,
+        save_path=None,
+        download_path=None,
+        enable_download_path=None,
+        **kwargs
+    ):
         """Implements :meth:`~TorrentsAPIMixIn.torrents_edit_category`"""
         return self._client.torrents_edit_category(
-            name=name, save_path=save_path, **kwargs
+            name=name,
+            save_path=save_path,
+            download_path=download_path,
+            enable_download_path=enable_download_path,
+            **kwargs
         )
 
     @Alias("removeCategories")
@@ -1035,6 +1105,8 @@ class TorrentsAPIMixIn(Request):
         content_layout=None,
         ratio_limit=None,
         seeding_time_limit=None,
+        download_path=None,
+        use_download_path=None,
         **kwargs
     ):
         """
@@ -1071,6 +1143,8 @@ class TorrentsAPIMixIn(Request):
         :param content_layout: Original, Subfolder, or NoSubfolder to control filesystem structure for content (added in Web API v2.7)
         :param ratio_limit: share limit as ratio of upload amt over download amt; e.g. 0.5 or 2.0 (added in Web API v2.8.1)
         :param seeding_time_limit: number of minutes to seed torrent (added in Web API v2.8.1)
+        :param download_path: location to download torrent content before moving to save_path (added in Web API v2.8.4)
+        :param use_download_path: whether the download_path should be used...defaults to True if download_path is specified (added in Web API v2.8.4)
         :return: "Ok." for success and "Fails." for failure
         """
 
@@ -1091,6 +1165,10 @@ class TorrentsAPIMixIn(Request):
             is_root_folder = content_layout in {"Subfolder", "Original"}
             content_layout = None
 
+        # default to actually using the specified download path
+        if use_download_path is None and download_path is not None:
+            use_download_path = True
+
         data = {
             "urls": (None, self._list2string(urls, "\n")),
             "savepath": (None, save_path),
@@ -1109,6 +1187,8 @@ class TorrentsAPIMixIn(Request):
             "autoTMM": (None, use_auto_torrent_management),
             "sequentialDownload": (None, is_sequential_download),
             "firstLastPiecePrio": (None, is_first_last_piece_priority),
+            "downloadPath": (None, download_path),
+            "useDownloadPath": (None, use_download_path),
         }
 
         files_to_send, files_to_close = self._normalize_torrent_files(torrent_files)
@@ -1544,6 +1624,7 @@ class TorrentsAPIMixIn(Request):
         limit=None,
         offset=None,
         torrent_hashes=None,
+        tag=None,
         **kwargs
     ):
         """
@@ -1558,6 +1639,7 @@ class TorrentsAPIMixIn(Request):
         :param limit: Limit length of list
         :param offset: Start of list (if < 0, offset from end of list)
         :param torrent_hashes: Filter list by hash (separate multiple hashes with a '|')
+        :param tag: Filter list by tag (empty string means "untagged"; no "tag" param means "any tag"; added in Web API v2.8.3)
         :return: :class:`TorrentInfoList` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-list
         """
         data = {
@@ -1568,6 +1650,7 @@ class TorrentsAPIMixIn(Request):
             "limit": limit,
             "offset": offset,
             "hashes": self._list2string(torrent_hashes, "|"),
+            "tag": tag,
         }
         return self._post(_name=APINames.Torrents, _method="info", data=data, **kwargs)
 
@@ -1811,6 +1894,50 @@ class TorrentsAPIMixIn(Request):
         }
         self._post(_name=APINames.Torrents, _method="setLocation", data=data, **kwargs)
 
+    @Alias("torrents_setSavePath")
+    @handle_hashes
+    @endpoint_introduced("2.8.4", "torrents/setSavePath")
+    @login_required
+    def torrents_set_save_path(self, save_path=None, torrent_hashes=None, **kwargs):
+        """
+        Set the Save Path for one or more torrents. (alias: torrents_setSavePath)
+
+        :raises Forbidden403Error: cannot write to directory
+        :raises Conflict409Error: directory cannot be created
+
+        :param save_path: file path to save torrent contents
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        """
+        data = {
+            "id": self._list2string(torrent_hashes, "|"),
+            "path": save_path,
+        }
+        self._post(_name=APINames.Torrents, _method="setSavePath", data=data, **kwargs)
+
+    @Alias("torrents_setDownloadPath")
+    @handle_hashes
+    @endpoint_introduced("2.8.4", "torrents/setDownloadPath")
+    @login_required
+    def torrents_set_download_path(
+        self, download_path=None, torrent_hashes=None, **kwargs
+    ):
+        """
+        Set the Download Path for one or more torrents. (alias: torrents_setDownloadPath)
+
+        :raises Forbidden403Error: cannot write to directory
+        :raises Conflict409Error: directory cannot be created
+
+        :param download_path: file path to save torrent contents before torrent finishes downloading
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or 'all' for all torrents.
+        """
+        data = {
+            "id": self._list2string(torrent_hashes, "|"),
+            "path": download_path,
+        }
+        self._post(
+            _name=APINames.Torrents, _method="setDownloadPath", data=data, **kwargs
+        )
+
     @Alias("torrents_setCategory")
     @handle_hashes
     @login_required
@@ -1961,7 +2088,14 @@ class TorrentsAPIMixIn(Request):
 
     @Alias("torrents_createCategory")
     @login_required
-    def torrents_create_category(self, name=None, save_path=None, **kwargs):
+    def torrents_create_category(
+        self,
+        name=None,
+        save_path=None,
+        download_path=None,
+        enable_download_path=None,
+        **kwargs
+    ):
         """
         Create a new torrent category. (alias: torrents_createCategory)
 
@@ -1971,9 +2105,20 @@ class TorrentsAPIMixIn(Request):
 
         :param name: name for new category
         :param save_path: location to save torrents for this category
+        :param download_path: download location for torrents with this category
+        :param enable_download_path: True or False to enable or disable download path
         :return: None
         """
-        data = {"category": name, "savePath": save_path}
+        # default to actually using the specified download path
+        if enable_download_path is None and download_path is not None:
+            enable_download_path = True
+
+        data = {
+            "category": name,
+            "savePath": save_path,
+            "downloadPath": download_path,
+            "downloadPathEnabled": enable_download_path,
+        }
         self._post(
             _name=APINames.Torrents, _method="createCategory", data=data, **kwargs
         )
@@ -1981,19 +2126,38 @@ class TorrentsAPIMixIn(Request):
     @endpoint_introduced("2.1.0", "torrents/editCategory")
     @Alias("torrents_editCategory")
     @login_required
-    def torrents_edit_category(self, name=None, save_path=None, **kwargs):
+    def torrents_edit_category(
+        self,
+        name=None,
+        save_path=None,
+        download_path=None,
+        enable_download_path=None,
+        **kwargs
+    ):
         """
         Edit an existing category. (alias: torrents_editCategory)
 
         Note: torrents/editCategory not available until web API version 2.1.0
 
-        :raises Conflict409Error:
+        :raises Conflict409Error: if category name is not valid or unable to create
 
         :param name: category to edit
         :param save_path: new location to save files for this category
+        :param download_path: download location for torrents with this category
+        :param enable_download_path: True or False to enable or disable download path
         :return: None
         """
-        data = {"category": name, "savePath": save_path}
+
+        # default to actually using the specified download path
+        if enable_download_path is None and download_path is not None:
+            enable_download_path = True
+
+        data = {
+            "category": name,
+            "savePath": save_path,
+            "downloadPath": download_path,
+            "downloadPathEnabled": enable_download_path,
+        }
         self._post(_name=APINames.Torrents, _method="editCategory", data=data, **kwargs)
 
     @Alias("torrents_removeCategories")

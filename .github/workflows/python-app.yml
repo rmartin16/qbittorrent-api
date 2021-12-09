@@ -21,7 +21,7 @@ jobs:
     env:
       LATEST_PYTHON_VERSION: "3.10"
       LATEST_QBT_VERSION: 4.4.0rc1
-      QBT_ALWAYS_TEST: 4.4.0rc1, 4.3.9, 4.3.8, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1, 4.2.0
+      QBT_ALWAYS_TEST: 4.4.0, 4.3.9, 4.3.8, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1, 4.2.0
       QT_USE_DEFAULT_PAA: 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1, 4.2.5, 4.2.0
       SUBMIT_COVERAGE_VERSIONS: 2.7, 3.10
       COMPREHENSIVE_TESTS_BRANCH: comprehensive_tests
@@ -32,8 +32,8 @@ jobs:
       QBT_LEGACY_INSTALL: 4.2.5, 4.2.0
     strategy:
       matrix:
-        QBT_VER: [4.4.0rc1, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1, 4.2.5, 4.2.0]
-        # QBT_VER: [4.4.0beta3]
+        QBT_VER: [4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1, 4.2.5, 4.2.0]
+        # QBT_VER: [4.4.0]
         python-version: ["3.10", "3.9", "3.8", "3.7", "3.6", "2.7", "pypy2", "pypy3", "3.11.0-alpha.2"]
         # python-version: [3.9]
 
@@ -129,6 +129,7 @@ jobs:
           mkdir -p "$SRC_DIR" && mkdir -p "$QBT_DIR"
 
           cd "$SRC_DIR"
+          rm -rf qBittorrent
           git clone https://github.com/qbittorrent/qBittorrent.git --branch release-${{ matrix.QBT_VER }} --depth 1
           cd qBittorrent
           export libtorrent_CFLAGS="$LIBTOR_DIR/include/" && export libtorrent_LIBS="$LIBTOR_DIR/lib/libtorrent-rasterbar.so"
@@ -149,6 +150,7 @@ jobs:
           mkdir -p "$SRC_DIR" && mkdir -p "$QBT_DIR"
 
           cd "$SRC_DIR"
+          rm -rf qBittorrent
           git clone https://github.com/qbittorrent/qBittorrent.git --branch release-${{ matrix.QBT_VER }} --depth 1
           cd qBittorrent
           cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$LIBTOR_DIR" -DVERBOSE_CONFIGURE=ON \

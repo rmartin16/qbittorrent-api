@@ -182,7 +182,54 @@ def test_set_location(api_version, new_torrent, client_func):
             try:
                 loc = path.expanduser("~/Downloads/3/")
                 getattr(new_torrent, client_func)(loc)
-                check(lambda: new_torrent.info.save_path, loc)
+                # qBittorrent may return trailing separators depending on version....
+                check(
+                    lambda: new_torrent.info.save_path,
+                    (loc, loc[: len(loc) - 1]),
+                    any=True,
+                )
+                break
+            except AssertionError as e:
+                exp = e
+        if exp:
+            raise exp
+
+
+@pytest.mark.parametrize("client_func", ("set_save_path", "setSavePath"))
+def test_set_save_path(api_version, new_torrent, client_func):
+    if v(api_version) >= v("2.8.4"):
+        exp = None
+        for attempt in range(2):
+            try:
+                loc = path.expanduser("~/Downloads/savepath3/")
+                getattr(new_torrent, client_func)(loc)
+                # qBittorrent may return trailing separators depending on version....
+                check(
+                    lambda: new_torrent.info.save_path,
+                    (loc, loc[: len(loc) - 1]),
+                    any=True,
+                )
+                break
+            except AssertionError as e:
+                exp = e
+        if exp:
+            raise exp
+
+
+@pytest.mark.parametrize("client_func", ("set_download_path", "setDownloadPath"))
+def test_set_download_path(api_version, new_torrent, client_func):
+    if v(api_version) >= v("2.8.4"):
+        exp = None
+        for attempt in range(2):
+            try:
+                loc = path.expanduser("~/Downloads/downloadpath3/")
+                getattr(new_torrent, client_func)(loc)
+                # qBittorrent may return trailing separators depending on version....
+                check(
+                    lambda: new_torrent.info.download_path,
+                    (loc, loc[: len(loc) - 1]),
+                    any=True,
+                )
                 break
             except AssertionError as e:
                 exp = e
