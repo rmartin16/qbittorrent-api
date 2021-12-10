@@ -1,4 +1,5 @@
 import errno
+import logging
 from os import path
 import platform
 from sys import version_info
@@ -156,6 +157,9 @@ def test_add_delete(client, api_version, client_func):
         else:
             assert get_func(client, client_func[0])(torrent_files=files) == "Ok."
 
+        for file in files:
+            file.close()
+
     @check_torrents_added
     def add_by_bytes(single):
         files = (
@@ -209,6 +213,22 @@ def test_add_torrent_file_fail(client, monkeypatch):
                 with monkeypatch.context() as m:
                     m.setitem(__builtins__, "open", fake_open)
                     client.torrents_add(torrent_files="/etc/hosts")
+
+
+def test_close_file_fail(client, monkeypatch, caplog):
+    def fake_norm_files(files):
+        return {object: object}, (object,)
+
+    def post(*args, **kwargs):
+        return "OK"
+
+    if version_info[0] > 2:
+        with monkeypatch.context() as m:
+            m.setattr(client, "_normalize_torrent_files", fake_norm_files)
+            m.setattr(client, "_post", post)
+            with caplog.at_level(logging.WARNING, logger="qbittorrentapi"):
+                client.torrents_add(torrent_files=object)
+                assert "Failed to close file" in caplog.text
 
 
 @pytest.mark.parametrize("keep_root_folder", (True, False, None))
