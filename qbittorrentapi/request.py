@@ -604,11 +604,22 @@ class Request(HelpersMixIn):
 
         return self._http_session
 
+    def __del__(self):
+        """
+        Close HTTP Session before destruction.
+        This isn't strictly necessary since this will automatically
+        happen when the Session is garbage collected...but it makes
+        Python's ResourceWarning logging for unclosed sockets cleaner.
+        """
+        self._trigger_session_initialization()
+
     def _trigger_session_initialization(self):
         """
         Effectively resets the HTTP session by removing the reference to it.
         During the next request, a new session will be created.
         """
+        if hasattr(self, "_http_session") and isinstance(self._http_session, Session):
+            self._http_session.close()
         self._http_session = None
 
     @staticmethod

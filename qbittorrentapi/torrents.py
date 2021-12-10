@@ -1110,11 +1110,23 @@ class TorrentsAPIMixIn(Request):
             "firstLastPiecePrio": (None, is_first_last_piece_priority),
         }
 
-        files = self._normalize_torrent_files(torrent_files)
+        files_to_send, files_to_close = self._normalize_torrent_files(torrent_files)
 
-        return self._post(
-            _name=APINames.Torrents, _method="add", data=data, files=files, **kwargs
-        )
+        try:
+            return self._post(
+                _name=APINames.Torrents,
+                _method="add",
+                data=data,
+                files=files_to_send,
+                **kwargs
+            )
+        finally:
+            if files_to_close:
+                for fh in files_to_close:
+                    try:
+                        fh.close()
+                    except Exception as exp:
+                        logger.warning("Failed to close file: %r", exp)
 
     @staticmethod
     def _normalize_torrent_files(user_files):
@@ -1126,7 +1138,7 @@ class TorrentsAPIMixIn(Request):
         These "names" can be anything...but are mostly useful as identifiers for each file.
         """
         if not user_files:
-            return None
+            return None, None
 
         prefix = "torrent__"
         # if it's string-like and not a list|set|tuple, then make it a list
@@ -1144,6 +1156,7 @@ class TorrentsAPIMixIn(Request):
         )
 
         files = {}
+        files_to_close = []
         for name, torrent_file in norm_files.items():
             try:
                 fh = None
@@ -1157,6 +1170,7 @@ class TorrentsAPIMixIn(Request):
                         )
                         if path.exists(filepath):
                             fh = open(filepath, "rb")
+                            files_to_close.append(fh)
                             name = path.basename(filepath)
                     except Exception:
                         fh = None
@@ -1173,6 +1187,7 @@ class TorrentsAPIMixIn(Request):
                         path.realpath(path.expanduser(str(torrent_file)))
                     )
                     fh = open(filepath, "rb")
+                    files_to_close.append(fh)
                     name = path.basename(filepath)
 
                 # if using default name, let Requests try to figure out the filename to send
@@ -1188,7 +1203,7 @@ class TorrentsAPIMixIn(Request):
                         errno.ENOENT, os_strerror(errno.EACCES), torrent_file
                     )
                 raise TorrentFileError(io_err)
-        return files or None
+        return files, files_to_close
 
     ##########################################################################
     # INDIVIDUAL TORRENT ENDPOINTS

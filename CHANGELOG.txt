@@ -1,3 +1,7 @@
+Version 2021.12.25 (10 dec 2021)
+ - Close files that are opened and sent to Requests when adding torrents from files
+ - Enable warnings for tests and explicitly close Requests Sessions to prevent (mostly spurious) ResourceWarnings
+
 Version 2021.12.24 (3 dec 2021)
  - Add Type Hints for all public and private functions, methods, and variables
  - Support HTTP timeouts as well as arbitrary Requests configurations
