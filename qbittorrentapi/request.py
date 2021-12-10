@@ -567,11 +567,6 @@ class Request(HelpersMixIn):
 
         self._http_session = QbittorrentSession()
 
-        # default headers to prevent qBittorrent throwing any alarms
-        self._http_session.headers.update(
-            {"Referer": self._API_BASE_URL, "Origin": self._API_BASE_URL}
-        )
-
         # add any user-defined headers to be sent in all requests
         self._http_session.headers.update(self._EXTRA_HEADERS)
 

@@ -374,7 +374,9 @@ def test_http401():
     client.app.preferences = dict(web_ui_csrf_protection_enabled=True)
     # simulate a XSS request
     with pytest.raises(exceptions.Unauthorized401Error):
-        client.app_preferences(headers={"X-Forwarded-Host": "http://example.com"})
+        client.app_version(
+            headers={"Origin": "https://example.com", "Referer": "https://example.com"}
+        )
 
 
 @pytest.mark.parametrize("params", ({}, {"hash": "asdf"}, {"hashes": "asdf|asdf"}))
