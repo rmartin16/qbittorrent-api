@@ -1,3 +1,6 @@
+Version 2021.12.26 (11 dec 2021)
+ - Stop sending Origin and Referer headers (Fixes #63)
+
 Version 2021.12.25 (10 dec 2021)
  - Close files that are opened and sent to Requests when adding torrents from files
  - Enable warnings for tests and explicitly close Requests Sessions to prevent (mostly spurious) ResourceWarnings
