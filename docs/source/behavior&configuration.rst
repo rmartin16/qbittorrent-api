@@ -17,21 +17,27 @@ Requests Configuration
 **********************
 * The `Requests <https://docs.python-requests.org/en/latest/>`_ package is used to issue HTTP requests to qBittorrent to facilitate this API.
 * Much of ``Requests`` configuration for making HTTP calls can be controlled with parameters passed along with the request payload.
-* For instance, HTTP Basic Authorization credentials can be provided via ``auth``, timeouts via ``timeout``, or Cookies via ``cookies``.
+* For instance, HTTP Basic Authorization credentials can be provided via ``auth``, timeouts via ``timeout``, or Cookies via ``cookies``. See `Requests documentation <https://docs.python-requests.org/en/latest/api/#requests.request>`_ for full details.
 * These parameters are exposed here in two ways; the examples below tell ``Requests`` to use a connect timeout of 3.1 seconds and a read timeout of 30 seconds.
 * When you instantiate ``Client``, you can specify the parameters to use in all HTTP requests to qBittorrent:
-    * ``qbt_client = Client(..., requests_args={'timeout': (3.1, 30)}``
+
+  * ``qbt_client = Client(..., REQUESTS_ARGS={'timeout': (3.1, 30)}``
+
 * Alternatively, parameters can be specified for individual requests:
-    * ``qbt_client.torrents_info(..., requests_args={'timeout': (3.1, 30))``
+
+  * ``qbt_client.torrents_info(..., requests_args={'timeout': (3.1, 30))``
 
 Additional HTTP Headers
 ***********************
 * For consistency, HTTP Headers can be specified using the method above; for backwards compatability, the methods below are supported as well.
 * Either way, these additional headers will be incorporated (using clobbering) into the rest of the headers to be sent.
 * To send a custom HTTP header in all requests made from an instantiated client, declare them during instantiation:
-    * ``qbt_client = Client(..., EXTRA_HEADERS={'X-My-Fav-Header': 'header value')``
+
+  * ``qbt_client = Client(..., EXTRA_HEADERS={'X-My-Fav-Header': 'header value')``
+
 * Alternatively, you can send custom headers in individual requests:
-    * ``qbt_client.torrents.add(..., headers={'X-My-Fav-Header': 'header value')``
+
+  * ``qbt_client.torrents.add(..., headers={'X-My-Fav-Header': 'header value')``
 
 Unimplemented API Endpoints
 ***************************
@@ -42,6 +48,7 @@ Unimplemented API Endpoints
 Disable Logging Debug Output
 ****************************
 * Instantiate Client with `DISABLE_LOGGING_DEBUG_OUTPUT=True` or manually disable logging for the relevant packages:
-    * ``logging.getLogger('qbittorrentapi').setLevel(logging.INFO)``
-    * ``logging.getLogger('requests').setLevel(logging.INFO)``
-    * ``logging.getLogger('urllib3').setLevel(logging.INFO)``
+
+  * ``logging.getLogger('qbittorrentapi').setLevel(logging.INFO)``
+  * ``logging.getLogger('requests').setLevel(logging.INFO)``
+  * ``logging.getLogger('urllib3').setLevel(logging.INFO)``
