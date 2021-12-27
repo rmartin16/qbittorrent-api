@@ -1,8 +1,7 @@
 import os
+from pkg_resources import parse_version as v
 
 import pytest
-
-from tests.conftest import is_version_less_than
 
 
 def test_version(client, app_version):
@@ -18,15 +17,14 @@ def test_web_api_version(client, api_version):
 
 
 def test_build_info(client, api_version):
-    def run_tests():
+    if v(api_version) >= v("2.3"):
         assert "libtorrent" in client.app_build_info()
         assert "libtorrent" in client.app.build_info
-
-    if is_version_less_than(api_version, "2.3", lteq=False):
-        with pytest.raises(NotImplementedError):
-            run_tests()
     else:
-        run_tests()
+        with pytest.raises(NotImplementedError):
+            assert "libtorrent" in client.app_build_info()
+        with pytest.raises(NotImplementedError):
+            assert "libtorrent" in client.app.build_info
 
 
 def test_preferences(client):

@@ -15,7 +15,6 @@ except ImportError:  # python 2
     from urlparse import urljoin
     from urlparse import urlparse
 
-from pkg_resources import parse_version
 from requests import exceptions as requests_exceptions
 from requests import Session
 from requests.adapters import HTTPAdapter
@@ -78,22 +77,6 @@ class HelpersMixIn(object):
         """
         exc.__cause__ = None
         return exc
-
-    @classmethod
-    def _is_version_less_than(cls, ver1, ver2, lteq=True):
-        """
-        Determine if ver1 is equal to or later than ver2.
-
-        Note: changes need to be reflected in decorators._is_version_less_than as well
-
-        :param ver1: version to check
-        :param ver2: current version of application
-        :param lteq: True for Less Than or Equals; False for just Less Than
-        :return: True or False
-        """
-        if lteq:
-            return parse_version(ver1) <= parse_version(ver2)
-        return parse_version(ver1) < parse_version(ver2)
 
 
 class Request(HelpersMixIn):

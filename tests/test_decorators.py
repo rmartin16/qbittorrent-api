@@ -17,15 +17,6 @@ from qbittorrentapi.request import HelpersMixIn
 list2str = HelpersMixIn._list2string
 
 
-def test_is_version_less_than():
-    assert HelpersMixIn._is_version_less_than("1", "1", lteq=True) is True
-    assert HelpersMixIn._is_version_less_than("1", "1", lteq=False) is False
-    assert HelpersMixIn._is_version_less_than("1.5", "1", lteq=True) is False
-    assert HelpersMixIn._is_version_less_than("1.5", "1", lteq=False) is False
-    assert HelpersMixIn._is_version_less_than("1", "1.5", lteq=True) is True
-    assert HelpersMixIn._is_version_less_than("1", "1.5", lteq=False) is True
-
-
 def test_login_required(caplog, app_version):
     client = Client(
         RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True,

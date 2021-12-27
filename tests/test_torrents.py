@@ -1,6 +1,7 @@
 import errno
 import logging
 from os import path
+from pkg_resources import parse_version as v
 import platform
 from sys import version_info
 from time import sleep
@@ -43,7 +44,7 @@ from tests.conftest import (
     torrent1_url,
     torrent2_url,
 )
-from tests.conftest import get_func, is_version_less_than
+from tests.conftest import get_func
 
 
 def disable_queueing(client):
@@ -181,7 +182,7 @@ def test_add_delete(client, api_version, client_func):
         else:
             get_func(client, client_func[0])(urls=urls)
 
-    if is_version_less_than("2.0.0", api_version, lteq=False):
+    if v(api_version) > v("2.0.0"):
         # something was wrong with torrents_add on v2.0.0 (the initial version)
         add_by_filename(single=False)
         add_by_filename(single=True)
@@ -237,7 +238,7 @@ def test_close_file_fail(client, monkeypatch, caplog):
 )
 def test_add_options(client, api_version, keep_root_folder, content_layout):
     client.torrents_delete(torrent_hashes=root_folder_torrent_hash, delete_files=True)
-    if is_version_less_than("2.3.0", api_version, lteq=True):
+    if v(api_version) >= v("2.3.0"):
         client.torrents_create_tags("option-tag")
     torrent = next(
         new_torrent_standalone(
@@ -271,7 +272,7 @@ def test_add_options(client, api_version, keep_root_folder, content_layout):
     check(lambda: torrent.info.up_limit, 1024)
     check(lambda: torrent.info.dl_limit, 2048)
     check(lambda: torrent.info.seq_dl, True)
-    if is_version_less_than("2.0.1", api_version, lteq=True):
+    if v(api_version) >= v("2.0.1"):
         check(lambda: torrent.info.f_l_piece_prio, True)
     if content_layout is None:
         check(
@@ -280,10 +281,10 @@ def test_add_options(client, api_version, keep_root_folder, content_layout):
         )
     check(lambda: torrent.info.name, "this is a new name for the torrent")
     check(lambda: torrent.info.auto_tmm, False)
-    if is_version_less_than("2.6.2", api_version, lteq=True):
+    if v(api_version) >= v("2.6.2"):
         check(lambda: torrent.info.tags, "option-tag")
 
-    if is_version_less_than("2.7", api_version, lteq=True):
+    if v(api_version) >= v("2.7"):
         # after web api v2.7...root dir is driven by content_layout
         if content_layout is None:
             should_root_dir_exists = keep_root_folder in {None, True}
@@ -300,7 +301,7 @@ def test_add_options(client, api_version, keep_root_folder, content_layout):
         should_root_dir_exists,
     )
 
-    if is_version_less_than("2.8.1", api_version, lteq=True):
+    if v(api_version) >= v("2.8.1"):
         check(lambda: torrent.info.ratio_limit, 2)
         check(lambda: torrent.info.seeding_time_limit, 120)
 
@@ -357,7 +358,7 @@ def test_add_trackers(client, trackers, client_func, new_torrent):
     "client_func", ("torrents_edit_tracker", "torrents_editTracker")
 )
 def test_edit_tracker(client, api_version, client_func, orig_torrent):
-    if is_version_less_than(api_version, "2.2.0", lteq=False):
+    if v(api_version) < v("2.2.0"):
         with pytest.raises(NotImplementedError):
             get_func(client, client_func)(
                 torrent_hash=orig_torrent.hash,
@@ -388,7 +389,7 @@ def test_edit_tracker(client, api_version, client_func, orig_torrent):
     "client_func", ("torrents_remove_trackers", "torrents_removeTrackers")
 )
 def test_remove_trackers(client, api_version, trackers, client_func, orig_torrent):
-    if is_version_less_than(api_version, "2.2.0", lteq=False):
+    if v(api_version) < v("2.2.0"):
         with pytest.raises(NotImplementedError):
             get_func(client, client_func)(torrent_hash=orig_torrent.hash, urls=trackers)
     else:
@@ -429,7 +430,7 @@ def test_rename_file(
     new_name,
     client_func,
 ):
-    if is_version_less_than(api_version, "2.4.0", lteq=False):
+    if v(api_version) < v("2.4.0"):
         with pytest.raises(NotImplementedError):
             getattr(client, client_func)(
                 torrent_hash=new_torrent.hash, file_id=0, new_file_name=new_name
@@ -464,13 +465,13 @@ def test_rename_file(
     "client_func", ("torrents_rename_folder", "torrents_renameFolder")
 )
 def test_rename_folder(client, app_version, new_torrent, new_name, client_func):
-    if is_version_less_than(app_version, "v4.3.3", lteq=False):
+    if v(app_version) < v("v4.3.3"):
         with pytest.raises(NotImplementedError):
             getattr(client, client_func)(
                 torrent_hash="asdf", old_path="asdf", new_path="zxcv"
             )
     # need to ensure we're at least on v4.3.3 to run test
-    if is_version_less_than("v4.3.2", app_version, lteq=False):
+    if v(app_version) >= v("v4.3.3"):
         # move the file in to a new folder
         orig_file_path = new_torrent.files[0].name
         new_folder = "qwer"
@@ -511,7 +512,7 @@ def test_torrents_info(client, api_version, orig_torrent_hash, client_func):
             get_func(client, client_func).stalled_downloading(), TorrentInfoList
         )
 
-    if is_version_less_than(api_version, "2.0.1", lteq=False):
+    if v(api_version) < v("2.0.1"):
         with pytest.raises(NotImplementedError):
             get_func(client, client_func)(torrent_hashes=orig_torrent_hash)
 
@@ -562,7 +563,7 @@ def test_recheck(client, orig_torrent_hash, client_func):
 
 @pytest.mark.parametrize("client_func", ("torrents_reannounce", "torrents.reannounce"))
 def test_reannounce(client, api_version, orig_torrent_hash, client_func):
-    if is_version_less_than(api_version, "2.0.2", lteq=False):
+    if v(api_version) < v("2.0.2"):
         with pytest.raises(NotImplementedError):
             get_func(client, client_func)(torrent_hashes=orig_torrent_hash)
     else:
@@ -716,7 +717,7 @@ def test_upload_limit(client, client_func, orig_torrent):
     ),
 )
 def test_set_share_limits(client, api_version, client_func, orig_torrent):
-    if is_version_less_than(api_version, "2.0.1", lteq=False):
+    if v(api_version) < v("2.0.1"):
         with pytest.raises(NotImplementedError):
             get_func(client, client_func)(
                 ratio_limit=2, seeding_time_limit=5, torrent_hashes=orig_torrent.hash
@@ -744,10 +745,10 @@ def test_set_share_limits(client, api_version, client_func, orig_torrent):
     ),
 )
 def test_set_location(client, api_version, client_func, new_torrent):
-    if is_version_less_than("2.0.1", api_version, lteq=False):
+    if v(api_version) > v("2.0.1"):
         home = path.expanduser("~")
         # whether the location is writable is only checked after version 2.0.1
-        if is_version_less_than("2.0.1", api_version, lteq=False):
+        if v(api_version) > v("2.0.1"):
             with pytest.raises(Forbidden403Error):
                 get_func(client, client_func)(
                     location="/etc/", torrent_hashes=new_torrent.hash
@@ -830,7 +831,7 @@ def test_toggle_sequential_download(client, client_func, orig_torrent):
 def test_toggle_first_last_piece_priority(
     client, api_version, client_func, new_torrent
 ):
-    if is_version_less_than("2.0.0", api_version, lteq=False):
+    if v(api_version) > v("2.0.0"):
         current_setting = new_torrent.info.f_l_piece_prio
         sleep(1)
         get_func(client, client_func)(torrent_hashes=new_torrent.hash)
@@ -882,7 +883,7 @@ def test_set_super_seeding(client, client_func, orig_torrent):
     "peers", ("127.0.0.1:5000", ("127.0.0.1:5000", "127.0.0.2:5000"), "127.0.0.1")
 )
 def test_torrents_add_peers(client, api_version, orig_torrent, client_func, peers):
-    if is_version_less_than(api_version, "2.3.0", lteq=False):
+    if v(api_version) < v("2.3.0"):
         with pytest.raises(NotImplementedError):
             get_func(client, client_func)(peers=peers, torrent_hashes=orig_torrent.hash)
     else:
@@ -901,7 +902,7 @@ def test_torrents_add_peers(client, api_version, orig_torrent, client_func, peer
 
 
 def test_categories1(client, api_version):
-    if is_version_less_than(api_version, "2.1.1", lteq=False):
+    if v(api_version) < v("2.1.1"):
         with pytest.raises(NotImplementedError):
             client.torrents_categories()
     else:
@@ -909,7 +910,7 @@ def test_categories1(client, api_version):
 
 
 def test_categories2(client, api_version):
-    if is_version_less_than(api_version, "2.1.1", lteq=False):
+    if v(api_version) < v("2.1.1"):
         with pytest.raises(NotImplementedError):
             client.torrent_categories.categories
     else:
@@ -936,7 +937,7 @@ def test_create_categories(
     client, api_version, orig_torrent, client_func, save_path, name
 ):
     extra_kwargs = dict(save_path=save_path)
-    if is_version_less_than(api_version, "2.1.0", lteq=False) and save_path is not None:
+    if v(api_version) < v("2.1.0") and save_path is not None:
         with pytest.raises(NotImplementedError):
             get_func(client, client_func)(name=name, save_path=save_path)
         extra_kwargs = {}
@@ -945,7 +946,7 @@ def test_create_categories(
         get_func(client, client_func)(name=name, **extra_kwargs)
         client.torrents_set_category(torrent_hashes=orig_torrent.hash, category=name)
         check(lambda: orig_torrent.info.category.replace("+", " "), name)
-        if is_version_less_than("2.1.1", api_version):
+        if v(api_version) > v("2.1.1"):
             check(
                 lambda: [n.replace("+", " ") for n in client.torrents_categories()],
                 name,
@@ -972,11 +973,11 @@ def test_create_categories(
 @pytest.mark.parametrize("save_path", ("", "/tmp/"))
 @pytest.mark.parametrize("name", ("editcategory",))
 def test_edit_category(client, api_version, client_func, save_path, name):
-    if is_version_less_than(api_version, "2.1.0", lteq=False) and save_path is not None:
+    if v(api_version) < v("2.1.0") and save_path is not None:
         with pytest.raises(NotImplementedError):
             get_func(client, client_func)(name=name, save_path=save_path)
 
-    if is_version_less_than("2.1.1", api_version):
+    if v(api_version) > v("2.1.1"):
         try:
             client.torrents_create_category(name=name, save_path="/tmp/tmp")
             get_func(client, client_func)(name=name, save_path=save_path)
@@ -1009,7 +1010,7 @@ def test_remove_category(client, api_version, orig_torrent, client_func, categor
         client.torrents_create_category(name=name)
     orig_torrent.set_category(category=categories[0])
     get_func(client, client_func)(categories=categories)
-    if is_version_less_than("2.1.1", api_version):
+    if v(api_version) > v("2.1.1"):
         check(
             lambda: [n.replace("+", " ") for n in client.torrents_categories()],
             categories,
@@ -1027,7 +1028,7 @@ def test_remove_category(client, api_version, orig_torrent, client_func, categor
     ),
 )
 def test_tags(client, api_version, client_func):
-    if is_version_less_than(api_version, "2.3.0", lteq=False):
+    if v(api_version) < v("2.3.0"):
         with pytest.raises(NotImplementedError):
             get_func(client, client_func)()
     else:
@@ -1039,7 +1040,7 @@ def test_tags(client, api_version, client_func):
 
 def test_add_tag_though_property(client, api_version):
     name = "newtag"
-    if is_version_less_than(api_version, "2.3.0", lteq=False):
+    if v(api_version) < v("2.3.0"):
         with pytest.raises(NotImplementedError):
             client.torrent_tags.tags = name
     else:
@@ -1060,7 +1061,7 @@ def test_add_tag_though_property(client, api_version):
 )
 @pytest.mark.parametrize("tags", (("tag1",), ("tag1", "tag 2")))
 def test_add_tags(client, api_version, orig_torrent, client_func, tags):
-    if is_version_less_than(api_version, "2.3.0", lteq=False):
+    if v(api_version) < v("2.3.0"):
         with pytest.raises(NotImplementedError):
             get_func(client, client_func)(tags=tags, torrent_hashes=orig_torrent.hash)
     else:
@@ -1082,7 +1083,7 @@ def test_add_tags(client, api_version, orig_torrent, client_func, tags):
 )
 @pytest.mark.parametrize("tags", (("tag1",), ("tag1", "tag 2")))
 def test_remove_tags(client, api_version, orig_torrent, client_func, tags):
-    if is_version_less_than(api_version, "2.3.0", lteq=False):
+    if v(api_version) < v("2.3.0"):
         with pytest.raises(NotImplementedError):
             get_func(client, client_func)(tags=tags, torrent_hashes=orig_torrent.hash)
     else:
@@ -1105,7 +1106,7 @@ def test_remove_tags(client, api_version, orig_torrent, client_func, tags):
 )
 @pytest.mark.parametrize("tags", (("tag1",), ("tag1", "tag 2")))
 def test_create_tags(client, api_version, client_func, tags):
-    if is_version_less_than(api_version, "2.3.0", lteq=False):
+    if v(api_version) < v("2.3.0"):
         with pytest.raises(NotImplementedError):
             get_func(client, client_func)(tags=tags)
     else:
@@ -1127,7 +1128,7 @@ def test_create_tags(client, api_version, client_func, tags):
 )
 @pytest.mark.parametrize("tags", (("tag1",), ("tag1", "tag 2")))
 def test_delete_tags(client, api_version, client_func, tags):
-    if is_version_less_than(api_version, "2.3.0", lteq=False):
+    if v(api_version) < v("2.3.0"):
         with pytest.raises(NotImplementedError):
             get_func(client, client_func)(tags=tags)
     else:

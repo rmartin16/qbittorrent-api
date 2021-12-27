@@ -3,6 +3,8 @@ from logging import getLogger
 from os import path
 from os import strerror as os_strerror
 
+from pkg_resources import parse_version as v
+
 try:
     from collections.abc import Iterable
     from collections.abc import Mapping
@@ -83,8 +85,7 @@ class TorrentDictionary(Dictionary):
     @property
     def info(self):
         """Implements :meth:`~TorrentsAPIMixIn.torrents_info`"""
-        api_version = self._client.app.web_api_version
-        if self._client._is_version_less_than(api_version, "2.0.1", lteq=False):
+        if v(self._client.app_web_api_version()) < v("2.0.1"):
             info = [
                 t for t in self._client.torrents_info() if t.hash == self._torrent_hash
             ]
@@ -1073,19 +1074,19 @@ class TorrentsAPIMixIn(Request):
         :return: "Ok." for success and "Fails." for failure
         """
 
-        # convert pre-v2.7 params to post-v2.7 params...or post-v2.7 to pre-v.2.7
+        # convert pre-v2.7 params to post-v2.7 params...or post-v2.7 to pre-v2.7
         api_version = self.app_web_api_version()
         if (
             content_layout is None
             and is_root_folder is not None
-            and self._is_version_less_than("2.7", api_version, lteq=True)
+            and v(api_version) >= v("2.7")
         ):
             content_layout = "Original" if is_root_folder else "NoSubfolder"
             is_root_folder = None
         elif (
             content_layout is not None
             and is_root_folder is None
-            and self._is_version_less_than(api_version, "2.7", lteq=False)
+            and v(api_version) < v("2.7")
         ):
             is_root_folder = content_layout in {"Subfolder", "Original"}
             content_layout = None
@@ -1450,7 +1451,7 @@ class TorrentsAPIMixIn(Request):
             old_path is None
             and new_path is None
             and file_id is not None
-            and self._is_version_less_than("v4.3.3", self.app_version(), lteq=True)
+            and v(self.app_version()) >= v("v4.3.3")
         ):
             try:
                 old_path = self.torrents_files(torrent_hash=torrent_hash)[file_id].name
@@ -1465,7 +1466,7 @@ class TorrentsAPIMixIn(Request):
             old_path is not None
             and new_path is not None
             and file_id is None
-            and self._is_version_less_than(self.app_version(), "v4.3.3", lteq=False)
+            and v(self.app_version()) < v("v4.3.3")
         ):
             # previous only allowed renaming the file...not also moving it
             new_file_name = new_path.split("/")[-1]
@@ -1509,7 +1510,7 @@ class TorrentsAPIMixIn(Request):
         :return: None
         """
         # HACK: v4.3.2 and v4.3.3 both use web api v2.7 but rename_folder was introduced in v4.3.3
-        if self._is_version_less_than("v4.3.3", self.app_version(), lteq=True):
+        if v(self.app_version()) >= v("v4.3.3"):
             data = {
                 "hash": torrent_hash,
                 "oldPath": old_path,
