@@ -1,4 +1,5 @@
 from time import sleep
+from pkg_resources import parse_version as v
 
 import pytest
 
@@ -8,7 +9,7 @@ from qbittorrentapi.search import (
     SearchStatusesList,
     SearchResultsDictionary,
 )
-from tests.conftest import is_version_less_than, check, get_func
+from tests.conftest import check, get_func
 
 plugin_name = "legittorrents"
 legit_torrents_url = "https://raw.githubusercontent.com/qbittorrent/search-plugins/master/nova3/engines/legittorrents.py"
@@ -18,7 +19,7 @@ legit_torrents_url = "https://raw.githubusercontent.com/qbittorrent/search-plugi
     "client_func", ("search_update_plugins", "search.update_plugins")
 )
 def test_update_plugins(client, api_version, client_func):
-    if is_version_less_than(api_version, "2.1.1", lteq=False):
+    if v(api_version) < v("2.1.1"):
         with pytest.raises(NotImplementedError):
             client.search_update_plugins()
     else:
@@ -41,7 +42,7 @@ def test_update_plugins(client, api_version, client_func):
     ),
 )
 def test_enable_plugin(client, api_version, client_func):
-    if is_version_less_than(api_version, "2.1.1", lteq=False):
+    if v(api_version) < v("2.1.1"):
         with pytest.raises(NotImplementedError):
             get_func(client, client_func[1])()
     else:
@@ -84,7 +85,7 @@ def test_enable_plugin(client, api_version, client_func):
     ),
 )
 def test_install_uninstall_plugin(client, api_version, client_func):
-    if is_version_less_than(api_version, "2.1.1", lteq=False):
+    if v(api_version) < v("2.1.1"):
         with pytest.raises(NotImplementedError):
             client.search_install_plugin()
         with pytest.raises(NotImplementedError):
@@ -116,9 +117,7 @@ def test_install_uninstall_plugin(client, api_version, client_func):
 
 @pytest.mark.parametrize("client_func", ("search_categories", "search.categories"))
 def test_categories(client, api_version, client_func):
-    if is_version_less_than(api_version, "2.1.1", lteq=False) or is_version_less_than(
-        "2.6", api_version, lteq=True
-    ):
+    if v(api_version) < v("2.1.1") or v(api_version) >= v("2.6"):
         with pytest.raises(NotImplementedError):
             get_func(client, client_func)()
     else:
@@ -145,7 +144,7 @@ def test_categories(client, api_version, client_func):
     ),
 )
 def test_search(client, api_version, client_func):
-    if is_version_less_than(api_version, "2.1.1", lteq=False):
+    if v(api_version) < v("2.1.1"):
         with pytest.raises(NotImplementedError):
             get_func(client, client_func[0])()
     else:
@@ -174,7 +173,7 @@ def test_search(client, api_version, client_func):
     "client_func", (("search_stop", "search_start"), ("search.stop", "search.start"))
 )
 def test_stop(client, api_version, client_func):
-    if is_version_less_than(api_version, "2.1.1", lteq=False):
+    if v(api_version) < v("2.1.1"):
         with pytest.raises(NotImplementedError):
             get_func(client, client_func[0])(search_id=100)
     else:
@@ -194,7 +193,7 @@ def test_stop(client, api_version, client_func):
 
 
 def test_delete(client, api_version):
-    if is_version_less_than(api_version, "2.1.1", lteq=False):
+    if v(api_version) < v("2.1.1"):
         with pytest.raises(NotImplementedError):
             client.search_stop(search_id=100)
     else:

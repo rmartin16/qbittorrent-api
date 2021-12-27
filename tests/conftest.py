@@ -72,7 +72,6 @@ with open(
     root_folder_torrent_file = f.read()
 root_folder_torrent_hash = "a14553bd936a6d496402082454a70ea7a9521adc"
 
-is_version_less_than = Request._is_version_less_than
 suppress_context = Request._suppress_context
 
 

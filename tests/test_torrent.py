@@ -1,4 +1,5 @@
 from os import path
+from pkg_resources import parse_version as v
 import platform
 from time import sleep
 
@@ -12,7 +13,6 @@ from qbittorrentapi import WebSeedsList
 from qbittorrentapi import TorrentDictionary
 from qbittorrentapi import TorrentFilesList
 from qbittorrentapi import TorrentPieceInfoList
-from tests.conftest import is_version_less_than
 
 from tests.test_torrents import (
     check,
@@ -137,7 +137,7 @@ def test_priority(client, new_torrent, client_func):
 
 @pytest.mark.parametrize("client_func", ("set_share_limits", "setShareLimits"))
 def test_set_share_limits(api_version, orig_torrent, client_func):
-    if is_version_less_than(api_version, "2.0.1", lteq=False):
+    if v(api_version) < v("2.0.1"):
         with pytest.raises(NotImplementedError):
             getattr(orig_torrent, client_func)(ratio_limit=5, seeding_time_limit=100)
     else:
@@ -176,7 +176,7 @@ def test_upload_limit(orig_torrent, client_func):
 
 @pytest.mark.parametrize("client_func", ("set_location", "setLocation"))
 def test_set_location(api_version, new_torrent, client_func):
-    if is_version_less_than("2.0.1", api_version, lteq=False):
+    if v(api_version) > v("2.0.1"):
         exp = None
         for attempt in range(2):
             try:
@@ -223,7 +223,7 @@ def test_toggle_sequential_download(orig_torrent, client_func):
     "client_func", ("toggle_first_last_piece_priority", "toggleFirstLastPiecePrio")
 )
 def test_toggle_first_last_piece_priority(api_version, orig_torrent, client_func):
-    if is_version_less_than("2.0.1", api_version, lteq=False):
+    if v(api_version) > v("2.0.1"):
         current_setting = orig_torrent.f_l_piece_prio
         getattr(orig_torrent, client_func)()
         sleep(1)
@@ -272,7 +272,7 @@ def test_add_tracker(new_torrent, client_func, trackers):
 
 @pytest.mark.parametrize("client_func", ("edit_tracker", "editTracker"))
 def test_edit_tracker(api_version, orig_torrent, client_func):
-    if is_version_less_than(api_version, "2.2.0", lteq=False):
+    if v(api_version) < v("2.2.0"):
         with pytest.raises(NotImplementedError):
             getattr(orig_torrent, client_func)(
                 orig_url="127.0.1.1", new_url="127.0.1.2"
@@ -293,7 +293,7 @@ def test_edit_tracker(api_version, orig_torrent, client_func):
 @pytest.mark.parametrize("client_func", ("remove_trackers", "removeTrackers"))
 @pytest.mark.parametrize("trackers", ("127.0.2.2", ("127.0.2.3", "127.0.2.4")))
 def test_remove_trackers(api_version, orig_torrent, client_func, trackers):
-    if is_version_less_than(api_version, "2.2.0", lteq=False):
+    if v(api_version) < v("2.2.0"):
         with pytest.raises(NotImplementedError):
             getattr(orig_torrent, client_func)(urls=trackers)
     else:
@@ -328,7 +328,7 @@ def test_recheck(orig_torrent):
 
 
 def test_reannounce(api_version, orig_torrent):
-    if is_version_less_than(api_version, "2.0.2", lteq=False):
+    if v(api_version) < v("2.0.2"):
         with pytest.raises(NotImplementedError):
             orig_torrent.reannounce()
     else:
@@ -338,14 +338,14 @@ def test_reannounce(api_version, orig_torrent):
 @pytest.mark.parametrize("client_func", ("rename_file", "renameFile"))
 @pytest.mark.parametrize("name", ("new_name", "new name"))
 def test_rename_file(api_version, app_version, new_torrent, client_func, name):
-    if is_version_less_than(api_version, "2.4.0", lteq=False):
+    if v(api_version) < v("2.4.0"):
         with pytest.raises(NotImplementedError):
             getattr(new_torrent, client_func)(file_id=0, new_file_name=name)
     else:
         getattr(new_torrent, client_func)(file_id=0, new_file_name=name)
         check(lambda: new_torrent.files[0].name, name)
 
-    if is_version_less_than("4.3.3", app_version, lteq=True):
+    if v(app_version) >= v("v4.3.3"):
         curr_name = new_torrent.files[0].name
         getattr(new_torrent, client_func)(old_path=curr_name, new_path=name + "_new")
         check(lambda: new_torrent.files[0].name, name + "_new")
@@ -354,11 +354,11 @@ def test_rename_file(api_version, app_version, new_torrent, client_func, name):
 @pytest.mark.parametrize("client_func", ("rename_folder", "renameFolder"))
 @pytest.mark.parametrize("name", ("new_name", "new name"))
 def test_rename_folder(api_version, app_version, new_torrent, client_func, name):
-    if is_version_less_than(api_version, "2.7", lteq=False):
+    if v(api_version) < v("2.7"):
         with pytest.raises(NotImplementedError):
             getattr(new_torrent, client_func)(old_path="", new_path="")
     # need to ensure we're at least on v4.3.3 to run test
-    if is_version_less_than("v4.3.2", app_version, lteq=False):
+    if v(app_version) > v("v4.3.2"):
         # move the file in to a new folder
         orig_file_path = new_torrent.files[0].name
         new_folder = "qwer"
@@ -405,7 +405,7 @@ def test_rename(orig_torrent, name):
 )
 @pytest.mark.parametrize("tags", ("tag 1", ("tag 2", "tag 3")))
 def test_add_remove_tags(client, api_version, orig_torrent, client_func, tags):
-    if is_version_less_than(api_version, "2.3.0", lteq=False):
+    if v(api_version) < v("2.3.0"):
         with pytest.raises(NotImplementedError):
             getattr(orig_torrent, client_func[0])(tags=tags)
         with pytest.raises(NotImplementedError):

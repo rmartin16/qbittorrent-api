@@ -2,9 +2,10 @@ from functools import wraps
 from json import loads
 from logging import getLogger
 
+from pkg_resources import parse_version as v
+
 from qbittorrentapi.exceptions import APIError
 from qbittorrentapi.exceptions import HTTP403Error
-from qbittorrentapi.request import HelpersMixIn
 
 logger = getLogger(__name__)
 
@@ -173,30 +174,6 @@ def response_json(response_class):
     return _inner
 
 
-def _version_too_old(client, version_to_compare):
-    """
-    Return True if provided API version is older than the connected API, False otherwise
-    """
-    current_version = client.app_web_api_version()
-    if HelpersMixIn._is_version_less_than(
-        current_version, version_to_compare, lteq=False
-    ):
-        return True
-    return False
-
-
-def _version_too_new(client, version_to_compare):
-    """
-    Return True if provided API version is newer or equal to the connected API, False otherwise
-    """
-    current_version = client.app_web_api_version()
-    if HelpersMixIn._is_version_less_than(
-        version_to_compare, current_version, lteq=True
-    ):
-        return True
-    return False
-
-
 def _check_for_raise(client, error_message):
     """
     For any nonexistent endpoint, log the error and conditionally raise an exception.
@@ -219,7 +196,7 @@ def endpoint_introduced(version_introduced, endpoint):
         def wrapper(client, *args, **kwargs):
 
             # if the endpoint doesn't exist, return None or log an error / raise an Exception
-            if _version_too_old(client=client, version_to_compare=version_introduced):
+            if v(client.app_web_api_version()) < v(version_introduced):
                 error_message = (
                     "ERROR: Endpoint '%s' is Not Implemented in this version of qBittorrent. "
                     "This endpoint is available starting in Web API v%s."
@@ -249,7 +226,7 @@ def version_removed(version_obsoleted, endpoint):
         def wrapper(client, *args, **kwargs):
 
             # if the endpoint doesn't exist, return None or log an error / raise an Exception
-            if _version_too_new(client=client, version_to_compare=version_obsoleted):
+            if v(client.app_web_api_version()) >= v(version_obsoleted):
                 error_message = (
                     "ERROR: Endpoint '%s' is Not Implemented. "
                     "This endpoint was removed in Web API v%s."

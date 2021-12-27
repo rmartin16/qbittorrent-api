@@ -1,7 +1,8 @@
+from pkg_resources import parse_version as v
+
 import pytest
 
 from qbittorrentapi.transfer import TransferInfoDictionary
-from tests.conftest import is_version_less_than
 
 
 def test_info(client):
@@ -74,7 +75,7 @@ def test_upload_limit(client):
 
 
 def test_ban_peers(client, api_version):
-    if is_version_less_than(api_version, "2.3", lteq=False):
+    if v(api_version) < v("2.3"):
         with pytest.raises(NotImplementedError):
             client.transfer_ban_peers(peers="1.1.1.1:8080")
     else:

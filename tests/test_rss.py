@@ -1,9 +1,10 @@
 from time import sleep
+from pkg_resources import parse_version as v
 
 import pytest
 
 from qbittorrentapi.rss import RSSitemsDictionary
-from tests.conftest import is_version_less_than, check, get_func
+from tests.conftest import check, get_func
 
 folder_one = "testFolderOne"
 folder_two = "testFolderTwo"
@@ -14,7 +15,7 @@ url = "https://yts.mx/rss/"
 
 
 def test_refresh_item(client, api_version, rss_feed):
-    if is_version_less_than(api_version, "2.2", lteq=False):
+    if v(api_version) < v("2.2"):
         with pytest.raises(NotImplementedError):
             client.rss_refresh_item(item_path=rss_feed)
     else:
@@ -35,7 +36,7 @@ def test_refresh_item(client, api_version, rss_feed):
             negate=True,
         )
 
-    if is_version_less_than(api_version, "2.2", lteq=False):
+    if v(api_version) < v("2.2"):
         with pytest.raises(NotImplementedError):
             client.rss.refresh_item(item_path=rss_feed)
     else:
@@ -112,7 +113,7 @@ def test_move(client, rss_feed):
 
 def test_mark_as_read(client, api_version, rss_feed):
     item_id = client.rss.items.with_data[rss_feed]["articles"][0]["id"]
-    if is_version_less_than(api_version, "2.5.1", lteq=False):
+    if v(api_version) < v("2.5.1"):
         with pytest.raises(NotImplementedError):
             client.rss_mark_as_read(item_path=rss_feed, article_id=item_id)
     else:
@@ -124,7 +125,7 @@ def test_mark_as_read(client, api_version, rss_feed):
         )
 
     item_id = client.rss.items.with_data[rss_feed]["articles"][1]["id"]
-    if is_version_less_than(api_version, "2.5.1", lteq=False):
+    if v(api_version) < v("2.5.1"):
         with pytest.raises(NotImplementedError):
             client.rss.mark_as_read(item_path=rss_feed, article_id=item_id)
     else:
@@ -181,14 +182,12 @@ def test_rules(client, api_version, client_func, rss_feed):
         )  # rss_set_rule
         check_for_rule(rule_name)
 
-        if is_version_less_than(
-            "2.6", api_version, lteq=True
-        ):  # rename was broken in qBittorrent for a period
+        if v(api_version) >= v("2.6"):  # rename was broken in qBittorrent for a period
             get_func(client, client_func[3])(
                 orig_rule_name=rule_name, new_rule_name=rule_name_new
             )  # rss_rename_rule
             check_for_rule(rule_name_new)
-        if is_version_less_than(api_version, "2.5.1", lteq=False):
+        if v(api_version) < v("2.5.1"):
             with pytest.raises(NotImplementedError):
                 get_func(client, client_func[4])(
                     rule_name=rule_name

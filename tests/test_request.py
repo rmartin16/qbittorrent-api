@@ -4,6 +4,7 @@ import re
 import sys
 from collections import namedtuple
 from os import environ
+from pkg_resources import parse_version as v
 
 import pytest
 
@@ -12,19 +13,9 @@ from qbittorrentapi import exceptions
 from qbittorrentapi.request import Request
 from qbittorrentapi.torrents import TorrentDictionary
 from qbittorrentapi.torrents import TorrentInfoList
-from tests.conftest import is_version_less_than
 from tests.conftest import BASE_PATH
 
 MockResponse = namedtuple("MockResponse", ("status_code", "text"))
-
-
-def test_is_version_less_than():
-    assert Request._is_version_less_than("1", "1", lteq=True) is True
-    assert Request._is_version_less_than("1", "1", lteq=False) is False
-    assert Request._is_version_less_than("1.5", "1", lteq=True) is False
-    assert Request._is_version_less_than("1.5", "1", lteq=False) is False
-    assert Request._is_version_less_than("1", "1.5", lteq=True) is True
-    assert Request._is_version_less_than("1", "1.5", lteq=False) is True
 
 
 def test_log_in():
@@ -360,7 +351,7 @@ def test_http400(client, app_version, orig_torrent_hash):
     with pytest.raises(exceptions.MissingRequiredParameters400Error):
         client.torrents_file_priority(hash=orig_torrent_hash)
 
-    if is_version_less_than("4.1.5", app_version, lteq=False):
+    if v(app_version) > v("4.1.5"):
         with pytest.raises(exceptions.InvalidRequest400Error):
             client.torrents_file_priority(
                 hash=orig_torrent_hash, file_ids="asdf", priority="asdf"
@@ -398,7 +389,7 @@ def test_http404(client, params):
 
 
 def test_http409(client, app_version):
-    if is_version_less_than("4.1.5", app_version, lteq=False):
+    if v(app_version) > v("4.1.5"):
         with pytest.raises(exceptions.Conflict409Error):
             client.torrents_set_location(torrent_hashes="asdf", location="/etc/asdf/")
 

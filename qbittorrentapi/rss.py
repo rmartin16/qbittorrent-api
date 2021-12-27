@@ -1,5 +1,7 @@
 from json import dumps
 
+from pkg_resources import parse_version as v
+
 from qbittorrentapi.decorators import Alias
 from qbittorrentapi.decorators import aliased
 from qbittorrentapi.decorators import endpoint_introduced
@@ -225,7 +227,7 @@ class RSSAPIMixIn(Request):
         :return: None
         """
         # HACK: v4.1.7 and v4.1.8 both use api v2.2; however, refreshItem was introduced in v4.1.8
-        if self._is_version_less_than("v4.1.7", self.app_version(), False):
+        if v(self.app_version()) > v("v4.1.7"):
             data = {"itemPath": item_path}
             self._post(_name=APINames.RSS, _method="refreshItem", data=data, **kwargs)
 
