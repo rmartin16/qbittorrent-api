@@ -72,8 +72,6 @@ with open(
     root_folder_torrent_file = f.read()
 root_folder_torrent_hash = "a14553bd936a6d496402082454a70ea7a9521adc"
 
-suppress_context = Request._suppress_context
-
 
 def get_func(client, func_str):
     func = client
@@ -87,7 +85,7 @@ def check(
 ):
     """
     Compare the return value of an arbitrary function to expected value with retries.
-    Since some requests take some time to take affect in qBittorrent, the retries every second for 10 seconds.
+    Since some requests take some time to take effect in qBittorrent, the retries every second for 10 seconds.
 
     :param check_func: callable to generate values to check
     :param value: str, int, or iterator of values to look for
@@ -146,7 +144,7 @@ def check(
                     raise
                 sleep(1)
     except APIConnectionError:
-        raise suppress_context(AssertionError("qBittrorrent crashed..."))
+        raise AssertionError("qBittrorrent crashed...")
 
 
 def retry(retries=3):

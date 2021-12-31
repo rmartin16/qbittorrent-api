@@ -19,11 +19,12 @@ def test_refresh_item(client, api_version, rss_feed):
         with pytest.raises(NotImplementedError):
             client.rss_refresh_item(item_path=rss_feed)
     else:
-        # client.rss_refresh_item(item_path=rss_feed)
+        client.rss_refresh_item(item_path=rss_feed)
         check(
             lambda: client.rss_items(include_feed_data=True)[rss_feed]["lastBuildDate"],
             "",
             negate=True,
+            check_limit=20,
         )
         last_refresh = client.rss_items(include_feed_data=True)[rss_feed][
             "lastBuildDate"
@@ -34,6 +35,7 @@ def test_refresh_item(client, api_version, rss_feed):
             lambda: client.rss_items(include_feed_data=True)[rss_feed]["lastBuildDate"],
             last_refresh,
             negate=True,
+            check_limit=20,
         )
 
     if v(api_version) < v("2.2"):
@@ -45,6 +47,7 @@ def test_refresh_item(client, api_version, rss_feed):
             lambda: client.rss_items(include_feed_data=True)[rss_feed]["lastBuildDate"],
             "",
             negate=True,
+            check_limit=20,
         )
         last_refresh = client.rss_items(include_feed_data=True)[rss_feed][
             "lastBuildDate"
@@ -55,6 +58,7 @@ def test_refresh_item(client, api_version, rss_feed):
             lambda: client.rss_items(include_feed_data=True)[rss_feed]["lastBuildDate"],
             last_refresh,
             negate=True,
+            check_limit=20,
         )
 
 

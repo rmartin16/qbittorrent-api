@@ -40,46 +40,7 @@ logger = getLogger(__name__)
 getLogger("qbittorrentapi").addHandler(NullHandler())
 
 
-class HelpersMixIn(object):
-    """
-    Miscellaneous helper functions.
-    """
-
-    @classmethod
-    def _list2string(cls, input_list=None, delimiter="|"):
-        """
-        Convert entries in a list to a concatenated string
-
-        :param input_list: list to convert
-        :param delimiter: delimiter for concatenation
-        :return: if input is a list, concatenated string...else whatever the input was
-        """
-        is_string = isinstance(input_list, six_string_types)
-        is_iterable = isinstance(input_list, Iterable)
-        if is_iterable and not is_string:
-            return delimiter.join(map(str, input_list))
-        return input_list
-
-    @classmethod
-    def _suppress_context(cls, exc):
-        """
-        This is used to mask an exception with another one.
-
-        For instance, below, the divide by zero error is masked by the CustomException.
-            try:
-                1/0
-            except ZeroDivisionError:
-                raise suppress_context(CustomException())
-
-        Note: In python 3, the last line would simply be raise CustomException() from None
-        :param exc: new Exception that will be raised
-        :return: Exception to be raised
-        """
-        exc.__cause__ = None
-        return exc
-
-
-class Request(HelpersMixIn):
+class Request(object):
     """
     Facilitates HTTP requests to qBittorrent's Web API.
     """
@@ -193,6 +154,21 @@ class Request(HelpersMixIn):
 
         # Mocking variables until better unit testing exists
         self._MOCK_WEB_API_VERSION = MOCK_WEB_API_VERSION
+
+    @classmethod
+    def _list2string(cls, input_list=None, delimiter="|"):
+        """
+        Convert entries in a list to a concatenated string
+
+        :param input_list: list to convert
+        :param delimiter: delimiter for concatenation
+        :return: if input is a list, concatenated string...else whatever the input was
+        """
+        is_string = isinstance(input_list, six_string_types)
+        is_iterable = isinstance(input_list, Iterable)
+        if is_iterable and not is_string:
+            return delimiter.join(map(str, input_list))
+        return input_list
 
     def _get(self, _name=APINames.EMPTY, _method="", **kwargs):
         return self._request_manager(
