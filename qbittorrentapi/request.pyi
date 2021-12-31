@@ -14,13 +14,7 @@ from qbittorrentapi.torrents import TorrentTags
 from qbittorrentapi.torrents import Torrents
 from qbittorrentapi.transfer import Transfer
 
-class HelpersMixIn:
-    @classmethod
-    def _list2string(cls, input_list: Iterable = None, delimiter: Text = "|"): ...
-    @classmethod
-    def _suppress_context(cls, exc: Exception): ...
-
-class Request(HelpersMixIn):
+class Request(object):
     host: Text
     port: Text | int
     username: Text
@@ -76,6 +70,8 @@ class Request(HelpersMixIn):
         DISABLE_LOGGING_DEBUG_OUTPUT: bool = False,
         MOCK_WEB_API_VERSION: Text = None,
     ) -> None: ...
+    @classmethod
+    def _list2string(cls, input_list: Iterable = None, delimiter: Text = "|"): ...
     def _trigger_session_initialization(self) -> None: ...
     def _get(self, _name: APINames | Text, _method: Text, **kwargs) -> Response: ...
     def _post(self, _name: APINames | Text, _method: Text, **kwargs) -> Response: ...

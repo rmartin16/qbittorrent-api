@@ -12,9 +12,9 @@ from qbittorrentapi.decorators import (
 from qbittorrentapi import APIError
 from qbittorrentapi._attrdict import AttrDict
 from qbittorrentapi.decorators import endpoint_introduced, version_removed
-from qbittorrentapi.request import HelpersMixIn
+from qbittorrentapi.request import Request
 
-list2str = HelpersMixIn._list2string
+list2str = Request._list2string
 
 
 def test_login_required(caplog, app_version):
