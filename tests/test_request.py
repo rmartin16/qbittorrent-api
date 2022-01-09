@@ -299,6 +299,22 @@ def test_mock_api_version():
     assert client.app_web_api_version() == "1.5"
 
 
+def test_unsupported_version_error():
+    client = Client(
+        MOCK_WEB_API_VERSION="0.0.0",
+        VERIFY_WEBUI_CERTIFICATE=False,
+        RAISE_ERROR_FOR_UNSUPPORTED_QBITTORRENT_VERSIONS=True,
+    )
+    with pytest.raises(exceptions.UnsupportedQbittorrentVersion):
+        _ = client.app.version
+
+    client = Client(
+        VERIFY_WEBUI_CERTIFICATE=False,
+        RAISE_ERROR_FOR_UNSUPPORTED_QBITTORRENT_VERSIONS=True,
+    )
+    _ = client.app.version
+
+
 def test_disable_logging():
     _ = Client(DISABLE_LOGGING_DEBUG_OUTPUT=False)
     assert logging.getLogger("qbittorrentapi").level == logging.NOTSET

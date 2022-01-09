@@ -45,6 +45,18 @@ Unimplemented API Endpoints
 * By default, if a call is made to endpoint that doesn't exist for the version of the qBittorrent host (e.g., the Search endpoints were introduced in Web API v2.1.1), there's a debug logger output and None is returned.
 * To raise ``NotImplementedError`` instead, instantiate Client with ``RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True``.
 
+qBittorrent Version Checking
+****************************
+* It is also possible to either raise an Exception for qBittorrent hosts that are not "fully" supported or manually check for support.
+* The most likely situation for this to occur is if the qBittorrent team publishes a new release but its changes have not been incorporated in to this client yet.
+* Instantiate Client like below to raise ``UnsupportedQbittorrentVersion`` exception for versions not fully supported:
+
+  * ``qbt_client = Client(..., RAISE_ERROR_FOR_UNSUPPORTED_QBITTORRENT_VERSIONS=True)``
+
+* Additionally, the :doc:`qbittorrentapi.Version <apidoc/version>` class can be used for manual introspection of the versions.
+
+  * For instance, ``Version.is_app_version_supported(qbt_client.app.version)``
+
 Disable Logging Debug Output
 ****************************
 * Instantiate Client with `DISABLE_LOGGING_DEBUG_OUTPUT=True` or manually disable logging for the relevant packages:

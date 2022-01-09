@@ -1,9 +1,11 @@
 from logging import getLogger
 
+from qbittorrentapi import Version
 from qbittorrentapi.decorators import login_required
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.exceptions import LoginFailed
+from qbittorrentapi.exceptions import UnsupportedQbittorrentVersion
 from qbittorrentapi.request import Request
 
 logger = getLogger(__name__)
@@ -97,6 +99,19 @@ class AuthAPIMixIn(Request):
             raise LoginFailed()
         logger.debug("Login successful")
         logger.debug("SID: %s", self._SID)
+
+        # check if the connected qBittorrent is fully supported by this Client yet
+        if self._RAISE_UNSUPPORTEDVERSIONERROR:
+            app_version = self.app_version()
+            api_version = self.app_web_api_version()
+            if not (
+                Version.is_api_version_supported(api_version)
+                and Version.is_app_version_supported(app_version)
+            ):
+                raise UnsupportedQbittorrentVersion(
+                    "This version of qBittorrent is not fully supported => App Version: %s API Version: %s"
+                    % (app_version, api_version)
+                )
 
     @property
     def _SID(self):

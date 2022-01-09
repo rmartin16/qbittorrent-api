@@ -8,7 +8,9 @@ import six
 from qbittorrentapi import APIConnectionError
 from qbittorrentapi import Client
 
-from .version_map import api_version_map
+from qbittorrentapi._version_support import (
+    APP_VERSION_2_API_VERSION_MAP as api_version_map,
+)
 
 qbt_version = "v" + os.environ["QBT_VER"]
 
