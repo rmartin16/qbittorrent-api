@@ -1,3 +1,4 @@
+from qbittorrentapi._version_support import Version
 from qbittorrentapi.app import *
 from qbittorrentapi.auth import *
 from qbittorrentapi.client import Client

@@ -6,6 +6,10 @@ class APIError(Exception):
     """Base error for all exceptions from this Client."""
 
 
+class UnsupportedQbittorrentVersion(APIError):
+    """Connected qBittorrent is not fully supported by this Client"""
+
+
 class FileError(IOError, APIError):
     """Base class for all exceptions for file handling."""
 

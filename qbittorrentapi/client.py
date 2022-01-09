@@ -88,6 +88,8 @@ class Client(
         determine which scheme qBittorrent is actually listening on...but this can cause problems in rare cases.
     :param RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS: Some Endpoints may not be implemented in older
         versions of qBittorrent. Setting this to True will raise a NotImplementedError instead of just returning None.
+    :param RAISE_ERROR_FOR_UNSUPPORTED_QBITTORRENT_VERSIONS: raise the UnsupportedQbittorrentVersion exception if the
+        connected version of qBittorrent is not fully supported by this client.
     :param DISABLE_LOGGING_DEBUG_OUTPUT: Turn off debug output from logging for this package as well as Requests & urllib3.
     """
 
