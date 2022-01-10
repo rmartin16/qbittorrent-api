@@ -385,6 +385,7 @@ def test_reannounce(api_version, orig_torrent):
 @pytest.mark.parametrize("client_func", ("rename_file", "renameFile"))
 @pytest.mark.parametrize("name", ("new_name", "new name"))
 def test_rename_file(api_version, app_version, new_torrent, client_func, name):
+    sleep(2)
     if v(api_version) < v("2.4.0"):
         with pytest.raises(NotImplementedError):
             getattr(new_torrent, client_func)(file_id=0, new_file_name=name)
@@ -394,8 +395,9 @@ def test_rename_file(api_version, app_version, new_torrent, client_func, name):
 
     if v(app_version) >= v("v4.3.3"):
         curr_name = new_torrent.files[0].name
-        getattr(new_torrent, client_func)(old_path=curr_name, new_path=name + "_new")
-        check(lambda: new_torrent.files[0].name, name + "_new")
+        new_name = "NEW_" + name
+        getattr(new_torrent, client_func)(old_path=curr_name, new_path=new_name)
+        check(lambda: new_torrent.files[0].name, new_name)
 
 
 @pytest.mark.parametrize("client_func", ("rename_folder", "renameFolder"))

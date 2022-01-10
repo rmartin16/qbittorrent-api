@@ -39,6 +39,7 @@ class RSS(ClientCache):
     def rules(self) -> RSSRulesDictionary: ...
     def matching_articles(self, rule_name: Text = None, **kwargs): ...
     matchingArticles = matching_articles
+
     class _Items(ClientCache):
         def __call__(
             self, include_feed_data: bool = None, **kwargs

@@ -13,7 +13,7 @@ from qbittorrentapi import exceptions
 from qbittorrentapi.request import Request
 from qbittorrentapi.torrents import TorrentDictionary
 from qbittorrentapi.torrents import TorrentInfoList
-from tests.conftest import BASE_PATH
+from tests.conftest import BASE_PATH, IS_QBT_DEV
 
 MockResponse = namedtuple("MockResponse", ("status_code", "text"))
 
@@ -188,9 +188,9 @@ def test_log_out(client):
     client.auth_log_in()
 
 
-def test_port(api_version):
+def test_port(app_version):
     client = Client(host="localhost", port=8080, VERIFY_WEBUI_CERTIFICATE=False)
-    assert client.app.web_api_version == api_version
+    assert client.app.version == app_version
 
 
 def test_simple_response(client, orig_torrent):
@@ -300,6 +300,9 @@ def test_mock_api_version():
 
 
 def test_unsupported_version_error():
+    if IS_QBT_DEV:
+        return
+
     client = Client(
         MOCK_WEB_API_VERSION="0.0.0",
         VERIFY_WEBUI_CERTIFICATE=False,
@@ -333,20 +336,20 @@ def test_disable_logging():
     assert logging.getLogger("urllib3").level == logging.INFO
 
 
-def test_verify_cert(api_version):
+def test_verify_cert(app_version):
     client = Client(VERIFY_WEBUI_CERTIFICATE=False)
     assert client._VERIFY_WEBUI_CERTIFICATE is False
-    assert client.app.web_api_version == api_version
+    assert client.app.version == app_version
 
     # this is only ever going to work with a trusted cert....disabling for now
     # client = Client(VERIFY_WEBUI_CERTIFICATE=True)
     # assert client._VERIFY_WEBUI_CERTIFICATE is True
-    # assert client.app.web_api_version == api_version
+    # assert client.app.version == app_version
 
     environ["PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE"] = "true"
     client = Client(VERIFY_WEBUI_CERTIFICATE=True)
     assert client._VERIFY_WEBUI_CERTIFICATE is False
-    assert client.app.web_api_version == api_version
+    assert client.app.version == app_version
 
 
 def test_api_connection_error():
