@@ -12,7 +12,8 @@ from qbittorrentapi._version_support import (
     APP_VERSION_2_API_VERSION_MAP as api_version_map,
 )
 
-qbt_version = "v" + os.environ["QBT_VER"]
+qbt_version = "v" + os.environ.get("QBT_VER", "")
+IS_QBT_DEV = bool(os.environ.get("IS_QBT_DEV", False))
 
 BASE_PATH = sys_path[0]
 _check_limit = 10
@@ -240,15 +241,22 @@ def new_torrent_standalone(client, torrent_hash=torrent1_hash, **kwargs):
 
 
 @pytest.fixture(scope="session")
-def app_version():
+def app_version(client):
     """qBittorrent App Version being used for testing"""
-    return qbt_version
+    if qbt_version != "v":
+        return qbt_version
+    return client.app_version()
 
 
 @pytest.fixture(scope="session")
-def api_version():
+def api_version(client):
     """qBittorrent App API Version being used for testing"""
-    return api_version_map[qbt_version]
+    try:
+        return api_version_map[qbt_version]
+    except KeyError as exp:
+        if IS_QBT_DEV:
+            return client.app.web_api_version
+        raise exp
 
 
 @pytest.fixture(scope="function")
@@ -263,7 +271,7 @@ def rss_feed(client):
     name = "YTS1080p"
     url = "https://yts.mx/rss/"
     # refreshing the feed is finicky...so try several times if necessary
-    for i in range(3):
+    for i in range(10):
         delete_feed()
         client.rss.add_feed(url=url, item_path=name)
         # wait until the rss feed exists and is refreshed

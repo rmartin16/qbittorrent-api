@@ -462,6 +462,7 @@ def test_rename_file(
                 torrent_hash=new_torrent.hash, file_id=0, new_file_name=new_name
             )
     else:
+        sleep(2)
         # pre-v4.3.3 rename_file signature
         getattr(client, client_func)(
             torrent_hash=new_torrent.hash, file_id=0, new_file_name=new_name
@@ -473,12 +474,13 @@ def test_rename_file(
                 torrent_hash=new_torrent.hash, file_id=10, new_file_name=new_name
             )
         # post-v4.3.3 rename_file signature
+        new_new_name = new_name + "NEW"
         getattr(client, client_func)(
             torrent_hash=new_torrent.hash,
             old_path=new_torrent.files[0].name,
-            new_path=new_name + "_new",
+            new_path=new_new_name,
         )
-        check(lambda: new_torrent.files[0].name.replace("+", " "), new_name + "_new")
+        check(lambda: new_torrent.files[0].name.replace("+", " "), new_new_name)
         # test invalid old_path is rejected
         with pytest.raises(Conflict409Error):
             getattr(client, client_func)(
@@ -1009,7 +1011,9 @@ def _categories_save_path_key(api_version):
     With qBittorrent 4.4.0 (Web API 2.8.4), the key in the category
     definition returned changed from savePath to save_path....
     """
-    return "save_path" if v("2.8.5") > v(api_version) >= v("2.8.4") else "savePath"
+    if v(api_version) == v("2.8.4"):
+        return "save_path"
+    return "savePath"
 
 
 def test_categories1(client, api_version):
@@ -1139,7 +1143,7 @@ def test_edit_category(
                 save_path or "",
                 reverse=True,
             )
-            if v(api_version) > v("2.8.4") and download_path is not False:
+            if v(api_version) >= v("2.8.4") and enable_download_path is not False:
                 check(
                     lambda: [
                         cat.get("download_path", "")

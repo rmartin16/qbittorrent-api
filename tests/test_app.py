@@ -3,6 +3,8 @@ from pkg_resources import parse_version as v
 
 import pytest
 
+from tests.conftest import IS_QBT_DEV
+
 
 def test_version(client, app_version):
     assert client.app_version() == app_version
@@ -11,6 +13,9 @@ def test_version(client, app_version):
 
 
 def test_web_api_version(client, api_version):
+    if IS_QBT_DEV:
+        return
+
     assert client.app_web_api_version() == api_version
     assert client.app.web_api_version == api_version
     assert client.application.web_api_version == api_version

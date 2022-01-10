@@ -26,6 +26,7 @@ class Log(ClientCache):
     def peers(
         self, last_known_id: Text | int = None, **kwargs
     ) -> LogPeersList[LogPeer]: ...
+
     class _Main(ClientCache):
         def _api_call(
             self,

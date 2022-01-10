@@ -238,11 +238,13 @@ class Torrents(ClientCache):
         seeding_time_limit: Text | int = None,
         **kwargs
     ) -> Text: ...
+
     class _ActionForAllTorrents(ClientCache):
         func: Callable
         def __init__(self, client: Client, func: Callable) -> None: ...
         def __call__(self, torrent_hashes: Iterable[Text] = None, **kwargs): ...
         def all(self, **kwargs): ...
+
     class _Info(ClientCache):
         def __call__(
             self,

@@ -1,10 +1,13 @@
 from sys import version_info
 
-from .conftest import api_version_map
+from tests.conftest import api_version_map, IS_QBT_DEV
 from qbittorrentapi import Version
 
 
 def test_supported_versions(app_version, api_version):
+    if IS_QBT_DEV:
+        return
+
     assert isinstance(Version.supported_api_versions(), set)
     assert api_version in Version.supported_api_versions()
     assert isinstance(Version.supported_app_versions(), set)
@@ -12,6 +15,9 @@ def test_supported_versions(app_version, api_version):
 
 
 def test_is_supported(app_version, api_version):
+    if IS_QBT_DEV:
+        return
+
     assert Version.is_app_version_supported(app_version) is True
     assert Version.is_app_version_supported(app_version[1:]) is True
     assert Version.is_app_version_supported("0.0.0") is False
@@ -22,6 +28,9 @@ def test_is_supported(app_version, api_version):
 
 
 def test_latest_version():
+    if IS_QBT_DEV:
+        return
+
     # order of dictionary keys was guaranteed starting in python 3.7
     if version_info.major >= 3 and version_info.minor >= 7:
         expected_latest_api_version = list(api_version_map.values())[-1]
