@@ -52,6 +52,12 @@ def get_func(client, func_str):
     return func
 
 
+def mkpath(user_path):
+    if user_path:
+        return os.path.abspath(os.path.realpath(os.path.expanduser(user_path)))
+    return ""
+
+
 def check(
     check_func, value, reverse=False, negate=False, any=False, check_limit=_check_limit
 ):
