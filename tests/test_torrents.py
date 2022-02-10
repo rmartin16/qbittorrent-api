@@ -1,6 +1,5 @@
 import errno
 import logging
-from os import path
 from pkg_resources import parse_version as v
 import platform
 from sys import version_info
@@ -33,6 +32,7 @@ from qbittorrentapi.torrents import TagList
 
 from tests.conftest import (
     check,
+    mkpath,
     new_torrent_standalone,
     retry,
     root_folder_torrent_hash,
@@ -70,7 +70,7 @@ def test_add_delete(client, api_version, client_func):
                     r.raise_for_status()
                     if return_bytes:
                         return r.content
-                    with open(path.expanduser("~/%s" % filename), "wb") as f:
+                    with open(mkpath("~/%s" % filename), "wb") as f:
                         for chunk in r.iter_content(chunk_size=1024):
                             f.write(chunk)
             except (Exception if attempt < (max_attempts - 1) else ZeroDivisionError):
@@ -149,8 +149,8 @@ def test_add_delete(client, api_version, client_func):
         download_file(url=torrent1_url, filename=torrent1_filename)
         download_file(url=torrent2_url, filename=torrent2_filename)
         files = (
-            open(path.expanduser("~/" + torrent1_filename), "rb"),
-            open(path.expanduser("~/" + torrent2_filename), "rb"),
+            open(mkpath("~/" + torrent1_filename), "rb"),
+            open(mkpath("~/" + torrent2_filename), "rb"),
         )
 
         if single:
@@ -245,7 +245,7 @@ def test_add_options(client, api_version, keep_root_folder, content_layout):
             torrent_hash=root_folder_torrent_hash,
             client=client,
             torrent_files=root_folder_torrent_file,
-            save_path=path.expanduser("~/test_download/"),
+            save_path=mkpath("~/test_download/"),
             category="test_category",
             is_paused=True,
             upload_limit=1024,
@@ -268,7 +268,7 @@ def test_add_options(client, api_version, keep_root_folder, content_layout):
         reverse=True,
         any=True,
     )
-    check(lambda: torrent.info.save_path, path.expanduser("~/test_download/"))
+    check(lambda: mkpath(torrent.info.save_path), mkpath("~/test_download/"))
     check(lambda: torrent.info.up_limit, 1024)
     check(lambda: torrent.info.dl_limit, 2048)
     check(lambda: torrent.info.seq_dl, True)
@@ -312,8 +312,8 @@ def test_torrents_add_download_path(client, api_version, use_download_path):
         return
 
     client.torrents_delete(torrent_hashes=root_folder_torrent_hash, delete_files=True)
-    save_path = path.expanduser("~/down_path_save_path_test")
-    download_path = path.expanduser("~/down_path_test")
+    save_path = mkpath("~/down_path_save_path_test")
+    download_path = mkpath("~/down_path_test")
     torrent = next(
         new_torrent_standalone(
             client=client,
@@ -327,9 +327,9 @@ def test_torrents_add_download_path(client, api_version, use_download_path):
     )
 
     if use_download_path is False:
-        check(lambda: torrent.info.download_path, download_path, negate=True)
+        check(lambda: mkpath(torrent.info.download_path), download_path, negate=True)
     else:
-        check(lambda: torrent.info.download_path, download_path)
+        check(lambda: mkpath(torrent.info.download_path), download_path)
 
 
 def test_properties(client, orig_torrent):
@@ -791,10 +791,10 @@ def test_set_location(client, api_version, client_func, new_torrent):
                 location="/etc/", torrent_hashes=new_torrent.hash
             )
 
-        loc = path.expanduser("~/Downloads/1/")
+        loc = mkpath("~/Downloads/1/")
         get_func(client, client_func)(location=loc, torrent_hashes=new_torrent.hash)
         # qBittorrent may return trailing separators depending on version....
-        check(lambda: new_torrent.info.save_path, (loc, loc[: len(loc) - 1]), any=True)
+        check(lambda: mkpath(new_torrent.info.save_path), loc, any=True)
 
 
 @pytest.mark.parametrize(
@@ -817,10 +817,10 @@ def test_set_save_path(client, api_version, client_func, new_torrent):
                 save_path="/etc/asdf", torrent_hashes=new_torrent.hash
             )
 
-        loc = path.expanduser("~/Downloads/savepath1/")
+        loc = mkpath("~/Downloads/savepath1/")
         get_func(client, client_func)(save_path=loc, torrent_hashes=new_torrent.hash)
         # qBittorrent may return trailing separators depending on version....
-        check(lambda: new_torrent.info.save_path, (loc, loc[: len(loc) - 1]), any=True)
+        check(lambda: mkpath(new_torrent.info.save_path), loc, any=True)
 
     else:
         with pytest.raises(NotImplementedError):
@@ -849,14 +849,12 @@ def test_set_download_path(client, api_version, client_func, new_torrent):
                 download_path="/etc/asdf", torrent_hashes=new_torrent.hash
             )
 
-        loc = path.expanduser("~/Downloads/savepath1/")
+        loc = mkpath("~/Downloads/savepath1/")
         get_func(client, client_func)(
             download_path=loc, torrent_hashes=new_torrent.hash
         )
         # qBittorrent may return trailing separators depending on version....
-        check(
-            lambda: new_torrent.info.download_path, (loc, loc[: len(loc) - 1]), any=True
-        )
+        check(lambda: mkpath(new_torrent.info.download_path), loc, any=True)
 
     else:
         with pytest.raises(NotImplementedError):
@@ -1034,7 +1032,9 @@ def test_categories2(client, api_version):
         client.torrent_categories.categories = {"name": name, save_path_key: "/tmp"}
         assert name in client.torrent_categories.categories
         client.torrent_categories.categories = {"name": name, save_path_key: "/tmp/new"}
-        assert client.torrent_categories.categories[name][save_path_key] == "/tmp/new"
+        assert mkpath(
+            client.torrent_categories.categories[name][save_path_key]
+        ) == mkpath("/tmp/new")
         client.torrents_remove_categories(categories=name)
 
 
@@ -1080,18 +1080,19 @@ def test_create_categories(
             save_path_key = _categories_save_path_key(api_version)
             check(
                 lambda: [
-                    cat[save_path_key] for cat in client.torrents_categories().values()
+                    mkpath(cat[save_path_key])
+                    for cat in client.torrents_categories().values()
                 ],
-                save_path or "",
+                mkpath(save_path) or "",
                 reverse=True,
             )
         if v(api_version) >= v("2.8.4") and enable_download_path is not False:
             check(
                 lambda: [
-                    cat.get("download_path", "")
+                    mkpath(cat.get("download_path", ""))
                     for cat in client.torrents_categories().values()
                 ],
-                download_path or "",
+                mkpath(download_path) or "",
                 reverse=True,
             )
     finally:
@@ -1122,8 +1123,8 @@ def test_edit_category(
             client.torrents_create_category(
                 name=name, save_path="/tmp/savetmp", download_path="/tmp/savetmp"
             )
-            save_path = filepath + "save/"
-            download_path = filepath + "down/"
+            save_path = mkpath(filepath + "save/")
+            download_path = mkpath(filepath + "down/")
             get_func(client, client_func)(
                 name=name,
                 save_path=save_path,
@@ -1138,18 +1139,19 @@ def test_edit_category(
             save_path_key = _categories_save_path_key(api_version)
             check(
                 lambda: (
-                    cat[save_path_key] for cat in client.torrents_categories().values()
+                    mkpath(cat[save_path_key])
+                    for cat in client.torrents_categories().values()
                 ),
-                save_path or "",
+                mkpath(save_path) or "",
                 reverse=True,
             )
             if v(api_version) >= v("2.8.4") and enable_download_path is not False:
                 check(
                     lambda: [
-                        cat.get("download_path", "")
+                        mkpath(cat.get("download_path", ""))
                         for cat in client.torrents_categories().values()
                     ],
-                    download_path or "",
+                    mkpath(download_path) or "",
                     reverse=True,
                 )
         finally:

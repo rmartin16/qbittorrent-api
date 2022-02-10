@@ -1,4 +1,3 @@
-from os import path
 from pkg_resources import parse_version as v
 import platform
 from time import sleep
@@ -16,6 +15,7 @@ from qbittorrentapi import TorrentPieceInfoList
 
 from tests.test_torrents import (
     check,
+    mkpath,
     torrent1_url,
     torrent1_hash,
     enable_queueing,
@@ -180,12 +180,11 @@ def test_set_location(api_version, new_torrent, client_func):
         exp = None
         for attempt in range(2):
             try:
-                loc = path.expanduser("~/Downloads/3/")
+                loc = mkpath("~/Downloads/3/")
                 getattr(new_torrent, client_func)(loc)
-                # qBittorrent may return trailing separators depending on version....
                 check(
-                    lambda: new_torrent.info.save_path,
-                    (loc, loc[: len(loc) - 1]),
+                    lambda: mkpath(new_torrent.info.save_path),
+                    mkpath(loc),
                     any=True,
                 )
                 break
@@ -201,12 +200,12 @@ def test_set_save_path(api_version, new_torrent, client_func):
         exp = None
         for attempt in range(2):
             try:
-                loc = path.expanduser("~/Downloads/savepath3/")
+                loc = mkpath("~/Downloads/savepath3/")
                 getattr(new_torrent, client_func)(loc)
                 # qBittorrent may return trailing separators depending on version....
                 check(
-                    lambda: new_torrent.info.save_path,
-                    (loc, loc[: len(loc) - 1]),
+                    lambda: mkpath(new_torrent.info.save_path),
+                    mkpath(loc),
                     any=True,
                 )
                 break
@@ -222,12 +221,12 @@ def test_set_download_path(api_version, new_torrent, client_func):
         exp = None
         for attempt in range(2):
             try:
-                loc = path.expanduser("~/Downloads/downloadpath3/")
+                loc = mkpath("~/Downloads/downloadpath3/")
                 getattr(new_torrent, client_func)(loc)
                 # qBittorrent may return trailing separators depending on version....
                 check(
-                    lambda: new_torrent.info.download_path,
-                    (loc, loc[: len(loc) - 1]),
+                    lambda: mkpath(new_torrent.info.download_path),
+                    mkpath(loc),
                     any=True,
                 )
                 break
