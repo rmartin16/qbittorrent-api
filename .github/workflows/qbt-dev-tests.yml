@@ -2,12 +2,10 @@ name: qBittorrent Dev Testing
 
 on:
   schedule:
-    # run every few days so caches aren't evicted
     - cron: "0 0 1-30/3 * *"
   push:
     branches:
       - master
-      - comprehensive_tests
   pull_request:
     branches:
       - master
@@ -19,21 +17,15 @@ jobs:
     runs-on: ubuntu-20.04  # update Qt PPA when moving beyond 20.04
     continue-on-error: true
     env:
-      QBT_ALWAYS_TEST: master, v4_4_x
-      COMPREHENSIVE_TESTS_BRANCH: comprehensive_tests
       PYTHON_QBITTORRENTAPI_HOST: localhost:8080
       PYTHON_QBITTORRENTAPI_PASSWORD: adminadmin
       PYTHON_QBITTORRENTAPI_USERNAME: admin
-      LIBTOR_VER: 1.2.14
+      LIBTOR_VER: 1.2.15
       IS_QBT_DEV: True
     strategy:
       matrix:
         QBT_VER: ["master", "v4_4_x", "v4_3_x"]
-        # python-version: ["3.10", "3.9", "3.8", "3.7", "3.6", "2.7", "pypy2", "pypy3", "3.11.0-alpha.2"]
         python-version: ["3.10"]
-
-    # TODO: each step currently has an over-complicated conditional to prevent always running all tests.
-    # TODO: this can be removed once the matrix supports conditions
 
     steps:
       - name: Branch
@@ -67,7 +59,6 @@ jobs:
 
       - name: Build libtorrent
         # if cache missed, build libtorrent library.
-        # right now, all relevant qBittorrent versions can be compiled using libtorrent 1.2.12
         if: steps.cache-libtorrent.outputs.cache-hit != 'true'
         run: |
           set -x
@@ -130,19 +121,13 @@ jobs:
         if: failure()
         uses: dawidd6/action-send-mail@v2
         with:
-          # mail server settings
           server_address: smtp.gmail.com
           server_port: 587
-          # user credentials
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          # email subject
           subject: ${{ github.job }} job of ${{ github.repository }} failed
-          # email body as text
           body: |
             ${{ github.job }} job in worflow ${{ github.workflow }} of ${{ github.repository }} failed.
             https://github.com/rmartin16/qbittorrent-api/actions/runs/${{ github.run_id }}
-          # comma-separated string, send email to
-          to: rmartin16@gmail.com
-          # from email name
-          from: rmartin16@gmail.com
+          to: rmartin16+github-action@gmail.com   # comma-separated string
+          from: rmartin16+github-action@gmail.com

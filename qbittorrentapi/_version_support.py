@@ -1,6 +1,3 @@
-MOST_RECENT_SUPPORTED_APP_VERSION = "v4.4.0"
-MOST_RECENT_SUPPORTED_API_VERSION = "2.8.4"
-
 APP_VERSION_2_API_VERSION_MAP = {
     "v4.1.0": "2.0",
     "v4.1.1": "2.0.1",
@@ -31,7 +28,11 @@ APP_VERSION_2_API_VERSION_MAP = {
     "v4.3.8": "2.8.2",
     "v4.3.9": "2.8.2",
     "v4.4.0": "2.8.4",
+    "v4.4.1": "2.8.5",
 }
+
+MOST_RECENT_SUPPORTED_APP_VERSION = "v4.4.1"
+MOST_RECENT_SUPPORTED_API_VERSION = "2.8.5"
 
 
 class Version(object):

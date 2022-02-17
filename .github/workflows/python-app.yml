@@ -20,21 +20,21 @@ jobs:
     continue-on-error: true
     env:
       LATEST_PYTHON_VERSION: "3.10"
-      LATEST_QBT_VERSION: 4.4.0
-      QBT_ALWAYS_TEST: 4.4.0, 4.3.9, 4.3.8, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1, 4.2.0
+      LATEST_QBT_VERSION: 4.4.1
+      QBT_ALWAYS_TEST: 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.6, 4.3.4.1, 4.3.3, 4.3.2, 4.2.5, 4.2.0
       QT_USE_DEFAULT_PAA: 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1, 4.2.5, 4.2.0
       SUBMIT_COVERAGE_VERSIONS: 2.7, 3.10
       COMPREHENSIVE_TESTS_BRANCH: comprehensive_tests
       PYTHON_QBITTORRENTAPI_HOST: localhost:8080
       PYTHON_QBITTORRENTAPI_PASSWORD: adminadmin
       PYTHON_QBITTORRENTAPI_USERNAME: admin
-      LIBTOR_VER: 1.2.14
+      LIBTOR_VER: 1.2.15
       QBT_LEGACY_INSTALL: 4.2.5, 4.2.0
     strategy:
       matrix:
-        QBT_VER: [4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1, 4.2.5, 4.2.0]
+        QBT_VER: [4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1, 4.2.5, 4.2.0]
         # QBT_VER: [4.4.0]
-        python-version: ["3.10", "3.9", "3.8", "3.7", "3.6", "2.7", "pypy2", "pypy3", "3.11.0-alpha.2"]
+        python-version: ["3.10", "3.9", "3.8", "3.7", "3.6", "2.7", "pypy-3.8", "pypy-3.7", "pypy2"]
         # python-version: [3.9]
 
     # TODO: each step currently has an over-complicated conditional to prevent always running all tests.
@@ -232,18 +232,19 @@ jobs:
           #  run: coveralls
 
   install-dev:
+    name: "Verify Dev Env"
+    runs-on: "${{ matrix.os }}"
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest", "macos-latest"]
-
-    name: "Verify Dev Env"
-    runs-on: "${{ matrix.os }}"
+        python-version: ["3.10", "3.9", "3.8", "3.7", "3.6", "2.7", "pypy-3.8", "pypy-3.7", "pypy2"]
 
     steps:
       - uses: "actions/checkout@v2"
       - uses: "actions/setup-python@v2"
         with:
-          python-version: "3.8"
+          python-version: ${{ matrix.python-version }}
+
       - name: "Install in dev mode"
         run: "python -m pip install -e .[dev]"
       - name: "Import package"
@@ -257,7 +258,7 @@ jobs:
       - uses: "actions/checkout@v2"
       - uses: "actions/setup-python@v2"
         with:
-          python-version: "3.8"
+          python-version: "3.10"
 
       - name: "Install twine"
         run: "python -m pip install --upgrade pip setuptools wheel twine"
