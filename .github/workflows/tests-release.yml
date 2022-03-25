@@ -15,7 +15,7 @@ on:
 
 jobs:
   tests:
-    name: "Tests ${{ matrix.python-version }} - v${{ matrix.QBT_VER }}"
+    name: "Release Test ${{ matrix.python-version }} - v${{ matrix.QBT_VER }}"
     runs-on: ubuntu-20.04  # update Qt PPA when moving beyond 20.04
     continue-on-error: true
     env:
