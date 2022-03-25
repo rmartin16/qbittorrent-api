@@ -1,4 +1,4 @@
-name: qBittorrent Dev Testing
+name: Dev Branch Tests
 
 on:
   schedule:
@@ -13,7 +13,7 @@ on:
 
 jobs:
   Latest-Dev-Tests:
-    name: "${{ matrix.QBT_VER }}"
+    name: "Dev Branch Test ${{ matrix.QBT_VER }}"
     runs-on: ubuntu-20.04  # update Qt PPA when moving beyond 20.04
     continue-on-error: true
     env:
