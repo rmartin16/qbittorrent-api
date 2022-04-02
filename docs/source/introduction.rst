@@ -14,10 +14,11 @@ Introduction
    :target: https://pypi.org/project/qbittorrent-api/
 .. |pypi versions| image:: https://img.shields.io/pypi/pyversions/qbittorrent-api?style=flat-square
 .. |pypi implementations| image:: https://img.shields.io/pypi/implementation/qbittorrent-api?style=flat-square
+.. |pypi downloads| image:: https://img.shields.io/pypi/dw/qbittorrent-api?color=blue&style=flat-square
 
 |travis ci| |codecov| |coverity| |codacy|
 
-|pypi| |pypi versions| |pypi implementations|
+|pypi| |pypi versions| |pypi implementations| |pypi downloads|
 
 Python client implementation for qBittorrent Web API.
 
