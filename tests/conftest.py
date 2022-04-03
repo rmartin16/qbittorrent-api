@@ -277,18 +277,24 @@ def rss_feed(client):
     name = "YTS1080p"
     url = "https://yts.mx/rss/"
     # refreshing the feed is finicky...so try several times if necessary
-    for i in range(10):
+    done = False
+    for i in range(30):
         delete_feed()
         client.rss.add_feed(url=url, item_path=name)
         # wait until the rss feed exists and is refreshed
         check(lambda: client.rss_items(), name, reverse=True)
         # wait until feed is refreshed
         for j in range(10):
-            if client.rss.items.with_data[name]["isLoading"] is False:
+            if client.rss.items.with_data[name]["articles"]:
+                done = True
+                yield name
+                delete_feed()
                 break
-            sleep(1)
-    yield name
-    delete_feed()
+            sleep(0.5)
+        if done:
+            break
+    else:
+        raise Exception("RSS Feed '%s' did not refresh..." % name)
 
 
 def pytest_sessionfinish(session, exitstatus):
