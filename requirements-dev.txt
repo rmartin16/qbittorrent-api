@@ -1,8 +1,9 @@
 -r requirements.txt
 black
-flake8
+build
 codecov
 coveralls
+flake8
 pytest
 pytest-cov
 sphinx
