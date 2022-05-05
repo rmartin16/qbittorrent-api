@@ -18,35 +18,42 @@ def test_speed_limits_mode(client):
     assert client.transfer.speed_limits_mode in {"0", "1"}
 
     original_mode = client.transfer.speed_limits_mode
+    client.transfer_set_speed_limits_mode()
+    assert client.transfer.speed_limits_mode != original_mode
+    original_mode = client.transfer.speed_limits_mode
+    client.transfer.set_speed_limits_mode()
+    assert client.transfer.speed_limits_mode != original_mode
+
+    original_mode = client.transfer.speed_limits_mode
     client.transfer_toggle_speed_limits_mode()
     assert client.transfer.speed_limits_mode != original_mode
+    client.transfer_toggle_speed_limits_mode()
+    assert client.transfer.speed_limits_mode == original_mode
     original_mode = client.transfer.speed_limits_mode
     client.transfer.toggle_speed_limits_mode()
     assert client.transfer.speed_limits_mode != original_mode
+    client.transfer.toggle_speed_limits_mode()
+    assert client.transfer.speed_limits_mode == original_mode
 
-    if client.transfer.speed_limits_mode == "0":
-        client.transfer_toggle_speed_limits_mode(intended_state=True)
-        assert client.transfer.speed_limits_mode != "0"
-    if client.transfer.speed_limits_mode == "1":
-        client.transfer_toggle_speed_limits_mode(intended_state=False)
-        assert client.transfer.speed_limits_mode != "1"
+    client.transfer_set_speed_limits_mode(intended_state=True)
+    assert client.transfer.speed_limits_mode != "0"
+    client.transfer_setSpeedLimitsMode(intended_state=False)
+    assert client.transfer.speed_limits_mode != "1"
 
-    if client.transfer.speed_limits_mode == "0":
-        client.transfer.speed_limits_mode = True
-        assert client.transfer.speed_limits_mode != "0"
-    if client.transfer.speed_limits_mode == "1":
-        client.transfer.speed_limits_mode = False
-        assert client.transfer.speed_limits_mode != "1"
-
-    if client.transfer.speedLimitsMode == "0":
-        client.transfer.speedLimitsMode = True
-        assert client.transfer.speedLimitsMode != "0"
-    if client.transfer.speedLimitsMode == "1":
-        client.transfer.speedLimitsMode = False
-        assert client.transfer.speedLimitsMode != "1"
-
+    client.transfer_toggle_speed_limits_mode(intended_state=True)
+    assert client.transfer.speed_limits_mode != "0"
     client.transfer_toggle_speed_limits_mode(intended_state=False)
     assert client.transfer.speed_limits_mode != "1"
+
+    client.transfer.speed_limits_mode = True
+    assert client.transfer.speed_limits_mode != "0"
+    client.transfer.speed_limits_mode = False
+    assert client.transfer.speed_limits_mode != "1"
+
+    client.transfer.speedLimitsMode = True
+    assert client.transfer.speedLimitsMode != "0"
+    client.transfer.speedLimitsMode = False
+    assert client.transfer.speedLimitsMode != "1"
 
 
 def test_download_limit(client):

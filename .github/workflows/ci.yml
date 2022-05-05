@@ -64,7 +64,7 @@ jobs:
     strategy:
       matrix:
         PYTHON_VER: [ "${{ needs.verify.outputs.python-latest-version }}" ]
-        QBT_VER: [ v4.4.4, v4.3.9, v4.3.5, v4.3.4.1, v4.3.3, v4.3.2, v4.3.1, v4.3.0.1, v4.2.5, v4.2.0, v4.1.6, v4.1.0 ]
+        QBT_VER: [ v4.5.0beta1, v4.4.4, v4.3.9, v4.3.5, v4.3.4.1, v4.3.3, v4.3.2, v4.3.1, v4.3.0.1, v4.2.5, v4.2.0, v4.1.6, v4.1.0 ]
         include:
           # test all python versions against latest qBittorrent
           - PYTHON_VER: "3.12-dev"
