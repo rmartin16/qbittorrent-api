@@ -520,6 +520,14 @@ def test_rename_folder(client, app_version, new_torrent, new_name, client_func):
             )
 
 
+def test_export(api_version, client, orig_torrent):
+    if v(api_version) < v("2.8.11"):
+        with pytest.raises(NotImplementedError):
+            client.torrents_export(torrent_hash=orig_torrent.hash)
+    else:
+        assert isinstance(client.torrents_export(torrent_hash=orig_torrent.hash), bytes)
+
+
 @pytest.mark.parametrize("client_func", ("torrents_info", "torrents.info"))
 def test_torrents_info(client, orig_torrent_hash, client_func):
     assert isinstance(get_func(client, client_func)(), TorrentInfoList)
