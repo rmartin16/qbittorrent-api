@@ -2,7 +2,7 @@ from enum import Enum
 
 try:
     from collections import UserList
-except ImportError:
+except ImportError:  # pragma: no cover
     from UserList import UserList
 
 from qbittorrentapi._attrdict import AttrDict

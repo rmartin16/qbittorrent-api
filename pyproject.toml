@@ -12,5 +12,42 @@ multi_line_output = 3
 target-version = ['py34']
 include = '\.pyi?$'
 
-[tool.pytest]
-testpaths = "tests"
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = "dist build .tox scripts"
+filterwarnings = ["error"]
+addopts = """
+  --doctest-modules
+  --cov=qbittorrentapi
+  --cov-report=xml
+  --cov-report=html
+  --no-cov-on-fail
+  -r a
+  -v
+"""
+
+[tool.coverage.run]
+branch = true
+source = ["qbittorrentapi"]
+omit = ["qbittorrentapi/_attrdict.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_lines = [
+    # search categories was deprecated
+    "class SearchCategoriesList",
+    "def search_categories",
+    # defaults to exclude
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+]
+
+[tool.coverage.html]
+skip_empty = true

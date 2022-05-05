@@ -6,7 +6,7 @@ from os import strerror as os_strerror
 try:
     from collections.abc import Iterable
     from collections.abc import Mapping
-except ImportError:
+except ImportError:  # pragma: no cover
     from collections import Iterable
     from collections import Mapping
 
@@ -20,6 +20,7 @@ from qbittorrentapi.decorators import check_for_raise
 from qbittorrentapi.decorators import endpoint_introduced
 from qbittorrentapi.decorators import handle_hashes
 from qbittorrentapi.decorators import login_required
+from qbittorrentapi.decorators import response_bytes
 from qbittorrentapi.decorators import response_json
 from qbittorrentapi.decorators import response_text
 from qbittorrentapi.definitions import APINames
@@ -386,6 +387,10 @@ class TorrentDictionary(Dictionary):
         self._client.torrents_remove_tags(
             torrent_hashes=self._torrent_hash, tags=tags, **kwargs
         )
+
+    def export(self, **kwargs):
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_export`"""
+        return self._client.torrents_export(torrent_hash=self._torrent_hash, **kwargs)
 
 
 class TorrentPropertiesDictionary(Dictionary):
@@ -1112,6 +1117,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         seeding_time_limit=None,
         download_path=None,
         use_download_path=None,
+        stop_condition=None,
         **kwargs
     ):
         """
@@ -1136,20 +1142,21 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :param cookie: cookie to retrieve torrents by URL
         :param category: category to assign to torrent(s)
         :param is_skip_checking: skip hash checking
-        :param is_paused: True to start torrent(s) paused
-        :param is_root_folder: True or False to create root folder (superseded by content_layout with v4.3.2)
+        :param is_paused: ``True`` to start torrent(s) paused
+        :param is_root_folder: ``True`` or ``False`` to create root folder (superseded by content_layout with v4.3.2)
         :param rename: new name for torrent(s)
         :param upload_limit: upload limit in bytes/second
         :param download_limit: download limit in bytes/second
-        :param use_auto_torrent_management: True or False to use automatic torrent management
-        :param is_sequential_download: True or False for sequential download
-        :param is_first_last_piece_priority: True or False for first and last piece download priority
+        :param use_auto_torrent_management: ``True`` or ``False`` to use automatic torrent management
+        :param is_sequential_download: ``True`` or ``False`` for sequential download
+        :param is_first_last_piece_priority: ``True`` or ``False`` for first and last piece download priority
         :param tags: tag(s) to assign to torrent(s) (added in Web API 2.6.2)
-        :param content_layout: Original, Subfolder, or NoSubfolder to control filesystem structure for content (added in Web API 2.7)
+        :param content_layout: ``Original``, ``Subfolder``, or ``NoSubfolder`` to control filesystem structure for content (added in Web API 2.7)
         :param ratio_limit: share limit as ratio of upload amt over download amt; e.g. 0.5 or 2.0 (added in Web API 2.8.1)
         :param seeding_time_limit: number of minutes to seed torrent (added in Web API 2.8.1)
-        :param download_path: location to download torrent content before moving to save_path (added in Web API 2.8.4)
-        :param use_download_path: whether the download_path should be used...defaults to True if download_path is specified (added in Web API 2.8.4)
+        :param download_path: location to download torrent content before moving to ``save_path`` (added in Web API 2.8.4)
+        :param use_download_path: ``True`` or ``False`` whether ``download_path`` should be used...defaults to ``True`` if ``download_path`` is specified (added in Web API 2.8.4)
+        :param stop_condition: ``MetadataReceived`` or ``FilesChecked`` to stop the torrent when started automatically (added in Web API 2.8.15)
         :return: ``Ok.`` for success and ``Fails.`` for failure
         """  # noqa: E501
 
@@ -1194,6 +1201,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             "firstLastPiecePrio": (None, is_first_last_piece_priority),
             "downloadPath": (None, download_path),
             "useDownloadPath": (None, use_download_path),
+            "stopCondition": (None, stop_condition),
         }
 
         files_to_send, files_to_close = self._normalize_torrent_files(torrent_files)
@@ -1254,9 +1262,9 @@ class TorrentsAPIMixIn(AppAPIMixIn):
                     # this does prevent providing more useful IO errors on python 2....but it's dead anyway...
                     try:
                         filepath = path.abspath(
-                            path.realpath(path.expanduser(str(torrent_file)))
+                            path.realpath(path.expanduser(torrent_file.decode()))
                         )
-                        if path.exists(filepath):
+                        if path.exists(filepath):  # pragma: no branch
                             fh = open(filepath, "rb")
                             files_to_close.append(fh)
                             name = path.basename(filepath)
@@ -1616,6 +1624,25 @@ class TorrentsAPIMixIn(AppAPIMixIn):
                 ),
             )
 
+    @handle_hashes
+    @endpoint_introduced("2.8.14", "torrents/export")
+    @response_bytes
+    @login_required
+    def torrents_export(self, torrent_hash=None, **kwargs):
+        """
+        Export a .torrent file for the torrent.
+
+        :raises NotFound404Error: torrent not found
+        :raises Conflict409Error: unable to export .torrent file
+
+        :param torrent_hash: hash for torrent
+        :return: bytes .torrent file
+        """
+        data = {"hash": torrent_hash}
+        return self._post(
+            _name=APINames.Torrents, _method="export", data=data, **kwargs
+        )
+
     ##########################################################################
     # MULTIPLE TORRENT ENDPOINTS
     ##########################################################################
@@ -1636,16 +1663,19 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     ):
         """
         Retrieves list of info for torrents.
-        Note: ``hashes`` introduced in Web API 2.0.1
 
-        :param status_filter: Filter list by all, downloading, completed, paused, active, inactive, resumed
-                              stalled, stalled_uploading and stalled_downloading added in Web API 2.4.1
+        :param status_filter: Filter list by torrent status.
+            ``all``, ``downloading``, ``completed``, ``paused``, ``active``, ``inactive``, ``resumed``
+            Added in Web API 2.4.1:
+            ``stalled``, ``stalled_uploading`` and ``stalled_downloading``
+            Added Web API 2.8.15:
+            ``moving``
         :param category: Filter list by category
         :param sort: Sort list by any property returned
         :param reverse: Reverse sorting
         :param limit: Limit length of list
         :param offset: Start of list (if < 0, offset from end of list)
-        :param torrent_hashes: Filter list by hash (separate multiple hashes with a '|')
+        :param torrent_hashes: Filter list by hash (separate multiple hashes with a '|') (added in Web API 2.0.1)
         :param tag: Filter list by tag (empty string means "untagged"; no "tag" param means "any tag"; added in Web API 2.8.3)
         :return: :class:`TorrentInfoList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-list>`_
         """  # noqa: E501

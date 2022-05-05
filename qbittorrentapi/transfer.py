@@ -1,3 +1,5 @@
+from pkg_resources import parse_version as v
+
 from qbittorrentapi.app import AppAPIMixIn
 from qbittorrentapi.decorators import alias
 from qbittorrentapi.decorators import aliased
@@ -48,20 +50,20 @@ class Transfer(ClientCache):
     @speedLimitsMode.setter
     def speedLimitsMode(self, v):
         """Implements
-        :meth:`~TransferAPIMixIn.transfer_toggle_speed_limits_mode`"""
+        :meth:`~TransferAPIMixIn.transfer_set_speed_limits_mode`"""
         self.speed_limits_mode = v
 
     @speed_limits_mode.setter
     def speed_limits_mode(self, v):
         """Implements
-        :meth:`~TransferAPIMixIn.transfer_toggle_speed_limits_mode`"""
-        self.toggle_speed_limits_mode(intended_state=v)
+        :meth:`~TransferAPIMixIn.transfer_set_speed_limits_mode`"""
+        self.set_speed_limits_mode(intended_state=v)
 
-    @alias("toggleSpeedLimitsMode")
-    def toggle_speed_limits_mode(self, intended_state=None, **kwargs):
+    @alias("setSpeedLimitsMode", "toggleSpeedLimitsMode", "toggle_speed_limits_mode")
+    def set_speed_limits_mode(self, intended_state=None, **kwargs):
         """Implements
-        :meth:`~TransferAPIMixIn.transfer_toggle_speed_limits_mode`"""
-        return self._client.transfer_toggle_speed_limits_mode(
+        :meth:`~TransferAPIMixIn.transfer_set_speed_limits_mode`"""
+        return self._client.transfer_set_speed_limits_mode(
             intended_state=intended_state, **kwargs
         )
 
@@ -160,9 +162,13 @@ class TransferAPIMixIn(AppAPIMixIn):
         """
         return self._get(_name=APINames.Transfer, _method="speedLimitsMode", **kwargs)
 
-    @alias("transfer_toggleSpeedLimitsMode")
+    @alias(
+        "transfer_setSpeedLimitsMode",
+        "transfer_toggleSpeedLimitsMode",
+        "transfer_toggle_speed_limits_mode",
+    )
     @login_required
-    def transfer_toggle_speed_limits_mode(self, intended_state=None, **kwargs):
+    def transfer_set_speed_limits_mode(self, intended_state=None, **kwargs):
         """
         Sets whether alternative speed limits are enabled.
 
@@ -170,10 +176,23 @@ class TransferAPIMixIn(AppAPIMixIn):
                                Leaving None will toggle the current state.
         :return: None
         """
-        is_enabled = lambda: self.transfer_speed_limits_mode() == "1"  # noqa: E731
-        if intended_state is None or is_enabled() is not intended_state:
+        if intended_state is None:
             self._post(
                 _name=APINames.Transfer, _method="toggleSpeedLimitsMode", **kwargs
+            )
+        elif v(self.app_web_api_version()) < v("2.8.14") and (
+            (self.transfer.speed_limits_mode == "1") is not bool(intended_state)
+        ):
+            self._post(
+                _name=APINames.Transfer, _method="toggleSpeedLimitsMode", **kwargs
+            )
+        else:
+            data = {"mode": 1 if intended_state else 0}
+            self._post(
+                _name=APINames.Transfer,
+                _method="setSpeedLimitsMode",
+                data=data,
+                **kwargs
             )
 
     @alias("transfer_downloadLimit")

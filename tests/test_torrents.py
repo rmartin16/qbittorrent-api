@@ -115,7 +115,9 @@ def test_add_delete(client, api_version, client_func):
     def add_by_filename(single):
         download_file(url=torrent1_url, filename=torrent1_filename)
         download_file(url=torrent2_url, filename=torrent2_filename)
-        files = ("~/%s" % torrent1_filename, "~/%s" % torrent2_filename)
+        # send bytes as a proxy for testing python 2
+        kw = {} if version_info.major == 2 else dict(encoding="utf-8")
+        files = ("~/%s" % torrent1_filename, bytes("~/%s" % torrent2_filename, **kw))
 
         if single:
             assert get_func(client, client_func[0])(torrent_files=files[0]) == "Ok."
@@ -517,6 +519,14 @@ def test_rename_folder(client, app_version, new_torrent, new_name, client_func):
             get_func(client, client_func)(
                 torrent_hash="asdf", old_path="asdf", new_path="zxcv"
             )
+
+
+def test_export(api_version, client, orig_torrent):
+    if v(api_version) >= v("2.8.14"):
+        assert isinstance(client.torrents_export(torrent_hash=orig_torrent.hash), bytes)
+    else:
+        with pytest.raises(NotImplementedError):
+            client.torrents_export(torrent_hash=orig_torrent.hash)
 
 
 @pytest.mark.parametrize("client_func", ("torrents_info", "torrents.info"))
