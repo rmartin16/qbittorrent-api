@@ -121,6 +121,20 @@ def handle_hashes(func):
     return wrapper
 
 
+def response_bytes(func):
+    """
+    Return the raw bytes of the API response.
+
+    :return: Content of the response as bytes
+    """
+
+    @wraps(func)
+    def wrapper(client, *args, **kwargs):
+        return func(client, *args, **kwargs).content
+
+    return wrapper
+
+
 def response_text(response_class):
     """
     Return the UTF-8 encoding of the API response.

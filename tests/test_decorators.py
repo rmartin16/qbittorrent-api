@@ -8,6 +8,7 @@ from qbittorrentapi import Client
 from qbittorrentapi._attrdict import AttrDict
 from qbittorrentapi.decorators import endpoint_introduced
 from qbittorrentapi.decorators import handle_hashes
+from qbittorrentapi.decorators import response_bytes
 from qbittorrentapi.decorators import response_json
 from qbittorrentapi.decorators import response_text
 from qbittorrentapi.decorators import version_removed
@@ -79,6 +80,19 @@ def test_response_text():
     assert input == ResponseTextTest().return_input_as_str(input)
     with pytest.raises(APIError):
         ResponseTextTest().return_input_as_dict(input)
+
+
+def test_response_bytes():
+    class Response:
+        def __init__(self, text):
+            self.content = text
+
+    @response_bytes
+    def return_input_as_bytes(text):
+        return Response(text)
+
+    input = "asdf"
+    assert input == return_input_as_bytes(input)
 
 
 def test_response_json():
