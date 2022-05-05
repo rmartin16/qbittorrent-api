@@ -1,4 +1,4 @@
-from typing import Iterable, Mapping, Text
+from typing import Iterable, MutableMapping, Text
 
 from qbittorrentapi.client import Client
 from qbittorrentapi.definitions import ClientCache
@@ -8,7 +8,7 @@ from qbittorrentapi.definitions import ListEntry
 from qbittorrentapi.request import Request
 
 class SearchJobDictionary(Dictionary):
-    def __init__(self, data: Mapping = None, client: Client = None) -> None: ...
+    def __init__(self, data: MutableMapping = None, client: Client = None) -> None: ...
     def stop(self, **kwargs) -> None: ...
     def status(self, **kwargs) -> SearchStatusesList[SearchStatus]: ...
     def results(

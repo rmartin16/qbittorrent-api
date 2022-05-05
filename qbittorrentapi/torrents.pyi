@@ -1,4 +1,14 @@
-from typing import Callable, Dict, IO, Iterable, Literal, Mapping, Text, Tuple, TypeVar
+from typing import (
+    Callable,
+    Dict,
+    IO,
+    Iterable,
+    Literal,
+    MutableMapping,
+    Text,
+    Tuple,
+    TypeVar,
+)
 
 from qbittorrentapi.client import Client
 from qbittorrentapi.definitions import ClientCache
@@ -26,12 +36,12 @@ TORRENT_FILES_T = TypeVar(
     bytes,
     Text,
     IO,
-    Mapping[Text, bytes | Text | IO],
+    MutableMapping[Text, bytes | Text | IO],
     Iterable[bytes | Text | IO],
 )
 
 class TorrentDictionary(Dictionary):
-    def __init__(self, data: Mapping, client: Client = None) -> None: ...
+    def __init__(self, data: MutableMapping, client: Client = None) -> None: ...
     def sync_local(self) -> None: ...
     @property
     def state_enum(self) -> TorrentStates: ...

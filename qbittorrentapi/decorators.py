@@ -75,18 +75,25 @@ def login_required(func):
     Ensure client is logged in before calling API methods.
     """
 
+    def get_requests_kwargs(**kwargs):
+        """Extract kwargs for performing transparent qBittorrent login"""
+        return dict(
+            requests_args=kwargs.get("requests_args"),
+            requests_params=kwargs.get("requests_params"),
+            headers=kwargs.get("headers"),
+        )
+
     @wraps(func)
     def wrapper(client, *args, **kwargs):
         if not client.is_logged_in:
             logger.debug("Not logged in...attempting login")
-            client.auth_log_in(requests_args=client._get_requests_args(**kwargs))
+            client.auth_log_in(**get_requests_kwargs(**kwargs))
         try:
             return func(client, *args, **kwargs)
         except HTTP403Error:
             logger.debug("Login may have expired...attempting new login")
-            client.auth_log_in(requests_args=client._get_requests_args(**kwargs))
-
-        return func(client, *args, **kwargs)
+            client.auth_log_in(**get_requests_kwargs(**kwargs))
+            return func(client, *args, **kwargs)
 
     return wrapper
 

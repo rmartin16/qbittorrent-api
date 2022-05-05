@@ -1,4 +1,5 @@
-from typing import Dict, Mapping, Iterable, Text
+from typing import Dict, MutableMapping, Iterable, Text
+from urllib.parse import ParseResult
 
 from requests import Response, Session
 
@@ -14,14 +15,38 @@ from qbittorrentapi.torrents import TorrentTags
 from qbittorrentapi.torrents import Torrents
 from qbittorrentapi.transfer import Transfer
 
+class URL(object):
+    client: Request
+    def __init__(self, client: Request) -> None: ...
+    def build_url(
+        self,
+        api_namespace: APINames | Text,
+        api_method: Text,
+        headers: MutableMapping,
+        requests_kwargs: MutableMapping,
+    ) -> str: ...
+    def build_base_url(
+        self, headers: MutableMapping, requests_kwargs: MutableMapping
+    ) -> str: ...
+    def detect_scheme(
+        self,
+        base_url: ParseResult,
+        alt_scheme: Text,
+        default_scheme: Text,
+        headers: MutableMapping,
+        requests_kwargs: MutableMapping,
+    ) -> str: ...
+    def build_url_path(
+        self, api_namespace: APINames | Text, api_method: Text
+    ) -> str: ...
+
 class Request(object):
     host: Text
     port: Text | int
     username: Text
     _password: Text
-
+    _url: URL
     _http_session: Session | None
-
     _application: Application | None
     _authorization: Authorization | None
     _transfer: Transfer | None
@@ -36,8 +61,8 @@ class Request(object):
     _API_BASE_URL: Text | None
     _API_BASE_PATH: Text | None
 
-    _EXTRA_HEADERS: Mapping | None
-    _REQUESTS_ARGS: Mapping | None
+    _EXTRA_HEADERS: MutableMapping | None
+    _REQUESTS_ARGS: MutableMapping | None
     _VERIFY_WEBUI_CERTIFICATE: bool | None
     _FORCE_SCHEME_FROM_HOST: bool | None
     _RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS: bool | None
@@ -59,8 +84,8 @@ class Request(object):
     def _initialize_context(self) -> None: ...
     def _initialize_lesser(
         self,
-        EXTRA_HEADERS: Mapping = None,
-        REQUESTS_ARGS: Mapping = None,
+        EXTRA_HEADERS: MutableMapping = None,
+        REQUESTS_ARGS: MutableMapping = None,
         VERIFY_WEBUI_CERTIFICATE: bool = True,
         FORCE_SCHEME_FROM_HOST: bool = False,
         RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS: bool = False,
@@ -85,27 +110,43 @@ class Request(object):
         http_method: Text,
         api_namespace: APINames | Text,
         api_method: Text,
+        requests_args: MutableMapping = None,
+        requests_params: MutableMapping = None,
+        headers: MutableMapping = None,
+        params: MutableMapping = None,
+        data: MutableMapping = None,
+        files: MutableMapping = None,
         **kwargs
     ) -> Response: ...
-    def _normalize_args(
+    def _trim_known_kwargs(self, **kwargs) -> Dict: ...
+    def _get_requests_kwargs(
+        self,
+        requests_args: MutableMapping = None,
+        requests_params: MutableMapping = None,
+    ): ...
+    def _get_headers(
+        self, headers: MutableMapping = None, requests_kwargs: MutableMapping = None
+    ): ...
+    def _get_data(
         self,
         http_method: Text,
-        headers: Mapping = None,
-        data: Mapping = None,
-        params: Mapping = None,
-        files: Mapping = None,
-        requests_params: Mapping = None,
-        requests_args: Mapping = None,
-    ): ...
-    def _trim_known_kwargs(self, **kwargs) -> Dict: ...
-    def _get_requests_args(self, **kwargs) -> Dict: ...
-    def _build_url(
-        self, api_namespace: APINames | Text, api_method: Text, requests_args: Mapping
+        params: MutableMapping = None,
+        data: MutableMapping = None,
+        files: MutableMapping = None,
+        **kwargs
     ): ...
     @property
     def _session(self) -> Session: ...
     @staticmethod
-    def _handle_error_responses(args: Mapping, response: Response): ...
+    def _handle_error_responses(
+        data: MutableMapping, params: MutableMapping, response: Response
+    ): ...
     def _verbose_logging(
-        self, http_method: Text, url: Text, http_args: Mapping, response: Response
+        self,
+        http_method: Text,
+        url: Text,
+        data: MutableMapping,
+        params: MutableMapping,
+        requests_kwargs: MutableMapping,
+        response: Response,
     ): ...

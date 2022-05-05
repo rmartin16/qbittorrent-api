@@ -403,8 +403,7 @@ def test_http404(client, params):
 
     response = MockResponse(status_code=404, text="")
     with pytest.raises(exceptions.HTTPError):
-        p = dict(data={}, params=params)
-        Request._handle_error_responses(args=p, response=response)
+        Request._handle_error_responses(data={}, params=params, response=response)
 
 
 def test_http409(client, app_version):
@@ -422,8 +421,7 @@ def test_http415(client):
 def test_http500(status_code):
     response = MockResponse(status_code=status_code, text="asdf")
     with pytest.raises(exceptions.InternalServerError500Error):
-        p = dict(data={}, params={})
-        Request._handle_error_responses(args=p, response=response)
+        Request._handle_error_responses(data={}, params={}, response=response)
 
 
 def test_request_retry_success(monkeypatch, caplog):
@@ -453,8 +451,7 @@ def test_request_retry_skip(caplog):
 def test_http_error(status_code):
     response = MockResponse(status_code=status_code, text="asdf")
     with pytest.raises(exceptions.HTTPError):
-        p = dict(data={}, params={})
-        Request._handle_error_responses(args=p, response=response)
+        Request._handle_error_responses(data={}, params={}, response=response)
 
 
 def test_verbose_logging(caplog):

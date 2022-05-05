@@ -1,4 +1,4 @@
-from typing import Mapping, Text
+from typing import MutableMapping, Text
 
 from qbittorrentapi.client import Client
 from qbittorrentapi.definitions import ClientCache
@@ -27,7 +27,9 @@ class RSS(ClientCache):
         self, item_path: Text = None, article_id: Text | int = None, **kwargs
     ): ...
     markAsRead = mark_as_read
-    def set_rule(self, rule_name: Text = None, rule_def: Mapping = None, **kwargs): ...
+    def set_rule(
+        self, rule_name: Text = None, rule_def: MutableMapping = None, **kwargs
+    ): ...
     setRule = set_rule
     def rename_rule(
         self, orig_rule_name: Text = None, new_rule_name: Text = None, **kwargs
@@ -73,7 +75,7 @@ class RSSAPIMixIn(Request):
     ) -> None: ...
     rss_markAsRead = rss_mark_as_read
     def rss_set_rule(
-        self, rule_name: Text = None, rule_def: Mapping = None, **kwargs
+        self, rule_name: Text = None, rule_def: MutableMapping = None, **kwargs
     ) -> None: ...
     rss_setRule = rss_set_rule
     def rss_rename_rule(
