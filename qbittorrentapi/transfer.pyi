@@ -1,9 +1,9 @@
 from typing import Iterable
 from typing import Text
 
+from qbittorrentapi.app import AppAPIMixIn
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary
-from qbittorrentapi.request import Request
 
 class TransferInfoDictionary(Dictionary): ...
 
@@ -42,7 +42,7 @@ class Transfer(ClientCache):
     def ban_peers(self, peers: Text | Iterable[Text] = None, **kwargs) -> None: ...
     banPeers = ban_peers
 
-class TransferAPIMixIn(Request):
+class TransferAPIMixIn(AppAPIMixIn):
     @property
     def transfer(self) -> Transfer: ...
     def transfer_info(self, **kwargs) -> TransferInfoDictionary: ...

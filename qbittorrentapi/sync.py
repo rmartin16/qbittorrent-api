@@ -1,4 +1,5 @@
-from qbittorrentapi.decorators import Alias
+from qbittorrentapi.app import AppAPIMixIn
+from qbittorrentapi.decorators import alias
 from qbittorrentapi.decorators import aliased
 from qbittorrentapi.decorators import handle_hashes
 from qbittorrentapi.decorators import login_required
@@ -6,7 +7,6 @@ from qbittorrentapi.decorators import response_json
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary
-from qbittorrentapi.request import Request
 
 
 class SyncMainDataDictionary(Dictionary):
@@ -79,7 +79,7 @@ class Sync(ClientCache):
 
 
 @aliased
-class SyncAPIMixIn(Request):
+class SyncAPIMixIn(AppAPIMixIn):
     """
     Implementation of all Sync API Methods.
 
@@ -114,7 +114,7 @@ class SyncAPIMixIn(Request):
         data = {"rid": rid}
         return self._post(_name=APINames.Sync, _method="maindata", data=data, **kwargs)
 
-    @Alias("sync_torrentPeers")
+    @alias("sync_torrentPeers")
     @handle_hashes
     @response_json(SyncTorrentPeersDictionary)
     @login_required

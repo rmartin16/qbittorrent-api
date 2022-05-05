@@ -1,5 +1,3 @@
-from qbittorrentapi.app import AppAPIMixIn
-from qbittorrentapi.auth import AuthAPIMixIn
 from qbittorrentapi.log import LogAPIMixIn
 from qbittorrentapi.rss import RSSAPIMixIn
 from qbittorrentapi.search import SearchAPIMixIn
@@ -43,8 +41,6 @@ from qbittorrentapi.transfer import TransferAPIMixIn
 
 
 class Client(
-    AppAPIMixIn,
-    AuthAPIMixIn,
     LogAPIMixIn,
     SyncAPIMixIn,
     TransferAPIMixIn,

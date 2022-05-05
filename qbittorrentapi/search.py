@@ -1,4 +1,5 @@
-from qbittorrentapi.decorators import Alias
+from qbittorrentapi.app import AppAPIMixIn
+from qbittorrentapi.decorators import alias
 from qbittorrentapi.decorators import aliased
 from qbittorrentapi.decorators import endpoint_introduced
 from qbittorrentapi.decorators import login_required
@@ -9,7 +10,6 @@ from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary
 from qbittorrentapi.definitions import List
 from qbittorrentapi.definitions import ListEntry
-from qbittorrentapi.request import Request
 
 
 class SearchJobDictionary(Dictionary):
@@ -136,31 +136,31 @@ class Search(ClientCache):
         """Implements :meth:`~SearchAPIMixIn.search_plugins`"""
         return self._client.search_plugins()
 
-    @Alias("installPlugin")
+    @alias("installPlugin")
     def install_plugin(self, sources=None, **kwargs):
         """Implements :meth:`~SearchAPIMixIn.search_install_plugin`"""
         return self._client.search_install_plugin(sources=sources, **kwargs)
 
-    @Alias("uninstallPlugin")
+    @alias("uninstallPlugin")
     def uninstall_plugin(self, sources=None, **kwargs):
         """Implements :meth:`~SearchAPIMixIn.search_uninstall_plugin`"""
         return self._client.search_uninstall_plugin(sources=sources, **kwargs)
 
-    @Alias("enablePlugin")
+    @alias("enablePlugin")
     def enable_plugin(self, plugins=None, enable=None, **kwargs):
         """Implements :meth:`~SearchAPIMixIn.search_enable_plugin`"""
         return self._client.search_enable_plugin(
             plugins=plugins, enable=enable, **kwargs
         )
 
-    @Alias("updatePlugins")
+    @alias("updatePlugins")
     def update_plugins(self, **kwargs):
         """Implements :meth:`~SearchAPIMixIn.search_update_plugins`"""
         return self._client.search_update_plugins(**kwargs)
 
 
 @aliased
-class SearchAPIMixIn(Request):
+class SearchAPIMixIn(AppAPIMixIn):
     """
     Implementation for all Search API methods.
 
@@ -300,7 +300,7 @@ class SearchAPIMixIn(Request):
         return self._get(_name=APINames.Search, _method="plugins", **kwargs)
 
     @endpoint_introduced("2.1.1", "search/installPlugin")
-    @Alias("search_installPlugin")
+    @alias("search_installPlugin")
     @login_required
     def search_install_plugin(self, sources=None, **kwargs):
         """
@@ -314,7 +314,7 @@ class SearchAPIMixIn(Request):
         self._post(_name=APINames.Search, _method="installPlugin", data=data, **kwargs)
 
     @endpoint_introduced("2.1.1", "search/uninstallPlugin")
-    @Alias("search_uninstallPlugin")
+    @alias("search_uninstallPlugin")
     @login_required
     def search_uninstall_plugin(self, names=None, **kwargs):
         """
@@ -329,7 +329,7 @@ class SearchAPIMixIn(Request):
         )
 
     @endpoint_introduced("2.1.1", "search/enablePlugin")
-    @Alias("search_enablePlugin")
+    @alias("search_enablePlugin")
     @login_required
     def search_enable_plugin(self, plugins=None, enable=None, **kwargs):
         """
@@ -343,7 +343,7 @@ class SearchAPIMixIn(Request):
         self._post(_name=APINames.Search, _method="enablePlugin", data=data, **kwargs)
 
     @endpoint_introduced("2.1.1", "search/updatePlugin")
-    @Alias("search_updatePlugins")
+    @alias("search_updatePlugins")
     @login_required
     def search_update_plugins(self, **kwargs):
         """

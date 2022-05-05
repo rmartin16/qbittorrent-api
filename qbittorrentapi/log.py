@@ -1,10 +1,10 @@
+from qbittorrentapi.app import AppAPIMixIn
 from qbittorrentapi.decorators import login_required
 from qbittorrentapi.decorators import response_json
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import List
 from qbittorrentapi.definitions import ListEntry
-from qbittorrentapi.request import Request
 
 
 class LogPeersList(List):
@@ -115,7 +115,7 @@ class Log(ClientCache):
             )
 
 
-class LogAPIMixIn(Request):
+class LogAPIMixIn(AppAPIMixIn):
     """
     Implementation of all Log API methods.
 

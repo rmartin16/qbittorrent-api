@@ -1,7 +1,8 @@
 from json import dumps
 from logging import getLogger
 
-from qbittorrentapi.decorators import Alias
+from qbittorrentapi.auth import AuthAPIMixIn
+from qbittorrentapi.decorators import alias
 from qbittorrentapi.decorators import aliased
 from qbittorrentapi.decorators import endpoint_introduced
 from qbittorrentapi.decorators import login_required
@@ -10,7 +11,6 @@ from qbittorrentapi.decorators import response_text
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary
-from qbittorrentapi.request import Request
 
 logger = getLogger(__name__)
 
@@ -81,21 +81,21 @@ class Application(ClientCache):
         """Implements :meth:`~AppAPIMixIn.app_set_preferences`"""
         self.set_preferences(prefs=value)
 
-    @Alias("setPreferences")
+    @alias("setPreferences")
     def set_preferences(self, prefs=None, **kwargs):
         """Implements :meth:`~AppAPIMixIn.app_set_preferences`"""
         return self._client.app_set_preferences(prefs=prefs, **kwargs)
 
     @property
-    def default_save_path(self, **kwargs):
+    def default_save_path(self):
         """Implements :meth:`~AppAPIMixIn.app_default_save_path`"""
-        return self._client.app_default_save_path(**kwargs)
+        return self._client.app_default_save_path()
 
     defaultSavePath = default_save_path
 
 
 @aliased
-class AppAPIMixIn(Request):
+class AppAPIMixIn(AuthAPIMixIn):
     """
     Implementation of all Application API methods.
 
@@ -109,8 +109,8 @@ class AppAPIMixIn(Request):
     @property
     def app(self):
         """
-        Allows for transparent interaction with Application endpoints. (alias:
-        app)
+        Allows for transparent interaction with Application endpoints.
+        (alias: app)
 
         See Application class for usage.
         :return: Application object
@@ -131,7 +131,7 @@ class AppAPIMixIn(Request):
         """
         return self._get(_name=APINames.Application, _method="version", **kwargs)
 
-    @Alias("app_webapiVersion")
+    @alias("app_webapiVersion")
     @response_text(str)
     @login_required
     def app_web_api_version(self, **kwargs):
@@ -146,7 +146,7 @@ class AppAPIMixIn(Request):
 
     @endpoint_introduced("2.3", "app/buildInfo")
     @response_json(BuildInfoDictionary)
-    @Alias("app_buildInfo")
+    @alias("app_buildInfo")
     @login_required
     def app_build_info(self, **kwargs):
         """
@@ -171,12 +171,12 @@ class AppAPIMixIn(Request):
         """  # noqa: E501
         return self._get(_name=APINames.Application, _method="preferences", **kwargs)
 
-    @Alias("app_setPreferences")
+    @alias("app_setPreferences")
     @login_required
     def app_set_preferences(self, prefs=None, **kwargs):
         """
-        Set one or more preferences in qBittorrent application. (alias:
-        app_setPreferences)
+        Set one or more preferences in qBittorrent application.
+        (alias: app_setPreferences)
 
         :param prefs: dictionary of preferences to set
         :return: None
@@ -186,13 +186,13 @@ class AppAPIMixIn(Request):
             _name=APINames.Application, _method="setPreferences", data=data, **kwargs
         )
 
-    @Alias("app_defaultSavePath")
+    @alias("app_defaultSavePath")
     @response_text(str)
     @login_required
     def app_default_save_path(self, **kwargs):
         """
-        Retrieves the default path for where torrents are saved. (alias:
-        app_defaultSavePath)
+        Retrieves the default path for where torrents are saved.
+        (alias: app_defaultSavePath)
 
         :return: string
         """

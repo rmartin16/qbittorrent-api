@@ -7,8 +7,8 @@ MOST_RECENT_SUPPORTED_API_VERSION: Text
 APP_VERSION_2_API_VERSION_MAP: Dict
 
 class Version:
-    _supported_app_versions: set = None
-    _supported_api_versions: set = None
+    _supported_app_versions: Set = None
+    _supported_api_versions: Set = None
     @classmethod
     def supported_app_versions(cls) -> Set[str]: ...
     @classmethod
