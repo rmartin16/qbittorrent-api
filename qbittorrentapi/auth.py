@@ -80,9 +80,9 @@ class AuthAPIMixIn(Request):
         Log in to qBittorrent host.
 
         :raises LoginFailed: if credentials failed to log in
-        :raises Forbidden403Error: if user user is banned...or not logged in
+        :raises Forbidden403Error: if user is banned...or not logged in
 
-        :param username: user name for qBittorrent client
+        :param username: username for qBittorrent client
         :param password: password for qBittorrent client
         :return: None
         """

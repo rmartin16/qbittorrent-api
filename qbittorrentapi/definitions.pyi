@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Iterable, Mapping, Text, Type
+from typing import Iterable, MutableMapping, Text, Type
 
 try:
     from collections import UserList
@@ -59,9 +59,9 @@ class ClientCache:
     def __init__(self, *args, **kwargs) -> None: ...
 
 class Dictionary(ClientCache, AttrDict):
-    def __init__(self, data: Mapping = None, client: Client = None): ...
+    def __init__(self, data: MutableMapping = None, client: Client = None): ...
     @staticmethod
-    def convert_dict_values_to_attrdicts(data: Mapping) -> AttrDict: ...
+    def convert_dict_values_to_attrdicts(data: MutableMapping) -> AttrDict: ...
 
 class List(ClientCache, UserList):
     def __init__(
