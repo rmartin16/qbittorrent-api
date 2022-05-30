@@ -17,8 +17,8 @@ env:
   LATEST_PYTHON_VER: "3.10"
   PYTHON_VERSIONS: '[ "3.10", "3.9", "3.8", "3.7", "2.7", "pypy-3.8", "3.11-dev" ]'
   SUBMIT_COVERAGE_VERSIONS: 2.7, 3.10
-  LATEST_QBT_VER: 4.4.2  # sync this with tests-extended matrix exclude and smoke test name...
-  QBT_VERS: '[ "4.4.2", "4.4.1", "4.4.0", "4.3.9", "4.3.8", "4.3.7", "4.3.6", "4.3.5", "4.3.4.1", "4.3.3", "4.3.2", "4.3.1", "4.3.0.1" ]'
+  LATEST_QBT_VER: 4.4.3.1  # sync this with tests-extended matrix exclude and smoke test name...
+  QBT_VERS: '[ "4.4.3.1", "4.4.1", "4.4.0", "4.3.9", "4.3.8", "4.3.7", "4.3.6", "4.3.5", "4.3.4.1", "4.3.3", "4.3.2", "4.3.1", "4.3.0.1" ]'
   QBT_LEGACY_VERS: '[ "4.2.5", "4.2.0" ]'
   QBT_ALWAYS_TEST: 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.6, 4.3.4.1, 4.3.3, 4.3.2, 4.2.5, 4.2.0
   QT_USE_DEFAULT_PAA: 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1
@@ -34,6 +34,7 @@ jobs:
   verify:
     name: Get Ready
     runs-on: ubuntu-20.04
+    timeout-minutes: 10
     outputs:
       python-versions: ${{ steps.set-python-versions.outputs.python-versions }}
       qbittorrent-versions: ${{ steps.set-qbittorrent-versions.outputs.qbittorrent-versions }}
@@ -63,34 +64,14 @@ jobs:
           python-version: ${{ env.LATEST_PYTHON_VER }}
           cache: 'pip'
 
-      - name: Lint API with flake8
-        run: |
-          pip -q install -U flake8
-          # stop the build if there are Python syntax errors or undefined names
-          flake8 ./qbittorrentapi --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-          flake8 ./qbittorrentapi --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
-      - name: Lint Tests with flake8
-        run: |
-          pip -q install -U flake8
-          # stop the build if there are Python syntax errors or undefined names
-          flake8 ./tests --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-          flake8 ./tests --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
-      - name: Black
-        run: |
-          pip -q install -U black
-          black --version
-          # py34 avoids changes that are python2.7 incompatible
-          black ./qbittorrentapi/ ./tests/ --check --diff --target-version py34
+      - name: Lint with Pre-commit
+        uses: pre-commit/action@v2.0.3
 
   tests-smoke:
     #######
     # Run tests against most recent qBittorrent release and all Python releases
     #######
-    name: "Release Smoke Test 3.10 - v4.4.2"
+    name: "Release Smoke Test Latest"
     needs: verify
     runs-on: ubuntu-20.04  # update Qt PPA when moving beyond 20.04
     steps:
@@ -212,8 +193,8 @@ jobs:
         QBT_VER: ${{ fromJson(needs.verify.outputs.qbittorrent-versions) }}
         python-version: ${{ fromJson(needs.verify.outputs.python-versions) }}
         exclude:
-          - QBT_VER: 4.4.2
-            python-version: "3.10"
+          - QBT_VER: 4.4.3.1  # sync with LATEST_QBT_VER
+            python-version: "3.10"  # sync with LATEST_PYTHON_VER
     # TODO: each step currently has an over-complicated conditional to prevent always running all tests.
     # TODO: this can be removed once the matrix supports conditions
     steps:
@@ -368,7 +349,7 @@ jobs:
         run: echo Branch ${{ github.ref }} ${{ github.head_ref }}
 
       - name: Checkout Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
@@ -484,7 +465,7 @@ jobs:
         run: echo Branch ${{ github.ref }} ${{ github.head_ref }}
 
       - name: Checkout Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
         uses: actions/setup-python@v2
