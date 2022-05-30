@@ -4,6 +4,7 @@ build
 codecov
 coveralls
 flake8
+pre-commit
 pytest
 pytest-cov
 sphinx
