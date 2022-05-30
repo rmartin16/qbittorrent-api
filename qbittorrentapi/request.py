@@ -13,8 +13,8 @@ except ImportError:  # python 2
     from urlparse import urljoin
     from urlparse import urlparse
 
-from requests import exceptions as requests_exceptions
 from requests import Session
+from requests import exceptions as requests_exceptions
 from requests.adapters import HTTPAdapter
 from six import string_types as six_string_types
 from urllib3 import disable_warnings
@@ -23,23 +23,23 @@ from urllib3.util.retry import Retry
 
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.exceptions import APIConnectionError
-from qbittorrentapi.exceptions import HTTPError
-from qbittorrentapi.exceptions import HTTP5XXError
-from qbittorrentapi.exceptions import MissingRequiredParameters400Error
-from qbittorrentapi.exceptions import InvalidRequest400Error
-from qbittorrentapi.exceptions import Unauthorized401Error
-from qbittorrentapi.exceptions import Forbidden403Error
-from qbittorrentapi.exceptions import NotFound404Error
 from qbittorrentapi.exceptions import Conflict409Error
-from qbittorrentapi.exceptions import UnsupportedMediaType415Error
+from qbittorrentapi.exceptions import Forbidden403Error
+from qbittorrentapi.exceptions import HTTP5XXError
+from qbittorrentapi.exceptions import HTTPError
 from qbittorrentapi.exceptions import InternalServerError500Error
+from qbittorrentapi.exceptions import InvalidRequest400Error
+from qbittorrentapi.exceptions import MissingRequiredParameters400Error
+from qbittorrentapi.exceptions import NotFound404Error
+from qbittorrentapi.exceptions import Unauthorized401Error
+from qbittorrentapi.exceptions import UnsupportedMediaType415Error
 
 logger = getLogger(__name__)
 getLogger("qbittorrentapi").addHandler(NullHandler())
 
 
 class URL(object):
-    """Management for the qBittorrent Web API URL"""
+    """Management for the qBittorrent Web API URL."""
 
     def __init__(self, client):
         self.client = client
@@ -182,9 +182,7 @@ class URL(object):
 
 
 class Request(object):
-    """
-    Facilitates HTTP requests to qBittorrent's Web API.
-    """
+    """Facilitates HTTP requests to qBittorrent's Web API."""
 
     def __init__(self, host="", port=None, username=None, password=None, **kwargs):
         self.host = host
@@ -208,8 +206,10 @@ class Request(object):
     def _initialize_context(self):
         """
         Initialize and/or reset communications context with qBittorrent.
-        This is necessary on startup or when the auth cookie needs to be replaced...perhaps
-        because it expired, qBittorrent was restarted, significant settings changes, etc.
+
+        This is necessary on startup or when the auth cookie needs to be
+        replaced...perhaps because it expired, qBittorrent was
+        restarted, significant settings changes, etc.
         """
         logger.debug("Re-initializing context...")
         # base path for all API endpoints
@@ -249,7 +249,7 @@ class Request(object):
         DISABLE_LOGGING_DEBUG_OUTPUT=False,
         MOCK_WEB_API_VERSION=None,
     ):
-        """Initialize lesser used configuration"""
+        """Initialize lesser used configuration."""
 
         # Configuration parameters
         self._EXTRA_HEADERS = EXTRA_HEADERS or {}
@@ -306,7 +306,7 @@ class Request(object):
     @classmethod
     def _list2string(cls, input_list=None, delimiter="|"):
         """
-        Convert entries in a list to a concatenated string
+        Convert entries in a list to a concatenated string.
 
         :param input_list: list to convert
         :param delimiter: delimiter for concatenation
@@ -332,8 +332,9 @@ class Request(object):
         """
         Wrapper to manage request retries and severe exceptions.
 
-        This should retry at least once to account for the Web API switching from HTTP to HTTPS.
-        During the second attempt, the URL is rebuilt using HTTP or HTTPS as appropriate.
+        This should retry at least once to account for the Web API
+        switching from HTTP to HTTPS. During the second attempt, the URL
+        is rebuilt using HTTP or HTTPS as appropriate.
         """
 
         def build_error_msg(exc):
@@ -361,8 +362,10 @@ class Request(object):
         def retry_backoff(retry_count):
             """
             Back off on attempting each subsequent request retry.
-            The first retry is always immediate. if the backoff factor is 0.3,
-            then will sleep for 0s then .3s, then .6s, etc. between retries.
+
+            The first retry is always immediate. if the backoff factor
+            is 0.3, then will sleep for 0s then .3s, then .6s, etc.
+            between retries.
             """
             if retry_count > 0:
                 backoff_time = _retry_backoff_factor * (2 ** ((retry_count + 1) - 1))
@@ -441,9 +444,9 @@ class Request(object):
         """
         Since any extra keyword arguments from the user are automatically
         included in the request to qBittorrent, this removes any "known"
-        arguments that definitely shouldn't be sent to qBittorrent.
-        Generally, these are removed in previous processing, but in
-        certain circumstances, they can survive in to request.
+        arguments that definitely shouldn't be sent to qBittorrent. Generally,
+        these are removed in previous processing, but in certain circumstances,
+        they can survive in to request.
 
         :param kwargs: extra keywords arguments to be passed along in request
         :return: sanitized arguments
@@ -454,9 +457,9 @@ class Request(object):
 
     def _get_requests_kwargs(self, requests_args=None, requests_params=None):
         """
-        Determine the requests_kwargs for the call to Requests.
-        The global configuration in self._REQUESTS_ARGS is updated by any
-        arguments provided for a specific call.
+        Determine the requests_kwargs for the call to Requests. The global
+        configuration in self._REQUESTS_ARGS is updated by any arguments
+        provided for a specific call.
 
         :param requests_args: default location to expect Requests requests_kwargs
         :param requests_params: alternative location to expect Requests requests_kwargs
@@ -468,9 +471,9 @@ class Request(object):
 
     def _get_headers(self, headers=None, more_headers=None):
         """
-        Determine headers specific to this request.
-        Request headers can be specified explicitly or with the requests kwargs.
-        Headers specified in self._EXTRA_HEADERS are merged in Requests itself.
+        Determine headers specific to this request. Request headers can be
+        specified explicitly or with the requests kwargs. Headers specified in
+        self._EXTRA_HEADERS are merged in Requests itself.
 
         :param headers: headers specified for this specific request
         :param more_headers: headers from requests_kwargs config
@@ -516,8 +519,10 @@ class Request(object):
         class QbittorrentSession(Session):
             """
             Wrapper to augment Requests Session.
-            Requests doesn't allow Session to default certain configuration
-            globally. This gets around that by setting defaults for each request.
+
+            Requests doesn't allow Session to default certain
+            configuration globally. This gets around that by setting
+            defaults for each request.
             """
 
             def request(self, method, url, **kwargs):
@@ -526,7 +531,7 @@ class Request(object):
 
                 # send Content-Length as 0 for empty POSTs...Requests will not send Content-Length
                 # if data is empty but qBittorrent will complain otherwise
-                is_data = any((x is not None for x in kwargs.get("data", {}).values()))
+                is_data = any(x is not None for x in kwargs.get("data", {}).values())
                 if method.lower() == "post" and not is_data:
                     kwargs.setdefault("headers", {}).update({"Content-Length": "0"})
 
@@ -572,6 +577,7 @@ class Request(object):
     def __del__(self):
         """
         Close HTTP Session before destruction.
+
         This isn't strictly necessary since this will automatically
         happen when the Session is garbage collected...but it makes
         Python's ResourceWarning logging for unclosed sockets cleaner.
@@ -581,6 +587,7 @@ class Request(object):
     def _trigger_session_initialization(self):
         """
         Effectively resets the HTTP session by removing the reference to it.
+
         During the next request, a new session will be created.
         """
         if hasattr(self, "_http_session") and isinstance(self._http_session, Session):
@@ -646,7 +653,11 @@ class Request(object):
     def _verbose_logging(
         self, http_method, url, data, params, requests_kwargs, response
     ):
-        """Log verbose information about request. Can be useful during development."""
+        """
+        Log verbose information about request.
+
+        Can be useful during development.
+        """
         if self._VERBOSE_RESPONSE_LOGGING:
             resp_logger = logger.debug
             max_text_length_to_log = 254

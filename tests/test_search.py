@@ -1,15 +1,14 @@
 from time import sleep
-from pkg_resources import parse_version as v
 
 import pytest
+from pkg_resources import parse_version as v
 
 from qbittorrentapi import NotFound404Error
-from qbittorrentapi.search import (
-    SearchJobDictionary,
-    SearchStatusesList,
-    SearchResultsDictionary,
-)
-from tests.conftest import check, get_func
+from qbittorrentapi.search import SearchJobDictionary
+from qbittorrentapi.search import SearchResultsDictionary
+from qbittorrentapi.search import SearchStatusesList
+from tests.conftest import check
+from tests.conftest import get_func
 
 plugin_name = "legittorrents"
 legit_torrents_url = "https://raw.githubusercontent.com/qbittorrent/search-plugins/master/nova3/engines/legittorrents.py"

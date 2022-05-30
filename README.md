@@ -38,7 +38,7 @@ qbt_client = qbittorrentapi.Client(
 )
 
 # the Client will automatically acquire/maintain a logged-in state
-# in line with any request. therefore, this is not strictly necessary; 
+# in line with any request. therefore, this is not strictly necessary;
 # however, you may want to test the provided login credentials.
 try:
     qbt_client.auth_log_in()

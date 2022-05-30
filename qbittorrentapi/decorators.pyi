@@ -1,7 +1,11 @@
-from typing import Callable, Set, Text, Type
+from typing import Callable
+from typing import Set
+from typing import Text
+from typing import Type
 
 from qbittorrentapi.client import Client
-from qbittorrentapi.definitions import List, Dictionary
+from qbittorrentapi.definitions import Dictionary
+from qbittorrentapi.definitions import List
 from qbittorrentapi.request import Request
 
 class Alias:

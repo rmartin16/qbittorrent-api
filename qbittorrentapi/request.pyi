@@ -1,7 +1,11 @@
-from typing import Dict, MutableMapping, Iterable, Text
+from typing import Dict
+from typing import Iterable
+from typing import MutableMapping
+from typing import Text
 from urllib.parse import ParseResult
 
-from requests import Response, Session
+from requests import Response
+from requests import Session
 
 from qbittorrentapi.app import Application
 from qbittorrentapi.auth import Authorization
@@ -11,8 +15,8 @@ from qbittorrentapi.rss import RSS
 from qbittorrentapi.search import Search
 from qbittorrentapi.sync import Sync
 from qbittorrentapi.torrents import TorrentCategories
-from qbittorrentapi.torrents import TorrentTags
 from qbittorrentapi.torrents import Torrents
+from qbittorrentapi.torrents import TorrentTags
 from qbittorrentapi.transfer import Transfer
 
 class URL(object):

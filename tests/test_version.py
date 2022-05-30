@@ -1,7 +1,8 @@
 from sys import version_info
 
-from tests.conftest import api_version_map, IS_QBT_DEV
 from qbittorrentapi import Version
+from tests.conftest import IS_QBT_DEV
+from tests.conftest import api_version_map
 
 
 def test_supported_versions(app_version, api_version):

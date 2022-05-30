@@ -72,7 +72,8 @@ class Application(ClientCache):
 
     @property
     def preferences(self):
-        """Implements :meth:`~AppAPIMixIn.app_preferences` and :meth:`~AppAPIMixIn.app_set_preferences`"""
+        """Implements :meth:`~AppAPIMixIn.app_preferences` and
+        :meth:`~AppAPIMixIn.app_set_preferences`"""
         return self._client.app_preferences()
 
     @preferences.setter
@@ -96,7 +97,7 @@ class Application(ClientCache):
 @aliased
 class AppAPIMixIn(Request):
     """
-    Implementation of all Application API methods
+    Implementation of all Application API methods.
 
     :Usage:
         >>> from qbittorrentapi import Client
@@ -108,7 +109,8 @@ class AppAPIMixIn(Request):
     @property
     def app(self):
         """
-        Allows for transparent interaction with Application endpoints. (alias: app)
+        Allows for transparent interaction with Application endpoints. (alias:
+        app)
 
         See Application class for usage.
         :return: Application object
@@ -123,7 +125,7 @@ class AppAPIMixIn(Request):
     @login_required
     def app_version(self, **kwargs):
         """
-        Retrieve application version
+        Retrieve application version.
 
         :return: string
         """
@@ -151,14 +153,12 @@ class AppAPIMixIn(Request):
         Retrieve build info. (alias: app_buildInfo)
 
         :return: :class:`BuildInfoDictionary` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-build-info
-        """
+        """  # noqa: E501
         return self._get(_name=APINames.Application, _method="buildInfo", **kwargs)
 
     @login_required
     def app_shutdown(self, **kwargs):
-        """
-        Shutdown qBittorrent.
-        """
+        """Shutdown qBittorrent."""
         self._post(_name=APINames.Application, _method="shutdown", **kwargs)
 
     @response_json(ApplicationPreferencesDictionary)
@@ -168,14 +168,15 @@ class AppAPIMixIn(Request):
         Retrieve qBittorrent application preferences.
 
         :return: :class:`ApplicationPreferencesDictionary` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-application-preferences
-        """
+        """  # noqa: E501
         return self._get(_name=APINames.Application, _method="preferences", **kwargs)
 
     @Alias("app_setPreferences")
     @login_required
     def app_set_preferences(self, prefs=None, **kwargs):
         """
-        Set one or more preferences in qBittorrent application. (alias: app_setPreferences)
+        Set one or more preferences in qBittorrent application. (alias:
+        app_setPreferences)
 
         :param prefs: dictionary of preferences to set
         :return: None
@@ -190,7 +191,8 @@ class AppAPIMixIn(Request):
     @login_required
     def app_default_save_path(self, **kwargs):
         """
-        Retrieves the default path for where torrents are saved. (alias: app_defaultSavePath)
+        Retrieves the default path for where torrents are saved. (alias:
+        app_defaultSavePath)
 
         :return: string
         """

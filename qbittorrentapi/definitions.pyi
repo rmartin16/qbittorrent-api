@@ -1,5 +1,8 @@
 from enum import Enum
-from typing import Iterable, MutableMapping, Text, Type
+from typing import Iterable
+from typing import MutableMapping
+from typing import Text
+from typing import Type
 
 try:
     from collections import UserList

@@ -3,15 +3,14 @@ from json import dumps
 
 import pytest
 
-from qbittorrentapi import Client
-from qbittorrentapi.decorators import (
-    handle_hashes,
-    response_json,
-    response_text,
-)
 from qbittorrentapi import APIError
+from qbittorrentapi import Client
 from qbittorrentapi._attrdict import AttrDict
-from qbittorrentapi.decorators import endpoint_introduced, version_removed
+from qbittorrentapi.decorators import endpoint_introduced
+from qbittorrentapi.decorators import handle_hashes
+from qbittorrentapi.decorators import response_json
+from qbittorrentapi.decorators import response_text
+from qbittorrentapi.decorators import version_removed
 from qbittorrentapi.request import Request
 
 list2str = Request._list2string

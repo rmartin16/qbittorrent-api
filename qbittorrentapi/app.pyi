@@ -1,4 +1,5 @@
-from typing import MutableMapping, Text
+from typing import MutableMapping
+from typing import Text
 
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary

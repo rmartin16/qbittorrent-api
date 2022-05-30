@@ -2,6 +2,7 @@ from os import environ
 from time import sleep
 
 import pytest
+
 from qbittorrentapi import APIConnectionError
 
 

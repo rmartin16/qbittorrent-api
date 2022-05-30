@@ -1,6 +1,5 @@
-from pkg_resources import parse_version as v
-
 import pytest
+from pkg_resources import parse_version as v
 
 from qbittorrentapi.transfer import TransferInfoDictionary
 

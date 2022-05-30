@@ -10,7 +10,7 @@ from qbittorrentapi._attrdict import AttrDict
 
 class APINames(Enum):
     """
-    API namespaces for API endpoints
+    API namespaces for API endpoints.
 
     e.g 'torrents' in http://localhost:8080/api/v2/torrents/addTrackers
     """
@@ -127,7 +127,11 @@ class TorrentStates(Enum):
 
 
 class ClientCache(object):
-    """Caches the client. Subclass this for any object that needs access to the Client."""
+    """
+    Caches the client.
+
+    Subclass this for any object that needs access to the Client.
+    """
 
     def __init__(self, *args, **kwargs):
         self._client = kwargs.pop("client")
@@ -145,7 +149,8 @@ class Dictionary(ClientCache, AttrDict):
 
     @classmethod
     def _normalize_data(cls, data):
-        """iterate through a dictionary converting any nested dictionaries to AttrDicts"""
+        """iterate through a dictionary converting any nested dictionaries to
+        AttrDicts."""
         converted_dict = AttrDict()
         for key, value in (data or {}).items():
             # if the value is a dictionary, convert it to a AttrDict

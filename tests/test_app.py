@@ -1,7 +1,7 @@
 import os
-from pkg_resources import parse_version as v
 
 import pytest
+from pkg_resources import parse_version as v
 
 from tests.conftest import IS_QBT_DEV
 

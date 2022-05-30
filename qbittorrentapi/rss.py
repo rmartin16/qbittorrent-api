@@ -148,7 +148,8 @@ class RSSAPIMixIn(Request):
     @login_required
     def rss_add_folder(self, folder_path=None, **kwargs):
         """
-        Add a RSS folder. Any intermediate folders in path must already exist. (alias: rss_addFolder)
+        Add a RSS folder. Any intermediate folders in path must already exist.
+        (alias: rss_addFolder)
 
         :raises Conflict409Error:
 
@@ -162,7 +163,8 @@ class RSSAPIMixIn(Request):
     @login_required
     def rss_add_feed(self, url=None, item_path=None, **kwargs):
         """
-        Add new RSS feed. Folders in path must already exist. (alias: rss_addFeed)
+        Add new RSS feed. Folders in path must already exist. (alias:
+        rss_addFeed)
 
         :raises Conflict409Error:
 
@@ -236,8 +238,8 @@ class RSSAPIMixIn(Request):
     @login_required
     def rss_mark_as_read(self, item_path=None, article_id=None, **kwargs):
         """
-        Mark RSS article as read. If article ID is not provider,
-        the entire feed is marked as read. (alias: rss_markAsRead)
+        Mark RSS article as read. If article ID is not provider, the entire
+        feed is marked as read. (alias: rss_markAsRead)
 
         :raises NotFound404Error:
 
@@ -257,7 +259,7 @@ class RSSAPIMixIn(Request):
         :param rule_name: name for new rule
         :param rule_def: dictionary with rule fields - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#set-auto-downloading-rule
         :return: None
-        """
+        """  # noqa: E501
         data = {"ruleName": rule_name, "ruleDef": dumps(rule_def)}
         self._post(_name=APINames.RSS, _method="setRule", data=data, **kwargs)
 

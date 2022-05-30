@@ -1,4 +1,5 @@
-from requests.exceptions import HTTPError as RequestsHTTPError, RequestException
+from requests.exceptions import HTTPError as RequestsHTTPError
+from requests.exceptions import RequestException
 
 class APIError(Exception): ...
 class UnsupportedQbittorrentVersion(APIError): ...

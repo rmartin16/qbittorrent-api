@@ -1,4 +1,5 @@
-from typing import Iterable, Text
+from typing import Iterable
+from typing import Text
 
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary

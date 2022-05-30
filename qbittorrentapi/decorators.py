@@ -29,11 +29,13 @@ class Alias(object):
 
     def __call__(self, func):
         """
-        Method call wrapper. As this decorator has arguments, this method will
-        only be called once as a part of the decoration process, receiving only
-        one argument: the decorated function ('f'). As a result of this kind of
-        decorator, this method must return the callable that will wrap the
-        decorated function.
+        Method call wrapper.
+
+        As this decorator has arguments, this method will only be called
+        once as a part of the decoration process, receiving only one
+        argument: the decorated function ('f'). As a result of this kind
+        of decorator, this method must return the callable that will
+        wrap the decorated function.
         """
         func._aliases = self.aliases
         return func
@@ -43,6 +45,7 @@ def aliased(aliased_class):
     """
     Decorator function that *must* be used in combination with @alias
     decorator. This class will make the magic happen!
+
     @aliased classes will have their aliased method (via @alias) actually aliased.
     This method simply iterates over the member attributes of 'aliased_class'
     seeking for those which have an '_aliases' attribute and then defines new
@@ -71,12 +74,10 @@ def aliased(aliased_class):
 
 
 def login_required(func):
-    """
-    Ensure client is logged in before calling API methods.
-    """
+    """Ensure client is logged in before calling API methods."""
 
     def get_requests_kwargs(**kwargs):
-        """Extract kwargs for performing transparent qBittorrent login"""
+        """Extract kwargs for performing transparent qBittorrent login."""
         return dict(
             requests_args=kwargs.get("requests_args"),
             requests_params=kwargs.get("requests_params"),
@@ -102,12 +103,12 @@ def handle_hashes(func):
     """
     Normalize torrent hash arguments.
 
-    Initial implementations of this client used 'hash' and 'hashes'
-    as function arguments for torrent hashes. Since 'hash' collides
-    with an internal python name, all arguments were updated to
-    'torrent_hash' or 'torrent_hashes'. Since both versions of argument
-    names remain respected, this decorator normalizes torrent hash
-    arguments into either 'torrent_hash' or 'torrent_hashes'.
+    Initial implementations of this client used 'hash' and 'hashes' as
+    function arguments for torrent hashes. Since 'hash' collides with an
+    internal python name, all arguments were updated to 'torrent_hash'
+    or 'torrent_hashes'. Since both versions of argument names remain
+    respected, this decorator normalizes torrent hash arguments into
+    either 'torrent_hash' or 'torrent_hashes'.
     """
 
     @wraps(func)
@@ -148,7 +149,8 @@ def response_text(response_class):
 
 def response_json(response_class):
     """
-    Return the JSON in the API response. JSON is parsed as instance of response_class.
+    Return the JSON in the API response. JSON is parsed as instance of
+    response_class.
 
     :param response_class: class to parse the JSON in to
     :return: JSON as the response class
@@ -182,9 +184,8 @@ def response_json(response_class):
 
 
 def _check_for_raise(client, error_message):
-    """
-    For any nonexistent endpoint, log the error and conditionally raise an exception.
-    """
+    """For any nonexistent endpoint, log the error and conditionally raise an
+    exception."""
     logger.debug(error_message)
     if client._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS:
         raise NotImplementedError(error_message)
@@ -192,7 +193,8 @@ def _check_for_raise(client, error_message):
 
 def endpoint_introduced(version_introduced, endpoint):
     """
-    Prevent hitting an endpoint if the connected qBittorrent version doesn't support it.
+    Prevent hitting an endpoint if the connected qBittorrent version doesn't
+    support it.
 
     :param version_introduced: version endpoint was made available
     :param endpoint: API endpoint (e.g. /torrents/categories)
@@ -222,7 +224,8 @@ def endpoint_introduced(version_introduced, endpoint):
 
 def version_removed(version_obsoleted, endpoint):
     """
-    Prevent hitting an endpoint that was removed in a version older than the connected qBittorrent.
+    Prevent hitting an endpoint that was removed in a version older than the
+    connected qBittorrent.
 
     :param version_obsoleted: the Web API version the endpoint was removed
     :param endpoint: name of the removed endpoint

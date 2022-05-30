@@ -1,10 +1,11 @@
 from time import sleep
-from pkg_resources import parse_version as v
 
 import pytest
+from pkg_resources import parse_version as v
 
 from qbittorrentapi.rss import RSSitemsDictionary
-from tests.conftest import check, get_func
+from tests.conftest import check
+from tests.conftest import get_func
 
 folder_one = "testFolderOne"
 folder_two = "testFolderTwo"

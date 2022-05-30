@@ -7,7 +7,7 @@ class APIError(Exception):
 
 
 class UnsupportedQbittorrentVersion(APIError):
-    """Connected qBittorrent is not fully supported by this Client"""
+    """Connected qBittorrent is not fully supported by this Client."""
 
 
 class FileError(IOError, APIError):
@@ -31,11 +31,17 @@ class APIConnectionError(RequestException, APIError):
 
 
 class LoginFailed(APIConnectionError):
-    """This can technically be raised with any request since log in may be attempted for any request and could fail."""
+    """This can technically be raised with any request since log in may be
+    attempted for any request and could fail."""
 
 
 class HTTPError(RequestsHTTPError, APIConnectionError):
-    """Base error for all HTTP errors. All errors following a successful connection to qBittorrent are returned as HTTP statuses."""
+    """
+    Base error for all HTTP errors.
+
+    All errors following a successful connection to qBittorrent are
+    returned as HTTP statuses.
+    """
 
 
 class HTTP4XXError(HTTPError):
@@ -47,31 +53,31 @@ class HTTP5XXError(HTTPError):
 
 
 class HTTP400Error(HTTP4XXError):
-    """HTTP 400 Status"""
+    """HTTP 400 Status."""
 
 
 class HTTP401Error(HTTP4XXError):
-    """HTTP 401 Status"""
+    """HTTP 401 Status."""
 
 
 class HTTP403Error(HTTP4XXError):
-    """HTTP 403 Status"""
+    """HTTP 403 Status."""
 
 
 class HTTP404Error(HTTP4XXError):
-    """HTTP 404 Status"""
+    """HTTP 404 Status."""
 
 
 class HTTP409Error(HTTP4XXError):
-    """HTTP 409 Status"""
+    """HTTP 409 Status."""
 
 
 class HTTP415Error(HTTP4XXError):
-    """HTTP 415 Status"""
+    """HTTP 415 Status."""
 
 
 class HTTP500Error(HTTP5XXError):
-    """HTTP 500 Status"""
+    """HTTP 500 Status."""
 
 
 class MissingRequiredParameters400Error(HTTP400Error):
@@ -87,11 +93,13 @@ class Unauthorized401Error(HTTP401Error):
 
 
 class Forbidden403Error(HTTP403Error):
-    """Not logged in, IP has been banned, or calling an API method that isn't public."""
+    """Not logged in, IP has been banned, or calling an API method that isn't
+    public."""
 
 
 class NotFound404Error(HTTP404Error):
-    """This should mean qBittorrent couldn't find a torrent for the torrent hash."""
+    """This should mean qBittorrent couldn't find a torrent for the torrent
+    hash."""
 
 
 class Conflict409Error(HTTP409Error):
@@ -103,4 +111,5 @@ class UnsupportedMediaType415Error(HTTP415Error):
 
 
 class InternalServerError500Error(HTTP500Error):
-    """Returned if qBittorent craps on itself while processing the request..."""
+    """Returned if qBittorent craps on itself while processing the
+    request..."""

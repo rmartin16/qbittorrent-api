@@ -1,50 +1,48 @@
 import errno
 import logging
-from pkg_resources import parse_version as v
 import platform
 from sys import version_info
 from time import sleep
 
+from pkg_resources import parse_version as v
+
 try:
     from collections.abc import Iterable
 except ImportError:
-    from collections import Iterable
+    from collections import Iterable  # noqa: F401
 
 import pytest
 import requests
 
-from qbittorrentapi.exceptions import Forbidden403Error
 from qbittorrentapi.exceptions import Conflict409Error
+from qbittorrentapi.exceptions import Forbidden403Error
 from qbittorrentapi.exceptions import InvalidRequest400Error
 from qbittorrentapi.exceptions import TorrentFileError
 from qbittorrentapi.exceptions import TorrentFileNotFoundError
 from qbittorrentapi.exceptions import TorrentFilePermissionError
-from qbittorrentapi.torrents import TorrentPropertiesDictionary
-from qbittorrentapi.torrents import TrackersList
-from qbittorrentapi.torrents import WebSeedsList
+from qbittorrentapi.torrents import TagList
+from qbittorrentapi.torrents import TorrentCategoriesDictionary
 from qbittorrentapi.torrents import TorrentFilesList
-from qbittorrentapi.torrents import TorrentPieceInfoList
 from qbittorrentapi.torrents import TorrentInfoList
 from qbittorrentapi.torrents import TorrentLimitsDictionary
+from qbittorrentapi.torrents import TorrentPieceInfoList
+from qbittorrentapi.torrents import TorrentPropertiesDictionary
 from qbittorrentapi.torrents import TorrentsAddPeersDictionary
-from qbittorrentapi.torrents import TorrentCategoriesDictionary
-from qbittorrentapi.torrents import TagList
-
-from tests.conftest import (
-    check,
-    mkpath,
-    new_torrent_standalone,
-    retry,
-    root_folder_torrent_hash,
-    root_folder_torrent_file,
-    torrent1_filename,
-    torrent2_filename,
-    torrent1_hash,
-    torrent2_hash,
-    torrent1_url,
-    torrent2_url,
-)
+from qbittorrentapi.torrents import TrackersList
+from qbittorrentapi.torrents import WebSeedsList
+from tests.conftest import check
 from tests.conftest import get_func
+from tests.conftest import mkpath
+from tests.conftest import new_torrent_standalone
+from tests.conftest import retry
+from tests.conftest import root_folder_torrent_file
+from tests.conftest import root_folder_torrent_hash
+from tests.conftest import torrent1_filename
+from tests.conftest import torrent1_hash
+from tests.conftest import torrent1_url
+from tests.conftest import torrent2_filename
+from tests.conftest import torrent2_hash
+from tests.conftest import torrent2_url
 
 
 def disable_queueing(client):
@@ -999,16 +997,18 @@ def test_torrents_add_peers(client, api_version, orig_torrent, client_func, peer
             p = get_func(client, client_func)(
                 peers=peers, torrent_hashes=orig_torrent.hash
             )
-            # can only actually verify the peer was added if it's a valid peer
-            # check(lambda: client.sync_torrent_peers(torrent_hash=orig_torrent_hash)['peers'], peers, reverse=True)
+            # can only actually verify the peer was added if it's a valid peer  # noqa: E800
+            # check(  # noqa: E800
+            #     lambda: client.sync_torrent_peers(torrent_hash=orig_torrent.hash)['peers'],  # noqa: E800
+            #     peers,  # noqa: E800
+            #     reverse=True  # noqa: E800
+            # )  # noqa: E800
             assert isinstance(p, TorrentsAddPeersDictionary)
 
 
 def _categories_save_path_key(api_version):
-    """
-    With qBittorrent 4.4.0 (Web API 2.8.4), the key in the category
-    definition returned changed from savePath to save_path....
-    """
+    """With qBittorrent 4.4.0 (Web API 2.8.4), the key in the category
+    definition returned changed from savePath to save_path...."""
     if v(api_version) == v("2.8.4"):
         return "save_path"
     return "savePath"
@@ -1197,7 +1197,7 @@ def test_tags(client, api_version, client_func):
     else:
         try:
             assert isinstance(get_func(client, client_func)(), TagList)
-        except:
+        except Exception:
             assert isinstance(get_func(client, client_func), TagList)
 
 

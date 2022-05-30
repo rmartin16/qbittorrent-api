@@ -2,7 +2,8 @@ from qbittorrentapi.decorators import login_required
 from qbittorrentapi.decorators import response_json
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
-from qbittorrentapi.definitions import List, ListEntry
+from qbittorrentapi.definitions import List
+from qbittorrentapi.definitions import ListEntry
 from qbittorrentapi.request import Request
 
 
