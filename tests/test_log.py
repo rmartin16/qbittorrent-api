@@ -1,6 +1,7 @@
 import pytest
 
-from qbittorrentapi.log import LogMainList, LogPeersList
+from qbittorrentapi.log import LogMainList
+from qbittorrentapi.log import LogPeersList
 
 
 @pytest.mark.parametrize("normal", (True, False))

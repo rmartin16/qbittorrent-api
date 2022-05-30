@@ -65,7 +65,8 @@ class AuthAPIMixIn(Request):
     @property
     def is_logged_in(self):
         """
-        Returns True/False for whether a log-in attempt was ever successfully completed.
+        Returns True/False for whether a log-in attempt was ever successfully
+        completed.
 
         It isn't possible to know if qBittorrent will accept whatever SID is locally
         cached...however, any request that is rejected because of the SID will be automatically
@@ -126,7 +127,5 @@ class AuthAPIMixIn(Request):
 
     @login_required
     def auth_log_out(self, **kwargs):
-        """
-        End session with qBittorrent.
-        """
+        """End session with qBittorrent."""
         self._get(_name=APINames.Authorization, _method="logout", **kwargs)

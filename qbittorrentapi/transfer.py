@@ -47,17 +47,20 @@ class Transfer(ClientCache):
 
     @speedLimitsMode.setter
     def speedLimitsMode(self, v):
-        """Implements :meth:`~TransferAPIMixIn.transfer_toggle_speed_limits_mode`"""
+        """Implements
+        :meth:`~TransferAPIMixIn.transfer_toggle_speed_limits_mode`"""
         self.speed_limits_mode = v
 
     @speed_limits_mode.setter
     def speed_limits_mode(self, v):
-        """Implements :meth:`~TransferAPIMixIn.transfer_toggle_speed_limits_mode`"""
+        """Implements
+        :meth:`~TransferAPIMixIn.transfer_toggle_speed_limits_mode`"""
         self.toggle_speed_limits_mode(intended_state=v)
 
     @Alias("toggleSpeedLimitsMode")
     def toggle_speed_limits_mode(self, intended_state=None, **kwargs):
-        """Implements :meth:`~TransferAPIMixIn.transfer_toggle_speed_limits_mode`"""
+        """Implements
+        :meth:`~TransferAPIMixIn.transfer_toggle_speed_limits_mode`"""
         return self._client.transfer_toggle_speed_limits_mode(
             intended_state=intended_state, **kwargs
         )
@@ -115,7 +118,7 @@ class Transfer(ClientCache):
 @aliased
 class TransferAPIMixIn(Request):
     """
-    Implementation of all Transfer API methods
+    Implementation of all Transfer API methods.
 
     :Usage:
         >>> from qbittorrentapi import Client
@@ -140,10 +143,11 @@ class TransferAPIMixIn(Request):
     @login_required
     def transfer_info(self, **kwargs):
         """
-        Retrieves the global transfer info usually found in qBittorrent status bar.
+        Retrieves the global transfer info usually found in qBittorrent status
+        bar.
 
         :return: :class:`TransferInfoDictionary` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-global-transfer-info
-        """
+        """  # noqa: E501
         return self._get(_name=APINames.Transfer, _method="info", **kwargs)
 
     @Alias("transfer_speedLimitsMode")
@@ -151,7 +155,8 @@ class TransferAPIMixIn(Request):
     @login_required
     def transfer_speed_limits_mode(self, **kwargs):
         """
-        Retrieves whether alternative speed limits are enabled. (alias: transfer_speedLimitMode)
+        Retrieves whether alternative speed limits are enabled. (alias:
+        transfer_speedLimitMode)
 
         :return: '1' if alternative speed limits are currently enabled, '0' otherwise
         """
@@ -161,13 +166,14 @@ class TransferAPIMixIn(Request):
     @login_required
     def transfer_toggle_speed_limits_mode(self, intended_state=None, **kwargs):
         """
-        Sets whether alternative speed limits are enabled. (alias: transfer_toggleSpeedLimitsMode)
+        Sets whether alternative speed limits are enabled. (alias:
+        transfer_toggleSpeedLimitsMode)
 
         :param intended_state: True to enable alt speed and False to disable.
                                Leaving None will toggle the current state.
         :return: None
         """
-        is_enabled = lambda: self.transfer_speed_limits_mode() == "1"
+        is_enabled = lambda: self.transfer_speed_limits_mode() == "1"  # noqa: E731
         if intended_state is None or is_enabled() is not intended_state:
             self._post(
                 _name=APINames.Transfer, _method="toggleSpeedLimitsMode", **kwargs
@@ -178,7 +184,8 @@ class TransferAPIMixIn(Request):
     @login_required
     def transfer_download_limit(self, **kwargs):
         """
-        Retrieves download limit. 0 is unlimited. (alias: transfer_downloadLimit)
+        Retrieves download limit. 0 is unlimited. (alias:
+        transfer_downloadLimit)
 
         :return: integer
         """
@@ -199,7 +206,8 @@ class TransferAPIMixIn(Request):
     @login_required
     def transfer_set_download_limit(self, limit=None, **kwargs):
         """
-        Set the global download limit in bytes/second. (alias: transfer_setDownloadLimit)
+        Set the global download limit in bytes/second. (alias:
+        transfer_setDownloadLimit)
 
         :param limit: download limit in bytes/second (0 or -1 for no limit)
         :return: None
@@ -213,7 +221,8 @@ class TransferAPIMixIn(Request):
     @login_required
     def transfer_set_upload_limit(self, limit=None, **kwargs):
         """
-        Set the global download limit in bytes/second. (alias: transfer_setUploadLimit)
+        Set the global download limit in bytes/second. (alias:
+        transfer_setUploadLimit)
 
         :param limit: upload limit in bytes/second (0 or -1 for no limit)
         :return: None

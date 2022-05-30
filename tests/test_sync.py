@@ -1,6 +1,7 @@
 import pytest
 
-from qbittorrentapi.sync import SyncMainDataDictionary, SyncTorrentPeersDictionary
+from qbittorrentapi.sync import SyncMainDataDictionary
+from qbittorrentapi.sync import SyncTorrentPeersDictionary
 
 
 @pytest.mark.parametrize("rid", (None, 0, 1, 100000))

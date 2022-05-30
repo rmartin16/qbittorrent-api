@@ -191,7 +191,8 @@ class SearchAPIMixIn(Request):
     @login_required
     def search_start(self, pattern=None, plugins=None, category=None, **kwargs):
         """
-        Start a search. Python must be installed. Host may limit number of concurrent searches.
+        Start a search. Python must be installed. Host may limit number of
+        concurrent searches.
 
         :raises Conflict409Error:
 
@@ -232,7 +233,7 @@ class SearchAPIMixIn(Request):
 
         :param search_id: ID of search to get status; leave emtpy for status of all jobs
         :return: :class:`SearchStatusesList` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-status
-        """
+        """  # noqa: E501
         params = {"id": search_id}
         return self._get(
             _name=APINames.Search, _method="status", params=params, **kwargs
@@ -252,7 +253,7 @@ class SearchAPIMixIn(Request):
         :param limit: number of results to return
         :param offset: where to start returning results
         :return: :class:`SearchResultsDictionary` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-results
-        """
+        """  # noqa: E501
         data = {"id": search_id, "limit": limit, "offset": offset}
         return self._post(_name=APINames.Search, _method="results", data=data, **kwargs)
 
@@ -295,7 +296,7 @@ class SearchAPIMixIn(Request):
         Retrieve details of search plugins.
 
         :return: :class:`SearchPluginsList` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-plugins
-        """
+        """  # noqa: E501
         return self._get(_name=APINames.Search, _method="plugins", **kwargs)
 
     @endpoint_introduced("2.1.1", "search/installPlugin")
@@ -303,7 +304,8 @@ class SearchAPIMixIn(Request):
     @login_required
     def search_install_plugin(self, sources=None, **kwargs):
         """
-        Install search plugins from either URL or file. (alias: search_installPlugin)
+        Install search plugins from either URL or file. (alias:
+        search_installPlugin)
 
         :param sources: list of URLs or filepaths
         :return: None

@@ -4,16 +4,17 @@ import re
 import sys
 from collections import namedtuple
 from os import environ
-from pkg_resources import parse_version as v
 
 import pytest
+from pkg_resources import parse_version as v
 
 from qbittorrentapi import Client
 from qbittorrentapi import exceptions
 from qbittorrentapi.request import Request
 from qbittorrentapi.torrents import TorrentDictionary
 from qbittorrentapi.torrents import TorrentInfoList
-from tests.conftest import BASE_PATH, IS_QBT_DEV
+from tests.conftest import BASE_PATH
+from tests.conftest import IS_QBT_DEV
 
 MockResponse = namedtuple("MockResponse", ("status_code", "text"))
 
@@ -281,7 +282,8 @@ def test_requests_timeout():
 
 
 def test_request_extra_params(client, orig_torrent_hash):
-    """extra params can be sent directly to qBittorrent but there aren't any real use-cases so force it"""
+    """extra params can be sent directly to qBittorrent but there aren't any
+    real use-cases so force it."""
     json_response = client._post(
         _name="torrents", _method="info", hashes=orig_torrent_hash
     ).json()
@@ -342,9 +344,9 @@ def test_verify_cert(app_version):
     assert client.app.version == app_version
 
     # this is only ever going to work with a trusted cert....disabling for now
-    # client = Client(VERIFY_WEBUI_CERTIFICATE=True)
-    # assert client._VERIFY_WEBUI_CERTIFICATE is True
-    # assert client.app.version == app_version
+    # client = Client(VERIFY_WEBUI_CERTIFICATE=True)  # noqa: E800
+    # assert client._VERIFY_WEBUI_CERTIFICATE is True  # noqa: E800
+    # assert client.app.version == app_version  # noqa: E800
 
     environ["PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE"] = "true"
     client = Client(VERIFY_WEBUI_CERTIFICATE=True)

@@ -7,7 +7,6 @@ import six
 
 from qbittorrentapi import APIConnectionError
 from qbittorrentapi import Client
-
 from qbittorrentapi._version_support import (
     APP_VERSION_2_API_VERSION_MAP as api_version_map,
 )
@@ -62,8 +61,9 @@ def check(
     check_func, value, reverse=False, negate=False, any=False, check_limit=_check_limit
 ):
     """
-    Compare the return value of an arbitrary function to expected value with retries.
-    Since some requests take some time to take effect in qBittorrent, the retries every second for 10 seconds.
+    Compare the return value of an arbitrary function to expected value with
+    retries. Since some requests take some time to take effect in qBittorrent,
+    the retries every second for 10 seconds.
 
     :param check_func: callable to generate values to check
     :param value: str, int, or iterator of values to look for
@@ -126,14 +126,14 @@ def check(
 
 
 def retry(retries=3):
-    """decorator to retry a function if there's an exception"""
+    """decorator to retry a function if there's an exception."""
 
     def inner(f):
         def wrapper(*args, **kwargs):
             for retry_count in range(retries):
                 try:
                     return f(*args, **kwargs)
-                except:
+                except Exception:
                     if retry_count >= (retries - 1):
                         raise
 
@@ -144,7 +144,7 @@ def retry(retries=3):
 
 @pytest.fixture(autouse=True)
 def abort_if_qbittorrent_crashes(client):
-    """Abort tests if qbittorrent disappears during testing"""
+    """Abort tests if qbittorrent disappears during testing."""
     try:
         _ = client.app.version
         yield
@@ -154,7 +154,7 @@ def abort_if_qbittorrent_crashes(client):
 
 @pytest.fixture(scope="session")
 def client():
-    """qBittorrent Client for testing session"""
+    """qBittorrent Client for testing session."""
     try:
         client = Client(
             RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True,
@@ -173,13 +173,13 @@ def client():
 
 @pytest.fixture(scope="session")
 def orig_torrent_hash():
-    """Torrent hash for the Xubuntu torrent loaded for testing"""
+    """Torrent hash for the Xubuntu torrent loaded for testing."""
     return _orig_torrent_hash
 
 
 @pytest.fixture(scope="function")
 def orig_torrent(client, orig_torrent_hash):
-    """Torrent to remain in qBittorrent for entirety of session"""
+    """Torrent to remain in qBittorrent for entirety of session."""
     try:
         check(
             lambda: len(
@@ -194,7 +194,7 @@ def orig_torrent(client, orig_torrent_hash):
 
 @pytest.fixture
 def new_torrent(client):
-    """Torrent that is added on demand to qBittorrent and then removed"""
+    """Torrent that is added on demand to qBittorrent and then removed."""
     yield next(new_torrent_standalone(client))
 
 
@@ -219,7 +219,7 @@ def new_torrent_standalone(client, torrent_hash=torrent1_hash, **kwargs):
                 return list(
                     filter(lambda t: t.hash == torrent_hash, client.torrents_info())
                 )[0]
-            except:
+            except Exception:
                 if attempt >= _check_limit - 1:
                     raise
                 sleep(1)
@@ -248,7 +248,7 @@ def new_torrent_standalone(client, torrent_hash=torrent1_hash, **kwargs):
 
 @pytest.fixture(scope="session")
 def app_version(client):
-    """qBittorrent App Version being used for testing"""
+    """qBittorrent App Version being used for testing."""
     if qbt_version != "v":
         return qbt_version
     return client.app_version()
@@ -256,7 +256,7 @@ def app_version(client):
 
 @pytest.fixture(scope="session")
 def api_version(client):
-    """qBittorrent App API Version being used for testing"""
+    """qBittorrent App API Version being used for testing."""
     try:
         return api_version_map[qbt_version]
     except KeyError as exp:
@@ -271,7 +271,7 @@ def rss_feed(client):
         try:
             client.rss_remove_item(item_path=name)
             check(lambda: client.rss_items(), name, reverse=True, negate=True)
-        except:
+        except Exception:
             pass
 
     name = "YTS1080p"
@@ -304,5 +304,5 @@ def pytest_sessionfinish(session, exitstatus):
             # remove all torrents
             for torrent in client.torrents_info():
                 client.torrents_delete(delete_files=True, torrent_hashes=torrent.hash)
-    except:
+    except Exception:
         pass

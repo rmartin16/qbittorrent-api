@@ -42,15 +42,15 @@ except ImportError:  # python 2
     from collections import Sequence
 
 from six import add_metaclass as six_add_metaclass
-from six import string_types as six_string_types
 from six import binary_type as six_binary_type
+from six import string_types as six_string_types
 from six import u as six_u
 
 
 def merge(left, right):
     """
-    Merge two mappings objects together, combining overlapping Mappings,
-    and favoring right-values
+    Merge two mappings objects together, combining overlapping Mappings, and
+    favoring right-values.
 
     left: The left Mapping object.
     right: The right (favored) Mapping object.
@@ -88,8 +88,8 @@ def merge(left, right):
 @six_add_metaclass(ABCMeta)
 class Attr(Mapping):
     """
-    A mixin class for a mapping that allows for attribute-style access
-    of values.
+    A mixin class for a mapping that allows for attribute-style access of
+    values.
 
     A key may be used as an attribute if:
      * It is a string
@@ -110,10 +110,8 @@ class Attr(Mapping):
 
     @abstractmethod
     def _configuration(self):
-        """
-        All required state for building a new instance with the same
-        settings as the current object.
-        """
+        """All required state for building a new instance with the same
+        settings as the current object."""
 
     @classmethod
     def _constructor(cls, mapping, configuration):
@@ -146,9 +144,7 @@ class Attr(Mapping):
         return self._build(self[key])
 
     def __getattr__(self, key):
-        """
-        Access an item as an attribute.
-        """
+        """Access an item as an attribute."""
         if key not in self or not self._valid_name(key):
             raise AttributeError(
                 "'{cls}' instance has no attribute '{name}'".format(
@@ -186,8 +182,7 @@ class Attr(Mapping):
 
     def _build(self, obj):
         """
-        Conditionally convert an object to allow for recursive mapping
-        access.
+        Conditionally convert an object to allow for recursive mapping access.
 
         obj: An object that was a key-value pair in the mapping. If obj
             is a mapping, self._constructor(obj, self._configuration())
@@ -229,16 +224,12 @@ class Attr(Mapping):
 
 @six_add_metaclass(ABCMeta)
 class MutableAttr(Attr, MutableMapping):
-    """
-    A mixin class for a mapping that allows for attribute-style access
-    of values.
-    """
+    """A mixin class for a mapping that allows for attribute-style access of
+    values."""
 
     def _setattr(self, key, value):
-        """
-        Add an attribute to the object, without attempting to add it as
-        a key to the mapping.
-        """
+        """Add an attribute to the object, without attempting to add it as a
+        key to the mapping."""
         super(MutableAttr, self).__setattr__(key, value)
 
     def __setattr__(self, key, value):
@@ -260,10 +251,8 @@ class MutableAttr(Attr, MutableMapping):
             )
 
     def _delattr(self, key):
-        """
-        Delete an attribute from the object, without attempting to
-        remove it from the mapping.
-        """
+        """Delete an attribute from the object, without attempting to remove it
+        from the mapping."""
         super(MutableAttr, self).__delattr__(key)
 
     def __delattr__(self, key, force=False):
@@ -285,9 +274,7 @@ class MutableAttr(Attr, MutableMapping):
 
 
 class AttrDict(dict, MutableAttr):
-    """
-    A dict that implements MutableAttr.
-    """
+    """A dict that implements MutableAttr."""
 
     def __init__(self, *args, **kwargs):
         super(AttrDict, self).__init__(*args, **kwargs)
@@ -296,21 +283,15 @@ class AttrDict(dict, MutableAttr):
         self._setattr("_allow_invalid_attributes", False)
 
     def _configuration(self):
-        """
-        The configuration for an attrmap instance.
-        """
+        """The configuration for an attrmap instance."""
         return self._sequence_type
 
     def __getstate__(self):
-        """
-        Serialize the object.
-        """
+        """Serialize the object."""
         return (self.copy(), self._sequence_type, self._allow_invalid_attributes)
 
     def __setstate__(self, state):
-        """
-        Deserialize the object.
-        """
+        """Deserialize the object."""
         mapping, sequence_type, allow_invalid_attributes = state
         self.update(mapping)
         self._setattr("_sequence_type", sequence_type)
@@ -323,9 +304,7 @@ class AttrDict(dict, MutableAttr):
 
     @classmethod
     def _constructor(cls, mapping, configuration):
-        """
-        A standardized constructor.
-        """
+        """A standardized constructor."""
         attr = cls(mapping)
         attr._setattr("_sequence_type", configuration)
 

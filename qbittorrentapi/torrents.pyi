@@ -1,14 +1,12 @@
-from typing import (
-    Callable,
-    Dict,
-    IO,
-    Iterable,
-    Literal,
-    MutableMapping,
-    Text,
-    Tuple,
-    TypeVar,
-)
+from typing import IO
+from typing import Callable
+from typing import Dict
+from typing import Iterable
+from typing import Literal
+from typing import MutableMapping
+from typing import Text
+from typing import Tuple
+from typing import TypeVar
 
 from qbittorrentapi.client import Client
 from qbittorrentapi.definitions import ClientCache

@@ -7,7 +7,6 @@ from qbittorrentapi.sync import SyncAPIMixIn
 from qbittorrentapi.torrents import TorrentsAPIMixIn
 from qbittorrentapi.transfer import TransferAPIMixIn
 
-
 # NOTES
 # Implementation
 #     Required API parameters
@@ -34,7 +33,7 @@ from qbittorrentapi.transfer import TransferAPIMixIn
 #
 #     torrents/downloadLimit and uploadLimit
 #         - Hashes handling is non-standard. 404 is not returned for bad hashes and 'all' doesn't work.
-#         - https://github.com/qbittorrent/qBittorrent/blob/6de02b0f2a79eeb4d7fb624c39a9f65ffe181d68/src/webui/api/torrentscontroller.cpp#L754
+#         - https://github.com/qbittorrent/qBittorrent/blob/6de02b0f2a79eeb4d7fb624c39a9f65ffe181d68/src/webui/api/torrentscontroller.cpp#L754  # noqa: E501
 #         - https://github.com/qbittorrent/qBittorrent/issues/10744
 #
 #     torrents/info
@@ -91,7 +90,7 @@ class Client(
     :param RAISE_ERROR_FOR_UNSUPPORTED_QBITTORRENT_VERSIONS: raise the UnsupportedQbittorrentVersion exception if the
         connected version of qBittorrent is not fully supported by this client.
     :param DISABLE_LOGGING_DEBUG_OUTPUT: Turn off debug output from logging for this package as well as Requests & urllib3.
-    """
+    """  # noqa: E501
 
     def __init__(self, host="", port=None, username=None, password=None, **kwargs):
         super(Client, self).__init__(

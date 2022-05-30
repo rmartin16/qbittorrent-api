@@ -110,7 +110,7 @@ class SyncAPIMixIn(Request):
 
         :param rid: response ID
         :return: :class:`SyncMainDataDictionary` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-main-data
-        """
+        """  # noqa: E501
         data = {"rid": rid}
         return self._post(_name=APINames.Sync, _method="maindata", data=data, **kwargs)
 
@@ -127,7 +127,7 @@ class SyncAPIMixIn(Request):
         :param torrent_hash: hash for torrent
         :param rid: response ID
         :return: :class:`SyncTorrentPeersDictionary` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-peers-data
-        """
+        """  # noqa: E501
         data = {"hash": torrent_hash, "rid": rid}
         return self._post(
             _name=APINames.Sync, _method="torrentPeers", data=data, **kwargs

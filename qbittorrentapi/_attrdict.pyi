@@ -1,5 +1,6 @@
 import abc
-from collections import Mapping, MutableMapping
+from collections import Mapping
+from collections import MutableMapping
 
 def merge(left, right): ...
 

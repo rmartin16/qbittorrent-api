@@ -1,4 +1,6 @@
-from typing import Dict, Text, Set
+from typing import Dict
+from typing import Set
+from typing import Text
 
 MOST_RECENT_SUPPORTED_APP_VERSION: Text
 MOST_RECENT_SUPPORTED_API_VERSION: Text
