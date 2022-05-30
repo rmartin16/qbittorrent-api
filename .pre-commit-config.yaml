@@ -2,8 +2,8 @@ repos:
   - repo: https://github.com/psf/black
     rev: 22.3.0
     hooks:
-    - id: black
-      language_version: python3
+      - id: black
+        language_version: python3
   - repo: https://github.com/PyCQA/flake8
     rev: 4.0.1
     hooks:
@@ -30,5 +30,5 @@ repos:
   - repo: https://github.com/myint/docformatter
     rev: v1.4
     hooks:
-    - id: docformatter
-      args: [--in-place, --pre-summary-newline]
+      - id: docformatter
+        args: [--in-place, --pre-summary-newline]
