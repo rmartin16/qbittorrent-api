@@ -2,10 +2,10 @@ from enum import Enum
 
 import pytest
 
-from qbittorrentapi import Dictionary
-from qbittorrentapi import List
-from qbittorrentapi import ListEntry
-from qbittorrentapi import TorrentStates
+from qbittorrentapi.definitions import Dictionary
+from qbittorrentapi.definitions import List
+from qbittorrentapi.definitions import ListEntry
+from qbittorrentapi.definitions import TorrentStates
 
 all_states = (
     "error",
