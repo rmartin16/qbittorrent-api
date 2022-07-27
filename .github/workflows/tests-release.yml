@@ -59,13 +59,13 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ env.LATEST_PYTHON_VER }}
           cache: 'pip'
 
       - name: Lint with Pre-commit
-        uses: pre-commit/action@v2.0.3
+        uses: pre-commit/action@v3.0.0
 
   tests-smoke:
     #######
@@ -79,7 +79,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ env.LATEST_PYTHON_VER }}
           cache: 'pip'
@@ -175,7 +175,7 @@ jobs:
 
       - name: Upload Coverage to Codecov
         # send coverage report from pytest to codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
 
@@ -203,7 +203,7 @@ jobs:
 
       - name: Set up Python ${{ matrix.python-version }}
         if: (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
@@ -324,7 +324,7 @@ jobs:
         if: |
           contains(env.SUBMIT_COVERAGE_VERSIONS, matrix.python-version)
           && (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
 
@@ -350,7 +350,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
@@ -443,7 +443,7 @@ jobs:
         if: |
           contains(env.SUBMIT_COVERAGE_VERSIONS, matrix.python-version)
           && (contains(github.ref, env.COMPREHENSIVE_TESTS_BRANCH) || contains(env.QBT_ALWAYS_TEST, matrix.QBT_VER))
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
 
@@ -465,7 +465,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ env.LATEST_PYTHON_VER }}
           cache: 'pip'
@@ -551,13 +551,13 @@ jobs:
 
       - name: Upload Coverage to Codecov
         # send coverage report from pytest to codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
 
       - name: Send mail
         if: failure()
-        uses: dawidd6/action-send-mail@v2
+        uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
           server_port: 587
@@ -582,7 +582,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ env.LATEST_PYTHON_VER }}
           cache: 'pip'
@@ -614,7 +614,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
-        uses: "actions/setup-python@v2"
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ env.LATEST_PYTHON_VER }}
 
