@@ -12,7 +12,7 @@ class Authorization(ClientCache):
 class AuthAPIMixIn(Request):
     @property
     def auth(self) -> Authorization: ...
-    authorization: Authorization = auth
+    authorization = auth
     @property
     def is_logged_in(self) -> bool: ...
     def auth_log_in(

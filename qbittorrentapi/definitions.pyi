@@ -11,6 +11,7 @@ except ImportError:
 
 from qbittorrentapi._attrdict import AttrDict
 from qbittorrentapi.client import Client
+from qbittorrentapi.request import Request
 
 class APINames(Enum):
     Authorization: Text
@@ -59,19 +60,19 @@ class TorrentStates(Enum):
 
 class ClientCache:
     _client: Client
-    def __init__(self, *args, **kwargs) -> None: ...
+    def __init__(self, *args, client: Request, **kwargs) -> None: ...
 
 class Dictionary(ClientCache, AttrDict):
-    def __init__(self, data: MutableMapping = None, client: Client = None): ...
+    def __init__(self, data: MutableMapping = None, client: Request = None): ...
     @staticmethod
-    def convert_dict_values_to_attrdicts(data: MutableMapping) -> AttrDict: ...
+    def _normalize(data: MutableMapping) -> AttrDict: ...
 
 class List(ClientCache, UserList):
     def __init__(
         self,
         list_entries: Iterable = None,
         entry_class: Type[ListEntry] = None,
-        client: Client = None,
+        client: Request = None,
     ) -> None: ...
 
 class ListEntry(Dictionary): ...

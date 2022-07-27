@@ -35,8 +35,7 @@ class TorrentStates(Enum):
         - code: https://github.com/qbittorrent/qBittorrent/blob/master/src/base/bittorrent/torrenthandle.h#L52
 
     :Usage:
-        >>> from qbittorrentapi import Client
-        >>> from qbittorrentapi import TorrentStates
+        >>> from qbittorrentapi import Client, TorrentStates
         >>> client = Client()
         >>> # print torrent hashes for torrents that are downloading
         >>> for torrent in client.torrents_info():
@@ -72,7 +71,7 @@ class TorrentStates(Enum):
     @property
     def is_downloading(self):
         """Returns True if the State is categorized as Downloading."""
-        return self in (
+        return self in {
             TorrentStates.DOWNLOADING,
             TorrentStates.METADATA_DOWNLOAD,
             TorrentStates.FORCED_METADATA_DOWNLOAD,
@@ -81,49 +80,49 @@ class TorrentStates(Enum):
             TorrentStates.PAUSED_DOWNLOAD,
             TorrentStates.QUEUED_DOWNLOAD,
             TorrentStates.FORCED_DOWNLOAD,
-        )
+        }
 
     @property
     def is_uploading(self):
         """Returns True if the State is categorized as Uploading."""
-        return self in (
+        return self in {
             TorrentStates.UPLOADING,
             TorrentStates.STALLED_UPLOAD,
             TorrentStates.CHECKING_UPLOAD,
             TorrentStates.QUEUED_UPLOAD,
             TorrentStates.FORCED_UPLOAD,
-        )
+        }
 
     @property
     def is_complete(self):
         """Returns True if the State is categorized as Complete."""
-        return self in (
+        return self in {
             TorrentStates.UPLOADING,
             TorrentStates.STALLED_UPLOAD,
             TorrentStates.CHECKING_UPLOAD,
             TorrentStates.PAUSED_UPLOAD,
             TorrentStates.QUEUED_UPLOAD,
             TorrentStates.FORCED_UPLOAD,
-        )
+        }
 
     @property
     def is_checking(self):
         """Returns True if the State is categorized as Checking."""
-        return self in (
+        return self in {
             TorrentStates.CHECKING_UPLOAD,
             TorrentStates.CHECKING_DOWNLOAD,
             TorrentStates.CHECKING_RESUME_DATA,
-        )
+        }
 
     @property
     def is_errored(self):
         """Returns True if the State is categorized as Errored."""
-        return self in (TorrentStates.MISSING_FILES, TorrentStates.ERROR)
+        return self in {TorrentStates.MISSING_FILES, TorrentStates.ERROR}
 
     @property
     def is_paused(self):
         """Returns True if the State is categorized as Paused."""
-        return self in (TorrentStates.PAUSED_UPLOAD, TorrentStates.PAUSED_DOWNLOAD)
+        return self in {TorrentStates.PAUSED_UPLOAD, TorrentStates.PAUSED_DOWNLOAD}
 
 
 class ClientCache(object):
@@ -142,38 +141,31 @@ class Dictionary(ClientCache, AttrDict):
     """Base definition of dictionary-like objects returned from qBittorrent."""
 
     def __init__(self, data=None, client=None):
-        data = self._normalize_data(data)
-        super(Dictionary, self).__init__(data or {}, client=client)
+        super(Dictionary, self).__init__(self._normalize(data or {}), client=client)
         # allows updating properties that aren't necessarily a part of the AttrDict
         self._setattr("_allow_invalid_attributes", True)
 
     @classmethod
-    def _normalize_data(cls, data):
-        """iterate through a dictionary converting any nested dictionaries to
-        AttrDicts."""
-        converted_dict = AttrDict()
-        for key, value in (data or {}).items():
-            # if the value is a dictionary, convert it to a AttrDict
-            if isinstance(value, dict):
-                # recursively send each value to convert its dictionary children
-                converted_dict[key] = cls._normalize_data(AttrDict(value))
-            else:
-                converted_dict[key] = value
-        return converted_dict
+    def _normalize(cls, data):
+        """Iterate through a dict converting any nested dicts to AttrDicts."""
+        if isinstance(data, dict):
+            return AttrDict({key: cls._normalize(value) for key, value in data.items()})
+        return data
 
 
 class List(ClientCache, UserList):
     """Base definition for list-like objects returned from qBittorrent."""
 
     def __init__(self, list_entries=None, entry_class=None, client=None):
-
-        entries = []
-        for entry in list_entries or ():
-            if isinstance(entry, dict):
-                entries.append(entry_class(data=entry, client=client))
-            else:
-                entries.append(entry)
-        super(List, self).__init__(entries, client=client)
+        super(List, self).__init__(
+            [
+                entry_class(data=entry, client=client)
+                if isinstance(entry, dict)
+                else entry
+                for entry in list_entries or ()
+            ],
+            client=client,
+        )
 
 
 class ListEntry(Dictionary):

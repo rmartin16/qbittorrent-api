@@ -10,8 +10,7 @@ from qbittorrentapi.exceptions import HTTP403Error
 logger = getLogger(__name__)
 
 
-class Alias(object):
-
+class alias(object):
     """
     Alias class that can be used as a decorator for making methods callable
     through other names (or "aliases").
@@ -183,7 +182,7 @@ def response_json(response_class):
     return _inner
 
 
-def _check_for_raise(client, error_message):
+def check_for_raise(client, error_message):
     """For any nonexistent endpoint, log the error and conditionally raise an
     exception."""
     logger.debug(error_message)
@@ -211,7 +210,7 @@ def endpoint_introduced(version_introduced, endpoint):
                     "This endpoint is available starting in Web API v%s."
                     % (endpoint, version_introduced)
                 )
-                _check_for_raise(client=client, error_message=error_message)
+                check_for_raise(client=client, error_message=error_message)
                 return None
 
             # send request to endpoint
@@ -242,7 +241,7 @@ def version_removed(version_obsoleted, endpoint):
                     "This endpoint was removed in Web API v%s."
                     % (endpoint, version_obsoleted)
                 )
-                _check_for_raise(client=client, error_message=error_message)
+                check_for_raise(client=client, error_message=error_message)
                 return None
 
             # send request to endpoint

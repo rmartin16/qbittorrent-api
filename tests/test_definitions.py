@@ -2,6 +2,7 @@ from enum import Enum
 
 import pytest
 
+from qbittorrentapi._attrdict import AttrDict
 from qbittorrentapi.definitions import Dictionary
 from qbittorrentapi.definitions import List
 from qbittorrentapi.definitions import ListEntry
@@ -112,7 +113,12 @@ def test_testing_groups():
 def test_dictionary():
     assert len(Dictionary()) == 0
     assert len(Dictionary({"one": {"two": 2}})) == 1
+    assert isinstance(Dictionary({"one": {"two": 2}}).one, AttrDict)
+    assert isinstance(Dictionary({"one": {"two": 2}})["one"], AttrDict)
     assert Dictionary({"one": {"two": 2}}).one.two == 2
+    assert Dictionary({"one": {"two": 2}})["one"]["two"] == 2
+    assert Dictionary({"three": 3}).three == 3
+    assert Dictionary({"three": 3})["three"] == 3
 
 
 def test_list():

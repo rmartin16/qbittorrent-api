@@ -2,7 +2,8 @@ from json import dumps
 
 from pkg_resources import parse_version as v
 
-from qbittorrentapi.decorators import Alias
+from qbittorrentapi.app import AppAPIMixIn
+from qbittorrentapi.decorators import alias
 from qbittorrentapi.decorators import aliased
 from qbittorrentapi.decorators import endpoint_introduced
 from qbittorrentapi.decorators import login_required
@@ -10,7 +11,6 @@ from qbittorrentapi.decorators import response_json
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary
-from qbittorrentapi.request import Request
 
 
 class RSSitemsDictionary(Dictionary):
@@ -44,55 +44,55 @@ class RSS(ClientCache):
         super(RSS, self).__init__(client=client)
         self.items = RSS._Items(client=client)
 
-    @Alias("addFolder")
+    @alias("addFolder")
     def add_folder(self, folder_path=None, **kwargs):
         """Implements :meth:`~RSSAPIMixIn.rss_add_folder`"""
         return self._client.rss_add_folder(folder_path=folder_path, **kwargs)
 
-    @Alias("addFeed")
+    @alias("addFeed")
     def add_feed(self, url=None, item_path=None, **kwargs):
         """Implements :meth:`~RSSAPIMixIn.rss_add_feed`"""
         return self._client.rss_add_feed(url=url, item_path=item_path, **kwargs)
 
-    @Alias("removeItem")
+    @alias("removeItem")
     def remove_item(self, item_path=None, **kwargs):
         """Implements :meth:`~RSSAPIMixIn.rss_remove_item`"""
         return self._client.rss_remove_item(item_path=item_path, **kwargs)
 
-    @Alias("moveItem")
+    @alias("moveItem")
     def move_item(self, orig_item_path=None, new_item_path=None, **kwargs):
         """Implements :meth:`~RSSAPIMixIn.rss_move_item`"""
         return self._client.rss_move_item(
             orig_item_path=orig_item_path, new_item_path=new_item_path, **kwargs
         )
 
-    @Alias("refreshItem")
+    @alias("refreshItem")
     def refresh_item(self, item_path=None):
         """Implements :meth:`~RSSAPIMixIn.rss_refresh_item`"""
         return self._client.rss_refresh_item(item_path=item_path)
 
-    @Alias("markAsRead")
+    @alias("markAsRead")
     def mark_as_read(self, item_path=None, article_id=None, **kwargs):
         """Implements :meth:`~RSSAPIMixIn.rss_mark_as_read`"""
         return self._client.rss_mark_as_read(
             item_path=item_path, article_id=article_id, **kwargs
         )
 
-    @Alias("setRule")
+    @alias("setRule")
     def set_rule(self, rule_name=None, rule_def=None, **kwargs):
         """Implements :meth:`~RSSAPIMixIn.rss_set_rule`"""
         return self._client.rss_set_rule(
             rule_name=rule_name, rule_def=rule_def, **kwargs
         )
 
-    @Alias("renameRule")
+    @alias("renameRule")
     def rename_rule(self, orig_rule_name=None, new_rule_name=None, **kwargs):
         """Implements :meth:`~RSSAPIMixIn.rss_rename_rule`"""
         return self._client.rss_rename_rule(
             orig_rule_name=orig_rule_name, new_rule_name=new_rule_name, **kwargs
         )
 
-    @Alias("removeRule")
+    @alias("removeRule")
     def remove_rule(self, rule_name=None, **kwargs):
         """Implements :meth:`~RSSAPIMixIn.rss_remove_rule`"""
         return self._client.rss_remove_rule(rule_name=rule_name, **kwargs)
@@ -102,7 +102,7 @@ class RSS(ClientCache):
         """Implements :meth:`~RSSAPIMixIn.rss_rules`"""
         return self._client.rss_rules()
 
-    @Alias("matchingArticles")
+    @alias("matchingArticles")
     def matching_articles(self, rule_name=None, **kwargs):
         """Implements :meth:`~RSSAPIMixIn.rss_matching_articles`"""
         return self._client.rss_matching_articles(rule_name=rule_name, **kwargs)
@@ -121,7 +121,7 @@ class RSS(ClientCache):
 
 
 @aliased
-class RSSAPIMixIn(Request):
+class RSSAPIMixIn(AppAPIMixIn):
     """
     Implementation of all RSS API methods.
 
@@ -144,7 +144,7 @@ class RSSAPIMixIn(Request):
             self._rss = RSS(client=self)
         return self._rss
 
-    @Alias("rss_addFolder")
+    @alias("rss_addFolder")
     @login_required
     def rss_add_folder(self, folder_path=None, **kwargs):
         """
@@ -159,7 +159,7 @@ class RSSAPIMixIn(Request):
         data = {"path": folder_path}
         self._post(_name=APINames.RSS, _method="addFolder", data=data, **kwargs)
 
-    @Alias("rss_addFeed")
+    @alias("rss_addFeed")
     @login_required
     def rss_add_feed(self, url=None, item_path=None, **kwargs):
         """
@@ -175,7 +175,7 @@ class RSSAPIMixIn(Request):
         data = {"url": url, "path": item_path}
         self._post(_name=APINames.RSS, _method="addFeed", data=data, **kwargs)
 
-    @Alias("rss_removeItem")
+    @alias("rss_removeItem")
     @login_required
     def rss_remove_item(self, item_path=None, **kwargs):
         """
@@ -191,7 +191,7 @@ class RSSAPIMixIn(Request):
         data = {"path": item_path}
         self._post(_name=APINames.RSS, _method="removeItem", data=data, **kwargs)
 
-    @Alias("rss_moveItem")
+    @alias("rss_moveItem")
     @login_required
     def rss_move_item(self, orig_item_path=None, new_item_path=None, **kwargs):
         """
@@ -219,7 +219,7 @@ class RSSAPIMixIn(Request):
         return self._get(_name=APINames.RSS, _method="items", params=params, **kwargs)
 
     @endpoint_introduced("2.2", "rss/refreshItem")
-    @Alias("rss_refreshItem")
+    @alias("rss_refreshItem")
     @login_required
     def rss_refresh_item(self, item_path=None, **kwargs):
         """
@@ -234,7 +234,7 @@ class RSSAPIMixIn(Request):
             self._post(_name=APINames.RSS, _method="refreshItem", data=data, **kwargs)
 
     @endpoint_introduced("2.5.1", "rss/markAsRead")
-    @Alias("rss_markAsRead")
+    @alias("rss_markAsRead")
     @login_required
     def rss_mark_as_read(self, item_path=None, article_id=None, **kwargs):
         """
@@ -250,7 +250,7 @@ class RSSAPIMixIn(Request):
         data = {"itemPath": item_path, "articleId": article_id}
         self._post(_name=APINames.RSS, _method="markAsRead", data=data, **kwargs)
 
-    @Alias("rss_setRule")
+    @alias("rss_setRule")
     @login_required
     def rss_set_rule(self, rule_name=None, rule_def=None, **kwargs):
         """
@@ -263,7 +263,7 @@ class RSSAPIMixIn(Request):
         data = {"ruleName": rule_name, "ruleDef": dumps(rule_def)}
         self._post(_name=APINames.RSS, _method="setRule", data=data, **kwargs)
 
-    @Alias("rss_renameRule")
+    @alias("rss_renameRule")
     @login_required
     def rss_rename_rule(self, orig_rule_name=None, new_rule_name=None, **kwargs):
         """
@@ -277,7 +277,7 @@ class RSSAPIMixIn(Request):
         data = {"ruleName": orig_rule_name, "newRuleName": new_rule_name}
         self._post(_name=APINames.RSS, _method="renameRule", data=data, **kwargs)
 
-    @Alias("rss_removeRule")
+    @alias("rss_removeRule")
     @login_required
     def rss_remove_rule(self, rule_name=None, **kwargs):
         """
@@ -300,7 +300,7 @@ class RSSAPIMixIn(Request):
         return self._get(_name=APINames.RSS, _method="rules", **kwargs)
 
     @endpoint_introduced("2.5.1", "rss/matchingArticles")
-    @Alias("rss_matchingArticles")
+    @alias("rss_matchingArticles")
     @response_json(RSSitemsDictionary)
     @login_required
     def rss_matching_articles(self, rule_name=None, **kwargs):

@@ -2,15 +2,16 @@ from typing import Iterable
 from typing import MutableMapping
 from typing import Text
 
-from qbittorrentapi.client import Client
+from qbittorrentapi.app import AppAPIMixIn
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary
 from qbittorrentapi.definitions import List
 from qbittorrentapi.definitions import ListEntry
-from qbittorrentapi.request import Request
 
 class SearchJobDictionary(Dictionary):
-    def __init__(self, data: MutableMapping = None, client: Client = None) -> None: ...
+    def __init__(
+        self, data: MutableMapping = None, client: SearchAPIMixIn = None
+    ) -> None: ...
     def stop(self, **kwargs) -> None: ...
     def status(self, **kwargs) -> SearchStatusesList[SearchStatus]: ...
     def results(
@@ -22,21 +23,21 @@ class SearchResultsDictionary(Dictionary): ...
 
 class SearchStatusesList(List):
     def __init__(
-        self, list_entries: Iterable = None, client: Client = None
+        self, list_entries: Iterable = None, client: SearchAPIMixIn = None
     ) -> None: ...
 
 class SearchStatus(ListEntry): ...
 
 class SearchCategoriesList(List):
     def __init__(
-        self, list_entries: Iterable = None, client: Client = None
+        self, list_entries: Iterable = None, client: SearchAPIMixIn = None
     ) -> None: ...
 
 class SearchCategory(ListEntry): ...
 
 class SearchPluginsList(List):
     def __init__(
-        self, list_entries: Iterable = None, client: Client = None
+        self, list_entries: Iterable = None, client: SearchAPIMixIn = None
     ) -> None: ...
 
 class SearchPlugin(ListEntry): ...
@@ -76,7 +77,7 @@ class Search(ClientCache):
     def update_plugins(self, **kwargs) -> None: ...
     updatePlugins = update_plugins
 
-class SearchAPIMixIn(Request):
+class SearchAPIMixIn(AppAPIMixIn):
     @property
     def search(self) -> Search: ...
     def search_start(
