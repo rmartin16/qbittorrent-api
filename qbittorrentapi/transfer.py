@@ -172,13 +172,16 @@ class TransferAPIMixIn(AppAPIMixIn):
                                Leaving None will toggle the current state.
         :return: None
         """
-        if intended_state is None or v(self.app_web_api_version()) < v("2.8.14"):
-            if intended_state is None or (
-                (self.transfer_speed_limits_mode() == "1") is not bool(intended_state)
-            ):
-                self._post(
-                    _name=APINames.Transfer, _method="toggleSpeedLimitsMode", **kwargs
-                )
+        if intended_state is None:
+            self._post(
+                _name=APINames.Transfer, _method="toggleSpeedLimitsMode", **kwargs
+            )
+        elif v(self.app_web_api_version()) < v("2.8.14") and (
+            (self.transfer.speed_limits_mode == "1") is not bool(intended_state)
+        ):
+            self._post(
+                _name=APINames.Transfer, _method="toggleSpeedLimitsMode", **kwargs
+            )
         else:
             data = {"mode": 1 if intended_state else 0}
             self._post(
