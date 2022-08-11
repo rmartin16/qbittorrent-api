@@ -15,9 +15,9 @@ Host, Username and Password
 
 Requests Configuration
 **********************
-* The `Requests <https://docs.python-requests.org/en/latest/>`_ package is used to issue HTTP requests to qBittorrent to facilitate this API.
+* The `Requests <https://requests.readthedocs.io/en/latest/>`_ package is used to issue HTTP requests to qBittorrent to facilitate this API.
 * Much of ``Requests`` configuration for making HTTP calls can be controlled with parameters passed along with the request payload.
-* For instance, HTTP Basic Authorization credentials can be provided via ``auth``, timeouts via ``timeout``, or Cookies via ``cookies``. See `Requests documentation <https://docs.python-requests.org/en/latest/api/#requests.request>`_ for full details.
+* For instance, HTTP Basic Authorization credentials can be provided via ``auth``, timeouts via ``timeout``, or Cookies via ``cookies``. See `Requests documentation <https://requests.readthedocs.io/en/latest/api/#requests.request>`_ for full details.
 * These parameters are exposed here in two ways; the examples below tell ``Requests`` to use a connect timeout of 3.1 seconds and a read timeout of 30 seconds.
 * When you instantiate ``Client``, you can specify the parameters to use in all HTTP requests to qBittorrent:
 
