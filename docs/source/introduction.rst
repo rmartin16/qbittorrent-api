@@ -1,22 +1,25 @@
 Introduction
 ======================
 
-.. |travis ci| image:: https://img.shields.io/github/workflow/status/rmartin16/qbittorrent-api/Tests/master?style=flat-square
-   :target: https://github.com/rmartin16/qbittorrent-api/actions?query=workflow%3ATests
-.. |codecov| image:: https://img.shields.io/codecov/c/gh/rmartin16/qbittorrent-api/master?style=flat-square
+.. |github ci| image:: https://img.shields.io/github/checks-status/rmartin16/qbittorrent-api/main?style=flat-square
+   :target: https://github.com/rmartin16/qbittorrent-api/actions?query=branch%3Amain
+.. |codecov| image:: https://img.shields.io/codecov/c/gh/rmartin16/qbittorrent-api/main?style=flat-square
    :target: https://codecov.io/gh/rmartin16/qbittorrent-api
 .. |coverity| image:: https://img.shields.io/coverity/scan/21227?style=flat-square
    :target: https://scan.coverity.com/projects/rmartin16-qbittorrent-api
-.. |codacy| image:: https://img.shields.io/codacy/grade/e924396ef8e54d918ed4c093834f3708?style=flat-square
-   :target: https://app.codacy.com/manual/rmartin16/qbittorrent-api/dashboard
+.. |codacy| image:: https://img.shields.io/codacy/grade/ef2975376e834af1910632cb76d05832?style=flat-square
+   :target: https://app.codacy.com/gh/rmartin16/qbittorrent-api/dashboard
 
 .. |pypi| image:: https://img.shields.io/pypi/v/qbittorrent-api?style=flat-square
    :target: https://pypi.org/project/qbittorrent-api/
 .. |pypi versions| image:: https://img.shields.io/pypi/pyversions/qbittorrent-api?style=flat-square
+   :target: https://pypi.org/project/qbittorrent-api/
 .. |pypi implementations| image:: https://img.shields.io/pypi/implementation/qbittorrent-api?style=flat-square
+   :target: https://pypi.org/project/qbittorrent-api/
 .. |pypi downloads| image:: https://img.shields.io/pypi/dw/qbittorrent-api?color=blue&style=flat-square
+   :target: https://pypi.org/project/qbittorrent-api/
 
-|travis ci| |codecov| |coverity| |codacy|
+|github ci| |codecov| |coverity| |codacy|
 
 |pypi| |pypi versions| |pypi implementations| |pypi downloads|
 
@@ -52,7 +55,12 @@ Getting Started
    import qbittorrentapi
 
    # instantiate a Client using the appropriate WebUI configuration
-   qbt_client = qbittorrentapi.Client(host='localhost:8080', username='admin', password='adminadmin')
+   qbt_client = qbittorrentapi.Client(
+       host='localhost',
+       port=8080,
+       username='admin',
+       password='adminadmin'
+    )
 
    # the Client will automatically acquire/maintain a logged in state in line with any request.
    # therefore, this is not necessary; however, you many want to test the provided login credentials.

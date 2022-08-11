@@ -483,13 +483,14 @@ jobs:
 
       - name: Cache qBittorrent ${{ matrix.QBT_VER }}
         # set up cache for qBittorrent binary legacy
-        id: cache-qbittorrent-legacy
+        id: cache-qbittorrent
         uses: pat-s/always-upload-cache@v3.0.1
         with:
           path: ${{ env.QBITTORRENT_INSTALLS }}
           key: qbittorrent-installs-${{ env.GH_CI_CACHE_VERSION }}-${{ runner.os }}-${{ matrix.QBT_VER }}-${{ env.LIBTORRENT_VER }}
 
       - name: Install OS Build Dependencies
+        if: (steps.cache-libtorrent.outputs.cache-hit != 'true') || (steps.cache-qbittorrent.outputs.cache-hit != 'true')
         run: |
           sudo apt update
           sudo apt install --no-install-recommends build-essential cmake ninja-build pkg-config git zlib1g-dev libssl-dev \
@@ -521,7 +522,7 @@ jobs:
 
       - name: Build qBittorrent
         # if cache missed, compile an older version of qBittorrent, i.e. < v4.2.5
-        if: steps.cache-qbittorrent-legacy.outputs.cache-hit != 'true'
+        if: steps.cache-qbittorrent.outputs.cache-hit != 'true'
         run: |
           set -x
           SRC_DIR="$QBITTORRENT_INSTALLS/src"
