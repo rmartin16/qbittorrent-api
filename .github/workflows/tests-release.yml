@@ -6,17 +6,17 @@ on:
     - cron: "0 0 1-30/3 * *"
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 env:
   # keep in sync with hardcoded refs below
   LATEST_PYTHON_VER: "3.10"
   # All python versions except latest
-  PYTHON_VERSIONS: '[ "3.9", "3.8", "3.7", "2.7", "pypy-3.8", "3.11-dev" ]'
+  PYTHON_VERSIONS: '[ "3.9", "3.8", "3.7", "3.6", "3.5", "2.7", "pypy3.8", "pypy3.7", "pypy2.7", "3.11-dev" ]'
   # keep in sync with hardcoded refs below
   LATEST_QBT_VER: "4.4.3.1"
   # All qBittorrent versions except latest
@@ -89,7 +89,7 @@ jobs:
       - name: Cache libtorrent ${{ env.LIBTORRENT_VER }}
         # set up cache for libtorrent library
         id: cache-libtorrent
-        uses: actions/cache@v3
+        uses: pat-s/always-upload-cache@v3.0.1
         with:
           path: ${{ env.LIBTORRENT_INSTALLS }}/libtorrent_${{ env.LIBTORRENT_VER }}
           key: libtorrent-installs-${{ env.GH_CI_CACHE_VERSION }}-${{ runner.os }}-${{ env.LIBTORRENT_VER }}
@@ -97,7 +97,7 @@ jobs:
       - name: Cache qBittorrent ${{ env.LATEST_QBT_VER }}
         # set up cache for qBittorrent binary
         id: cache-qbittorrent
-        uses: actions/cache@v3
+        uses: pat-s/always-upload-cache@v3.0.1
         with:
           path: ${{ env.QBITTORRENT_INSTALLS }}
           key: qbittorrent-installs-${{ env.GH_CI_CACHE_VERSION }}-${{ runner.os }}-${{ env.LATEST_QBT_VER }}-${{ env.LIBTORRENT_VER }}
@@ -209,7 +209,7 @@ jobs:
       - name: Cache libtorrent ${{ env.LIBTORRENT_VER }}
         # set up cache for libtorrent library
         id: cache-libtorrent
-        uses: actions/cache@v3
+        uses: pat-s/always-upload-cache@v3.0.1
         with:
           path: ${{ env.LIBTORRENT_INSTALLS }}/libtorrent_${{ env.LIBTORRENT_VER }}
           key: libtorrent-installs-${{ env.GH_CI_CACHE_VERSION }}-${{ runner.os }}-${{ env.LIBTORRENT_VER }}
@@ -217,7 +217,7 @@ jobs:
       - name: Cache qBittorrent ${{ env.LATEST_QBT_VER }}
         # set up cache for qBittorrent binary
         id: cache-qbittorrent
-        uses: actions/cache@v3
+        uses: pat-s/always-upload-cache@v3.0.1
         with:
           path: ${{ env.QBITTORRENT_INSTALLS }}
           key: qbittorrent-installs-${{ env.GH_CI_CACHE_VERSION }}-${{ runner.os }}-${{ env.LATEST_QBT_VER }}-${{ env.LIBTORRENT_VER }}
@@ -330,7 +330,7 @@ jobs:
       - name: Cache libtorrent ${{ env.LIBTORRENT_VER }}
         # set up cache for libtorrent library
         id: cache-libtorrent
-        uses: actions/cache@v3
+        uses: pat-s/always-upload-cache@v3.0.1
         with:
           path: ${{ env.LIBTORRENT_INSTALLS }}/libtorrent_${{ env.LIBTORRENT_VER }}
           key: libtorrent-installs-${{ env.GH_CI_CACHE_VERSION }}-${{ runner.os }}-${{ env.LIBTORRENT_VER }}
@@ -338,7 +338,7 @@ jobs:
       - name: Cache qBittorrent ${{ matrix.QBT_VER }}
         # set up cache for qBittorrent binary
         id: cache-qbittorrent
-        uses: actions/cache@v3
+        uses: pat-s/always-upload-cache@v3.0.1
         with:
           path: ${{ env.QBITTORRENT_INSTALLS }}
           key: qbittorrent-installs-${{ env.GH_CI_CACHE_VERSION }}-${{ runner.os }}-${{ matrix.QBT_VER }}-${{ env.LIBTORRENT_VER }}
@@ -476,7 +476,7 @@ jobs:
       - name: Cache libtorrent ${{ env.LIBTORRENT_VER }}
         # set up cache for libtorrent library
         id: cache-libtorrent
-        uses: actions/cache@v3
+        uses: pat-s/always-upload-cache@v3.0.1
         with:
           path: ${{ env.LIBTORRENT_INSTALLS }}/libtorrent_${{ env.LIBTORRENT_VER }}
           key: libtorrent-installs-${{ env.GH_CI_CACHE_VERSION }}-${{ runner.os }}-${{ env.LIBTORRENT_VER }}
@@ -484,7 +484,7 @@ jobs:
       - name: Cache qBittorrent ${{ matrix.QBT_VER }}
         # set up cache for qBittorrent binary legacy
         id: cache-qbittorrent-legacy
-        uses: actions/cache@v3
+        uses: pat-s/always-upload-cache@v3.0.1
         with:
           path: ${{ env.QBITTORRENT_INSTALLS }}
           key: qbittorrent-installs-${{ env.GH_CI_CACHE_VERSION }}-${{ runner.os }}-${{ matrix.QBT_VER }}-${{ env.LIBTORRENT_VER }}
@@ -594,7 +594,7 @@ jobs:
       - name: Cache libtorrent ${{ env.LIBTORRENT_VER }}
         # set up cache for libtorrent library
         id: cache-libtorrent
-        uses: actions/cache@v3
+        uses: pat-s/always-upload-cache@v3.0.1
         with:
           path: ${{ env.LIBTORRENT_INSTALLS }}/libtorrent_${{ env.LIBTORRENT_VER }}
           key: libtorrent-installs-${{ env.GH_CI_CACHE_VERSION }}-${{ runner.os }}-${{ env.LIBTORRENT_VER }}

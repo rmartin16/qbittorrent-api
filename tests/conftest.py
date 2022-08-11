@@ -24,18 +24,18 @@ _orig_torrent_hash = "64a980abe6e448226bb930ba061592e44c3781a1"
 
 with open(
     os.path.join(
-        BASE_PATH, "tests", "resources", "kubuntu-22.04-desktop-amd64.iso.torrent"
+        BASE_PATH, "tests", "resources", "kubuntu-22.04.1-desktop-amd64.iso.torrent"
     ),
     mode="rb",
 ) as f:
     torrent1_file = f.read()
-torrent1_url = "https://cdimage.ubuntu.com/kubuntu/releases/22.04/release/kubuntu-22.04-desktop-amd64.iso.torrent"
+torrent1_url = "https://cdimage.ubuntu.com/kubuntu/releases/22.04/release/kubuntu-22.04.1-desktop-amd64.iso.torrent"
 torrent1_filename = torrent1_url.split("/")[-1]
-torrent1_hash = "3eced065042115825725e081c81084da29fa7802"
+torrent1_hash = "8e905ea8e925c3a7fda9eb2e964a0e5c97cc2ce0"
 
-torrent2_url = "https://cdimage.ubuntu.com/xubuntu/releases/22.04/release/xubuntu-22.04-desktop-amd64.iso.torrent"
+torrent2_url = "https://cdimage.ubuntu.com/xubuntu/releases/22.04/release/xubuntu-22.04.1-desktop-amd64.iso.torrent"
 torrent2_filename = torrent2_url.split("/")[-1]
-torrent2_hash = "f435d2324f313bad7ff941633320fe4d1c9c3079"
+torrent2_hash = "b813f485c0e6d17f6877c8d6942b3bdc7c227176"
 
 with open(
     os.path.join(BASE_PATH, "tests", "resources", "root_folder.torrent"), mode="rb"
