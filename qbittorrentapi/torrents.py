@@ -390,7 +390,7 @@ class TorrentDictionary(Dictionary):
         )
 
     def export(self, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.export`"""
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_export`"""
         return self._client.torrents_export(torrent_hash=self._torrent_hash, **kwargs)
 
 
