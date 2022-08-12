@@ -1,8 +1,8 @@
-Definitions
+Request (internal)
 ================================
 
-.. automodule:: qbittorrentapi.definitions
+.. automodule:: qbittorrentapi.request
     :members:
-    :exclude-members: TorrentStates
+    :private-members:
     :undoc-members:
     :show-inheritance:

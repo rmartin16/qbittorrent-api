@@ -48,8 +48,8 @@ class URL(object):
         """
         Create a fully qualified URL for the API endpoint.
 
-        :param api_namespace: the namespace for the API endpoint (e.g. torrents)
-        :param api_method: the specific method for the API endpoint (e.g. info)
+        :param api_namespace: the namespace for the API endpoint (e.g. ``torrents``)
+        :param api_method: the specific method for the API endpoint (e.g. ``info``)
         :param headers: HTTP headers for request
         :param requests_kwargs: kwargs for any calls to Requests
         :return: fully qualified URL string for endpoint
@@ -79,8 +79,8 @@ class URL(object):
         and prefixed to all subsequent API calls.
 
         :param headers: HTTP headers for request
-        :param requests_kwargs: additional parameters from user for making HTTP HEAD request
-        :return: base URL as string for Web API endpoint
+        :param requests_kwargs: additional params from user for HTTP ``HEAD`` request
+        :return: base URL as a ``string`` for Web API endpoint
         """
         if self.client._API_BASE_URL is not None:
             return self.client._API_BASE_URL
@@ -133,12 +133,12 @@ class URL(object):
         """
         Determine if the URL endpoint is using HTTP or HTTPS.
 
-        :param base_url: urllib URL object
+        :param base_url: urllib :class:`~urllib.parse.ParseResult` URL object
         :param default_scheme: default scheme to use for URL
         :param alt_scheme: alternative scheme to use for URL if default doesn't work
         :param headers: HTTP headers for request
         :param requests_kwargs: kwargs for calls to Requests
-        :return: scheme (ie HTTP or HTTPS)
+        :return: scheme (ie ``HTTP`` or ``HTTPS``)
         """
         logger.debug("Detecting scheme for URL...")
         prefer_https = False
@@ -171,7 +171,8 @@ class URL(object):
         :param api_namespace: the namespace for the API endpoint (e.g. torrents)
         :param api_method: the specific method for the API endpoint (e.g. info)
         :return: entire URL string for API endpoint
-                 (e.g. http://localhost:8080/api/v2/torrents/info or http://example.com/qbt/api/v2/torrents/info)
+                 (e.g. ``http://localhost:8080/api/v2/torrents/info``
+                 or ``http://example.com/qbt/api/v2/torrents/info``)
         """
         if isinstance(api_namespace, APINames):
             api_namespace = api_namespace.value
@@ -319,11 +320,29 @@ class Request(object):
         return input_list
 
     def _get(self, _name=APINames.EMPTY, _method="", **kwargs):
+        """
+        Send ``GET`` request.
+
+        :param api_namespace: the namespace for the API endpoint
+            (e.g. :class:`~qbittorrentapi.definitions.APINames` or ``torrents``)
+        :param api_method: the name for the API endpoint (e.g. ``add``)
+        :param kwargs: see :meth:`~Request._request`
+        :return: Requests :class:`~requests.Response`
+        """
         return self._request_manager(
             http_method="get", api_namespace=_name, api_method=_method, **kwargs
         )
 
     def _post(self, _name=APINames.EMPTY, _method="", **kwargs):
+        """
+        Send ``POST`` request.
+
+        :param api_namespace: the namespace for the API endpoint
+            (e.g. :class:`~qbittorrentapi.definitions.APINames` or ``torrents``)
+        :param api_method: the name for the API endpoint (e.g. ``add``)
+        :param kwargs: see :meth:`~Request._request`
+        :return: Requests :class:`~requests.Response`
+        """
         return self._request_manager(
             http_method="post", api_namespace=_name, api_method=_method, **kwargs
         )
@@ -406,17 +425,18 @@ class Request(object):
         """
         Meat and potatoes of sending requests to qBittorrent.
 
-        :param http_method: 'get' or 'post'
-        :param api_namespace: the namespace for the API endpoint (e.g. torrents)
-        :param api_method: the namespace for the API endpoint (e.g. torrents)
+        :param http_method: ``get`` or ``post``
+        :param api_namespace: the namespace for the API endpoint
+            (e.g. :class:`~qbittorrentapi.definitions.APINames` or ``torrents``)
+        :param api_method: the name for the API endpoint (e.g. ``add``)
         :param requests_args: default location for Requests kwargs
         :param requests_params: alternative location for Requests kwargs
         :param headers: HTTP headers to send with the request
-        :param params: key/value pairs to send with a GET request
-        :param data: key/value pairs to send with a POST request
+        :param params: key/value pairs to send with a ``GET`` request
+        :param data: key/value pairs to send with a ``POST`` request
         :param files: files to be sent with the request
         :param kwargs: arbitrary keyword args to send to qBittorrent with the request
-        :return: Requests response
+        :return: Requests :class:`~requests.Response`
         """
         kwargs = self._trim_known_kwargs(**kwargs)
 
@@ -458,12 +478,12 @@ class Request(object):
     def _get_requests_kwargs(self, requests_args=None, requests_params=None):
         """
         Determine the requests_kwargs for the call to Requests. The global
-        configuration in self._REQUESTS_ARGS is updated by any arguments
+        configuration in ``self._REQUESTS_ARGS`` is updated by any arguments
         provided for a specific call.
 
-        :param requests_args: default location to expect Requests requests_kwargs
-        :param requests_params: alternative location to expect Requests requests_kwargs
-        :return: final dictionary of Requests requests_kwargs
+        :param requests_args: default location to expect Requests ``requests_kwargs``
+        :param requests_params: alternative location to expect Requests ``requests_kwargs``
+        :return: final dictionary of Requests ``requests_kwargs``
         """
         requests_kwargs = deepcopy(self._REQUESTS_ARGS)
         requests_kwargs.update(requests_args or requests_params or {})
@@ -473,7 +493,7 @@ class Request(object):
         """
         Determine headers specific to this request. Request headers can be
         specified explicitly or with the requests kwargs. Headers specified in
-        self._EXTRA_HEADERS are merged in Requests itself.
+        ``self._EXTRA_HEADERS`` are merged in Requests itself.
 
         :param headers: headers specified for this specific request
         :param more_headers: headers from requests_kwargs config
@@ -487,7 +507,7 @@ class Request(object):
         """
         Determine data, params, and files for the Requests call.
 
-        :param http_method: get or post
+        :param http_method: ``get`` or ``post``
         :param params: key value pairs to send with GET calls
         :param data: key value pairs to send with POST calls
         :param files: dictionary of files to send with request
@@ -513,7 +533,7 @@ class Request(object):
         """
         Create or return existing HTTP session.
 
-        :return: Requests Session object
+        :return: Requests :class:`~requests.Session` object
         """
 
         class QbittorrentSession(Session):

@@ -93,16 +93,17 @@ class Attr(Mapping):
 
     A key may be used as an attribute if:
      * It is a string
-     * It matches /^[A-Za-z][A-Za-z0-9_]*$/ (i.e., a public attribute)
-     * The key doesn't overlap with any class attributes (for Attr,
-        those would be 'get', 'items', 'keys', 'values', 'mro', and
-        'register').
+     * It matches ``^[A-Za-z][A-Za-z0-9_]*$`` (i.e., a public attribute)
+     * The key doesn't overlap with any class attributes (for ``Attr``,
+       those would be ``get``, ``items``, ``keys``, ``values``, ``mro``, and
+       ``register``).
 
-    If a values which is accessed as an attribute is a Sequence-type
+    If a value which is accessed as an attribute is a Sequence-type
     (and is not a string/bytes), it will be converted to a
     _sequence_type with any mappings within it converted to Attrs.
 
-    NOTE: This means that if _sequence_type is not None, then a
+    NOTE:
+        This means that if _sequence_type is not None, then a
         sequence accessed as an attribute will be a different object
         than if accessed as an attribute than if it is accessed as an
         item.

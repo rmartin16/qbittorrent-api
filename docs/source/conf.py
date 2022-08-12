@@ -12,18 +12,24 @@
 #
 import os
 import sys
+from configparser import ConfigParser
 
-sys.path.insert(0, os.path.abspath("../.."))
+base_path = os.path.abspath("../..")
+sys.path.insert(0, base_path)
+
+setup_cfg = ConfigParser()
+setup_cfg.read(os.path.join(base_path, "setup.cfg"))
+
 
 # -- Project information -----------------------------------------------------
 from datetime import datetime
 
-project = "qbittorrent-api"
-copyright = "%s, Russell Martin" % datetime.today().year
-author = "Russell Martin"
+project = setup_cfg["metadata"]["name"]
+copyright = "{}, {}".format(datetime.today().year, setup_cfg["metadata"]["author"])
+author = setup_cfg["metadata"]["author"]
 
 # The full version, including alpha/beta/rc tags
-release = ""
+version = release = setup_cfg["metadata"]["version"]
 
 
 # -- General configuration ---------------------------------------------------
@@ -31,15 +37,6 @@ pygments_style = "sphinx"
 
 # warn about everything
 nitpicky = True
-nitpick_ignore = [
-    ("py:class", "qbittorrentapi.request.Request"),
-    ("py:class", "APIConnectionError"),
-    ("py:class", "qbittorrentapi.definitions.ClientCache"),
-    ("py:class", "qbittorrentapi._attrdict.AttrDict"),
-    ("py:class", "qbittorrentapi.definitions.ClientCache"),
-    ("py:class", "requests.exceptions.RequestException"),
-    ("py:class", "requests.exceptions.HTTPError"),
-]
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -70,6 +67,8 @@ linkcheck_ignore = [
     r"^https://$",
     # ignore GH wiki since the check for anchors always fails
     r"https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-\(qBittorrent-4.1\)#",
+    r"^http://localhost",
+    r"^http://example.com",
 ]
 
 # -- Options for HTML output -------------------------------------------------
@@ -94,4 +93,5 @@ html_theme_path = sphinx_glpi_theme.get_html_themes_path()
 # Add mappings
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
+    "requests": ("https://requests.readthedocs.io/en/latest/", None),
 }

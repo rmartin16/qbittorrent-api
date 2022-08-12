@@ -711,7 +711,7 @@ jobs:
           cache: 'pip'
 
       - name: Install Build Tools
-        run: python -m pip install --upgrade pip setuptools wheel twine build
+        run: python -m pip install -U pip setuptools wheel twine build
 
       - name: Build Package
         run: python -m build
@@ -726,7 +726,7 @@ jobs:
     #######
     # Verify package can be installed on all platforms
     #######
-    name: Verify Dev Env
+    name: Verify Dev Install
     needs: tests-smoke
     runs-on: ${{ matrix.os }}
     strategy:
@@ -740,12 +740,15 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ env.LATEST_PYTHON_VER }}
+          cache: 'pip'
 
       - name: Install in Dev Mode
-        run: python -m pip install -e .
+        run: |
+          python -m pip install -U pip wheel setuptools
+          python -m pip install -e .[test,dev]
 
       - name: Import Package
-        run: python -c 'import qbittorrentapi; print(qbittorrentapi.Client())'
+        run: python -c "from qbittorrentapi import Client; assert Client().host == 'localhost:8080'"
 
   docs-build:
     #######
@@ -762,6 +765,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ env.LATEST_PYTHON_VER }}
+          cache: 'pip'
 
       - name: Install Doc Build Requirements
         run: python -m pip install -r requirements-dev.txt
@@ -771,3 +775,4 @@ jobs:
           cd docs
           sphinx-build -v -W --keep-going -E -a -b linkcheck "source" "build"
           sphinx-build -v -W --keep-going -E -a -b html "source" "build"
+          make html
