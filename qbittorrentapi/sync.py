@@ -19,7 +19,7 @@ class SyncTorrentPeersDictionary(Dictionary):
 
 class Sync(ClientCache):
     """
-    Alows interaction with the "Sync" API endpoints.
+    Alows interaction with the ``Sync`` API endpoints.
 
     Usage:
         >>> from qbittorrentapi import Client
@@ -81,7 +81,7 @@ class Sync(ClientCache):
 @aliased
 class SyncAPIMixIn(AppAPIMixIn):
     """
-    Implementation of all Sync API Methods.
+    Implementation of all ``Sync`` API Methods.
 
     :Usage:
         >>> from qbittorrentapi import Client
@@ -93,7 +93,7 @@ class SyncAPIMixIn(AppAPIMixIn):
     @property
     def sync(self):
         """
-        Allows for transparent interaction with Sync endpoints.
+        Allows for transparent interaction with ``Sync`` endpoints.
 
         See Sync class for usage.
         :return: Transfer object
@@ -109,7 +109,7 @@ class SyncAPIMixIn(AppAPIMixIn):
         Retrieves sync data.
 
         :param rid: response ID
-        :return: :class:`SyncMainDataDictionary` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-main-data
+        :return: :class:`SyncMainDataDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-main-data>`_
         """  # noqa: E501
         data = {"rid": rid}
         return self._post(_name=APINames.Sync, _method="maindata", data=data, **kwargs)
@@ -120,13 +120,13 @@ class SyncAPIMixIn(AppAPIMixIn):
     @login_required
     def sync_torrent_peers(self, torrent_hash=None, rid=0, **kwargs):
         """
-        Retrieves torrent sync data. (alias: sync_torrentPeers)
+        Retrieves torrent sync data.
 
         :raises NotFound404Error:
 
         :param torrent_hash: hash for torrent
         :param rid: response ID
-        :return: :class:`SyncTorrentPeersDictionary` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-peers-data
+        :return: :class:`SyncTorrentPeersDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-peers-data>`_
         """  # noqa: E501
         data = {"hash": torrent_hash, "rid": rid}
         return self._post(

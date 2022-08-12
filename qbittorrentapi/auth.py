@@ -13,7 +13,7 @@ logger = getLogger(__name__)
 
 class Authorization(ClientCache):
     """
-    Allows interaction with the "Authorization" API endpoints.
+    Allows interaction with the ``Authorization`` API endpoints.
 
     :Usage:
         >>> from qbittorrentapi import Client
@@ -39,7 +39,7 @@ class Authorization(ClientCache):
 
 class AuthAPIMixIn(Request):
     """
-    Implementation of all Authorization API methods.
+    Implementation of all ``Authorization`` API methods.
 
     :Usage:
         >>> from qbittorrentapi import Client

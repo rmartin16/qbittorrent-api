@@ -1,4 +1,5 @@
 enum34; python_version < "3"
 requests >= 2.16.0
+setuptools
 six
 urllib3 >= 1.24.2

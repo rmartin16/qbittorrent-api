@@ -17,7 +17,7 @@ class TransferInfoDictionary(Dictionary):
 @aliased
 class Transfer(ClientCache):
     """
-    Alows interaction with the "Transfer" API endpoints.
+    Alows interaction with the ``Transfer`` API endpoints.
 
     :Usage:
         >>> from qbittorrentapi import Client
@@ -118,7 +118,7 @@ class Transfer(ClientCache):
 @aliased
 class TransferAPIMixIn(AppAPIMixIn):
     """
-    Implementation of all Transfer API methods.
+    Implementation of all ``Transfer`` API methods.
 
     :Usage:
         >>> from qbittorrentapi import Client
@@ -143,10 +143,9 @@ class TransferAPIMixIn(AppAPIMixIn):
     @login_required
     def transfer_info(self, **kwargs):
         """
-        Retrieves the global transfer info usually found in qBittorrent status
-        bar.
+        Retrieves the global transfer info found in qBittorrent status bar.
 
-        :return: :class:`TransferInfoDictionary` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-global-transfer-info
+        :return: :class:`TransferInfoDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-global-transfer-info>`_
         """  # noqa: E501
         return self._get(_name=APINames.Transfer, _method="info", **kwargs)
 
@@ -156,9 +155,8 @@ class TransferAPIMixIn(AppAPIMixIn):
     def transfer_speed_limits_mode(self, **kwargs):
         """
         Retrieves whether alternative speed limits are enabled.
-        (alias: transfer_speedLimitMode)
 
-        :return: '1' if alternative speed limits are currently enabled, '0' otherwise
+        :return: ``1`` if alternative speed limits are currently enabled, ``0`` otherwise
         """
         return self._get(_name=APINames.Transfer, _method="speedLimitsMode", **kwargs)
 
@@ -167,7 +165,6 @@ class TransferAPIMixIn(AppAPIMixIn):
     def transfer_toggle_speed_limits_mode(self, intended_state=None, **kwargs):
         """
         Sets whether alternative speed limits are enabled.
-        (alias: transfer_toggleSpeedLimitsMode)
 
         :param intended_state: True to enable alt speed and False to disable.
                                Leaving None will toggle the current state.
@@ -185,7 +182,6 @@ class TransferAPIMixIn(AppAPIMixIn):
     def transfer_download_limit(self, **kwargs):
         """
         Retrieves download limit. 0 is unlimited.
-        (alias: transfer_downloadLimit)
 
         :return: integer
         """
@@ -196,7 +192,7 @@ class TransferAPIMixIn(AppAPIMixIn):
     @login_required
     def transfer_upload_limit(self, **kwargs):
         """
-        Retrieves upload limit. 0 is unlimited. (alias: transfer_uploadLimit)
+        Retrieves upload limit. 0 is unlimited.
 
         :return: integer
         """
@@ -207,7 +203,6 @@ class TransferAPIMixIn(AppAPIMixIn):
     def transfer_set_download_limit(self, limit=None, **kwargs):
         """
         Set the global download limit in bytes/second.
-        (alias: transfer_setDownloadLimit)
 
         :param limit: download limit in bytes/second (0 or -1 for no limit)
         :return: None
@@ -222,7 +217,6 @@ class TransferAPIMixIn(AppAPIMixIn):
     def transfer_set_upload_limit(self, limit=None, **kwargs):
         """
         Set the global download limit in bytes/second.
-        (alias: transfer_setUploadLimit)
 
         :param limit: upload limit in bytes/second (0 or -1 for no limit)
         :return: None
@@ -237,7 +231,7 @@ class TransferAPIMixIn(AppAPIMixIn):
     @login_required
     def transfer_ban_peers(self, peers=None, **kwargs):
         """
-        Ban one or more peers. (alias: transfer_banPeers)
+        Ban one or more peers.
 
         :param peers: one or more peers to ban. each peer should take the form 'host:port'
         :return: None

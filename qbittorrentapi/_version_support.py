@@ -46,7 +46,7 @@ class Version(object):
     Note that if a version is not listed as "supported" here, many (if
     not all) methods are likely to function properly since the Web API
     is largely backwards and forward compatible...albeit with some
-    notable exceptions...
+    notable exceptions.
     """
 
     _supported_app_versions = None
@@ -73,7 +73,7 @@ class Version(object):
         supported by this API client.
 
         :param app_version: version of qBittorrent application such as v4.4.0
-        :return: True or False for whether version is supported
+        :return: ``True`` or ``False`` for whether version is supported
         """
         app_version = app_version.lower()
         if not app_version.startswith("v"):
@@ -86,8 +86,8 @@ class Version(object):
         Returns whether a version of the qBittorrent Web API is fully supported
         by this API client.
 
-        :param api_version: version of qBittorrent Web API version such as 2.8.4
-        :return: True or False for whether version is supported
+        :param api_version: version of qBittorrent Web API version such as ``2.8.4``
+        :return: ``True`` or ``False`` for whether version is supported
         """
         api_version = api_version.lower()
         if api_version.startswith("v"):

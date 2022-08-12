@@ -746,3 +746,28 @@ jobs:
 
       - name: Import Package
         run: python -c 'import qbittorrentapi; print(qbittorrentapi.Client())'
+
+  docs-build:
+    #######
+    # Verify documentation build succeeds
+    #######
+    name: Verify Doc Build
+    needs: tests-smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.LATEST_PYTHON_VER }}
+
+      - name: Install Doc Build Requirements
+        run: python -m pip install -r requirements-dev.txt
+
+      - name: Build Docs
+        run: |
+          cd docs
+          sphinx-build -v -W --keep-going -E -a -b linkcheck "source" "build"
+          sphinx-build -v -W --keep-going -E -a -b html "source" "build"

@@ -61,7 +61,7 @@ class Client(
         >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
         >>> torrents = client.torrents_info()
 
-    :param host: hostname for qBittorrent Web API (e.g. [http[s]://]localhost[:8080])
+    :param host: hostname for qBittorrent Web API (e.g. ``[http[s]://]localhost[:8080]``)
     :param port: port number for qBittorrent Web API (note: only used if host does not contain a port)
     :param username: username for qBittorrent client
     :param password: password for qBittorrent client
@@ -69,20 +69,20 @@ class Client(
     :param SIMPLE_RESPONSES: By default, complex objects are returned from some endpoints. These objects will allow for
         accessing responses' items as attributes and include methods for contextually relevant actions.
         This comes at the cost of performance. Generally, this cost isn't large; however, some
-        endpoints, such as torrents_files() method, may need to convert a large payload.
+        endpoints, such as ``torrents_files()`` method, may need to convert a large payload.
         Set this to True to return the simple JSON back.
         Alternatively, set this to True only for an individual method call. For instance, when
-        requesting the files for a torrent: client.torrents_files(hash='...', SIMPLE_RESPONSES=True).
+        requesting the files for a torrent: ``client.torrents_files(hash='...', SIMPLE_RESPONSES=True)``.
     :param VERIFY_WEBUI_CERTIFICATE: Set to False to skip verify certificate for HTTPS connections;
         for instance, if the connection is using a self-signed certificate. Not setting this to False for self-signed
-        certs will cause a APIConnectionError exception to be raised.
+        certs will cause a :class:`APIConnectionError` exception to be raised.
     :param EXTRA_HEADERS: Dictionary of HTTP Headers to include in all requests made to qBittorrent.
-    :param REQUESTS_ARGS: Dictionary of configuration for Requests package: https://docs.python-requests.org/en/latest/api/#requests.request
-    :param FORCE_SCHEME_FROM_HOST: If a scheme (i.e. http or https) is specifed in host, it will be used regardless of
-        whether qBittorrent is configured for HTTP or HTTPS communication. Normally, this client will attempt to
+    :param REQUESTS_ARGS: Dictionary of configuration for Requests package: `<https://requests.readthedocs.io/en/latest/api/#requests.request>`_
+    :param FORCE_SCHEME_FROM_HOST: If a scheme (i.e. ``http`` or ``https``) is specifed in host, it will be used regardless
+        of whether qBittorrent is configured for HTTP or HTTPS communication. Normally, this client will attempt to
         determine which scheme qBittorrent is actually listening on...but this can cause problems in rare cases.
     :param RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS: Some Endpoints may not be implemented in older
-        versions of qBittorrent. Setting this to True will raise a NotImplementedError instead of just returning None.
+        versions of qBittorrent. Setting this to True will raise a :class:`NotImplementedError` instead of just returning ``None``.
     :param RAISE_ERROR_FOR_UNSUPPORTED_QBITTORRENT_VERSIONS: raise the UnsupportedQbittorrentVersion exception if the
         connected version of qBittorrent is not fully supported by this client.
     :param DISABLE_LOGGING_DEBUG_OUTPUT: Turn off debug output from logging for this package as well as Requests & urllib3.

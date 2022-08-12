@@ -4,7 +4,7 @@ Introduction
 .. |github ci| image:: https://img.shields.io/github/checks-status/rmartin16/qbittorrent-api/main?style=flat-square
    :target: https://github.com/rmartin16/qbittorrent-api/actions?query=branch%3Amain
 .. |codecov| image:: https://img.shields.io/codecov/c/gh/rmartin16/qbittorrent-api/main?style=flat-square
-   :target: https://codecov.io/gh/rmartin16/qbittorrent-api
+   :target: https://app.codecov.io/gh/rmartin16/qbittorrent-api
 .. |coverity| image:: https://img.shields.io/coverity/scan/21227?style=flat-square
    :target: https://scan.coverity.com/projects/rmartin16-qbittorrent-api
 .. |codacy| image:: https://img.shields.io/codacy/grade/ef2975376e834af1910632cb76d05832?style=flat-square

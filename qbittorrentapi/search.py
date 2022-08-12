@@ -84,7 +84,7 @@ class SearchPlugin(ListEntry):
 @aliased
 class Search(ClientCache):
     """
-    Allows interaction with "Search" API endpoints.
+    Allows interaction with ``Search`` API endpoints.
 
     :Usage:
         >>> from qbittorrentapi import Client
@@ -162,7 +162,7 @@ class Search(ClientCache):
 @aliased
 class SearchAPIMixIn(AppAPIMixIn):
     """
-    Implementation for all Search API methods.
+    Implementation for all ``Search`` API methods.
 
     :Usage:
         >>> from qbittorrentapi import Client
@@ -177,7 +177,7 @@ class SearchAPIMixIn(AppAPIMixIn):
     @property
     def search(self):
         """
-        Allows for transparent interaction with Search endpoints.
+        Allows for transparent interaction with ``Search`` endpoints.
 
         See Search class for usage.
         :return: Search object
@@ -232,7 +232,7 @@ class SearchAPIMixIn(AppAPIMixIn):
         :raises NotFound404Error:
 
         :param search_id: ID of search to get status; leave emtpy for status of all jobs
-        :return: :class:`SearchStatusesList` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-status
+        :return: :class:`SearchStatusesList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-status>`_
         """  # noqa: E501
         params = {"id": search_id}
         return self._get(
@@ -252,7 +252,7 @@ class SearchAPIMixIn(AppAPIMixIn):
         :param search_id: ID of search job
         :param limit: number of results to return
         :param offset: where to start returning results
-        :return: :class:`SearchResultsDictionary` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-results
+        :return: :class:`SearchResultsDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-results>`_
         """  # noqa: E501
         data = {"id": search_id, "limit": limit, "offset": offset}
         return self._post(_name=APINames.Search, _method="results", data=data, **kwargs)
@@ -278,9 +278,10 @@ class SearchAPIMixIn(AppAPIMixIn):
     def search_categories(self, plugin_name=None, **kwargs):
         """
         Retrieve categories for search.
+
         Note: endpoint was removed in qBittorrent v4.3.0
 
-        :param plugin_name: Limit categories returned by plugin(s) (supports 'all' and 'enabled')
+        :param plugin_name: Limit categories returned by plugin(s) (supports ``all`` and ``enabled``)
         :return: :class:`SearchCategoriesList`
         """
         data = {"pluginName": plugin_name}
@@ -295,7 +296,7 @@ class SearchAPIMixIn(AppAPIMixIn):
         """
         Retrieve details of search plugins.
 
-        :return: :class:`SearchPluginsList` - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-plugins
+        :return: :class:`SearchPluginsList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-plugins>`_
         """  # noqa: E501
         return self._get(_name=APINames.Search, _method="plugins", **kwargs)
 
@@ -304,8 +305,7 @@ class SearchAPIMixIn(AppAPIMixIn):
     @login_required
     def search_install_plugin(self, sources=None, **kwargs):
         """
-        Install search plugins from either URL or file. (alias:
-        search_installPlugin)
+        Install search plugins from either URL or file.
 
         :param sources: list of URLs or filepaths
         :return: None
@@ -318,7 +318,7 @@ class SearchAPIMixIn(AppAPIMixIn):
     @login_required
     def search_uninstall_plugin(self, names=None, **kwargs):
         """
-        Uninstall search plugins. (alias: search_uninstallPlugin)
+        Uninstall search plugins.
 
         :param names: names of plugins to uninstall
         :return: None
@@ -333,7 +333,7 @@ class SearchAPIMixIn(AppAPIMixIn):
     @login_required
     def search_enable_plugin(self, plugins=None, enable=None, **kwargs):
         """
-        Enable or disable search plugin(s). (alias: search_enablePlugin)
+        Enable or disable search plugin(s).
 
         :param plugins: list of plugin names
         :param enable: True or False
@@ -347,7 +347,7 @@ class SearchAPIMixIn(AppAPIMixIn):
     @login_required
     def search_update_plugins(self, **kwargs):
         """
-        Auto update search plugins. (alias: search_updatePlugins)
+        Auto update search plugins.
 
         :return: None
         """
