@@ -11,7 +11,7 @@ This client can be configured to always return only the simple JSON if desired. 
 
     qbt_client = qbittorrentapi.Client(host='localhost:8080', username='admin', password='adminadmin', SIMPLE_RESPONSES=True)
 
-Alternatively, ``SIMPLE_RESPONSES`` can be set to True to return the simple JSON only for an individual method call.
+Alternatively, ``SIMPLE_RESPONSES`` can be set to ``True`` to return the simple JSON only for an individual method call.
 
 .. code:: python
 

@@ -4,8 +4,9 @@ build
 codecov
 coveralls
 flake8
+furo
 pre-commit
 pytest
 pytest-cov
 sphinx
-sphinx_glpi_theme
+sphinx-copybutton

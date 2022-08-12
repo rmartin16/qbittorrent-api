@@ -29,7 +29,7 @@ copyright = "{}, {}".format(datetime.today().year, setup_cfg["metadata"]["author
 author = setup_cfg["metadata"]["author"]
 
 # The full version, including alpha/beta/rc tags
-version = release = setup_cfg["metadata"]["version"]
+version = release = "v" + setup_cfg["metadata"]["version"]
 
 
 # -- General configuration ---------------------------------------------------
@@ -46,6 +46,7 @@ extensions = [
     "sphinx.ext.githubpages",
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
+    "sphinx_copybutton",
 ]
 
 source_suffix = ".rst"
@@ -77,11 +78,7 @@ linkcheck_ignore = [
 # so a file named "default.css" will overwrite the builtin "default.css".
 ## html_static_path = ["_static"]
 
-
-import sphinx_glpi_theme
-
-html_theme = "glpi"
-html_theme_path = sphinx_glpi_theme.get_html_themes_path()
+html_theme = "furo"
 
 # sphinx-autoapi
 # extensions.append('autoapi.extension')

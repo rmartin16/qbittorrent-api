@@ -10,8 +10,17 @@ Untrusted WebUI Certificate
 
 Host, Username and Password
 ***************************
-* These can be provided when instantiating ``Client`` or calling ``qbt_client.auth_log_in(username='...', password='...')``.
-* Alternatively, set environment variables ``PYTHON_QBITTORRENTAPI_HOST``, ``PYTHON_QBITTORRENTAPI_USERNAME`` and ``PYTHON_QBITTORRENTAPI_PASSWORD``.
+* These can be provided when instantiating ``Client``
+
+.. code:: python
+
+    qbt_client.auth_log_in(username='...', password='...')
+
+* Alternatively, set environment variables:
+
+  * ``PYTHON_QBITTORRENTAPI_HOST``
+  * ``PYTHON_QBITTORRENTAPI_USERNAME``
+  * ``PYTHON_QBITTORRENTAPI_PASSWORD``
 
 Requests Configuration
 **********************
@@ -21,11 +30,15 @@ Requests Configuration
 * These parameters are exposed here in two ways; the examples below tell ``Requests`` to use a connect timeout of 3.1 seconds and a read timeout of 30 seconds.
 * When you instantiate ``Client``, you can specify the parameters to use in all HTTP requests to qBittorrent:
 
-  * ``qbt_client = Client(..., REQUESTS_ARGS={'timeout': (3.1, 30)}``
+.. code:: python
+
+    qbt_client = Client(..., REQUESTS_ARGS={'timeout': (3.1, 30)}
 
 * Alternatively, parameters can be specified for individual requests:
 
-  * ``qbt_client.torrents_info(..., requests_args={'timeout': (3.1, 30))``
+.. code:: python
+
+    qbt_client.torrents_info(..., requests_args={'timeout': (3.1, 30))
 
 Additional HTTP Headers
 ***********************
@@ -33,17 +46,25 @@ Additional HTTP Headers
 * Either way, these additional headers will be incorporated (using clobbering) into the rest of the headers to be sent.
 * To send a custom HTTP header in all requests made from an instantiated client, declare them during instantiation:
 
-  * ``qbt_client = Client(..., EXTRA_HEADERS={'X-My-Fav-Header': 'header value')``
+.. code:: python
+
+    qbt_client = Client(..., EXTRA_HEADERS={'X-My-Fav-Header': 'header value')
 
 * Alternatively, you can send custom headers in individual requests:
 
-  * ``qbt_client.torrents.add(..., headers={'X-My-Fav-Header': 'header value')``
+.. code:: python
+
+    qbt_client.torrents.add(..., headers={'X-My-Fav-Header': 'header value')
 
 Unimplemented API Endpoints
 ***************************
 * Since the qBittorrent Web API has evolved over time, some endpoints may not be available from the qBittorrent host.
 * By default, if a call is made to endpoint that doesn't exist for the version of the qBittorrent host (e.g., the Search endpoints were introduced in Web API v2.1.1), there's a debug logger output and None is returned.
-* To raise ``NotImplementedError`` instead, instantiate Client with ``RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True``.
+* To raise ``NotImplementedError`` instead, instantiate Client with:
+
+.. code:: python
+
+    qbt_client = Client(..., RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True)
 
 qBittorrent Version Checking
 ****************************
@@ -51,16 +72,22 @@ qBittorrent Version Checking
 * The most likely situation for this to occur is if the qBittorrent team publishes a new release but its changes have not been incorporated in to this client yet.
 * Instantiate Client like below to raise ``UnsupportedQbittorrentVersion`` exception for versions not fully supported:
 
-  * ``qbt_client = Client(..., RAISE_ERROR_FOR_UNSUPPORTED_QBITTORRENT_VERSIONS=True)``
+.. code:: python
+
+    qbt_client = Client(..., RAISE_ERROR_FOR_UNSUPPORTED_QBITTORRENT_VERSIONS=True)
 
 * Additionally, the :doc:`qbittorrentapi.Version <apidoc/version>` class can be used for manual introspection of the versions.
 
-  * For instance, ``Version.is_app_version_supported(qbt_client.app.version)``
+.. code:: python
+
+    Version.is_app_version_supported(qbt_client.app.version)
 
 Disable Logging Debug Output
 ****************************
-* Instantiate Client with `DISABLE_LOGGING_DEBUG_OUTPUT=True` or manually disable logging for the relevant packages:
+* Instantiate Client with ``DISABLE_LOGGING_DEBUG_OUTPUT=True`` or manually disable logging for the relevant packages:
 
-  * ``logging.getLogger('qbittorrentapi').setLevel(logging.INFO)``
-  * ``logging.getLogger('requests').setLevel(logging.INFO)``
-  * ``logging.getLogger('urllib3').setLevel(logging.INFO)``
+.. code:: python
+
+    logging.getLogger('qbittorrentapi').setLevel(logging.INFO)
+    logging.getLogger('requests').setLevel(logging.INFO)
+    logging.getLogger('urllib3').setLevel(logging.INFO)
