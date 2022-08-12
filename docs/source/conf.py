@@ -15,7 +15,6 @@ import sys
 
 sys.path.insert(0, os.path.abspath("../.."))
 
-
 # -- Project information -----------------------------------------------------
 from datetime import datetime
 
@@ -29,6 +28,18 @@ release = ""
 
 # -- General configuration ---------------------------------------------------
 pygments_style = "sphinx"
+
+# warn about everything
+nitpicky = True
+nitpick_ignore = [
+    ("py:class", "qbittorrentapi.request.Request"),
+    ("py:class", "APIConnectionError"),
+    ("py:class", "qbittorrentapi.definitions.ClientCache"),
+    ("py:class", "qbittorrentapi._attrdict.AttrDict"),
+    ("py:class", "qbittorrentapi.definitions.ClientCache"),
+    ("py:class", "requests.exceptions.RequestException"),
+    ("py:class", "requests.exceptions.HTTPError"),
+]
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -53,6 +64,13 @@ templates_path = ["_templates"]
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
+linkcheck_ignore = [
+    # ignore reference to just the HTTP schemas
+    r"^http://$",
+    r"^https://$",
+    # ignore GH wiki since the check for anchors always fails
+    r"https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-\(qBittorrent-4.1\)#",
+]
 
 # -- Options for HTML output -------------------------------------------------
 # Add any paths that contain custom static files (such as style sheets) here,

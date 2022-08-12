@@ -12,7 +12,7 @@ class APINames(Enum):
     """
     API namespaces for API endpoints.
 
-    e.g 'torrents' in http://localhost:8080/api/v2/torrents/addTrackers
+    e.g ``torrents`` in ``http://localhost:8080/api/v2/torrents/addTrackers``
     """
 
     Authorization = "auth"
@@ -31,8 +31,8 @@ class TorrentStates(Enum):
     Torrent States as defined by qBittorrent.
 
     Definitions:
-        - wiki: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-list
-        - code: https://github.com/qbittorrent/qBittorrent/blob/master/src/base/bittorrent/torrenthandle.h#L52
+        - wiki: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-list>`_
+        - code: `<https://github.com/qbittorrent/qBittorrent/blob/master/src/base/bittorrent/torrent.h#L73>`_
 
     :Usage:
         >>> from qbittorrentapi import Client, TorrentStates
@@ -70,7 +70,7 @@ class TorrentStates(Enum):
 
     @property
     def is_downloading(self):
-        """Returns True if the State is categorized as Downloading."""
+        """Returns ``True`` if the State is categorized as Downloading."""
         return self in {
             TorrentStates.DOWNLOADING,
             TorrentStates.METADATA_DOWNLOAD,
@@ -84,7 +84,7 @@ class TorrentStates(Enum):
 
     @property
     def is_uploading(self):
-        """Returns True if the State is categorized as Uploading."""
+        """Returns ``True`` if the State is categorized as Uploading."""
         return self in {
             TorrentStates.UPLOADING,
             TorrentStates.STALLED_UPLOAD,
@@ -95,7 +95,7 @@ class TorrentStates(Enum):
 
     @property
     def is_complete(self):
-        """Returns True if the State is categorized as Complete."""
+        """Returns ``True`` if the State is categorized as Complete."""
         return self in {
             TorrentStates.UPLOADING,
             TorrentStates.STALLED_UPLOAD,
@@ -107,7 +107,7 @@ class TorrentStates(Enum):
 
     @property
     def is_checking(self):
-        """Returns True if the State is categorized as Checking."""
+        """Returns ``True`` if the State is categorized as Checking."""
         return self in {
             TorrentStates.CHECKING_UPLOAD,
             TorrentStates.CHECKING_DOWNLOAD,
@@ -116,12 +116,12 @@ class TorrentStates(Enum):
 
     @property
     def is_errored(self):
-        """Returns True if the State is categorized as Errored."""
+        """Returns ``True`` if the State is categorized as Errored."""
         return self in {TorrentStates.MISSING_FILES, TorrentStates.ERROR}
 
     @property
     def is_paused(self):
-        """Returns True if the State is categorized as Paused."""
+        """Returns ``True`` if the State is categorized as Paused."""
         return self in {TorrentStates.PAUSED_UPLOAD, TorrentStates.PAUSED_DOWNLOAD}
 
 

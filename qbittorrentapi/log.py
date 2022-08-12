@@ -35,7 +35,7 @@ class LogEntry(ListEntry):
 
 class Log(ClientCache):
     """
-    Allows interaction with "Log" API endpoints.
+    Allows interaction with ``Log`` API endpoints.
 
     :Usage:
         >>> from qbittorrentapi import Client
@@ -117,7 +117,7 @@ class Log(ClientCache):
 
 class LogAPIMixIn(AppAPIMixIn):
     """
-    Implementation of all Log API methods.
+    Implementation of all ``Log`` API methods.
 
     :Usage:
         >>> from qbittorrentapi import Client
@@ -152,10 +152,10 @@ class LogAPIMixIn(AppAPIMixIn):
         """
         Retrieve the qBittorrent log entries. Iterate over returned object.
 
-        :param normal: False to exclude 'normal' entries
-        :param info: False to exclude 'info' entries
-        :param warning: False to exclude 'warning' entries
-        :param critical: False to exclude 'critical' entries
+        :param normal: False to exclude ``normal`` entries
+        :param info: False to exclude ``info`` entries
+        :param warning: False to exclude ``warning`` entries
+        :param critical: False to exclude ``critical`` entries
         :param last_known_id: only entries with an ID greater than this value will be returned
         :return: :class:`LogMainList`
         """

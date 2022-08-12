@@ -24,7 +24,7 @@ class RSSRulesDictionary(Dictionary):
 @aliased
 class RSS(ClientCache):
     """
-    Allows interaction with "RSS" API endpoints.
+    Allows interaction with ``RSS`` API endpoints.
 
     :Usage:
         >>> from qbittorrentapi import Client
@@ -123,7 +123,7 @@ class RSS(ClientCache):
 @aliased
 class RSSAPIMixIn(AppAPIMixIn):
     """
-    Implementation of all RSS API methods.
+    Implementation of all ``RSS`` API methods.
 
     :Usage:
         >>> from qbittorrentapi import Client
@@ -149,7 +149,6 @@ class RSSAPIMixIn(AppAPIMixIn):
     def rss_add_folder(self, folder_path=None, **kwargs):
         """
         Add a RSS folder. Any intermediate folders in path must already exist.
-        (alias: rss_addFolder)
 
         :raises Conflict409Error:
 
@@ -163,8 +162,7 @@ class RSSAPIMixIn(AppAPIMixIn):
     @login_required
     def rss_add_feed(self, url=None, item_path=None, **kwargs):
         """
-        Add new RSS feed. Folders in path must already exist. (alias:
-        rss_addFeed)
+        Add new RSS feed. Folders in path must already exist.
 
         :raises Conflict409Error:
 
@@ -179,7 +177,7 @@ class RSSAPIMixIn(AppAPIMixIn):
     @login_required
     def rss_remove_item(self, item_path=None, **kwargs):
         """
-        Remove a RSS item (folder, feed, etc). (alias: rss_removeItem)
+        Remove a RSS item (folder, feed, etc).
 
         NOTE: Removing a folder also removes everything in it.
 
@@ -195,7 +193,7 @@ class RSSAPIMixIn(AppAPIMixIn):
     @login_required
     def rss_move_item(self, orig_item_path=None, new_item_path=None, **kwargs):
         """
-        Move/rename a RSS item (folder, feed, etc). (alias: rss_moveItem)
+        Move/rename a RSS item (folder, feed, etc).
 
         :raises Conflict409Error:
 
@@ -223,7 +221,7 @@ class RSSAPIMixIn(AppAPIMixIn):
     @login_required
     def rss_refresh_item(self, item_path=None, **kwargs):
         """
-        Trigger a refresh for a RSS item (alias: rss_refreshItem)
+        Trigger a refresh for an RSS item.
 
         :param item_path: path to item to be refreshed (e.g. ``Folder\\Subfolder\\ItemName``)
         :return: None
@@ -239,12 +237,12 @@ class RSSAPIMixIn(AppAPIMixIn):
     def rss_mark_as_read(self, item_path=None, article_id=None, **kwargs):
         """
         Mark RSS article as read. If article ID is not provider, the entire
-        feed is marked as read. (alias: rss_markAsRead)
+        feed is marked as read.
 
         :raises NotFound404Error:
 
         :param item_path: path to item to be refreshed (e.g. ``Folder\\Subfolder\\ItemName``)
-        :param article_id: article ID from rss_items()
+        :param article_id: article ID from :meth:`~RSSAPIMixIn.rss_items`
         :return: None
         """
         data = {"itemPath": item_path, "articleId": article_id}
@@ -254,10 +252,10 @@ class RSSAPIMixIn(AppAPIMixIn):
     @login_required
     def rss_set_rule(self, rule_name=None, rule_def=None, **kwargs):
         """
-        Create a new RSS auto-downloading rule. (alias: rss_setRule)
+        Create a new RSS auto-downloading rule.
 
         :param rule_name: name for new rule
-        :param rule_def: dictionary with rule fields - https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#set-auto-downloading-rule
+        :param rule_def: dictionary with rule fields - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#set-auto-downloading-rule>`_
         :return: None
         """  # noqa: E501
         data = {"ruleName": rule_name, "ruleDef": dumps(rule_def)}
@@ -267,7 +265,8 @@ class RSSAPIMixIn(AppAPIMixIn):
     @login_required
     def rss_rename_rule(self, orig_rule_name=None, new_rule_name=None, **kwargs):
         """
-        Rename a RSS auto-download rule. (alias: rss_renameRule)
+        Rename a RSS auto-download rule.
+
         Note: this endpoint did not work properly until qBittorrent v4.3.0
 
         :param orig_rule_name: current name of rule
@@ -281,7 +280,7 @@ class RSSAPIMixIn(AppAPIMixIn):
     @login_required
     def rss_remove_rule(self, rule_name=None, **kwargs):
         """
-        Delete a RSS auto-downloading rule. (alias: rss_removeRule)
+        Delete a RSS auto-downloading rule.
 
         :param rule_name: Name of rule to delete
         :return: None
@@ -305,7 +304,7 @@ class RSSAPIMixIn(AppAPIMixIn):
     @login_required
     def rss_matching_articles(self, rule_name=None, **kwargs):
         """
-        Fetch all articles matching a rule. (alias: rss_matchingArticles)
+        Fetch all articles matching a rule.
 
         :param rule_name: Name of rule to return matching articles
         :return: :class:`RSSitemsDictionary`
