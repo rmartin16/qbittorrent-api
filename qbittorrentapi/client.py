@@ -75,7 +75,7 @@ class Client(
         requesting the files for a torrent: ``client.torrents_files(hash='...', SIMPLE_RESPONSES=True)``.
     :param VERIFY_WEBUI_CERTIFICATE: Set to False to skip verify certificate for HTTPS connections;
         for instance, if the connection is using a self-signed certificate. Not setting this to False for self-signed
-        certs will cause a :class:`APIConnectionError` exception to be raised.
+        certs will cause a :class:`qbittorrentapi.exceptions.APIConnectionError` exception to be raised.
     :param EXTRA_HEADERS: Dictionary of HTTP Headers to include in all requests made to qBittorrent.
     :param REQUESTS_ARGS: Dictionary of configuration for Requests package: `<https://requests.readthedocs.io/en/latest/api/#requests.request>`_
     :param FORCE_SCHEME_FROM_HOST: If a scheme (i.e. ``http`` or ``https``) is specifed in host, it will be used regardless
