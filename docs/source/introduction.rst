@@ -25,13 +25,11 @@ Introduction
 
 Python client implementation for qBittorrent Web API.
 
-Currently supports up to qBittorrent `v4.4.3.1 <https://github.com/qbittorrent/qBittorrent/releases/tag/release-4.4.3.1>`_ (Web API v2.8.5) released on May 24, 2022.
-
-The full qBittorrent Web API documentation is available on their `wiki <https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)>`_.
+Currently supports qBittorrent `v4.4.3.1 <https://github.com/qbittorrent/qBittorrent/releases/tag/release-4.4.3.1>`_ (Web API v2.8.5) released on May 24, 2022.
 
 Features
 ------------
-- The entire qBittorent Web API is implemented.
+- The entire qBittorrent `Web API <https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)>`_ is implemented.
 - qBittorrent version checking for an endpoint's existence/features is automatically handled.
 - All Python versions are supported.
 - If the authentication cookie expires, a new one is automatically requested in line with any API call.
@@ -39,12 +37,23 @@ Features
 Installation
 ------------
 * Install via pip from `PyPI <https://pypi.org/project/qbittorrent-api/>`_:
-   * ``pip install qbittorrent-api``
-* Install specific release:
-   * ``pip install git+https://github.com/rmartin16/qbittorrent-api.git@v2020.6.4#egg=qbittorrent-api``
-* Install direct from master:
-   * ``pip install git+https://github.com/rmartin16/qbittorrent-api.git#egg=qbittorrent-api``
-* Ensure urllib3, requests, and attrdict are installed. (These are installed automatically using the methods above.)
+
+.. code:: console
+
+    pip install qbittorrent-api
+
+* Install a specific release (e.g. ``v2022.8.34``):
+
+.. code:: console
+
+    pip install git+https://github.com/rmartin16/qbittorrent-api.git@v2022.8.34#egg=qbittorrent-api
+
+* Install direct from ``main``:
+
+.. code:: console
+
+    pip install git+https://github.com/rmartin16/qbittorrent-api.git@main#egg=qbittorrent-api
+
 * Enable WebUI in qBittorrent: Tools -> Preferences -> Web UI
 * If the Web API will be exposed to the Internet, follow the `recommendations <https://github.com/qbittorrent/qBittorrent/wiki/Linux-WebUI-HTTPS-with-Let's-Encrypt-certificates-and-NGINX-SSL-reverse-proxy>`_.
 

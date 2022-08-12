@@ -4,15 +4,15 @@ qBittorrent Web API Client
 
 [![PyPI](https://img.shields.io/pypi/v/qbittorrent-api?style=flat-square)](https://pypi.org/project/qbittorrent-api/) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/qbittorrent-api?style=flat-square)](https://pypi.org/project/qbittorrent-api/) [![PyPI - Implementation](https://img.shields.io/pypi/implementation/qbittorrent-api?style=flat-square)](https://pypi.org/project/qbittorrent-api/) [![PyPi - Downloads](https://img.shields.io/pypi/dw/qbittorrent-api?color=blue&style=flat-square)](https://pypi.org/project/qbittorrent-api/)
 
-Python client implementation for qBittorrent Web API. Supports qBittorrent v4.1.0+ (Web API v2.0+).
+Python client implementation for qBittorrent Web API.
 
-Currently supports up to qBittorrent [v4.4.3.1](https://github.com/qbittorrent/qBittorrent/releases/tag/release-4.4.3.1) (Web API v2.8.5) released on May 24, 2022.
+Currently supports qBittorrent [v4.4.3.1](https://github.com/qbittorrent/qBittorrent/releases/tag/release-4.4.3.1) (Web API v2.8.5) released on May 24, 2022.
 
-[Find the full documentation for this client on RTD.](https://qbittorrent-api.readthedocs.io/)
+User Guide and API Reference available on [Read the Docs](https://qbittorrent-api.readthedocs.io/).
 
 Features
 ------------
-* The entire [qBittorrent Web API](https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)) is implemented.
+* The entire qBittorrent [Web API](https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)) is implemented.
 * qBittorrent version checking for an endpoint's existence/features is automatically handled.
 * All Python versions are supported.
 * If the authentication cookie expires, a new one is automatically requested in line with any API call.
