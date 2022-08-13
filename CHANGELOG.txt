@@ -1,3 +1,6 @@
+Version 2022.8.35 (13 aug 2022)
+ - Remove PYTHON_ prefix for configuration environment variables
+
 Version 2022.8.34 (11 aug 2022)
  - Add setuptools as an explicit dependency for pkg_resources.parse_version
 

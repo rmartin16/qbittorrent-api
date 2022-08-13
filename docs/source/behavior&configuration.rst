@@ -4,7 +4,7 @@ Behavior & Configuration
 Untrusted WebUI Certificate
 ***************************
 * qBittorrent allows you to configure HTTPS with an untrusted certificate; this commonly includes self-signed certificates.
-* When using such a certificate, instantiate Client with ``VERIFY_WEBUI_CERTIFICATE=False`` or set environment variable ``PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE`` to a non-null value.
+* When using such a certificate, instantiate Client with ``VERIFY_WEBUI_CERTIFICATE=False`` or set environment variable ``QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE`` to a non-null value.
 * Failure to do this for will cause connections to qBittorrent to fail.
 * As a word of caution, doing this actually does turn off certificate verification. Therefore, for instance, potential man-in-the-middle attacks will not be detected and reported (since the error is suppressed). However, the connection will remain encrypted.
 
@@ -18,9 +18,9 @@ Host, Username and Password
 
 * Alternatively, set environment variables:
 
-  * ``PYTHON_QBITTORRENTAPI_HOST``
-  * ``PYTHON_QBITTORRENTAPI_USERNAME``
-  * ``PYTHON_QBITTORRENTAPI_PASSWORD``
+  * ``QBITTORRENTAPI_HOST``
+  * ``QBITTORRENTAPI_USERNAME``
+  * ``QBITTORRENTAPI_PASSWORD``
 
 Requests Configuration
 **********************
