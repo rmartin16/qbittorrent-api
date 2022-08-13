@@ -272,34 +272,37 @@ class Request(object):
                 if getLogger(logger_).level < 20:
                     getLogger(logger_).setLevel("INFO")
 
-        # Environment variables have lowest priority
-        if self.host == "" and environ.get("PYTHON_QBITTORRENTAPI_HOST") is not None:
-            logger.debug(
-                "Using PYTHON_QBITTORRENTAPI_HOST env variable for qBittorrent hostname"
+        # Environment variables have the lowest priority
+        if not self.host:
+            env_host = environ.get(
+                "QBITTORRENTAPI_HOST", environ.get("PYTHON_QBITTORRENTAPI_HOST")
             )
-            self.host = environ["PYTHON_QBITTORRENTAPI_HOST"]
-        if (
-            self.username == ""
-            and environ.get("PYTHON_QBITTORRENTAPI_USERNAME") is not None
-        ):
-            logger.debug(
-                "Using PYTHON_QBITTORRENTAPI_USERNAME env variable for username"
+            if env_host is not None:
+                logger.debug(
+                    "Using QBITTORRENTAPI_HOST env variable for qBittorrent host"
+                )
+                self.host = env_host
+        if not self.username:
+            env_username = environ.get(
+                "QBITTORRENTAPI_USERNAME", environ.get("PYTHON_QBITTORRENTAPI_USERNAME")
             )
-            self.username = environ["PYTHON_QBITTORRENTAPI_USERNAME"]
-        if (
-            self._password == ""
-            and environ.get("PYTHON_QBITTORRENTAPI_PASSWORD") is not None
-        ):
-            logger.debug(
-                "Using PYTHON_QBITTORRENTAPI_PASSWORD env variable for password"
+            if env_username is not None:
+                logger.debug("Using QBITTORRENTAPI_USERNAME env variable for username")
+                self.username = env_username
+        if not self._password:
+            env_password = environ.get(
+                "QBITTORRENTAPI_PASSWORD", environ.get("PYTHON_QBITTORRENTAPI_PASSWORD")
             )
-            self._password = environ["PYTHON_QBITTORRENTAPI_PASSWORD"]
-        if (
-            self._VERIFY_WEBUI_CERTIFICATE is True
-            and environ.get("PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE")
-            is not None
-        ):
-            self._VERIFY_WEBUI_CERTIFICATE = False
+            if env_password is not None:
+                logger.debug("Using QBITTORRENTAPI_PASSWORD env variable for password")
+                self._password = env_password
+        if self._VERIFY_WEBUI_CERTIFICATE is True:
+            env_verify_cert = environ.get(
+                "QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE",
+                environ.get("PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE"),
+            )
+            if env_verify_cert is not None:
+                self._VERIFY_WEBUI_CERTIFICATE = False
 
         # Mocking variables until better unit testing exists
         self._MOCK_WEB_API_VERSION = MOCK_WEB_API_VERSION

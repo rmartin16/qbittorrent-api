@@ -46,8 +46,8 @@ def test_log_in_via_auth():
 
     assert (
         client_good.auth_log_in(
-            username=environ.get("PYTHON_QBITTORRENTAPI_USERNAME"),
-            password=environ.get("PYTHON_QBITTORRENTAPI_PASSWORD"),
+            username=environ.get("QBITTORRENTAPI_USERNAME"),
+            password=environ.get("QBITTORRENTAPI_PASSWORD"),
         )
         is None
     )
@@ -94,7 +94,7 @@ def test_hostname_user_base_path(hostname):
 
 
 def test_port_from_host(app_version):
-    host, port = environ.get("PYTHON_QBITTORRENTAPI_HOST").split(":")
+    host, port = environ.get("QBITTORRENTAPI_HOST").split(":")
     client = Client(host=host, port=port, VERIFY_WEBUI_CERTIFICATE=False)
     assert client.app.version == app_version
 
@@ -116,7 +116,7 @@ def _enable_disable_https(client, use_https):
 
 @pytest.mark.parametrize("use_https", (True, False))
 def test_force_user_scheme(client, app_version, use_https):
-    default_host = environ["PYTHON_QBITTORRENTAPI_HOST"]
+    default_host = environ["QBITTORRENTAPI_HOST"]
 
     _enable_disable_https(client, use_https)
 
@@ -161,7 +161,7 @@ def test_force_user_scheme(client, app_version, use_https):
 
 @pytest.mark.parametrize("scheme", ("http://", "https://"))
 def test_both_https_http_not_working(client, app_version, scheme):
-    default_host = environ["PYTHON_QBITTORRENTAPI_HOST"]
+    default_host = environ["QBITTORRENTAPI_HOST"]
     _enable_disable_https(client, use_https=True)
 
     # rerun with verify=True
@@ -174,6 +174,56 @@ def test_both_https_http_not_working(client, app_version, scheme):
     assert test_client._API_BASE_URL.startswith("https://")
 
     _enable_disable_https(client, use_https=False)
+
+
+def test_legacy_env_vars():
+    save_env_host = environ.get("QBITTORRENTAPI_HOST")
+    save_env_username = environ.get("QBITTORRENTAPI_USERNAME")
+    save_env_password = environ.get("QBITTORRENTAPI_PASSWORD")
+    save_env_verify = environ.get("QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE")
+    del environ["QBITTORRENTAPI_HOST"]
+    del environ["QBITTORRENTAPI_USERNAME"]
+    del environ["QBITTORRENTAPI_PASSWORD"]
+    if "QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE" in environ:
+        del environ["QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE"]
+
+    client = Client()
+
+    assert client.host == ""
+    assert client.username == ""
+    assert client._password == ""
+    assert client._VERIFY_WEBUI_CERTIFICATE is True
+
+    environ["PYTHON_QBITTORRENTAPI_HOST"] = excepted_host = "legacy:8090"
+    environ["PYTHON_QBITTORRENTAPI_USERNAME"] = excepted_username = "legacyuser"
+    environ["PYTHON_QBITTORRENTAPI_PASSWORD"] = expected_password = "legacypassword"
+    environ["PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE"] = "true"
+
+    client = Client()
+
+    try:
+        assert client.host == excepted_host
+        assert client.username == excepted_username
+        assert client._password == expected_password
+        assert client._VERIFY_WEBUI_CERTIFICATE is False
+    finally:
+        environ["QBITTORRENTAPI_HOST"] = save_env_host
+        environ["QBITTORRENTAPI_USERNAME"] = save_env_username
+        environ["QBITTORRENTAPI_PASSWORD"] = save_env_password
+        if save_env_verify is not None:
+            environ["QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE"] = save_env_verify
+
+    client = Client()
+
+    assert client.host != excepted_host
+    assert client.username != excepted_username
+    assert client._password != expected_password
+    assert client._VERIFY_WEBUI_CERTIFICATE is False
+
+    del environ["PYTHON_QBITTORRENTAPI_HOST"]
+    del environ["PYTHON_QBITTORRENTAPI_USERNAME"]
+    del environ["PYTHON_QBITTORRENTAPI_PASSWORD"]
+    del environ["PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE"]
 
 
 def test_log_out(client):
@@ -348,7 +398,7 @@ def test_verify_cert(app_version):
     # assert client._VERIFY_WEBUI_CERTIFICATE is True  # noqa: E800
     # assert client.app.version == app_version  # noqa: E800
 
-    environ["PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE"] = "true"
+    environ["QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE"] = "true"
     client = Client(VERIFY_WEBUI_CERTIFICATE=True)
     assert client._VERIFY_WEBUI_CERTIFICATE is False
     assert client.app.version == app_version

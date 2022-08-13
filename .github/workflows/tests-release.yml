@@ -25,11 +25,11 @@ env:
   QT_USE_DEFAULT_PAA: "4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1"
   LIBTORRENT_VER: "2.0.7"
   SUBMIT_COVERAGE_VERSIONS: "2.7, 3.10"
-  PYTHON_QBITTORRENTAPI_HOST: localhost:8080
-  PYTHON_QBITTORRENTAPI_PASSWORD: adminadmin
-  PYTHON_QBITTORRENTAPI_USERNAME: admin
-  LIBTORRENT_INSTALLS: ${{ github.workspace }}/resources/libtorrent_installs
-  QBITTORRENT_INSTALLS: ${{ github.workspace }}/resources/qbittorrent_installs
+  QBITTORRENTAPI_HOST: "localhost:8080"
+  QBITTORRENTAPI_PASSWORD: "adminadmin"
+  QBITTORRENTAPI_USERNAME: "admin"
+  LIBTORRENT_INSTALLS: "${{ github.workspace }}/resources/libtorrent_installs"
+  QBITTORRENT_INSTALLS: "${{ github.workspace }}/resources/qbittorrent_installs"
   GH_CI_CACHE_VERSION: "1"  # useful to effectively evict caches
 
 jobs:
