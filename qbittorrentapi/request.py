@@ -29,6 +29,7 @@ from qbittorrentapi.exceptions import HTTP5XXError
 from qbittorrentapi.exceptions import HTTPError
 from qbittorrentapi.exceptions import InternalServerError500Error
 from qbittorrentapi.exceptions import InvalidRequest400Error
+from qbittorrentapi.exceptions import MethodNotAllowed405Error
 from qbittorrentapi.exceptions import MissingRequiredParameters400Error
 from qbittorrentapi.exceptions import NotFound404Error
 from qbittorrentapi.exceptions import Unauthorized401Error
@@ -658,6 +659,11 @@ class Request(object):
                     error_message = "Torrent hash(es): %s" % error_torrent_hash
             raise NotFound404Error(error_message)
 
+        if response.status_code == 405:
+            # HTTP method not allowed for the API endpoint.
+            # This should only be raised if qBittorrent changes the requirement for an endpoint...
+            raise MethodNotAllowed405Error(response.text)
+
         if response.status_code == 409:
             # APIErrorType::Conflict
             raise Conflict409Error(response.text)
@@ -671,7 +677,9 @@ class Request(object):
 
         if response.status_code >= 400:
             # Unaccounted for errors from API
-            raise HTTPError(response.text)
+            http_error = HTTPError(response.text)
+            http_error.http_status_code = response.status_code
+            raise http_error
 
     def _verbose_logging(
         self, http_method, url, data, params, requests_kwargs, response

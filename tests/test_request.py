@@ -8,6 +8,7 @@ from os import environ
 import pytest
 from pkg_resources import parse_version as v
 
+from qbittorrentapi import APINames
 from qbittorrentapi import Client
 from qbittorrentapi import exceptions
 from qbittorrentapi.request import Request
@@ -423,10 +424,11 @@ def test_http400(client, app_version, orig_torrent_hash):
         client.torrents_file_priority(hash=orig_torrent_hash)
 
     if v(app_version) > v("4.1.5"):
-        with pytest.raises(exceptions.InvalidRequest400Error):
+        with pytest.raises(exceptions.InvalidRequest400Error) as exc_info:
             client.torrents_file_priority(
                 hash=orig_torrent_hash, file_ids="asdf", priority="asdf"
             )
+        assert exc_info.value.http_status_code == 400
 
 
 def test_http401():
@@ -435,10 +437,11 @@ def test_http401():
     # ensure cross site scripting protection is enabled
     client.app.preferences = dict(web_ui_csrf_protection_enabled=True)
     # simulate a XSS request
-    with pytest.raises(exceptions.Unauthorized401Error):
+    with pytest.raises(exceptions.Unauthorized401Error) as exc_info:
         client.app_version(
             headers={"Origin": "https://example.com", "Referer": "https://example.com"}
         )
+    assert exc_info.value.http_status_code == 401
 
 
 @pytest.mark.parametrize("params", ({}, {"hash": "asdf"}, {"hashes": "asdf|asdf"}))
@@ -454,26 +457,37 @@ def test_http404(client, params):
         )
 
     response = MockResponse(status_code=404, text="")
-    with pytest.raises(exceptions.HTTPError):
+    with pytest.raises(exceptions.HTTPError) as exc_info:
         Request._handle_error_responses(data={}, params=params, response=response)
+    assert exc_info.value.http_status_code == 404
+
+
+def test_http405(client, api_version):
+    if v(api_version) >= v("2.8.14"):
+        with pytest.raises(exceptions.MethodNotAllowed405Error) as exc_info:
+            client._get(APINames.Authorization, "logout")
+        assert exc_info.value.http_status_code == 405
 
 
 def test_http409(client, app_version):
     if v(app_version) > v("4.1.5"):
-        with pytest.raises(exceptions.Conflict409Error):
+        with pytest.raises(exceptions.Conflict409Error) as exc_info:
             client.torrents_set_location(torrent_hashes="asdf", location="/etc/asdf/")
+        assert exc_info.value.http_status_code == 409
 
 
 def test_http415(client):
-    with pytest.raises(exceptions.UnsupportedMediaType415Error):
+    with pytest.raises(exceptions.UnsupportedMediaType415Error) as exc_info:
         client.torrents.add(torrent_files="/etc/hosts")
+    assert exc_info.value.http_status_code == 415
 
 
 @pytest.mark.parametrize("status_code", (500, 503))
 def test_http500(status_code):
     response = MockResponse(status_code=status_code, text="asdf")
-    with pytest.raises(exceptions.InternalServerError500Error):
+    with pytest.raises(exceptions.InternalServerError500Error) as exc_info:
         Request._handle_error_responses(data={}, params={}, response=response)
+    assert exc_info.value.http_status_code == 500
 
 
 def test_request_retry_success(monkeypatch, caplog):
@@ -502,8 +516,9 @@ def test_request_retry_skip(caplog):
 @pytest.mark.parametrize("status_code", (402, 406))
 def test_http_error(status_code):
     response = MockResponse(status_code=status_code, text="asdf")
-    with pytest.raises(exceptions.HTTPError):
+    with pytest.raises(exceptions.HTTPError) as exc_info:
         Request._handle_error_responses(data={}, params={}, response=response)
+    assert exc_info.value.http_status_code == status_code
 
 
 def test_verbose_logging(caplog):

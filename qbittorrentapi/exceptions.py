@@ -43,6 +43,8 @@ class HTTPError(RequestsHTTPError, APIConnectionError):
     returned as HTTP statuses.
     """
 
+    http_status_code = None
+
 
 class HTTP4XXError(HTTPError):
     """Base error for all HTTP 4XX statuses."""
@@ -55,29 +57,49 @@ class HTTP5XXError(HTTPError):
 class HTTP400Error(HTTP4XXError):
     """HTTP 400 Status."""
 
+    http_status_code = 400
+
 
 class HTTP401Error(HTTP4XXError):
     """HTTP 401 Status."""
+
+    http_status_code = 401
 
 
 class HTTP403Error(HTTP4XXError):
     """HTTP 403 Status."""
 
+    http_status_code = 403
+
 
 class HTTP404Error(HTTP4XXError):
     """HTTP 404 Status."""
+
+    http_status_code = 404
+
+
+class HTTP405Error(HTTP4XXError):
+    """HTTP 405 Status."""
+
+    http_status_code = 405
 
 
 class HTTP409Error(HTTP4XXError):
     """HTTP 409 Status."""
 
+    http_status_code = 409
+
 
 class HTTP415Error(HTTP4XXError):
     """HTTP 415 Status."""
 
+    http_status_code = 415
+
 
 class HTTP500Error(HTTP5XXError):
     """HTTP 500 Status."""
+
+    http_status_code = 500
 
 
 class MissingRequiredParameters400Error(HTTP400Error):
@@ -102,14 +124,19 @@ class NotFound404Error(HTTP404Error):
     hash."""
 
 
+class MethodNotAllowed405Error(HTTP405Error):
+    """HTTP method is not supported for the API endpoint."""
+
+
 class Conflict409Error(HTTP409Error):
     """Returned if arguments don't make sense specific to the endpoint."""
 
 
 class UnsupportedMediaType415Error(HTTP415Error):
-    """torrents/add endpoint will return this for invalid URL(s) or files."""
+    """``torrents/add`` endpoint will return this for invalid URL(s) or
+    files."""
 
 
 class InternalServerError500Error(HTTP500Error):
-    """Returned if qBittorent craps on itself while processing the
-    request..."""
+    """Returned if qBittorrent errors internally while processing the
+    request."""
