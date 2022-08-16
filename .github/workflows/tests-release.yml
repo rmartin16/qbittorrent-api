@@ -1,9 +1,6 @@
 name: Release Tests
 
 on:
-  schedule:
-    # run every few days so caches aren't evicted
-    - cron: "0 0 1-30/3 * *"
   push:
     branches:
       - main
