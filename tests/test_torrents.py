@@ -180,7 +180,7 @@ def test_add_delete(client, api_version, client_func):
         else:
             get_func(client, client_func[0])(urls=urls)
 
-    if v(api_version) > v("2.0.0"):
+    if v(api_version) >= v("2.0.1"):
         # something was wrong with torrents_add on v2.0.0 (the initial version)
         add_by_filename(single=False)
         add_by_filename(single=True)
@@ -306,28 +306,30 @@ def test_add_options(client, api_version, keep_root_folder, content_layout):
 
 @pytest.mark.parametrize("use_download_path", (None, True, False))
 def test_torrents_add_download_path(client, api_version, use_download_path):
-    if v(api_version) < v("2.8.4"):
-        return
-
-    client.torrents_delete(torrent_hashes=root_folder_torrent_hash, delete_files=True)
-    save_path = mkpath("~/down_path_save_path_test")
-    download_path = mkpath("~/down_path_test")
-    torrent = next(
-        new_torrent_standalone(
-            client=client,
-            torrent_hash=root_folder_torrent_hash,
-            torrent_files=root_folder_torrent_file,
-            download_path=download_path,
-            use_download_path=use_download_path,
-            test_download_limit=1024,
-            save_path=save_path,
+    if v(api_version) >= v("2.8.4"):
+        client.torrents_delete(
+            torrent_hashes=root_folder_torrent_hash, delete_files=True
         )
-    )
+        save_path = mkpath("~/down_path_save_path_test")
+        download_path = mkpath("~/down_path_test")
+        torrent = next(
+            new_torrent_standalone(
+                client=client,
+                torrent_hash=root_folder_torrent_hash,
+                torrent_files=root_folder_torrent_file,
+                download_path=download_path,
+                use_download_path=use_download_path,
+                test_download_limit=1024,
+                save_path=save_path,
+            )
+        )
 
-    if use_download_path is False:
-        check(lambda: mkpath(torrent.info.download_path), download_path, negate=True)
-    else:
-        check(lambda: mkpath(torrent.info.download_path), download_path)
+        if use_download_path is False:
+            check(
+                lambda: mkpath(torrent.info.download_path), download_path, negate=True
+            )
+        else:
+            check(lambda: mkpath(torrent.info.download_path), download_path)
 
 
 def test_properties(client, orig_torrent):
@@ -382,14 +384,7 @@ def test_add_trackers(client, trackers, client_func, new_torrent):
     "client_func", ("torrents_edit_tracker", "torrents_editTracker")
 )
 def test_edit_tracker(client, api_version, client_func, orig_torrent):
-    if v(api_version) < v("2.2.0"):
-        with pytest.raises(NotImplementedError):
-            get_func(client, client_func)(
-                torrent_hash=orig_torrent.hash,
-                original_url="127.1.0.1",
-                new_url="127.1.0.2",
-            )
-    else:
+    if v(api_version) >= v("2.2.0"):
         orig_torrent.add_trackers("127.1.0.1")
         get_func(client, client_func)(
             torrent_hash=orig_torrent.hash,
@@ -397,9 +392,16 @@ def test_edit_tracker(client, api_version, client_func, orig_torrent):
             new_url="127.1.0.2",
         )
         check(lambda: (t.url for t in orig_torrent.trackers), "127.1.0.2", reverse=True)
-        getattr(client, "torrents_remove_trackers")(
+        get_func(client, "torrents_remove_trackers")(
             torrent_hash=orig_torrent.hash, urls="127.1.0.2"
         )
+    else:
+        with pytest.raises(NotImplementedError):
+            get_func(client, client_func)(
+                torrent_hash=orig_torrent.hash,
+                original_url="127.1.0.1",
+                new_url="127.1.0.2",
+            )
 
 
 @pytest.mark.parametrize(
@@ -413,10 +415,7 @@ def test_edit_tracker(client, api_version, client_func, orig_torrent):
     "client_func", ("torrents_remove_trackers", "torrents_removeTrackers")
 )
 def test_remove_trackers(client, api_version, trackers, client_func, orig_torrent):
-    if v(api_version) < v("2.2.0"):
-        with pytest.raises(NotImplementedError):
-            get_func(client, client_func)(torrent_hash=orig_torrent.hash, urls=trackers)
-    else:
+    if v(api_version) >= v("2.2.0"):
         orig_torrent.add_trackers(trackers)
         get_func(client, client_func)(torrent_hash=orig_torrent.hash, urls=trackers)
         check(
@@ -425,6 +424,9 @@ def test_remove_trackers(client, api_version, trackers, client_func, orig_torren
             reverse=True,
             negate=True,
         )
+    else:
+        with pytest.raises(NotImplementedError):
+            get_func(client, client_func)(torrent_hash=orig_torrent.hash, urls=trackers)
 
 
 @pytest.mark.parametrize("client_func", ("torrents_file_priority", "torrents_filePrio"))
@@ -454,26 +456,21 @@ def test_rename_file(
     new_name,
     client_func,
 ):
-    if v(api_version) < v("2.4.0"):
-        with pytest.raises(NotImplementedError):
-            getattr(client, client_func)(
-                torrent_hash=new_torrent.hash, file_id=0, new_file_name=new_name
-            )
-    else:
+    if v(api_version) >= v("2.4.0"):
         sleep(2)
         # pre-v4.3.3 rename_file signature
-        getattr(client, client_func)(
+        get_func(client, client_func)(
             torrent_hash=new_torrent.hash, file_id=0, new_file_name=new_name
         )
         check(lambda: new_torrent.files[0].name.replace("+", " "), new_name)
         # test invalid file ID is rejected
         with pytest.raises(Conflict409Error):
-            getattr(client, client_func)(
+            get_func(client, client_func)(
                 torrent_hash=new_torrent.hash, file_id=10, new_file_name=new_name
             )
         # post-v4.3.3 rename_file signature
         new_new_name = new_name + "NEW"
-        getattr(client, client_func)(
+        get_func(client, client_func)(
             torrent_hash=new_torrent.hash,
             old_path=new_torrent.files[0].name,
             new_path=new_new_name,
@@ -481,8 +478,13 @@ def test_rename_file(
         check(lambda: new_torrent.files[0].name.replace("+", " "), new_new_name)
         # test invalid old_path is rejected
         with pytest.raises(Conflict409Error):
-            getattr(client, client_func)(
+            get_func(client, client_func)(
                 torrent_hash=new_torrent.hash, old_path="asdf", new_path="xcvb"
+            )
+    else:
+        with pytest.raises(NotImplementedError):
+            get_func(client, client_func)(
+                torrent_hash=new_torrent.hash, file_id=0, new_file_name=new_name
             )
 
 
@@ -491,12 +493,6 @@ def test_rename_file(
     "client_func", ("torrents_rename_folder", "torrents_renameFolder")
 )
 def test_rename_folder(client, app_version, new_torrent, new_name, client_func):
-    if v(app_version) < v("v4.3.3"):
-        with pytest.raises(NotImplementedError):
-            getattr(client, client_func)(
-                torrent_hash="asdf", old_path="asdf", new_path="zxcv"
-            )
-    # need to ensure we're at least on v4.3.3 to run test
     if v(app_version) >= v("v4.3.3"):
         # move the file in to a new folder
         orig_file_path = new_torrent.files[0].name
@@ -508,7 +504,7 @@ def test_rename_folder(client, app_version, new_torrent, new_name, client_func):
         )
         sleep(1)  # qBittorrent crashes if you make these calls too fast...
         # test rename that new folder
-        getattr(client, client_func)(
+        get_func(client, client_func)(
             torrent_hash=new_torrent.hash,
             old_path=new_folder,
             new_path=new_name,
@@ -517,10 +513,15 @@ def test_rename_folder(client, app_version, new_torrent, new_name, client_func):
             lambda: new_torrent.files[0].name.replace("+", " "),
             new_name + "/" + orig_file_path,
         )
+    else:
+        with pytest.raises(NotImplementedError):
+            get_func(client, client_func)(
+                torrent_hash="asdf", old_path="asdf", new_path="zxcv"
+            )
 
 
 @pytest.mark.parametrize("client_func", ("torrents_info", "torrents.info"))
-def test_torrents_info(client, api_version, orig_torrent_hash, client_func):
+def test_torrents_info(client, orig_torrent_hash, client_func):
     assert isinstance(get_func(client, client_func)(), TorrentInfoList)
     if "." in client_func:
         assert isinstance(get_func(client, client_func).all(), TorrentInfoList)
@@ -538,21 +539,16 @@ def test_torrents_info(client, api_version, orig_torrent_hash, client_func):
             get_func(client, client_func).stalled_downloading(), TorrentInfoList
         )
 
-    if v(api_version) < v("2.0.1"):
-        with pytest.raises(NotImplementedError):
-            get_func(client, client_func)(torrent_hashes=orig_torrent_hash)
-
 
 @pytest.mark.parametrize("client_func", ("torrents_info", "torrents.info"))
 def test_torrents_info_tag(client, api_version, new_torrent, client_func):
-    if v(api_version) < v("2.8.3"):
-        return
-    tag_name = "tag_filter_name"
-    client.torrents_add_tags(tags=tag_name, torrent_hashes=new_torrent.hash)
-    torrents = get_func(client, client_func)(
-        torrent_hashes=new_torrent.hash, tag=tag_name
-    )
-    assert new_torrent.hash in {t.hash for t in torrents}
+    if v(api_version) >= v("2.8.3"):
+        tag_name = "tag_filter_name"
+        client.torrents_add_tags(tags=tag_name, torrent_hashes=new_torrent.hash)
+        torrents = get_func(client, client_func)(
+            torrent_hashes=new_torrent.hash, tag=tag_name
+        )
+        assert new_torrent.hash in {t.hash for t in torrents}
 
 
 @pytest.mark.parametrize(
@@ -601,11 +597,11 @@ def test_recheck(client, orig_torrent_hash, client_func):
 
 @pytest.mark.parametrize("client_func", ("torrents_reannounce", "torrents.reannounce"))
 def test_reannounce(client, api_version, orig_torrent_hash, client_func):
-    if v(api_version) < v("2.0.2"):
+    if v(api_version) >= v("2.0.2"):
+        get_func(client, client_func)(torrent_hashes=orig_torrent_hash)
+    else:
         with pytest.raises(NotImplementedError):
             get_func(client, client_func)(torrent_hashes=orig_torrent_hash)
-    else:
-        get_func(client, client_func)(torrent_hashes=orig_torrent_hash)
 
 
 @pytest.mark.parametrize(
@@ -755,12 +751,7 @@ def test_upload_limit(client, client_func, orig_torrent):
     ),
 )
 def test_set_share_limits(client, api_version, client_func, orig_torrent):
-    if v(api_version) < v("2.0.1"):
-        with pytest.raises(NotImplementedError):
-            get_func(client, client_func)(
-                ratio_limit=2, seeding_time_limit=5, torrent_hashes=orig_torrent.hash
-            )
-    else:
+    if v(api_version) >= v("2.0.1"):
         get_func(client, client_func)(
             ratio_limit=2, seeding_time_limit=5, torrent_hashes=orig_torrent.hash
         )
@@ -771,6 +762,11 @@ def test_set_share_limits(client, api_version, client_func, orig_torrent):
         )
         check(lambda: orig_torrent.info.max_ratio, 3)
         check(lambda: orig_torrent.info.max_seeding_time, 6)
+    else:
+        with pytest.raises(NotImplementedError):
+            get_func(client, client_func)(
+                ratio_limit=2, seeding_time_limit=5, torrent_hashes=orig_torrent.hash
+            )
 
 
 @pytest.mark.parametrize(
@@ -783,7 +779,7 @@ def test_set_share_limits(client, api_version, client_func, orig_torrent):
     ),
 )
 def test_set_location(client, api_version, client_func, new_torrent):
-    if v(api_version) > v("2.0.1"):
+    if v(api_version) >= v("2.0.2"):
         with pytest.raises(Forbidden403Error):
             get_func(client, client_func)(
                 location="/etc/", torrent_hashes=new_torrent.hash
@@ -932,7 +928,7 @@ def test_toggle_sequential_download(client, client_func, orig_torrent):
 def test_toggle_first_last_piece_priority(
     client, api_version, client_func, new_torrent
 ):
-    if v(api_version) > v("2.0.0"):
+    if v(api_version) >= v("2.0.1"):
         current_setting = new_torrent.info.f_l_piece_prio
         sleep(1)
         get_func(client, client_func)(torrent_hashes=new_torrent.hash)
@@ -984,10 +980,7 @@ def test_set_super_seeding(client, client_func, orig_torrent):
     "peers", ("127.0.0.1:5000", ("127.0.0.1:5000", "127.0.0.2:5000"), "127.0.0.1")
 )
 def test_torrents_add_peers(client, api_version, orig_torrent, client_func, peers):
-    if v(api_version) < v("2.3.0"):
-        with pytest.raises(NotImplementedError):
-            get_func(client, client_func)(peers=peers, torrent_hashes=orig_torrent.hash)
-    else:
+    if v(api_version) >= v("2.3.0"):
         if all(map(lambda p: ":" not in p, peers)):
             with pytest.raises(InvalidRequest400Error):
                 get_func(client, client_func)(
@@ -1004,6 +997,9 @@ def test_torrents_add_peers(client, api_version, orig_torrent, client_func, peer
             #     reverse=True  # noqa: E800
             # )  # noqa: E800
             assert isinstance(p, TorrentsAddPeersDictionary)
+    else:
+        with pytest.raises(NotImplementedError):
+            get_func(client, client_func)(peers=peers, torrent_hashes=orig_torrent.hash)
 
 
 def _categories_save_path_key(api_version):
@@ -1015,18 +1011,15 @@ def _categories_save_path_key(api_version):
 
 
 def test_categories1(client, api_version):
-    if v(api_version) < v("2.1.1"):
+    if v(api_version) >= v("2.1.1"):
+        assert isinstance(client.torrents_categories(), TorrentCategoriesDictionary)
+    else:
         with pytest.raises(NotImplementedError):
             client.torrents_categories()
-    else:
-        assert isinstance(client.torrents_categories(), TorrentCategoriesDictionary)
 
 
 def test_categories2(client, api_version):
-    if v(api_version) < v("2.1.1"):
-        with pytest.raises(NotImplementedError):
-            client.torrent_categories.categories
-    else:
+    if v(api_version) >= v("2.1.1"):
         save_path_key = _categories_save_path_key(api_version)
         name = "new_category"
         client.torrent_categories.categories = {"name": name, save_path_key: "/tmp"}
@@ -1036,6 +1029,9 @@ def test_categories2(client, api_version):
             client.torrent_categories.categories[name][save_path_key]
         ) == mkpath("/tmp/new")
         client.torrents_remove_categories(categories=name)
+    else:
+        with pytest.raises(NotImplementedError):
+            client.torrent_categories.categories
 
 
 @pytest.mark.parametrize(
@@ -1058,10 +1054,6 @@ def test_create_categories(
         save_path += "save"
         download_path += "download"
 
-    if v(api_version) < v("2.1.0"):
-        with pytest.raises(NotImplementedError):
-            get_func(client, client_func)(name=name)
-
     try:
         get_func(client, client_func)(
             name=name,
@@ -1071,7 +1063,7 @@ def test_create_categories(
         )
         client.torrents_set_category(torrent_hashes=orig_torrent.hash, category=name)
         check(lambda: orig_torrent.info.category.replace("+", " "), name)
-        if v(api_version) > v("2.1.1"):
+        if v(api_version) >= v("2.2"):
             check(
                 lambda: [n.replace("+", " ") for n in client.torrents_categories()],
                 name,
@@ -1114,11 +1106,7 @@ def test_create_categories(
 def test_edit_category(
     client, api_version, client_func, filepath, name, enable_download_path
 ):
-    if v(api_version) < v("2.1.0") and filepath is not None:
-        with pytest.raises(NotImplementedError):
-            get_func(client, client_func)(name=name, save_path=filepath)
-
-    if v(api_version) > v("2.1.1"):
+    if v(api_version) >= v("2.1.0") and filepath is not None:
         try:
             client.torrents_create_category(
                 name=name, save_path="/tmp/savetmp", download_path="/tmp/savetmp"
@@ -1156,6 +1144,9 @@ def test_edit_category(
                 )
         finally:
             client.torrents_remove_categories(categories=name)
+    else:
+        with pytest.raises(NotImplementedError):
+            get_func(client, client_func)(name=name, save_path=filepath)
 
 
 @pytest.mark.parametrize(
@@ -1173,7 +1164,7 @@ def test_remove_category(client, api_version, orig_torrent, client_func, categor
         client.torrents_create_category(name=name)
     orig_torrent.set_category(category=categories[0])
     get_func(client, client_func)(categories=categories)
-    if v(api_version) > v("2.1.1"):
+    if v(api_version) >= v("2.2"):
         check(
             lambda: [n.replace("+", " ") for n in client.torrents_categories()],
             categories,
@@ -1191,26 +1182,26 @@ def test_remove_category(client, api_version, orig_torrent, client_func, categor
     ),
 )
 def test_tags(client, api_version, client_func):
-    if v(api_version) < v("2.3.0"):
-        with pytest.raises(NotImplementedError):
-            get_func(client, client_func)()
-    else:
+    if v(api_version) >= v("2.3.0"):
         try:
             assert isinstance(get_func(client, client_func)(), TagList)
         except Exception:
             assert isinstance(get_func(client, client_func), TagList)
+    else:
+        with pytest.raises(NotImplementedError):
+            get_func(client, client_func)()
 
 
 def test_add_tag_though_property(client, api_version):
     name = "newtag"
-    if v(api_version) < v("2.3.0"):
-        with pytest.raises(NotImplementedError):
-            client.torrent_tags.tags = name
-    else:
+    if v(api_version) >= v("2.3.0"):
         client.torrent_tags.tags = name
         assert name in client.torrent_tags.tags
         client.torrent_tags.delete_tags(name)
         assert name not in client.torrent_tags.tags
+    else:
+        with pytest.raises(NotImplementedError):
+            client.torrent_tags.tags = name
 
 
 @pytest.mark.parametrize(
@@ -1224,15 +1215,15 @@ def test_add_tag_though_property(client, api_version):
 )
 @pytest.mark.parametrize("tags", (("tag1",), ("tag1", "tag 2")))
 def test_add_tags(client, api_version, orig_torrent, client_func, tags):
-    if v(api_version) < v("2.3.0"):
-        with pytest.raises(NotImplementedError):
-            get_func(client, client_func)(tags=tags, torrent_hashes=orig_torrent.hash)
-    else:
+    if v(api_version) >= v("2.3.0"):
         try:
             get_func(client, client_func)(tags=tags, torrent_hashes=orig_torrent.hash)
             check(lambda: orig_torrent.info.tags, tags, reverse=True)
         finally:
             client.torrents_delete_tags(tags=tags)
+    else:
+        with pytest.raises(NotImplementedError):
+            get_func(client, client_func)(tags=tags, torrent_hashes=orig_torrent.hash)
 
 
 @pytest.mark.parametrize(
@@ -1246,16 +1237,16 @@ def test_add_tags(client, api_version, orig_torrent, client_func, tags):
 )
 @pytest.mark.parametrize("tags", (("tag1",), ("tag1", "tag 2")))
 def test_remove_tags(client, api_version, orig_torrent, client_func, tags):
-    if v(api_version) < v("2.3.0"):
-        with pytest.raises(NotImplementedError):
-            get_func(client, client_func)(tags=tags, torrent_hashes=orig_torrent.hash)
-    else:
+    if v(api_version) >= v("2.3.0"):
         try:
             orig_torrent.add_tags(tags=tags)
             get_func(client, client_func)(tags=tags, torrent_hashes=orig_torrent.hash)
             check(lambda: orig_torrent.info.tags, tags, reverse=True, negate=True)
         finally:
             client.torrents_delete_tags(tags=tags)
+    else:
+        with pytest.raises(NotImplementedError):
+            get_func(client, client_func)(tags=tags, torrent_hashes=orig_torrent.hash)
 
 
 @pytest.mark.parametrize(
@@ -1269,15 +1260,15 @@ def test_remove_tags(client, api_version, orig_torrent, client_func, tags):
 )
 @pytest.mark.parametrize("tags", (("tag1",), ("tag1", "tag 2")))
 def test_create_tags(client, api_version, client_func, tags):
-    if v(api_version) < v("2.3.0"):
-        with pytest.raises(NotImplementedError):
-            get_func(client, client_func)(tags=tags)
-    else:
+    if v(api_version) >= v("2.3.0"):
         try:
             get_func(client, client_func)(tags=tags)
             check(lambda: client.torrents_tags(), tags, reverse=True)
         finally:
             client.torrents_delete_tags(tags=tags)
+    else:
+        with pytest.raises(NotImplementedError):
+            get_func(client, client_func)(tags=tags)
 
 
 @pytest.mark.parametrize(
@@ -1291,10 +1282,10 @@ def test_create_tags(client, api_version, client_func, tags):
 )
 @pytest.mark.parametrize("tags", (("tag1",), ("tag1", "tag 2")))
 def test_delete_tags(client, api_version, client_func, tags):
-    if v(api_version) < v("2.3.0"):
-        with pytest.raises(NotImplementedError):
-            get_func(client, client_func)(tags=tags)
-    else:
+    if v(api_version) >= v("2.3.0"):
         client.torrents_create_tags(tags=tags)
         get_func(client, client_func)(tags=tags)
         check(lambda: client.torrents_tags(), tags, reverse=True, negate=True)
+    else:
+        with pytest.raises(NotImplementedError):
+            get_func(client, client_func)(tags=tags)

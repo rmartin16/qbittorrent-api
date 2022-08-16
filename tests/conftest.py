@@ -4,6 +4,7 @@ from time import sleep
 
 import pytest
 import six
+from pkg_resources import parse_version as v
 
 from qbittorrentapi import APIConnectionError
 from qbittorrentapi import Client
@@ -18,9 +19,9 @@ BASE_PATH = sys_path[0]
 _check_limit = 10
 
 _orig_torrent_url = (
-    "https://releases.ubuntu.com/21.04/ubuntu-21.04-desktop-amd64.iso.torrent"
+    "https://releases.ubuntu.com/22.04.1/ubuntu-22.04.1-desktop-amd64.iso.torrent"
 )
-_orig_torrent_hash = "64a980abe6e448226bb930ba061592e44c3781a1"
+_orig_torrent_hash = "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0"
 
 with open(
     os.path.join(
@@ -44,11 +45,10 @@ with open(
 root_folder_torrent_hash = "a14553bd936a6d496402082454a70ea7a9521adc"
 
 
-def get_func(client, func_str):
-    func = client
-    for attr in func_str.split("."):
-        func = getattr(func, attr)
-    return func
+def get_func(obj, method_name):
+    for attr in method_name.split("."):
+        obj = getattr(obj, attr)
+    return obj
 
 
 def mkpath(user_path):
@@ -92,14 +92,14 @@ def check(
         for i in range(_check_limit):
             try:
                 exp = None
-                for v in value:
+                for val in value:
                     # clear any previous exceptions if any=True
                     exp = None if any else exp
 
                     try:
                         # get val here so pytest includes value in failures
                         check_val = check_func()
-                        _do_check(check_val, v, negate, reverse)
+                        _do_check(check_val, val, negate, reverse)
                     except AssertionError as e:
                         exp = e
 
@@ -146,7 +146,7 @@ def retry(retries=3):
 def abort_if_qbittorrent_crashes(client):
     """Abort tests if qbittorrent disappears during testing."""
     try:
-        _ = client.app.version
+        client.app_version()
         yield
     except APIConnectionError:
         pytest.exit("qBittorrent crashed :(")
@@ -216,9 +216,7 @@ def new_torrent_standalone(client, torrent_hash=torrent1_hash, **kwargs):
                 )
             try:
                 # not all versions of torrents_info() support passing a hash
-                return list(
-                    filter(lambda t: t.hash == torrent_hash, client.torrents_info())
-                )[0]
+                return [t for t in client.torrents_info() if t.hash == torrent_hash][0]
             except Exception:
                 if attempt >= _check_limit - 1:
                     raise
@@ -266,35 +264,40 @@ def api_version(client):
 
 
 @pytest.fixture(scope="function")
-def rss_feed(client):
-    def delete_feed():
+def rss_feed(client, api_version):
+    def delete_feed(name):
         try:
             client.rss_remove_item(item_path=name)
             check(lambda: client.rss_items(), name, reverse=True, negate=True)
         except Exception:
             pass
 
-    name = "YTS1080p"
-    url = "https://yts.mx/rss/"
-    # refreshing the feed is finicky...so try several times if necessary
-    done = False
-    for i in range(30):
-        delete_feed()
-        client.rss.add_feed(url=url, item_path=name)
-        # wait until the rss feed exists and is refreshed
-        check(lambda: client.rss_items(), name, reverse=True)
-        # wait until feed is refreshed
-        for j in range(10):
-            if client.rss.items.with_data[name]["articles"]:
-                done = True
-                yield name
-                delete_feed()
+    if v(api_version) >= v("2.2"):
+        name = "YTS1080p"
+        url = "https://yts.mx/rss/"
+        client.app.preferences = dict(rss_auto_downloading_enabled=False)
+        # refreshing the feed is finicky...so try several times if necessary
+        done = False
+        for i in range(30):
+            delete_feed(name)
+            client.rss.add_feed(url=url, item_path=name)
+            client.rss.refresh_item(item_path=name)
+            # wait until the rss feed exists and is refreshed
+            check(lambda: client.rss_items(), name, reverse=True)
+            # wait until feed is refreshed
+            for j in range(10):
+                if client.rss.items.with_data[name]["articles"]:
+                    done = True
+                    yield name
+                    delete_feed(name)
+                    break
+                sleep(0.5)
+            if done:
                 break
-            sleep(0.5)
-        if done:
-            break
+        else:
+            raise Exception("RSS Feed '%s' did not refresh..." % name)
     else:
-        raise Exception("RSS Feed '%s' did not refresh..." % name)
+        yield ""
 
 
 def pytest_sessionfinish(session, exitstatus):

@@ -396,7 +396,7 @@ class Request(object):
             logger.debug("Retry attempt %d", retry_count + 1)
 
         max_retries = _retries if _retries >= 1 else 1
-        for retry in range(0, (max_retries + 1)):
+        for retry in range(0, (max_retries + 1)):  # pragma: no branch
             try:
                 return self._request(**kwargs)
             except HTTPError as exc:
@@ -624,18 +624,18 @@ class Request(object):
         if response.status_code < 400:
             # short circuit for non-error statuses
             return
+
         if response.status_code == 400:
             # Returned for malformed requests such as missing or invalid parameters.
-            #
             # If an error_message isn't returned, qBittorrent didn't receive all required parameters.
             # APIErrorType::BadParams
-            # the name (i.e. Bad Response) of the HTTP error started being returned in v4.3.0
+            # the name of the HTTP error (i.e. Bad Request) started being returned in v4.3.0
             if response.text in ("", "Bad Request"):
                 raise MissingRequiredParameters400Error()
             raise InvalidRequest400Error(response.text)
 
         if response.status_code == 401:
-            # Primarily reserved for XSS and host header issues. Is also
+            # Primarily reserved for XSS and host header issues.
             raise Unauthorized401Error(response.text)
 
         if response.status_code == 403:
@@ -648,15 +648,10 @@ class Request(object):
             # APIErrorType::NotFound
             error_message = response.text
             if error_message in ("", "Not Found"):
-                error_torrent_hash = ""
-                if data:
-                    error_torrent_hash = data.get("hash", error_torrent_hash)
-                    error_torrent_hash = data.get("hashes", error_torrent_hash)
-                if params and error_torrent_hash == "":
-                    error_torrent_hash = params.get("hash", error_torrent_hash)
-                    error_torrent_hash = params.get("hashes", error_torrent_hash)
-                if error_torrent_hash:
-                    error_message = "Torrent hash(es): %s" % error_torrent_hash
+                hash_source = data or params or {}
+                error_hash = hash_source.get("hashes", hash_source.get("hash", ""))
+                if error_hash:
+                    error_message = "Torrent hash(es): %s" % error_hash
             raise NotFound404Error(error_message)
 
         if response.status_code == 405:
@@ -673,13 +668,14 @@ class Request(object):
             raise UnsupportedMediaType415Error(response.text)
 
         if response.status_code >= 500:
-            raise InternalServerError500Error(response.text)
-
-        if response.status_code >= 400:
-            # Unaccounted for errors from API
-            http_error = HTTPError(response.text)
+            http_error = InternalServerError500Error(response.text)
             http_error.http_status_code = response.status_code
             raise http_error
+
+        # Unaccounted for API errors
+        http_error = HTTPError(response.text)
+        http_error.http_status_code = response.status_code
+        raise http_error
 
     def _verbose_logging(
         self, http_method, url, data, params, requests_kwargs, response
