@@ -1,0 +1,137 @@
+name: Latest Dev Tests
+
+on:
+  schedule:
+    - cron: "0 0 1-30/3 * *"
+  workflow_dispatch:
+
+env:
+  LATEST_PYTHON_VER: "3.10"
+  QBITTORRENTAPI_HOST: "localhost:8080"
+  QBITTORRENTAPI_PASSWORD: "adminadmin"
+  QBITTORRENTAPI_USERNAME: "admin"
+  LIBTORRENT_VER: "2.0.7"
+  LIBTORRENT_INSTALLS: "${{ github.workspace }}/resources/libtorrent_installs"
+  QBITTORRENT_INSTALLS: "${{ github.workspace }}/resources/qbittorrent_installs"
+  GH_CI_CACHE_VERSION: "1"  # useful to effectively evict caches
+
+jobs:
+  tests-dev-qbt:
+    #######
+    # Run tests against dev versions of qBittorrent and latest Python releases
+    #######
+    name: "Dev Branch Test 3.10 - ${{ matrix.QBT_VER }}"
+    runs-on: ubuntu-20.04  # update Qt PPA when moving beyond 20.04
+    continue-on-error: true
+    env:
+      IS_QBT_DEV: True
+    strategy:
+      matrix:
+        QBT_VER: ["master", "v4_4_x", "v4_3_x"]
+    steps:
+      - name: Branch
+        run: echo Branch ${{ github.ref }} ${{ github.head_ref }}
+
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.LATEST_PYTHON_VER }}
+          cache: 'pip'
+
+      - name: Cache libtorrent ${{ env.LIBTORRENT_VER }}
+        # set up cache for libtorrent library
+        id: cache-libtorrent
+        uses: pat-s/always-upload-cache@v3.0.1
+        with:
+          path: ${{ env.LIBTORRENT_INSTALLS }}/libtorrent_${{ env.LIBTORRENT_VER }}
+          key: libtorrent-installs-${{ env.GH_CI_CACHE_VERSION }}-${{ runner.os }}-${{ env.LIBTORRENT_VER }}
+
+      - name: Install OS Build Dependencies
+        run: |
+          sudo apt update
+          sudo apt install --no-install-recommends build-essential cmake ninja-build pkg-config git zlib1g-dev libssl-dev \
+            libgeoip-dev automake libtool libboost-dev libboost-system-dev libboost-chrono-dev libboost-random-dev
+
+      - name: Install OS Runtime Dependencies
+        # qBt v4.4.0 requires >Qt v5.15.2....but that Qt isn't available from ubuntu PPAs until 21.04
+        run: |
+          sudo add-apt-repository ppa:beineri/opt-qt-5.15.2-focal
+          sudo apt update
+          sudo apt install --no-install-recommends qt515base qt515tools libqt5svg5-dev
+
+      - name: Build libtorrent
+        # if cache missed, build libtorrent library.
+        if: steps.cache-libtorrent.outputs.cache-hit != 'true'
+        run: |
+          set -x
+          SRC_DIR="$LIBTORRENT_INSTALLS/src"
+          LIBTORRENT_INSTALL_DIR="$LIBTORRENT_INSTALLS/libtorrent_${{ env.LIBTORRENT_VER }}"
+          mkdir -p "$SRC_DIR" && mkdir -p "$LIBTORRENT_INSTALL_DIR"
+
+          cd "$SRC_DIR"
+          git clone --recurse-submodules https://github.com/arvidn/libtorrent.git --branch v${{ env.LIBTORRENT_VER }} --depth 1
+          cd libtorrent
+          cmake \
+            -B cmake-build-dir/Release \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$LIBTORRENT_INSTALL_DIR"
+          cmake --build cmake-build-dir/Release --parallel $(nproc)
+          cmake --install cmake-build-dir/Release
+
+      - name: Build qBittorrent ${{ matrix.QBT_VER }}
+        run: |
+          set -x
+          SRC_DIR="$QBITTORRENT_INSTALLS/src"
+          QBITTORRENT_INSTALL_DIR="$QBITTORRENT_INSTALLS/qbt_${{ matrix.QBT_VER }}"
+          LIBTORRENT_DIR="$LIBTORRENT_INSTALLS/libtorrent_${{ env.LIBTORRENT_VER }}"
+          mkdir -p "$SRC_DIR" && mkdir -p "$QBITTORRENT_INSTALL_DIR"
+
+          cd "$SRC_DIR"
+          rm -rf qBittorrent
+          git clone https://github.com/qbittorrent/qBittorrent.git --branch ${{ matrix.QBT_VER }} --depth 1
+          cd qBittorrent
+          cmake \
+            -G "Ninja" \
+            -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$LIBTORRENT_DIR" \
+            -DVERBOSE_CONFIGURE=ON \
+            -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE \
+            -DQBT_VER_STATUS= \
+            -DGUI=OFF \
+            -DCMAKE_INSTALL_PREFIX="$QBITTORRENT_INSTALL_DIR"
+          cmake --build build --parallel $(nproc)
+          cmake --install build
+
+      - name: Install Python Dependencies
+        # install the python dependencies to test qbittorrent-api
+        run: |
+          python -m pip install -U pip wheel setuptools
+          python -m pip install .[test]
+
+      - name: Test with pytest
+        run: |
+          mkdir -p $HOME/Downloads  # default download location for qbittorrent
+          export LD_LIBRARY_PATH="$LIBTORRENT_INSTALLS/libtorrent_${{ env.LIBTORRENT_VER }}/lib/:$LD_LIBRARY_PATH"
+          $QBITTORRENT_INSTALLS/qbt_${{ matrix.QBT_VER }}/bin/qbittorrent-nox --daemon
+          python -c "import sys; print('Python', sys.version)"
+          $QBITTORRENT_INSTALLS/qbt_${{ matrix.QBT_VER }}/bin/qbittorrent-nox -v
+          pytest
+
+      - name: Send mail
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: ${{ github.job }} job of ${{ github.repository }} failed
+          body: |
+            ${{ github.job }} job in workflow ${{ github.workflow }} of ${{ github.repository }} failed.
+            https://github.com/rmartin16/qbittorrent-api/actions/runs/${{ github.run_id }}
+          to: rmartin16+github-action@gmail.com   # comma-separated string
+          from: rmartin16+github-action@gmail.com
