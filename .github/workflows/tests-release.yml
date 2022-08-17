@@ -18,7 +18,7 @@ env:
   LATEST_QBT_VER: "4.4.3.1"
   # All qBittorrent versions except latest
   QBT_VERS: '[ "4.4.1", "4.4.0", "4.3.9", "4.3.8", "4.3.7", "4.3.6", "4.3.5", "4.3.4.1", "4.3.3", "4.3.2", "4.3.1", "4.3.0.1" ]'
-  QBT_LEGACY_VERS: '[ "4.2.5", "4.2.0" ]'
+  QBT_LEGACY_VERS: '[ "4.2.5", "4.2.0", "4.1.6", "4.1.0" ]'
   QT_USE_DEFAULT_PAA: "4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1"
   LIBTORRENT_VER: "2.0.7"
   SUBMIT_COVERAGE_VERSIONS: "2.7, 3.10"
@@ -27,13 +27,13 @@ env:
   QBITTORRENTAPI_USERNAME: "admin"
   LIBTORRENT_INSTALLS: "${{ github.workspace }}/resources/libtorrent_installs"
   QBITTORRENT_INSTALLS: "${{ github.workspace }}/resources/qbittorrent_installs"
-  GH_CI_CACHE_VERSION: "1"  # useful to effectively evict caches
+  GH_CI_CACHE_VERSION: "3"  # useful to effectively evict caches
 
 jobs:
   verify:
     name: Get Ready
     runs-on: ubuntu-20.04
-    timeout-minutes: 10
+    timeout-minutes: 5
     outputs:
       python-versions: ${{ steps.set-python-versions.outputs.python-versions }}
       qbittorrent-versions: ${{ steps.set-qbittorrent-versions.outputs.qbittorrent-versions }}
@@ -73,6 +73,7 @@ jobs:
     name: "Release Test 3.10 - v4.4.3.1"
     needs: verify
     runs-on: ubuntu-20.04  # update Qt PPA when moving beyond 20.04
+    timeout-minutes: 15
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
@@ -123,7 +124,7 @@ jobs:
           mkdir -p "$SRC_DIR" && mkdir -p "$LIBTORRENT_INSTALL_DIR"
 
           cd "$SRC_DIR"
-          git clone --recurse-submodules https://github.com/arvidn/libtorrent.git --branch v${{ env.LIBTORRENT_VER }} --depth 1
+          git clone --recurse-submodules https://github.com/arvidn/libtorrent.git --branch v$LIBTORRENT_VER --depth 1
           cd libtorrent
           cmake \
             -B cmake-build-dir/Release \
@@ -138,13 +139,13 @@ jobs:
         run: |
           set -x
           SRC_DIR="$QBITTORRENT_INSTALLS/src"
-          QBITTORRENT_INSTALL_DIR="$QBITTORRENT_INSTALLS/qbt_${{ env.LATEST_QBT_VER }}"
+          QBITTORRENT_INSTALL_DIR="$QBITTORRENT_INSTALLS/qbt_$LATEST_QBT_VER"
           LIBTORRENT_DIR="$LIBTORRENT_INSTALLS/libtorrent_$LIBTORRENT_VER"
           mkdir -p "$SRC_DIR" && mkdir -p "$QBITTORRENT_INSTALL_DIR"
 
           cd "$SRC_DIR"
           rm -rf qBittorrent
-          git clone https://github.com/qbittorrent/qBittorrent.git --branch release-${{ env.LATEST_QBT_VER }} --depth 1
+          git clone https://github.com/qbittorrent/qBittorrent.git --branch release-$LATEST_QBT_VER --depth 1
           cd qBittorrent
           cmake \
             -G "Ninja" \
@@ -170,10 +171,10 @@ jobs:
         run: |
           mkdir -p $HOME/Downloads  # default download location for qbittorrent
           export LD_LIBRARY_PATH="$LIBTORRENT_INSTALLS/libtorrent_$LIBTORRENT_VER/lib/:$LD_LIBRARY_PATH"
-          $QBITTORRENT_INSTALLS/qbt_${{ env.LATEST_QBT_VER }}/bin/qbittorrent-nox --daemon
+          $QBITTORRENT_INSTALLS/qbt_$LATEST_QBT_VER/bin/qbittorrent-nox --daemon
           python -c "import sys; print('Python', sys.version)"
-          $QBITTORRENT_INSTALLS/qbt_${{ env.LATEST_QBT_VER }}/bin/qbittorrent-nox -v
-          export QBT_VER=${{ env.LATEST_QBT_VER }}  # tell pytest which qbittorrent is being tested
+          $QBITTORRENT_INSTALLS/qbt_$LATEST_QBT_VER/bin/qbittorrent-nox -v
+          export QBT_VER=$LATEST_QBT_VER  # tell pytest which qbittorrent is being tested
           pytest
 
       - name: Upload Coverage to Codecov
@@ -181,6 +182,7 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   tests-extended-python:
     #######
@@ -190,6 +192,7 @@ jobs:
     needs: [tests-smoke, verify]
     runs-on: ubuntu-20.04  # update Qt PPA when moving beyond 20.04
     continue-on-error: true
+    timeout-minutes: 15
     strategy:
       matrix:
         python-version: ${{ fromJson(needs.verify.outputs.python-versions) }}
@@ -243,7 +246,7 @@ jobs:
           mkdir -p "$SRC_DIR" && mkdir -p "$LIBTORRENT_INSTALL_DIR"
 
           cd "$SRC_DIR"
-          git clone --recurse-submodules https://github.com/arvidn/libtorrent.git --branch v${{ env.LIBTORRENT_VER }} --depth 1
+          git clone --recurse-submodules https://github.com/arvidn/libtorrent.git --branch v$LIBTORRENT_VER --depth 1
           cd libtorrent
           cmake \
             -B cmake-build-dir/Release \
@@ -258,13 +261,13 @@ jobs:
         run: |
           set -x
           SRC_DIR="$QBITTORRENT_INSTALLS/src"
-          QBITTORRENT_INSTALL_DIR="$QBITTORRENT_INSTALLS/qbt_${{ env.LATEST_QBT_VER }}"
+          QBITTORRENT_INSTALL_DIR="$QBITTORRENT_INSTALLS/qbt_$LATEST_QBT_VER"
           LIBTORRENT_DIR="$LIBTORRENT_INSTALLS/libtorrent_$LIBTORRENT_VER"
           mkdir -p "$SRC_DIR" && mkdir -p "$QBITTORRENT_INSTALL_DIR"
 
           cd "$SRC_DIR"
           rm -rf qBittorrent
-          git clone https://github.com/qbittorrent/qBittorrent.git --branch release-${{ env.LATEST_QBT_VER }} --depth 1
+          git clone https://github.com/qbittorrent/qBittorrent.git --branch release-$LATEST_QBT_VER --depth 1
           cd qBittorrent
           cmake \
             -G "Ninja" \
@@ -290,10 +293,10 @@ jobs:
         run: |
           mkdir -p $HOME/Downloads  # default download location for qbittorrent
           export LD_LIBRARY_PATH="$LIBTORRENT_INSTALLS/libtorrent_$LIBTORRENT_VER/lib/:$LD_LIBRARY_PATH"
-          $QBITTORRENT_INSTALLS/qbt_${{ env.LATEST_QBT_VER }}/bin/qbittorrent-nox --daemon
+          $QBITTORRENT_INSTALLS/qbt_$LATEST_QBT_VER/bin/qbittorrent-nox --daemon
           python -c "import sys; print('Python', sys.version)"
-          $QBITTORRENT_INSTALLS/qbt_${{ env.LATEST_QBT_VER }}/bin/qbittorrent-nox -v
-          export QBT_VER=${{ env.LATEST_QBT_VER }}  # tell pytest which qbittorrent is being tested
+          $QBITTORRENT_INSTALLS/qbt_$LATEST_QBT_VER/bin/qbittorrent-nox -v
+          export QBT_VER=$LATEST_QBT_VER  # tell pytest which qbittorrent is being tested
           pytest
 
       - name: Upload Coverage to Codecov
@@ -302,6 +305,7 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   tests-extended-qbt:
     #######
@@ -311,6 +315,7 @@ jobs:
     needs: [tests-smoke, verify]
     runs-on: ubuntu-20.04  # update Qt PPA when moving beyond 20.04
     continue-on-error: true
+    timeout-minutes: 15
     strategy:
       matrix:
         QBT_VER: ${{ fromJson(needs.verify.outputs.qbittorrent-versions) }}
@@ -385,7 +390,7 @@ jobs:
           mkdir -p "$SRC_DIR" && mkdir -p "$LIBTORRENT_INSTALL_DIR"
 
           cd "$SRC_DIR"
-          git clone --recurse-submodules https://github.com/arvidn/libtorrent.git --branch v${{ env.LIBTORRENT_VER }} --depth 1
+          git clone --recurse-submodules https://github.com/arvidn/libtorrent.git --branch v$LIBTORRENT_VER --depth 1
           cd libtorrent
           cmake \
             -B cmake-build-dir/Release \
@@ -443,6 +448,7 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   tests-legacy-qbt:
     #######
@@ -452,11 +458,21 @@ jobs:
     needs: [tests-smoke, verify]
     runs-on: ubuntu-20.04
     continue-on-error: true
-    env:
-      LIBTORRENT_VER: 1.2.17
+    timeout-minutes: 15
     strategy:
       matrix:
         QBT_VER: ${{ fromJson(needs.verify.outputs.qbittorrent-legacy-versions) }}
+        LIBTORRENT_VER: ["1.2.17"]
+        include:
+          - QBT_VER: "4.1.0"
+            LIBTORRENT_VER: "1_1_14"
+          - QBT_VER: "4.1.6"
+            LIBTORRENT_VER: "1_1_14"
+        exclude:
+          - QBT_VER: "4.1.0"
+            LIBTORRENT_VER: "1.2.17"
+          - QBT_VER: "4.1.6"
+            LIBTORRENT_VER: "1.2.17"
     steps:
       - name: Branch
         run: echo Branch ${{ github.ref }} ${{ github.head_ref }}
@@ -470,13 +486,13 @@ jobs:
           python-version: ${{ env.LATEST_PYTHON_VER }}
           cache: 'pip'
 
-      - name: Cache libtorrent ${{ env.LIBTORRENT_VER }}
+      - name: Cache libtorrent ${{ matrix.LIBTORRENT_VER }}
         # set up cache for libtorrent library
         id: cache-libtorrent
         uses: pat-s/always-upload-cache@v3.0.1
         with:
-          path: ${{ env.LIBTORRENT_INSTALLS }}/libtorrent_${{ env.LIBTORRENT_VER }}
-          key: libtorrent-installs-${{ env.GH_CI_CACHE_VERSION }}-${{ runner.os }}-${{ env.LIBTORRENT_VER }}
+          path: ${{ env.LIBTORRENT_INSTALLS }}/libtorrent_${{ matrix.LIBTORRENT_VER }}
+          key: libtorrent-installs-${{ env.GH_CI_CACHE_VERSION }}-${{ runner.os }}-${{ matrix.LIBTORRENT_VER }}
 
       - name: Cache qBittorrent ${{ matrix.QBT_VER }}
         # set up cache for qBittorrent binary legacy
@@ -484,7 +500,7 @@ jobs:
         uses: pat-s/always-upload-cache@v3.0.1
         with:
           path: ${{ env.QBITTORRENT_INSTALLS }}
-          key: qbittorrent-installs-${{ env.GH_CI_CACHE_VERSION }}-${{ runner.os }}-${{ matrix.QBT_VER }}-${{ env.LIBTORRENT_VER }}
+          key: qbittorrent-installs-${{ env.GH_CI_CACHE_VERSION }}-${{ runner.os }}-${{ matrix.QBT_VER }}-${{ matrix.LIBTORRENT_VER }}
 
       - name: Install OS Build Dependencies
         if: (steps.cache-libtorrent.outputs.cache-hit != 'true') || (steps.cache-qbittorrent.outputs.cache-hit != 'true')
@@ -504,11 +520,17 @@ jobs:
         run: |
           set -x
           SRC_DIR="$LIBTORRENT_INSTALLS/src"
-          LIBTORRENT_INSTALL_DIR="$LIBTORRENT_INSTALLS/libtorrent_$LIBTORRENT_VER"
+          if [ "${{ matrix.LIBTORRENT_VER }}" = "1_1_14" ];
+          then
+            LIBTORRENT_BRANCH="libtorrent-${{ matrix.LIBTORRENT_VER }}"
+          else
+            LIBTORRENT_BRANCH="v${{ matrix.LIBTORRENT_VER }}"
+          fi
+          LIBTORRENT_INSTALL_DIR="$LIBTORRENT_INSTALLS/libtorrent_${{ matrix.LIBTORRENT_VER }}"
           mkdir -p "$SRC_DIR" && mkdir -p "$LIBTORRENT_INSTALL_DIR"
 
           cd "$SRC_DIR"
-          git clone --recurse-submodules https://github.com/arvidn/libtorrent.git --branch v${{ env.LIBTORRENT_VER }} --depth 1
+          git clone --recurse-submodules https://github.com/arvidn/libtorrent.git --branch $LIBTORRENT_BRANCH --depth 1
           cd libtorrent
           cmake \
             -B cmake-build-dir/Release \
@@ -524,7 +546,7 @@ jobs:
           set -x
           SRC_DIR="$QBITTORRENT_INSTALLS/src"
           QBITTORRENT_INSTALL_DIR="$QBITTORRENT_INSTALLS/qbt_${{ matrix.QBT_VER }}"
-          LIBTORRENT_DIR="$LIBTORRENT_INSTALLS/libtorrent_$LIBTORRENT_VER"
+          LIBTORRENT_DIR="$LIBTORRENT_INSTALLS/libtorrent_${{ matrix.LIBTORRENT_VER }}"
           mkdir -p "$SRC_DIR" && mkdir -p "$QBITTORRENT_INSTALL_DIR"
 
           cd "$SRC_DIR"
@@ -550,7 +572,7 @@ jobs:
         # finally....start qBittorrent and run tests via pytest
         run: |
           mkdir -p $HOME/Downloads  # default download location for qbittorrent
-          export LD_LIBRARY_PATH="$LIBTORRENT_INSTALLS/libtorrent_$LIBTORRENT_VER/lib/:$LD_LIBRARY_PATH"
+          export LD_LIBRARY_PATH="$LIBTORRENT_INSTALLS/libtorrent_${{ matrix.LIBTORRENT_VER }}/lib/:$LD_LIBRARY_PATH"
           $QBITTORRENT_INSTALLS/qbt_${{ matrix.QBT_VER }}/bin/qbittorrent-nox --daemon
           python -c "import sys; print('Python', sys.version)"
           $QBITTORRENT_INSTALLS/qbt_${{ matrix.QBT_VER }}/bin/qbittorrent-nox -v
@@ -562,6 +584,7 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   tests-dev-qbt:
     #######
@@ -571,6 +594,7 @@ jobs:
     needs: tests-smoke
     runs-on: ubuntu-20.04  # update Qt PPA when moving beyond 20.04
     continue-on-error: true
+    timeout-minutes: 15
     env:
       IS_QBT_DEV: True
     strategy:
@@ -616,11 +640,11 @@ jobs:
         run: |
           set -x
           SRC_DIR="$LIBTORRENT_INSTALLS/src"
-          LIBTORRENT_INSTALL_DIR="$LIBTORRENT_INSTALLS/libtorrent_${{ env.LIBTORRENT_VER }}"
+          LIBTORRENT_INSTALL_DIR="$LIBTORRENT_INSTALLS/libtorrent_$LIBTORRENT_VER"
           mkdir -p "$SRC_DIR" && mkdir -p "$LIBTORRENT_INSTALL_DIR"
 
           cd "$SRC_DIR"
-          git clone --recurse-submodules https://github.com/arvidn/libtorrent.git --branch v${{ env.LIBTORRENT_VER }} --depth 1
+          git clone --recurse-submodules https://github.com/arvidn/libtorrent.git --branch v$LIBTORRENT_VER --depth 1
           cd libtorrent
           cmake \
             -B cmake-build-dir/Release \
@@ -634,7 +658,7 @@ jobs:
           set -x
           SRC_DIR="$QBITTORRENT_INSTALLS/src"
           QBITTORRENT_INSTALL_DIR="$QBITTORRENT_INSTALLS/qbt_${{ matrix.QBT_VER }}"
-          LIBTORRENT_DIR="$LIBTORRENT_INSTALLS/libtorrent_${{ env.LIBTORRENT_VER }}"
+          LIBTORRENT_DIR="$LIBTORRENT_INSTALLS/libtorrent_$LIBTORRENT_VER"
           mkdir -p "$SRC_DIR" && mkdir -p "$QBITTORRENT_INSTALL_DIR"
 
           cd "$SRC_DIR"
@@ -663,7 +687,7 @@ jobs:
       - name: Test with pytest
         run: |
           mkdir -p $HOME/Downloads  # default download location for qbittorrent
-          export LD_LIBRARY_PATH="$LIBTORRENT_INSTALLS/libtorrent_${{ env.LIBTORRENT_VER }}/lib/:$LD_LIBRARY_PATH"
+          export LD_LIBRARY_PATH="$LIBTORRENT_INSTALLS/libtorrent_$LIBTORRENT_VER/lib/:$LD_LIBRARY_PATH"
           $QBITTORRENT_INSTALLS/qbt_${{ matrix.QBT_VER }}/bin/qbittorrent-nox --daemon
           python -c "import sys; print('Python', sys.version)"
           $QBITTORRENT_INSTALLS/qbt_${{ matrix.QBT_VER }}/bin/qbittorrent-nox -v
@@ -674,6 +698,7 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Send mail
         if: failure()

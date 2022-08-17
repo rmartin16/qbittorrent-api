@@ -18,10 +18,7 @@ legit_torrents_url = "https://raw.githubusercontent.com/qbittorrent/search-plugi
     "client_func", ("search_update_plugins", "search.update_plugins")
 )
 def test_update_plugins(client, api_version, client_func):
-    if v(api_version) < v("2.1.1"):
-        with pytest.raises(NotImplementedError):
-            client.search_update_plugins()
-    else:
+    if v(api_version) >= v("2.1.1"):
         get_func(client, client_func)()
         check(
             lambda: any(
@@ -31,6 +28,9 @@ def test_update_plugins(client, api_version, client_func):
             ),
             True,
         )
+    else:
+        with pytest.raises(NotImplementedError):
+            client.search_update_plugins()
 
 
 @pytest.mark.parametrize(
@@ -41,10 +41,7 @@ def test_update_plugins(client, api_version, client_func):
     ),
 )
 def test_enable_plugin(client, api_version, client_func):
-    if v(api_version) < v("2.1.1"):
-        with pytest.raises(NotImplementedError):
-            get_func(client, client_func[1])()
-    else:
+    if v(api_version) >= v("2.1.1"):
         loop_limit = 3
         for loop_count in range(loop_limit):
             try:
@@ -74,6 +71,9 @@ def test_enable_plugin(client, api_version, client_func):
             except Exception as e:
                 if loop_count >= (loop_limit - 1):
                     raise e
+    else:
+        with pytest.raises(NotImplementedError):
+            get_func(client, client_func[1])()
 
 
 @pytest.mark.parametrize(
@@ -84,12 +84,7 @@ def test_enable_plugin(client, api_version, client_func):
     ),
 )
 def test_install_uninstall_plugin(client, api_version, client_func):
-    if v(api_version) < v("2.1.1"):
-        with pytest.raises(NotImplementedError):
-            client.search_install_plugin()
-        with pytest.raises(NotImplementedError):
-            client.search_uninstall_plugin()
-    else:
+    if v(api_version) >= v("2.1.1"):
         for _ in range(3):
             try:
                 get_func(client, client_func[0])(sources=legit_torrents_url)
@@ -112,15 +107,20 @@ def test_install_uninstall_plugin(client, api_version, client_func):
                 )
             except AssertionError:
                 pass
+    else:
+        with pytest.raises(NotImplementedError):
+            client.search_install_plugin()
+        with pytest.raises(NotImplementedError):
+            client.search_uninstall_plugin()
 
 
 @pytest.mark.parametrize("client_func", ("search_categories", "search.categories"))
 def test_categories(client, api_version, client_func):
-    if v(api_version) < v("2.1.1") or v(api_version) >= v("2.6"):
+    if v("2.6") > v(api_version) >= v("2.1.1"):
+        check(lambda: get_func(client, client_func)(), "All categories", reverse=True)
+    else:
         with pytest.raises(NotImplementedError):
             get_func(client, client_func)()
-    else:
-        check(lambda: get_func(client, client_func)(), "All categories", reverse=True)
 
 
 @pytest.mark.parametrize(
@@ -143,10 +143,7 @@ def test_categories(client, api_version, client_func):
     ),
 )
 def test_search(client, api_version, client_func):
-    if v(api_version) < v("2.1.1"):
-        with pytest.raises(NotImplementedError):
-            get_func(client, client_func[0])()
-    else:
+    if v(api_version) >= v("2.1.1"):
         job = get_func(client, client_func[0])(
             pattern="Ubuntu", plugins="enabled", category="all"
         )
@@ -166,16 +163,16 @@ def test_search(client, api_version, client_func):
         get_func(client, client_func[4])(search_id=job["id"])
         statuses = get_func(client, client_func[1])()
         assert not statuses
+    else:
+        with pytest.raises(NotImplementedError):
+            get_func(client, client_func[0])()
 
 
 @pytest.mark.parametrize(
     "client_func", (("search_stop", "search_start"), ("search.stop", "search.start"))
 )
 def test_stop(client, api_version, client_func):
-    if v(api_version) < v("2.1.1"):
-        with pytest.raises(NotImplementedError):
-            get_func(client, client_func[0])(search_id=100)
-    else:
+    if v(api_version) >= v("2.1.1"):
         job = get_func(client, client_func[1])(
             pattern="Ubuntu", plugins="enabled", category="all"
         )
@@ -189,14 +186,17 @@ def test_stop(client, api_version, client_func):
         sleep(1)
         job.stop()
         check(lambda: client.search.status(search_id=job["id"])[0]["status"], "Stopped")
+    else:
+        with pytest.raises(NotImplementedError):
+            get_func(client, client_func[0])(search_id=100)
 
 
 def test_delete(client, api_version):
-    if v(api_version) < v("2.1.1"):
-        with pytest.raises(NotImplementedError):
-            client.search_stop(search_id=100)
-    else:
+    if v(api_version) >= v("2.1.1"):
         job = client.search_start(pattern="Ubuntu", plugins="enabled", category="all")
         job.delete()
         with pytest.raises(NotFound404Error):
             job.status()
+    else:
+        with pytest.raises(NotImplementedError):
+            client.search_stop(search_id=100)

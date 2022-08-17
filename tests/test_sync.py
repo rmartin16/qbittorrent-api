@@ -17,7 +17,7 @@ def test_maindata2(client, rid):
 
 
 def test_maindata3(client):
-    _ = client.sync.maindata()
+    client.sync.maindata()
     assert client.sync.maindata._rid != 0
     client.sync.maindata.reset_rid()
     assert client.sync.maindata._rid == 0

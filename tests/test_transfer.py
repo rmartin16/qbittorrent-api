@@ -14,8 +14,8 @@ def test_info(client):
 
 
 def test_speed_limits_mode(client):
-    assert client.transfer_speed_limits_mode() in ("0", "1")
-    assert client.transfer.speed_limits_mode in ("0", "1")
+    assert client.transfer_speed_limits_mode() in {"0", "1"}
+    assert client.transfer.speed_limits_mode in {"0", "1"}
 
     original_mode = client.transfer.speed_limits_mode
     client.transfer_toggle_speed_limits_mode()
@@ -74,10 +74,7 @@ def test_upload_limit(client):
 
 
 def test_ban_peers(client, api_version):
-    if v(api_version) < v("2.3"):
-        with pytest.raises(NotImplementedError):
-            client.transfer_ban_peers(peers="1.1.1.1:8080")
-    else:
+    if v(api_version) >= v("2.3"):
         client.transfer_ban_peers(peers="1.1.1.1:8080")
         assert "1.1.1.1" in client.app.preferences.banned_IPs
         client.transfer.ban_peers(peers="1.1.1.2:8080")
@@ -89,3 +86,6 @@ def test_ban_peers(client, api_version):
         client.transfer.ban_peers(peers=["1.1.1.5:8080", "1.1.1.6:8080"])
         assert "1.1.1.5" in client.app.preferences.banned_IPs
         assert "1.1.1.6" in client.app.preferences.banned_IPs
+    else:
+        with pytest.raises(NotImplementedError):
+            client.transfer_ban_peers(peers="1.1.1.1:8080")
