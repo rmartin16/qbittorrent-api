@@ -111,7 +111,7 @@ def test_priority(client, new_torrent, client_func):
         get_func(new_torrent, client_func[3])()
 
     enable_queueing(client)
-    sleep(2)  # putting sleeps in since these keep crashing qbittorrent
+    sleep(1)  # putting sleeps in since these keep crashing qbittorrent
 
     current_priority = new_torrent.info.priority
     get_func(new_torrent, client_func[0])()
@@ -383,7 +383,7 @@ def test_reannounce(api_version, orig_torrent):
 @pytest.mark.parametrize("client_func", ("rename_file", "renameFile"))
 @pytest.mark.parametrize("name", ("new_name", "new name"))
 def test_rename_file(api_version, app_version, new_torrent, client_func, name):
-    sleep(2)
+    sleep(1)
     if v(api_version) >= v("2.4.0"):
         get_func(new_torrent, client_func)(file_id=0, new_file_name=name)
         check(lambda: new_torrent.files[0].name, name)
@@ -401,12 +401,9 @@ def test_rename_file(api_version, app_version, new_torrent, client_func, name):
 @pytest.mark.parametrize("client_func", ("rename_folder", "renameFolder"))
 @pytest.mark.parametrize("name", ("new_name", "new name"))
 def test_rename_folder(api_version, app_version, new_torrent, client_func, name):
-    if v(api_version) < v("2.7"):
-        with pytest.raises(NotImplementedError):
-            get_func(new_torrent, client_func)(old_path="", new_path="")
-
-    # need to ensure we're at least on v4.3.3 to run test
-    if v(app_version) >= v("v4.3.3"):
+    # need to ensure we're at least on v4.3.3 to run test since
+    # both v4.3.2 and v4.3.2 both use Web API 2.7
+    if v(api_version) >= v("2.7") and v(app_version) >= v("v4.3.3"):
         # move the file in to a new folder
         orig_file_path = new_torrent.files[0].name
         new_folder = "qwer"
@@ -424,6 +421,9 @@ def test_rename_folder(api_version, app_version, new_torrent, client_func, name)
             lambda: new_torrent.files[0].name.replace("+", " "),
             name + "/" + orig_file_path,
         )
+    else:
+        with pytest.raises(NotImplementedError):
+            get_func(new_torrent, client_func)(old_path="", new_path="")
 
 
 @pytest.mark.parametrize("client_func", ("piece_states", "pieceStates"))

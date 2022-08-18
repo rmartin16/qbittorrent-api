@@ -457,7 +457,7 @@ def test_rename_file(
     client_func,
 ):
     if v(api_version) >= v("2.4.0"):
-        sleep(2)
+        sleep(1)
         # pre-v4.3.3 rename_file signature
         get_func(client, client_func)(
             torrent_hash=new_torrent.hash, file_id=0, new_file_name=new_name
