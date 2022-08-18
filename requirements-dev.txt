@@ -5,6 +5,7 @@ codecov
 coveralls
 flake8
 furo
+mock; python_version < "3"
 pre-commit
 pytest
 pytest-cov

@@ -3,7 +3,11 @@ import os
 import re
 import sys
 from os import environ
-from unittest.mock import MagicMock
+
+try:
+    from unittest.mock import MagicMock
+except ImportError:  # python 2
+    from mock import MagicMock
 
 import pytest
 from pkg_resources import parse_version as v
