@@ -2,11 +2,12 @@ import logging
 import os
 import re
 import sys
-from collections import namedtuple
 from os import environ
+from unittest.mock import MagicMock
 
 import pytest
 from pkg_resources import parse_version as v
+from requests import Response
 
 from qbittorrentapi import APINames
 from qbittorrentapi import Client
@@ -16,8 +17,6 @@ from qbittorrentapi.torrents import TorrentDictionary
 from qbittorrentapi.torrents import TorrentInfoList
 from tests.conftest import BASE_PATH
 from tests.conftest import IS_QBT_DEV
-
-MockResponse = namedtuple("MockResponse", ("status_code", "text"))
 
 
 def test_method_name(client, app_version):
@@ -463,27 +462,27 @@ def test_http404(client, params):
         client.torrents_rename(hash="zxcv", new_torrent_name="erty")
     assert "zxcv" in exc_info.value.args[0]
 
-    response = MockResponse(status_code=404, text="")
+    response = MagicMock(spec=Response, status_code=404, text="")
     with pytest.raises(exceptions.HTTPError, match="") as exc_info:
         Request._handle_error_responses(data={}, params=params, response=response)
     assert exc_info.value.http_status_code == 404
     if params:
         assert params[list(params.keys())[0]] in exc_info.value.args[0]
 
-    response = MockResponse(status_code=404, text="unexpected msg")
+    response = MagicMock(spec=Response, status_code=404, text="unexpected msg")
     with pytest.raises(exceptions.HTTPError, match="unexpected msg") as exc_info:
         Request._handle_error_responses(data={}, params=params, response=response)
     assert exc_info.value.http_status_code == 404
     assert exc_info.value.args[0] == "unexpected msg"
 
-    response = MockResponse(status_code=404, text="")
+    response = MagicMock(spec=Response, status_code=404, text="")
     with pytest.raises(exceptions.HTTPError, match="") as exc_info:
         Request._handle_error_responses(data=params, params={}, response=response)
     assert exc_info.value.http_status_code == 404
     if params:
         assert params[list(params.keys())[0]] in exc_info.value.args[0]
 
-    response = MockResponse(status_code=404, text="unexpected msg")
+    response = MagicMock(spec=Response, status_code=404, text="unexpected msg")
     with pytest.raises(exceptions.HTTPError, match="unexpected msg") as exc_info:
         Request._handle_error_responses(data=params, params={}, response=response)
     assert exc_info.value.http_status_code == 404
@@ -512,7 +511,7 @@ def test_http415(client):
 
 @pytest.mark.parametrize("status_code", (500, 503))
 def test_http500(status_code):
-    response = MockResponse(status_code=status_code, text="asdf")
+    response = MagicMock(spec=Response, status_code=status_code, text="asdf")
     with pytest.raises(exceptions.InternalServerError500Error) as exc_info:
         Request._handle_error_responses(data={}, params={}, response=response)
     assert exc_info.value.http_status_code == status_code
@@ -520,15 +519,15 @@ def test_http500(status_code):
 
 @pytest.mark.parametrize("status_code", (402, 406))
 def test_http_error(status_code):
-    response = MockResponse(status_code=status_code, text="asdf")
+    response = MagicMock(spec=Response, status_code=status_code, text="asdf")
     with pytest.raises(exceptions.HTTPError) as exc_info:
         Request._handle_error_responses(data={}, params={}, response=response)
     assert exc_info.value.http_status_code == status_code
 
 
 def test_request_retry_success(monkeypatch, caplog):
-    def request500(*arg, **kwargs):
-        raise exceptions.HTTP500Error()
+    def request500(*args, **kwargs):
+        raise exceptions.HTTP500Error(*args, **kwargs)
 
     client = Client(VERIFY_WEBUI_CERTIFICATE=False)
     client.auth_log_in()

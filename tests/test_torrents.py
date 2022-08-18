@@ -47,12 +47,12 @@ from tests.conftest import torrent2_url
 
 def disable_queueing(client):
     if client.app.preferences.queueing_enabled:
-        client.app.preferences = dict(queueing_enabled=False)
+        client.app.set_preferences(dict(queueing_enabled=False))
 
 
 def enable_queueing(client):
     if not client.app.preferences.queueing_enabled:
-        client.app.preferences = dict(queueing_enabled=True)
+        client.app.set_preferences(dict(queueing_enabled=True))
 
 
 @pytest.mark.parametrize(
@@ -518,6 +518,14 @@ def test_rename_folder(client, app_version, new_torrent, new_name, client_func):
             get_func(client, client_func)(
                 torrent_hash="asdf", old_path="asdf", new_path="zxcv"
             )
+
+
+def test_export(api_version, client, orig_torrent):
+    if v(api_version) < v("2.8.11"):
+        with pytest.raises(NotImplementedError):
+            client.torrents_export(torrent_hash=orig_torrent.hash)
+    else:
+        assert isinstance(client.torrents_export(torrent_hash=orig_torrent.hash), bytes)
 
 
 @pytest.mark.parametrize("client_func", ("torrents_info", "torrents.info"))
@@ -1185,7 +1193,7 @@ def test_tags(client, api_version, client_func):
     if v(api_version) >= v("2.3.0"):
         try:
             assert isinstance(get_func(client, client_func)(), TagList)
-        except Exception:
+        except TypeError:
             assert isinstance(get_func(client, client_func), TagList)
     else:
         with pytest.raises(NotImplementedError):
