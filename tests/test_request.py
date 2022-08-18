@@ -527,7 +527,7 @@ def test_http_error(status_code):
 
 def test_request_retry_success(monkeypatch, caplog):
     def request500(*args, **kwargs):
-        raise exceptions.HTTP500Error(*args, **kwargs)
+        raise exceptions.HTTP500Error()
 
     client = Client(VERIFY_WEBUI_CERTIFICATE=False)
     client.auth_log_in()
