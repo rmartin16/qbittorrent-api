@@ -459,25 +459,35 @@ def test_http401():
 
 @pytest.mark.parametrize("params", ({}, {"hash": "asdf"}, {"hashes": "asdf|asdf"}))
 def test_http404(client, params):
-    # 404 for a post
-    with pytest.raises(exceptions.NotFound404Error, match="Torrent hash"):
-        client.torrents_rename(hash="asdf", new_torrent_name="erty")
-
-    # 404 for a get
-    with pytest.raises(exceptions.NotFound404Error, match="Torrent hash"):
-        client._get(
-            APINames.Torrents, "rename", params={"hash": "asdf", "name": "erty"}
-        )
+    with pytest.raises(exceptions.NotFound404Error, match="Torrent hash") as exc_info:
+        client.torrents_rename(hash="zxcv", new_torrent_name="erty")
+    assert "zxcv" in exc_info.value.args[0]
 
     response = MockResponse(status_code=404, text="")
     with pytest.raises(exceptions.HTTPError, match="") as exc_info:
         Request._handle_error_responses(data={}, params=params, response=response)
     assert exc_info.value.http_status_code == 404
+    if params:
+        assert params[list(params.keys())[0]] in exc_info.value.args[0]
 
     response = MockResponse(status_code=404, text="unexpected msg")
     with pytest.raises(exceptions.HTTPError, match="unexpected msg") as exc_info:
         Request._handle_error_responses(data={}, params=params, response=response)
     assert exc_info.value.http_status_code == 404
+    assert exc_info.value.args[0] == "unexpected msg"
+
+    response = MockResponse(status_code=404, text="")
+    with pytest.raises(exceptions.HTTPError, match="") as exc_info:
+        Request._handle_error_responses(data=params, params={}, response=response)
+    assert exc_info.value.http_status_code == 404
+    if params:
+        assert params[list(params.keys())[0]] in exc_info.value.args[0]
+
+    response = MockResponse(status_code=404, text="unexpected msg")
+    with pytest.raises(exceptions.HTTPError, match="unexpected msg") as exc_info:
+        Request._handle_error_responses(data=params, params={}, response=response)
+    assert exc_info.value.http_status_code == 404
+    assert exc_info.value.args[0] == "unexpected msg"
 
 
 def test_http405(client, api_version):
