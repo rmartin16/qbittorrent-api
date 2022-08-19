@@ -16,10 +16,12 @@ from qbittorrentapi._version_support import (
 environ.setdefault("QBITTORRENTAPI_HOST", "localhost:8080")
 environ.setdefault("QBITTORRENTAPI_USERNAME", "admin")
 environ.setdefault("QBITTORRENTAPI_PASSWORD", "adminadmin")
-environ.setdefault("QBT_VER", Client().app.version[1:])  # trim leading 'v'
-environ.setdefault("IS_QBT_DEV", "" if environ["QBT_VER"] in api_version_map else "1")
+environ.setdefault("QBT_VER", Client().app.version)
 
-qbt_version = "v" + environ.get("QBT_VER", "")
+qbt_version = environ.get("QBT_VER", "")
+qbt_version = qbt_version if qbt_version.startswith("v") else f"v{qbt_version}"
+
+environ.setdefault("IS_QBT_DEV", "" if qbt_version in api_version_map else "1")
 IS_QBT_DEV = bool(environ.get("IS_QBT_DEV", False))
 
 BASE_PATH = sys_path[0]
@@ -254,9 +256,7 @@ def new_torrent_standalone(client, torrent_hash=torrent1_hash, **kwargs):
 @pytest.fixture(scope="session")
 def app_version(client):
     """qBittorrent App Version being used for testing."""
-    if qbt_version != "v":
-        return qbt_version
-    return client.app_version()
+    return qbt_version or client.app.version
 
 
 @pytest.fixture(scope="session")
