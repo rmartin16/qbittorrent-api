@@ -1,4 +1,5 @@
-import os
+from os import environ
+from os import path
 from sys import path as sys_path
 from time import sleep
 
@@ -12,8 +13,16 @@ from qbittorrentapi._version_support import (
     APP_VERSION_2_API_VERSION_MAP as api_version_map,
 )
 
-qbt_version = "v" + os.environ.get("QBT_VER", "")
-IS_QBT_DEV = bool(os.environ.get("IS_QBT_DEV", False))
+environ.setdefault("QBITTORRENTAPI_HOST", "localhost:8080")
+environ.setdefault("QBITTORRENTAPI_USERNAME", "admin")
+environ.setdefault("QBITTORRENTAPI_PASSWORD", "adminadmin")
+environ.setdefault("QBT_VER", Client().app.version)
+
+qbt_version = environ.get("QBT_VER", "")
+qbt_version = qbt_version if qbt_version.startswith("v") else "v" + qbt_version
+
+environ.setdefault("IS_QBT_DEV", "" if qbt_version in api_version_map else "1")
+IS_QBT_DEV = bool(environ.get("IS_QBT_DEV", False))
 
 BASE_PATH = sys_path[0]
 _check_limit = 10
@@ -24,7 +33,7 @@ _orig_torrent_url = (
 _orig_torrent_hash = "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0"
 
 with open(
-    os.path.join(
+    path.join(
         BASE_PATH, "tests", "resources", "kubuntu-22.04.1-desktop-amd64.iso.torrent"
     ),
     mode="rb",
@@ -39,7 +48,7 @@ torrent2_filename = torrent2_url.split("/")[-1]
 torrent2_hash = "b813f485c0e6d17f6877c8d6942b3bdc7c227176"
 
 with open(
-    os.path.join(BASE_PATH, "tests", "resources", "root_folder.torrent"), mode="rb"
+    path.join(BASE_PATH, "tests", "resources", "root_folder.torrent"), mode="rb"
 ) as f:
     root_folder_torrent_file = f.read()
 root_folder_torrent_hash = "a14553bd936a6d496402082454a70ea7a9521adc"
@@ -53,7 +62,7 @@ def get_func(obj, method_name):
 
 def mkpath(user_path):
     if user_path:
-        return os.path.abspath(os.path.realpath(os.path.expanduser(user_path)))
+        return path.abspath(path.realpath(path.expanduser(user_path)))
     return ""
 
 
@@ -206,7 +215,7 @@ def new_torrent_standalone(client, torrent_hash=torrent1_hash, **kwargs):
             else:
                 client.torrents.add(
                     torrent_files=torrent1_file,
-                    save_path=os.path.expanduser("~/test_download/"),
+                    save_path=path.expanduser("~/test_download/"),
                     category="test_category",
                     is_paused=True,
                     upload_limit=1024,
@@ -247,9 +256,7 @@ def new_torrent_standalone(client, torrent_hash=torrent1_hash, **kwargs):
 @pytest.fixture(scope="session")
 def app_version(client):
     """qBittorrent App Version being used for testing."""
-    if qbt_version != "v":
-        return qbt_version
-    return client.app_version()
+    return qbt_version or client.app.version
 
 
 @pytest.fixture(scope="session")
@@ -302,7 +309,7 @@ def rss_feed(client, api_version):
 
 def pytest_sessionfinish(session, exitstatus):
     try:
-        if os.environ.get("CI") != "true":
+        if environ.get("CI") != "true":
             client = Client()
             # remove all torrents
             for torrent in client.torrents_info():

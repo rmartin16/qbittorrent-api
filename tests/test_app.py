@@ -3,6 +3,7 @@ import os
 import pytest
 from pkg_resources import parse_version as v
 
+from qbittorrentapi._attrdict import AttrDict
 from tests.conftest import IS_QBT_DEV
 
 
@@ -37,7 +38,7 @@ def test_preferences(client):
     assert "dht" in prefs
     assert "dht" in client.app.preferences
     dht = prefs["dht"]
-    client.app.preferences = dict(dht=(not dht))
+    client.app.preferences = AttrDict(dht=(not dht))
     assert dht is not client.app.preferences.dht
     client.app_set_preferences(prefs=dict(dht=dht))
     assert dht is client.app.preferences.dht
