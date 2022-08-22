@@ -166,7 +166,7 @@ class RSSAPIMixIn(AppAPIMixIn):
 
         :raises Conflict409Error:
 
-        :param url: URL of RSS feed (e.g https://thepiratebay.org/rss/top100/200)
+        :param url: URL of RSS feed (e.g https://distrowatch.com/news/torrents.xml)
         :param item_path: Name and/or path for new feed (e.g. ``Folder\\Subfolder\\FeedName``)
         :return: None
         """
