@@ -1,5 +1,4 @@
 import logging
-import os
 import re
 import sys
 from os import environ
@@ -19,8 +18,8 @@ from qbittorrentapi import exceptions
 from qbittorrentapi.request import Request
 from qbittorrentapi.torrents import TorrentDictionary
 from qbittorrentapi.torrents import TorrentInfoList
-from tests.conftest import BASE_PATH
 from tests.conftest import IS_QBT_DEV
+from tests.conftest import mkpath
 
 
 def test_method_name(client, app_version):
@@ -112,12 +111,8 @@ def _enable_disable_https(client, use_https):
     if use_https:
         client.app.preferences = {
             "use_https": True,
-            "web_ui_https_cert_path": os.path.join(
-                BASE_PATH, "tests", "resources", "server.crt"
-            ),
-            "web_ui_https_key_path": os.path.join(
-                BASE_PATH, "tests", "resources", "server.key"
-            ),
+            "web_ui_https_cert_path": mkpath("/tmp", "resources", "server.crt"),
+            "web_ui_https_key_path": mkpath("/tmp", "resources", "server.key"),
         }
     else:
         client.app.preferences = {"use_https": False}

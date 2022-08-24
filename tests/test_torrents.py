@@ -310,8 +310,8 @@ def test_torrents_add_download_path(client, api_version, use_download_path):
         client.torrents_delete(
             torrent_hashes=root_folder_torrent_hash, delete_files=True
         )
-        save_path = mkpath("~/down_path_save_path_test")
-        download_path = mkpath("~/down_path_test")
+        save_path = mkpath("/tmp", "down_path_save_path_test")
+        download_path = mkpath("/tmp", "down_path_test")
         torrent = next(
             new_torrent_standalone(
                 client=client,
@@ -785,7 +785,7 @@ def test_set_location(client, api_version, client_func, new_torrent):
                 location="/etc/", torrent_hashes=new_torrent.hash
             )
 
-        loc = mkpath("~/Downloads/1/")
+        loc = mkpath("/tmp", "1")
         get_func(client, client_func)(location=loc, torrent_hashes=new_torrent.hash)
         # qBittorrent may return trailing separators depending on version....
         check(lambda: mkpath(new_torrent.info.save_path), loc, any=True)
@@ -811,7 +811,7 @@ def test_set_save_path(client, api_version, client_func, new_torrent):
                 save_path="/etc/asdf", torrent_hashes=new_torrent.hash
             )
 
-        loc = mkpath("~/Downloads/savepath1/")
+        loc = mkpath("/tmp", "savepath1")
         get_func(client, client_func)(save_path=loc, torrent_hashes=new_torrent.hash)
         # qBittorrent may return trailing separators depending on version....
         check(lambda: mkpath(new_torrent.info.save_path), loc, any=True)
@@ -843,7 +843,7 @@ def test_set_download_path(client, api_version, client_func, new_torrent):
                 download_path="/etc/asdf", torrent_hashes=new_torrent.hash
             )
 
-        loc = mkpath("~/Downloads/savepath1/")
+        loc = mkpath("/tmp", "savepath1")
         get_func(client, client_func)(
             download_path=loc, torrent_hashes=new_torrent.hash
         )

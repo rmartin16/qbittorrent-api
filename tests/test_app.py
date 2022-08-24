@@ -1,5 +1,3 @@
-import os
-
 import pytest
 from pkg_resources import parse_version as v
 
@@ -45,5 +43,5 @@ def test_preferences(client):
 
 
 def test_default_save_path(client):
-    assert os.path.isdir(client.app_default_save_path())
-    assert os.path.isdir(client.app.default_save_path)
+    assert "download" in client.app_default_save_path().lower()
+    assert "download" in client.app.default_save_path.lower()
