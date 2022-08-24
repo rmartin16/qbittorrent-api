@@ -25,6 +25,9 @@ environ.setdefault("IS_QBT_DEV", "" if qbt_version in api_version_map else "1")
 IS_QBT_DEV = bool(environ.get("IS_QBT_DEV", False))
 
 BASE_PATH = sys_path[0]
+RESOURCES = path.join(BASE_PATH, "tests", "resources")
+assert BASE_PATH.split("/")[-1] == "qbittorrent-api"
+
 _check_limit = 10
 
 _orig_torrent_url = (
@@ -32,24 +35,21 @@ _orig_torrent_url = (
 )
 _orig_torrent_hash = "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0"
 
-with open(
-    path.join(
-        BASE_PATH, "tests", "resources", "kubuntu-22.04.1-desktop-amd64.iso.torrent"
-    ),
-    mode="rb",
-) as f:
+torrent1_filename = "kubuntu-22.04.1-desktop-amd64.iso.torrent"
+with open(path.join(RESOURCES, torrent1_filename), mode="rb") as f:
     torrent1_file = f.read()
-torrent1_url = "https://cdimage.ubuntu.com/kubuntu/releases/22.04/release/kubuntu-22.04.1-desktop-amd64.iso.torrent"
-torrent1_filename = torrent1_url.split("/")[-1]
+torrent1_url = (
+    "https://cdimage.ubuntu.com/kubuntu/releases/22.04/release/" + torrent1_filename
+)
 torrent1_hash = "8e905ea8e925c3a7fda9eb2e964a0e5c97cc2ce0"
 
-torrent2_url = "https://cdimage.ubuntu.com/xubuntu/releases/22.04/release/xubuntu-22.04.1-desktop-amd64.iso.torrent"
-torrent2_filename = torrent2_url.split("/")[-1]
+torrent2_filename = "xubuntu-22.04.1-desktop-amd64.iso.torrent"
+torrent2_url = (
+    "https://cdimage.ubuntu.com/xubuntu/releases/22.04/release/" + torrent2_filename
+)
 torrent2_hash = "b813f485c0e6d17f6877c8d6942b3bdc7c227176"
 
-with open(
-    path.join(BASE_PATH, "tests", "resources", "root_folder.torrent"), mode="rb"
-) as f:
+with open(path.join(RESOURCES, "root_folder.torrent"), mode="rb") as f:
     root_folder_torrent_file = f.read()
 root_folder_torrent_hash = "a14553bd936a6d496402082454a70ea7a9521adc"
 
@@ -60,9 +60,9 @@ def get_func(obj, method_name):
     return obj
 
 
-def mkpath(user_path):
-    if user_path:
-        return path.abspath(path.realpath(path.expanduser(user_path)))
+def mkpath(*user_path):
+    if any(user_path):
+        return path.abspath(path.realpath(path.expanduser(path.join(*user_path))))
     return ""
 
 
@@ -173,8 +173,13 @@ def client():
         client.auth_log_in()
         # add orig_torrent to qBittorrent
         client.torrents_add(urls=_orig_torrent_url, upload_limit=10, download_limit=10)
-        # enable RSS fetching
-        client.app.preferences = dict(rss_processing_enabled=True)
+        client.app.preferences = dict(
+            # enable RSS fetching
+            rss_processing_enabled=True,
+            # prevent banning IPs
+            web_ui_max_auth_fail_count=1000,
+            web_ui_ban_duration=1,
+        )
         return client
     except APIConnectionError as e:
         pytest.exit("qBittorrent was not running when tests started: %s" % repr(e))
@@ -256,7 +261,9 @@ def new_torrent_standalone(client, torrent_hash=torrent1_hash, **kwargs):
 @pytest.fixture(scope="session")
 def app_version(client):
     """qBittorrent App Version being used for testing."""
-    return qbt_version or client.app.version
+    if IS_QBT_DEV:
+        return client.app.version
+    return qbt_version
 
 
 @pytest.fixture(scope="session")
@@ -280,15 +287,17 @@ def rss_feed(client, api_version):
             pass
 
     if v(api_version) >= v("2.2"):
-        name = "YTS1080p"
-        url = "https://yts.mx/rss/"
+        name = "DistroWatch"
+        url = "https://distrowatch.com/news/torrents.xml"
         client.app.preferences = dict(rss_auto_downloading_enabled=False)
         # refreshing the feed is finicky...so try several times if necessary
         done = False
         for i in range(30):
             delete_feed(name)
             client.rss.add_feed(url=url, item_path=name)
-            client.rss.refresh_item(item_path=name)
+            # refreshing too quickly can cause it to never refresh.
+            # auto-update is enabled in preferences
+            # client.rss.refresh_item(item_path=name)  # noqa: E800
             # wait until the rss feed exists and is refreshed
             check(lambda: client.rss_items(), name, reverse=True)
             # wait until feed is refreshed

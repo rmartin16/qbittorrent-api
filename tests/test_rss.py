@@ -10,9 +10,9 @@ from tests.conftest import get_func
 folder_one = "testFolderOne"
 folder_two = "testFolderTwo"
 
-item_one = "YTS1080p"
-item_two = "YTS1080pNew"
-url = "https://yts.mx/rss/"
+item_one = "DistroWatch"
+item_two = "DistroWatchNew"
+url = "https://distrowatch.com/news/torrents.xml"
 
 
 def test_refresh_item(client, api_version, rss_feed):

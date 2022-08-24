@@ -179,7 +179,7 @@ def test_set_location(api_version, new_torrent, client_func):
         exp = None
         for attempt in range(2):
             try:
-                loc = mkpath("~/Downloads/3/")
+                loc = mkpath("/tmp", "3")
                 get_func(new_torrent, client_func)(loc)
                 check(
                     lambda: mkpath(new_torrent.info.save_path),
@@ -199,7 +199,7 @@ def test_set_save_path(api_version, new_torrent, client_func):
         exp = None
         for attempt in range(2):
             try:
-                loc = mkpath("~/Downloads/savepath3/")
+                loc = mkpath("/tmp", "savepath3")
                 get_func(new_torrent, client_func)(loc)
                 # qBittorrent may return trailing separators depending on version....
                 check(
@@ -220,7 +220,7 @@ def test_set_download_path(api_version, new_torrent, client_func):
         exp = None
         for attempt in range(2):
             try:
-                loc = mkpath("~/Downloads/downloadpath3/")
+                loc = mkpath("/tmp", "downloadpath3")
                 get_func(new_torrent, client_func)(loc)
                 # qBittorrent may return trailing separators depending on version....
                 check(
