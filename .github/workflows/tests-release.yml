@@ -15,9 +15,9 @@ env:
   # All python versions except latest
   PYTHON_VERSIONS: '[ "3.9", "3.8", "3.7", "3.6", "3.5", "2.7", "pypy3.8", "pypy3.7", "pypy2.7", "3.11-dev" ]'
   # keep in sync with hardcoded refs below
-  LATEST_QBT_VER: "4.4.3.1"
+  LATEST_QBT_VER: "4.4.4"
   # All qBittorrent versions except latest
-  QBT_VERS: '[ "4.4.1", "4.4.0", "4.3.9", "4.3.8", "4.3.7", "4.3.6", "4.3.5", "4.3.4.1", "4.3.3", "4.3.2", "4.3.1", "4.3.0.1" ]'
+  QBT_VERS: '[ "4.4.4", "4.4.0", "4.3.9", "4.3.8", "4.3.7", "4.3.6", "4.3.5", "4.3.4.1", "4.3.3", "4.3.2", "4.3.1", "4.3.0.1" ]'
   QBT_LEGACY_VERS: '[ "4.2.5", "4.2.0", "4.1.6", "4.1.0" ]'
   QT_USE_DEFAULT_PAA: "4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1"
   LIBTORRENT_VER: "2.0.7"
@@ -72,7 +72,7 @@ jobs:
     #######
     # Run tests against latest qBittorrent release and latest Python release
     #######
-    name: "Release Test 3.10 - v4.4.3.1"
+    name: "Release Test 3.10 - v4.4.4"
     needs: verify
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -117,7 +117,7 @@ jobs:
     #######
     # Run tests against latest qBittorrent release and all Python releases
     #######
-    name: "Release Test ${{ matrix.python-version }} - v4.4.3.1"
+    name: "Release Test ${{ matrix.python-version }} - v4.4.4"
     needs: [tests-smoke, verify]
     runs-on: ubuntu-latest
     continue-on-error: true
