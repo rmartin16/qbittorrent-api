@@ -15,6 +15,7 @@ env:
   LIBTORRENT_INSTALLS: "${{ github.workspace }}/resources/libtorrent_installs"
   QBITTORRENT_INSTALLS: "${{ github.workspace }}/resources/qbittorrent_installs"
   DOCKER_IMAGE_NAME: "ghcr.io/rmartin16/qbittorrent-nox"
+  DOCKER_ARGS: "--rm --detach --publish 8080:8080 --volume ${{ github.workspace }}/tests/resources:/tmp/resources"
 
 jobs:
   tests-dev-qbt:
@@ -49,11 +50,7 @@ jobs:
 
       - name: Start qBittorrent ${{ matrix.QBT_VER }}-${{ env.LIBTORRENT_VER }}
         run: |
-          docker run \
-            --detach \
-            --publish $QBITTORRENTAPI_PORT:$QBITTORRENTAPI_PORT \
-            --volume "$(pwd)/tests/resources:/tmp/resources" \
-            $DOCKER_IMAGE_NAME:${{ matrix.QBT_VER }}-$LIBTORRENT_VER
+          docker run ${DOCKER_ARGS} ${DOCKER_IMAGE_NAME}:${{ matrix.QBT_VER }}-${LIBTORRENT_VER}
 
       - name: Test with pytest
         run: |

@@ -16,19 +16,20 @@ env:
   PYTHON_VERSIONS: '[ "3.9", "3.8", "3.7", "3.6", "3.5", "2.7", "pypy3.8", "pypy3.7", "pypy2.7", "3.11-dev" ]'
   # keep in sync with hardcoded refs below
   LATEST_QBT_VER: "4.4.4"
-  # All qBittorrent versions except latest
-  QBT_VERS: '[ "4.4.4", "4.4.0", "4.3.9", "4.3.8", "4.3.7", "4.3.6", "4.3.5", "4.3.4.1", "4.3.3", "4.3.2", "4.3.1", "4.3.0.1" ]'
+  # qBittorrent versions for testing except latest
+  QBT_VERS: '[ "4.4.0", "4.3.9", "4.3.8", "4.3.7", "4.3.6", "4.3.5", "4.3.4.1", "4.3.3", "4.3.2", "4.3.1", "4.3.0.1" ]'
   QBT_LEGACY_VERS: '[ "4.2.5", "4.2.0", "4.1.6", "4.1.0" ]'
   QT_USE_DEFAULT_PAA: "4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4.1, 4.3.3, 4.3.2, 4.3.1, 4.3.0.1"
   LIBTORRENT_VER: "2.0.7"
   SUBMIT_COVERAGE_VERSIONS: "2.7, 3.10"
   QBITTORRENTAPI_HOST: "localhost:8080"
-  QBITTORRENTAPI_PORT: "8080"
   QBITTORRENTAPI_PASSWORD: "adminadmin"
   QBITTORRENTAPI_USERNAME: "admin"
   LIBTORRENT_INSTALLS: "${{ github.workspace }}/resources/libtorrent_installs"
   QBITTORRENT_INSTALLS: "${{ github.workspace }}/resources/qbittorrent_installs"
   DOCKER_IMAGE_NAME: "ghcr.io/rmartin16/qbittorrent-nox"
+  LATEST_DOCKER_IMAGE: "ghcr.io/rmartin16/qbittorrent-nox:v4.4.4-2.0.7"
+  DOCKER_ARGS: "--rm --detach --publish 8080:8080 --volume ${{ github.workspace }}/tests/resources:/tmp/resources"
   GH_CI_CACHE_VER: "10"  # useful to effectively evict caches
 
 jobs:
@@ -43,15 +44,15 @@ jobs:
     steps:
       - name: Declare Python Versions for Testing
         id: set-python-versions
-        run: echo "::set-output name=python-versions::$PYTHON_VERSIONS"
+        run: echo "::set-output name=python-versions::${PYTHON_VERSIONS}"
 
       - name: Declare qBittorrent Versions for Testing
         id: set-qbittorrent-versions
-        run: echo "::set-output name=qbittorrent-versions::$QBT_VERS"
+        run: echo "::set-output name=qbittorrent-versions::${QBT_VERS}"
 
       - name: Declare Legacy qBittorrent Versions for Testing
         id: set-qbittorrent-legacy-versions
-        run: echo "::set-output name=qbittorrent-legacy-versions::$QBT_LEGACY_VERS"
+        run: echo "::set-output name=qbittorrent-legacy-versions::${QBT_LEGACY_VERS}"
 
       - name: Branch
         run: echo Branch ${{ github.ref }} ${{ github.head_ref }}
@@ -92,20 +93,10 @@ jobs:
           pip install .[test]
 
       - name: Start qBittorrent v${{ env.LATEST_QBT_VER }}-${{ env.LIBTORRENT_VER }}
-        run: |
-          docker run \
-            --name qbittorrent-nox-$LATEST_QBT_VER-$LIBTORRENT_VER \
-            --rm \
-            --detach \
-            --publish $QBITTORRENTAPI_PORT:$QBITTORRENTAPI_PORT \
-            --volume "$(pwd)/tests/resources:/tmp/resources" \
-            $DOCKER_IMAGE_NAME:v$LATEST_QBT_VER-$LIBTORRENT_VER
+        run: docker run ${DOCKER_ARGS} ${LATEST_DOCKER_IMAGE}
 
       - name: Test with pytest
-        run: |
-          python -c "import sys; print('Python', sys.version)"
-          export QBT_VER=$LATEST_QBT_VER  # tell pytest which qbittorrent is being tested
-          pytest
+        run: QBT_VER={$LATEST_QBT_VER} && pytest
 
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -141,20 +132,10 @@ jobs:
           pip install .[test]
 
       - name: Start qBittorrent v${{ env.LATEST_QBT_VER }}-${{ env.LIBTORRENT_VER }}
-        run: |
-          docker run \
-            --name qbittorrent-nox-v$LATEST_QBT_VER-$LIBTORRENT_VER \
-            --rm \
-            --detach \
-            --publish $QBITTORRENTAPI_PORT:$QBITTORRENTAPI_PORT \
-            --volume "$(pwd)/tests/resources:/tmp/resources" \
-            $DOCKER_IMAGE_NAME:v$LATEST_QBT_VER-$LIBTORRENT_VER
+        run: docker run ${DOCKER_ARGS} ${LATEST_DOCKER_IMAGE}
 
       - name: Test with pytest
-        run: |
-          python -c "import sys; print('Python', sys.version)"
-          export QBT_VER=$LATEST_QBT_VER  # tell pytest which qbittorrent is being tested
-          pytest
+        run: QBT_VER=${LATEST_QBT_VER} && pytest
 
       - name: Upload Coverage to Codecov
         if: contains(env.SUBMIT_COVERAGE_VERSIONS, matrix.python-version)
@@ -191,20 +172,10 @@ jobs:
           pip install .[test]
 
       - name: Start qBittorrent v${{ matrix.QBT_VER }}-${{ env.LIBTORRENT_VER }}
-        run: |
-          docker run \
-            --name qbittorrent-nox-v${{ matrix.QBT_VER }}-$LIBTORRENT_VER \
-            --rm \
-            --detach \
-            --publish $QBITTORRENTAPI_PORT:$QBITTORRENTAPI_PORT \
-            --volume "$(pwd)/tests/resources:/tmp/resources" \
-            $DOCKER_IMAGE_NAME:v${{ matrix.QBT_VER }}-$LIBTORRENT_VER
+        run: docker run ${DOCKER_ARGS} $DOCKER_IMAGE_NAME:v${{ matrix.QBT_VER }}-${LIBTORRENT_VER}
 
       - name: Test with pytest
-        run: |
-          python -c "import sys; print('Python', sys.version)"
-          export QBT_VER=${{ matrix.QBT_VER }}  # tell pytest which qbittorrent is being tested
-          pytest
+        run: QBT_VER=${{ matrix.QBT_VER }} && pytest
 
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -224,17 +195,12 @@ jobs:
     strategy:
       matrix:
         QBT_VER: ${{ fromJson(needs.verify.outputs.qbittorrent-legacy-versions) }}
-        LIBTORRENT_VER: ["1.2.17"]
         include:
+          - LIBTORRENT_VER: "1.2.17"
           - QBT_VER: "4.1.0"
             LIBTORRENT_VER: "1_1_14"
           - QBT_VER: "4.1.6"
             LIBTORRENT_VER: "1_1_14"
-        exclude:
-          - QBT_VER: "4.1.0"
-            LIBTORRENT_VER: "1.2.17"
-          - QBT_VER: "4.1.6"
-            LIBTORRENT_VER: "1.2.17"
     steps:
       - name: Branch
         run: echo Branch ${{ github.ref }} ${{ github.head_ref }}
@@ -279,23 +245,23 @@ jobs:
         if: steps.cache-libtorrent.outputs.cache-hit != 'true'
         run: |
           set -x
-          SRC_DIR="$LIBTORRENT_INSTALLS/src"
+          SRC_DIR="${LIBTORRENT_INSTALLS}/src"
           if [ "${{ matrix.LIBTORRENT_VER }}" = "1_1_14" ];
           then
             LIBTORRENT_BRANCH="libtorrent-${{ matrix.LIBTORRENT_VER }}"
           else
             LIBTORRENT_BRANCH="v${{ matrix.LIBTORRENT_VER }}"
           fi
-          LIBTORRENT_INSTALL_DIR="$LIBTORRENT_INSTALLS/libtorrent_${{ matrix.LIBTORRENT_VER }}"
-          mkdir -p "$SRC_DIR" && mkdir -p "$LIBTORRENT_INSTALL_DIR"
+          LIBTORRENT_INSTALL_DIR="${LIBTORRENT_INSTALLS}/libtorrent_${{ matrix.LIBTORRENT_VER }}"
+          mkdir -p "${SRC_DIR}" && mkdir -p "${LIBTORRENT_INSTALL_DIR}"
 
-          cd "$SRC_DIR"
-          git clone --recurse-submodules https://github.com/arvidn/libtorrent.git --branch $LIBTORRENT_BRANCH --depth 1
+          cd "${SRC_DIR}"
+          git clone --recurse-submodules https://github.com/arvidn/libtorrent.git --branch ${LIBTORRENT_BRANCH} --depth 1
           cd libtorrent
           cmake \
             -B cmake-build-dir/Release \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX="$LIBTORRENT_INSTALL_DIR"
+            -DCMAKE_INSTALL_PREFIX="${LIBTORRENT_INSTALL_DIR}"
           cmake --build cmake-build-dir/Release --parallel $(nproc)
           cmake --install cmake-build-dir/Release
 
@@ -304,22 +270,22 @@ jobs:
         if: steps.cache-qbittorrent.outputs.cache-hit != 'true'
         run: |
           set -x
-          SRC_DIR="$QBITTORRENT_INSTALLS/src"
-          QBITTORRENT_INSTALL_DIR="$QBITTORRENT_INSTALLS/qbt_${{ matrix.QBT_VER }}"
-          LIBTORRENT_DIR="$LIBTORRENT_INSTALLS/libtorrent_${{ matrix.LIBTORRENT_VER }}"
-          mkdir -p "$SRC_DIR" && mkdir -p "$QBITTORRENT_INSTALL_DIR"
+          SRC_DIR="${QBITTORRENT_INSTALLS}/src"
+          QBITTORRENT_INSTALL_DIR="${QBITTORRENT_INSTALLS}/qbt_${{ matrix.QBT_VER }}"
+          LIBTORRENT_DIR="${LIBTORRENT_INSTALLS}/libtorrent_${{ matrix.LIBTORRENT_VER }}"
+          mkdir -p "${SRC_DIR}" && mkdir -p "${QBITTORRENT_INSTALL_DIR}"
 
-          cd "$SRC_DIR"
+          cd "${SRC_DIR}"
           rm -rf qBittorrent
           git clone https://github.com/qbittorrent/qBittorrent.git --branch release-${{ matrix.QBT_VER }} --depth 1
           cd qBittorrent
-          export libtorrent_CFLAGS="$LIBTORRENT_DIR/include/"
-          export libtorrent_LIBS="$LIBTORRENT_DIR/lib/libtorrent-rasterbar.so"
+          export libtorrent_CFLAGS="${LIBTORRENT_DIR}/include/"
+          export libtorrent_LIBS="${LIBTORRENT_DIR}/lib/libtorrent-rasterbar.so"
           ./configure \
             CXXFLAGS="-std=c++17" \
-            CFLAGS="-I$LIBTORRENT_DIR/include/libtorrent" \
+            CFLAGS="-I${LIBTORRENT_DIR}/include/libtorrent" \
             --disable-gui \
-            --prefix="$QBITTORRENT_INSTALL_DIR"
+            --prefix="${QBITTORRENT_INSTALL_DIR}"
           make -j$(nproc) install
 
       - name: Install qbittorrent-api
@@ -330,12 +296,12 @@ jobs:
       - name: Test with pytest
         run: |
           ln -s "$(pwd)/tests/resources" /tmp/resources
-          mkdir -p $HOME/Downloads  # default download location for qbittorrent
-          export LD_LIBRARY_PATH="$LIBTORRENT_INSTALLS/libtorrent_${{ matrix.LIBTORRENT_VER }}/lib/:$LD_LIBRARY_PATH"
-          $QBITTORRENT_INSTALLS/qbt_${{ matrix.QBT_VER }}/bin/qbittorrent-nox --daemon
+          mkdir -p ${HOME}/Downloads  # default download location for qbittorrent
+          export LD_LIBRARY_PATH="${LIBTORRENT_INSTALLS}/libtorrent_${{ matrix.LIBTORRENT_VER }}/lib/:${LD_LIBRARY_PATH}"
+          ${QBITTORRENT_INSTALLS}/qbt_${{ matrix.QBT_VER }}/bin/qbittorrent-nox --daemon
           python -c "import sys; print('Python', sys.version)"
-          $QBITTORRENT_INSTALLS/qbt_${{ matrix.QBT_VER }}/bin/qbittorrent-nox -v
-          export QBT_VER=${{ matrix.QBT_VER }}  # tell pytest which qbittorrent is being tested
+          ${QBITTORRENT_INSTALLS}/qbt_${{ matrix.QBT_VER }}/bin/qbittorrent-nox -v
+          QBT_VER=${{ matrix.QBT_VER }}  # tell pytest which qbittorrent is being tested
           pytest
 
       - name: Upload Coverage to Codecov
@@ -378,20 +344,10 @@ jobs:
           pip install .[test]
 
       - name: Start qBittorrent ${{ matrix.QBT_VER }}-${{ env.LIBTORRENT_VER }}
-        run: |
-          docker run \
-            --name qbittorrent-nox-${{ matrix.QBT_VER }}-$LIBTORRENT_VER \
-            --rm \
-            --detach \
-            --publish $QBITTORRENTAPI_PORT:$QBITTORRENTAPI_PORT \
-            --volume "$(pwd)/tests/resources:/tmp/resources" \
-            $DOCKER_IMAGE_NAME:${{ matrix.QBT_VER }}-$LIBTORRENT_VER
+        run: docker run ${DOCKER_ARGS} ${DOCKER_IMAGE_NAME}:${{ matrix.QBT_VER }}-${LIBTORRENT_VER}
 
       - name: Test with pytest
-        run: |
-          python -c "import sys; print('Python', sys.version)"
-          export QBT_VER=${{ matrix.QBT_VER }}  # tell pytest which qbittorrent is being tested
-          pytest
+        run: QBT_VER=${{ matrix.QBT_VER }} && pytest
 
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v3
