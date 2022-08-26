@@ -16,7 +16,10 @@ from qbittorrentapi._version_support import (
 environ.setdefault("QBITTORRENTAPI_HOST", "localhost:8080")
 environ.setdefault("QBITTORRENTAPI_USERNAME", "admin")
 environ.setdefault("QBITTORRENTAPI_PASSWORD", "adminadmin")
-environ.setdefault("QBT_VER", Client().app.version)
+try:
+    environ.setdefault("QBT_VER", Client().app.version)
+except APIConnectionError:
+    print("is qBittorrent running???")
 
 qbt_version = environ.get("QBT_VER", "")
 qbt_version = qbt_version if qbt_version.startswith("v") else "v" + qbt_version

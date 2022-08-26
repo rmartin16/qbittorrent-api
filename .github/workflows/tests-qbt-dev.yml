@@ -8,13 +8,10 @@ on:
 env:
   LATEST_PYTHON_VER: "3.10"
   QBITTORRENTAPI_HOST: "localhost:8080"
-  QBITTORRENTAPI_PORT: "8080"
   QBITTORRENTAPI_PASSWORD: "adminadmin"
   QBITTORRENTAPI_USERNAME: "admin"
-  LIBTORRENT_VER: "2.0.7"
-  LIBTORRENT_INSTALLS: "${{ github.workspace }}/resources/libtorrent_installs"
-  QBITTORRENT_INSTALLS: "${{ github.workspace }}/resources/qbittorrent_installs"
   DOCKER_IMAGE_NAME: "ghcr.io/rmartin16/qbittorrent-nox"
+  DOCKER_ARGS: "--name qbt --detach --publish 8080:8080 --volume ${{ github.workspace }}/tests/resources:/tmp/resources"
 
 jobs:
   tests-dev-qbt:
@@ -42,24 +39,17 @@ jobs:
           python-version: ${{ env.LATEST_PYTHON_VER }}
           cache: 'pip'
 
-      - name: Install Python Dependencies
-        run: |
-          pip install -U pip wheel setuptools
-          pip install .[test]
-
-      - name: Start qBittorrent ${{ matrix.QBT_VER }}-${{ env.LIBTORRENT_VER }}
-        run: |
-          docker run \
-            --detach \
-            --publish $QBITTORRENTAPI_PORT:$QBITTORRENTAPI_PORT \
-            --volume "$(pwd)/tests/resources:/tmp/resources" \
-            $DOCKER_IMAGE_NAME:${{ matrix.QBT_VER }}-$LIBTORRENT_VER
+      - name: Start qBittorrent ${{ matrix.QBT_VER }}
+        run: docker run ${DOCKER_ARGS} ${DOCKER_IMAGE_NAME}:${{ matrix.QBT_VER }}-debug
 
       - name: Test with pytest
         run: |
-          python -c "import sys; print('Python', sys.version)"
-          export QBT_VER=${{ matrix.QBT_VER }}  # tell pytest which qbittorrent is being tested
+          pip install .[test]
+          export QBT_VER=${{ matrix.QBT_VER }}
           pytest
+
+      - name: Docker logs
+        run: docker logs qbt
 
       - name: Send mail
         if: failure()
