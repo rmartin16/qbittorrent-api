@@ -1,0 +1,257 @@
+name: Release Tests
+
+on:
+  schedule:
+    - cron: "16 4 * * *"
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  LATEST_PYTHON_VER: "3.10"
+  LATEST_QBT_VER: "v4.4.4"
+  SUBMIT_COVERAGE_VERSIONS: "2.7, 3.10"
+  QBITTORRENTAPI_HOST: "localhost:8080"
+  QBITTORRENTAPI_PASSWORD: "adminadmin"
+  QBITTORRENTAPI_USERNAME: "admin"
+  DOCKER_IMAGE_NAME: "ghcr.io/rmartin16/qbittorrent-nox"
+  DOCKER_ARGS: "--name qbt --detach --publish 8080:8080 --volume ${{ github.workspace }}/tests/resources:/tmp/resources"
+
+jobs:
+  verify:
+    name: Get Ready
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      qbittorrent-latest-version: ${{ steps.set-qbittorrent-latest-version.outputs.qbittorrent-latest-version }}
+      python-latest-version: ${{ steps.set-python-latest-version.outputs.python-latest-version }}
+    steps:
+      - name: Declare Latest qBittorrent Version
+        id: set-qbittorrent-latest-version
+        run: echo "::set-output name=qbittorrent-latest-version::${{ env.LATEST_QBT_VER }}"
+
+      - name: Declare Latest Python Version
+        id: set-python-latest-version
+        run: echo "::set-output name=python-latest-version::${{ env.LATEST_PYTHON_VER }}"
+
+      - name: Branch
+        run: echo Branch ${{ github.ref }} ${{ github.head_ref }}
+
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.LATEST_PYTHON_VER }}
+          cache: 'pip'
+          check-latest: true
+
+      - name: Lint with Pre-commit
+        uses: pre-commit/action@v3.0.0
+
+  Tests:
+    name: "Release Test ${{ matrix.PYTHON_VER }} - ${{ matrix.QBT_VER }}"
+    needs: [verify]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        include:
+          # test all python versions against latest qBittorrent
+          - PYTHON_VER: "3.11-dev"
+            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
+          - PYTHON_VER: "3.10"
+            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
+          - PYTHON_VER: "3.9"
+            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
+          - PYTHON_VER: "3.8"
+            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
+          - PYTHON_VER: "pypy3.8"
+            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
+          - PYTHON_VER: "3.7"
+            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
+          - PYTHON_VER: "pypy3.7"
+            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
+          - PYTHON_VER: "3.6"
+            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
+          - PYTHON_VER: "3.5"
+            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
+          - PYTHON_VER: "2.7"
+            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
+          - PYTHON_VER: "pypy2.7"
+            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
+          # test all qBittorrent versions against latest python
+          - QBT_VER: "v4.4.0"
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          - QBT_VER: "v4.3.9"
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          - QBT_VER: "v4.3.8"
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          - QBT_VER: "v4.3.7"
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          - QBT_VER: "v4.3.6"
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          - QBT_VER: "v4.3.5"
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          - QBT_VER: "v4.3.4.1"
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          - QBT_VER: "v4.3.3"
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          - QBT_VER: "v4.3.2"
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          - QBT_VER: "v4.3.1"
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          - QBT_VER: "v4.3.0.1"
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          - QBT_VER: "v4.2.5"
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          - QBT_VER: "v4.2.0"
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          - QBT_VER: "v4.1.6"
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          - QBT_VER: "v4.1.0"
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          - QBT_VER: "master"
+            IS_QBT_DEV: True
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          - QBT_VER: "v4_4_x"
+            IS_QBT_DEV: True
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          - QBT_VER: "v4_3_x"
+            IS_QBT_DEV: True
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.PYTHON_VER }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.PYTHON_VER }}
+          cache: 'pip'
+          check-latest: true
+
+      - name: Start qBittorrent ${{ matrix.QBT_VER }}
+        run: docker run ${{ env.DOCKER_ARGS }} ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.QBT_VER }}-debug
+
+      - name: Test with pytest
+        run: |
+          pip install .[test]
+          IS_QBT_DEV=${{ matrix.IS_QBT_DEV }}
+          QBT_VER=${{ matrix.QBT_VER }}
+          pytest
+
+      - name: qBittorrent Log
+        run: docker logs qbt
+
+      - name: Upload Coverage to Codecov
+        if: contains(env.SUBMIT_COVERAGE_VERSIONS, matrix.PYTHON_VER)
+        uses: codecov/codecov-action@v3
+        with:
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Send mail
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: ${{ github.job }} job of ${{ github.repository }} failed
+          body: |
+            ${{ github.job }} job in workflow ${{ github.workflow }} of ${{ github.repository }} failed.
+            https://github.com/rmartin16/qbittorrent-api/actions/runs/${{ github.run_id }}
+          to: rmartin16+github-action@gmail.com   # comma-separated string
+          from: rmartin16+github-action@gmail.com
+
+  package:
+    #######
+    # Verify build and packaging is successful
+    #######
+    name: Build & Verify Package
+    needs: [verify]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.LATEST_PYTHON_VER }}
+          cache: 'pip'
+
+      - name: Install Build Tools
+        run: python -m pip install -U pip setuptools wheel twine build
+
+      - name: Build Package
+        run: python -m build
+
+      - name: List Result
+        run: ls -l dist
+
+      - name: Check long_description
+        run: python -m twine check dist/*
+
+  install-dev:
+    #######
+    # Verify package can be installed on all platforms
+    #######
+    name: Verify Dev Install
+    needs: [verify]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ["ubuntu-latest", "windows-latest", "macos-latest"]
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.LATEST_PYTHON_VER }}
+          cache: 'pip'
+
+      - name: Install in Dev Mode
+        run: |
+          python -m pip install -U pip wheel setuptools
+          python -m pip install -e .[test,dev]
+
+      - name: Import Package
+        run: python -c "from qbittorrentapi import Client; assert Client().host == 'localhost:8080'"
+
+  docs-build:
+    #######
+    # Verify documentation build succeeds
+    #######
+    name: Verify Doc Build
+    needs: [verify]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.LATEST_PYTHON_VER }}
+          cache: 'pip'
+
+      - name: Install Doc Build Requirements
+        run: python -m pip install -r requirements-dev.txt
+
+      - name: Build Docs
+        run: |
+          cd docs
+          sphinx-build -v -W --keep-going -E -a -b linkcheck "source" "build"
+          sphinx-build -v -W --keep-going -E -a -b html "source" "build"
+          make html
