@@ -88,12 +88,16 @@ jobs:
             QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
           - PYTHON_VER: "pypy2.7"
             QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
-          - QBT_VER: master
+          # test dev versions of qBittorrent
+          - QBT_VER: "master"
             IS_QBT_DEV: true
-          - QBT_VER: v4_4_x
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          - QBT_VER: "v4_4_x"
             IS_QBT_DEV: true
-          - QBT_VER: v4_3_x
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          - QBT_VER: "v4_3_x"
             IS_QBT_DEV: true
+            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
