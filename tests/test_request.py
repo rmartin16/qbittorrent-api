@@ -488,8 +488,9 @@ def test_http404(client, params):
     assert exc_info.value.args[0] == "unexpected msg"
 
 
-def test_http405(client, api_version):
-    if v(api_version) >= v("2.8.14"):
+def test_http405(client, app_version):
+    # v4.4.4 uses same API version as previous release...
+    if v(app_version) >= v("v4.4.4"):
         with pytest.raises(exceptions.MethodNotAllowed405Error) as exc_info:
             client._get(APINames.Authorization, "logout")
         assert exc_info.value.http_status_code == 405

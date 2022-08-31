@@ -13,7 +13,7 @@ on:
 
 env:
   LATEST_PYTHON_VER: "3.10"
-  LATEST_QBT_VER: "v4.4.4"
+  LATEST_QBT_VER: "v4.4.5"
   SUBMIT_COVERAGE_VERSIONS: "2.7, 3.10"
   QBITTORRENTAPI_HOST: "localhost:8080"
   QBITTORRENTAPI_PASSWORD: "adminadmin"
@@ -62,6 +62,8 @@ jobs:
     timeout-minutes: 10
     strategy:
       matrix:
+        PYTHON_VER: [ "${{ needs.verify.outputs.python-latest-version }}" ]
+        QBT_VER: [ v4.4.4, v4.3.9, v4.3.5, v4.3.4.1, v4.3.3, v4.3.2, v4.3.1, v4.3.0.1, v4.2.5, v4.2.0, v4.1.6, v4.1.0 ]
         include:
           # test all python versions against latest qBittorrent
           - PYTHON_VER: "3.11-dev"
@@ -86,45 +88,15 @@ jobs:
             QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
           - PYTHON_VER: "pypy2.7"
             QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
-          # test all qBittorrent versions against latest python
-          - QBT_VER: "v4.4.0"
-            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
-          - QBT_VER: "v4.3.9"
-            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
-          - QBT_VER: "v4.3.8"
-            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
-          - QBT_VER: "v4.3.7"
-            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
-          - QBT_VER: "v4.3.6"
-            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
-          - QBT_VER: "v4.3.5"
-            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
-          - QBT_VER: "v4.3.4.1"
-            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
-          - QBT_VER: "v4.3.3"
-            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
-          - QBT_VER: "v4.3.2"
-            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
-          - QBT_VER: "v4.3.1"
-            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
-          - QBT_VER: "v4.3.0.1"
-            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
-          - QBT_VER: "v4.2.5"
-            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
-          - QBT_VER: "v4.2.0"
-            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
-          - QBT_VER: "v4.1.6"
-            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
-          - QBT_VER: "v4.1.0"
-            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
+          # test dev versions of qBittorrent
           - QBT_VER: "master"
-            IS_QBT_DEV: True
+            IS_QBT_DEV: true
             PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
           - QBT_VER: "v4_4_x"
-            IS_QBT_DEV: True
+            IS_QBT_DEV: true
             PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
           - QBT_VER: "v4_3_x"
-            IS_QBT_DEV: True
+            IS_QBT_DEV: true
             PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
     steps:
       - name: Checkout Repo
