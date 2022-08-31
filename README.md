@@ -1,10 +1,13 @@
+<div align="center">
+
 qBittorrent Web API Client
 ================================
-[![GitHub Workflow Status (branch)](https://img.shields.io/github/checks-status/rmartin16/qbittorrent-api/main?style=flat-square)](https://github.com/rmartin16/qbittorrent-api/actions?query=branch%3Amain) [![Codecov branch](https://img.shields.io/codecov/c/gh/rmartin16/qbittorrent-api/main?style=flat-square)](https://app.codecov.io/gh/rmartin16/qbittorrent-api) [![Coverity Scan](https://img.shields.io/coverity/scan/21227?style=flat-square)](https://scan.coverity.com/projects/rmartin16-qbittorrent-api) [![Codacy grade](https://img.shields.io/codacy/grade/ef2975376e834af1910632cb76d05832?style=flat-square)](https://app.codacy.com/gh/rmartin16/qbittorrent-api/dashboard)
 
-[![PyPI](https://img.shields.io/pypi/v/qbittorrent-api?style=flat-square)](https://pypi.org/project/qbittorrent-api/) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/qbittorrent-api?style=flat-square)](https://pypi.org/project/qbittorrent-api/) [![PyPI - Implementation](https://img.shields.io/pypi/implementation/qbittorrent-api?style=flat-square)](https://pypi.org/project/qbittorrent-api/) [![PyPi - Downloads](https://img.shields.io/pypi/dw/qbittorrent-api?color=blue&style=flat-square)](https://pypi.org/project/qbittorrent-api/)
+Python client implementation for qBittorrent Web API
 
-Python client implementation for qBittorrent Web API.
+[![GitHub Workflow Status (branch)](https://img.shields.io/github/checks-status/rmartin16/qbittorrent-api/main?style=flat-square)](https://github.com/rmartin16/qbittorrent-api/actions?query=branch%3Amain) [![Codecov branch](https://img.shields.io/codecov/c/gh/rmartin16/qbittorrent-api/main?style=flat-square)](https://app.codecov.io/gh/rmartin16/qbittorrent-api) [![Coverity Scan](https://img.shields.io/coverity/scan/21227?style=flat-square)](https://scan.coverity.com/projects/rmartin16-qbittorrent-api) [![Codacy grade](https://img.shields.io/codacy/grade/ef2975376e834af1910632cb76d05832?style=flat-square)](https://app.codacy.com/gh/rmartin16/qbittorrent-api/dashboard) [![PyPI](https://img.shields.io/pypi/v/qbittorrent-api?style=flat-square)](https://pypi.org/project/qbittorrent-api/) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/qbittorrent-api?style=flat-square)](https://pypi.org/project/qbittorrent-api/)
+
+</div>
 
 Currently supports qBittorrent [v4.4.5](https://github.com/qbittorrent/qBittorrent/releases/tag/release-4.4.5) (Web API v2.8.5) released on Aug 29, 2022.
 
