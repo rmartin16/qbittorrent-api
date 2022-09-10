@@ -123,7 +123,7 @@ jobs:
         run: docker logs qbt
 
       - name: Upload Coverage to Codecov
-        if: contains(env.SUBMIT_COVERAGE_VERSIONS, matrix.PYTHON_VER)
+        if: ((contains(env.SUBMIT_COVERAGE_VERSIONS, matrix.PYTHON_VER)) && ((github.event_name == 'pull_request') || (github.event_name == 'push')))
         uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
