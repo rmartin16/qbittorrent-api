@@ -520,7 +520,7 @@ def test_rename_folder(client, app_version, new_torrent, new_name, client_func):
 
 
 def test_export(api_version, client, orig_torrent):
-    if v(api_version) >= v("2.8.11"):
+    if v(api_version) >= v("2.8.14"):
         assert isinstance(client.torrents_export(torrent_hash=orig_torrent.hash), bytes)
     else:
         with pytest.raises(NotImplementedError):

@@ -1117,6 +1117,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         seeding_time_limit=None,
         download_path=None,
         use_download_path=None,
+        stop_condition=None,
         **kwargs
     ):
         """
@@ -1155,6 +1156,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :param seeding_time_limit: number of minutes to seed torrent (added in Web API 2.8.1)
         :param download_path: location to download torrent content before moving to save_path (added in Web API 2.8.4)
         :param use_download_path: whether the download_path should be used...defaults to True if download_path is specified (added in Web API 2.8.4)
+        :param stop_condition: MetadataReceived or FilesChecked to stop the torrent when started automatically (added in Web API 2.8.15)
         :return: ``Ok.`` for success and ``Fails.`` for failure
         """  # noqa: E501
 
@@ -1199,6 +1201,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             "firstLastPiecePrio": (None, is_first_last_piece_priority),
             "downloadPath": (None, download_path),
             "useDownloadPath": (None, use_download_path),
+            "stopCondition": (None, stop_condition),
         }
 
         files_to_send, files_to_close = self._normalize_torrent_files(torrent_files)

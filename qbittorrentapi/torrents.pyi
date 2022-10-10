@@ -258,6 +258,9 @@ class Torrents(ClientCache):
         content_layout: Literal["Original", "Subfolder", "NoSubFolder"] = None,
         ratio_limit: Text | float = None,
         seeding_time_limit: Text | int = None,
+        download_path: Text = None,
+        use_download_path: bool = None,
+        stop_condition: Literal["MetadataReceived", "FilesChecked"] = None,
         **kwargs
     ) -> Text: ...
 

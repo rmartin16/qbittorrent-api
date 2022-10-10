@@ -180,7 +180,7 @@ class TransferAPIMixIn(AppAPIMixIn):
             self._post(
                 _name=APINames.Transfer, _method="toggleSpeedLimitsMode", **kwargs
             )
-        elif v(self.app_web_api_version()) < v("2.8.14") and (
+        elif v(self.app_web_api_version()) < v("2.8.15") and (
             (self.transfer.speed_limits_mode == "1") is not bool(intended_state)
         ):
             self._post(
