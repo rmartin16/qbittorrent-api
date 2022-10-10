@@ -1,4 +1,5 @@
 from copy import deepcopy
+from json import loads
 from logging import NullHandler
 from logging import getLogger
 from os import environ
@@ -13,16 +14,19 @@ except ImportError:  # python 2  # pragma: no cover
     from urlparse import urljoin
     from urlparse import urlparse
 
+import six
 from requests import Session
 from requests import exceptions as requests_exceptions
 from requests.adapters import HTTPAdapter
-from six import string_types as six_string_types
 from urllib3 import disable_warnings
 from urllib3.exceptions import InsecureRequestWarning
 from urllib3.util.retry import Retry
 
 from qbittorrentapi.definitions import APINames
+from qbittorrentapi.definitions import Dictionary
+from qbittorrentapi.definitions import List
 from qbittorrentapi.exceptions import APIConnectionError
+from qbittorrentapi.exceptions import APIError
 from qbittorrentapi.exceptions import Conflict409Error
 from qbittorrentapi.exceptions import Forbidden403Error
 from qbittorrentapi.exceptions import HTTP5XXError
@@ -317,7 +321,7 @@ class Request(object):
         :param delimiter: delimiter for concatenation
         :return: if input is a list, concatenated string...else whatever the input was
         """
-        is_string = isinstance(input_list, six_string_types)
+        is_string = isinstance(input_list, six.string_types)
         is_iterable = isinstance(input_list, Iterable)
         if is_iterable and not is_string:
             return delimiter.join(map(str, input_list))
@@ -404,6 +408,8 @@ class Request(object):
                 # raise immediately for other HTTP errors (e.g. 4XX statuses)
                 if retry >= max_retries or not isinstance(exc, HTTP5XXError):
                     raise
+            except APIError:
+                raise
             except Exception as exc:
                 if retry >= max_retries:
                     error_message = build_error_msg(exc=exc)
@@ -424,6 +430,7 @@ class Request(object):
         params=None,
         data=None,
         files=None,
+        response_class=None,
         **kwargs
     ):
         """
@@ -439,11 +446,11 @@ class Request(object):
         :param params: key/value pairs to send with a ``GET`` request
         :param data: key/value pairs to send with a ``POST`` request
         :param files: files to be sent with the request
+        :param response_class: class to use to cast the API response
         :param kwargs: arbitrary keyword args to send to qBittorrent with the request
         :return: Requests :class:`~requests.Response`
         """
-        kwargs = self._trim_known_kwargs(**kwargs)
-
+        response_kwargs, kwargs = self._get_response_kwargs(kwargs)
         requests_kwargs = self._get_requests_kwargs(requests_args, requests_params)
         headers = self._get_headers(headers, requests_kwargs.pop("headers", {}))
         url = self._url.build_url(api_namespace, api_method, headers, requests_kwargs)
@@ -461,23 +468,22 @@ class Request(object):
 
         self._verbose_logging(http_method, url, data, params, requests_kwargs, response)
         self._handle_error_responses(data, params, response)
-        return response
+        return self._cast(response, response_class, **response_kwargs)
 
     @staticmethod
-    def _trim_known_kwargs(**kwargs):
+    def _get_response_kwargs(kwargs):
         """
-        Since any extra keyword arguments from the user are automatically
-        included in the request to qBittorrent, this removes any "known"
-        arguments that definitely shouldn't be sent to qBittorrent. Generally,
-        these are removed in previous processing, but in certain circumstances,
-        they can survive in to request.
+        Determine the kwargs for managing the response to return.
 
         :param kwargs: extra keywords arguments to be passed along in request
         :return: sanitized arguments
         """
-        kwargs.pop("SIMPLE_RESPONSES", None)
-        kwargs.pop("SIMPLE_RESPONSE", None)
-        return kwargs
+        response_kwargs = {
+            "SIMPLE_RESPONSES": kwargs.pop(
+                "SIMPLE_RESPONSES", kwargs.pop("SIMPLE_RESPONSE", None)
+            )
+        }
+        return response_kwargs, kwargs
 
     def _get_requests_kwargs(self, requests_args=None, requests_params=None):
         """
@@ -531,6 +537,42 @@ class Request(object):
                 data.update(kwargs)
 
         return params, data, files
+
+    def _cast(self, response, response_class, **response_kwargs):
+        """
+        Returns the API response casted to the requested class.
+
+        :param response: requests ``Response`` from API
+        :param response_class: class to return response as; if none, response is returned
+        :param response_kwargs: request-specific configuration for response
+        :return: API response as type of ``response_class``
+        """
+        try:
+            if response_class is None:
+                return response
+            if response_class is six.text_type:
+                # convert back to bytes for python 2 since it's always worked that way...
+                return str(response.text)
+            if response_class is int:
+                return int(response.text)
+            if response_class is bytes:
+                return response.content
+            if issubclass(response_class, (Dictionary, List)):
+                try:
+                    result = response.json()
+                except AttributeError:
+                    # just in case the requests package is old and doesn't contain json()
+                    result = loads(response.text)
+                if self._SIMPLE_RESPONSES or response_kwargs.get("SIMPLE_RESPONSES"):
+                    return result
+                else:
+                    return response_class(result, client=self)
+        except Exception as exc:
+            logger.debug("Exception during response parsing.", exc_info=True)
+            raise APIError("Exception during response parsing. Error: %r" % exc)
+        else:
+            logger.debug("No handler defined to cast response.", exc_info=True)
+            raise APIError("No handler defined to cast response to %r" % response_class)
 
     @property
     def _session(self):

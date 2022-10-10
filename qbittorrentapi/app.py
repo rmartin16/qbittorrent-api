@@ -1,13 +1,13 @@
 from json import dumps
 from logging import getLogger
 
+import six
+
 from qbittorrentapi.auth import AuthAPIMixIn
 from qbittorrentapi.decorators import alias
 from qbittorrentapi.decorators import aliased
 from qbittorrentapi.decorators import endpoint_introduced
 from qbittorrentapi.decorators import login_required
-from qbittorrentapi.decorators import response_json
-from qbittorrentapi.decorators import response_text
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary
@@ -120,7 +120,6 @@ class AppAPIMixIn(AuthAPIMixIn):
 
     application = app
 
-    @response_text(str)
     @login_required
     def app_version(self, **kwargs):
         """
@@ -128,10 +127,14 @@ class AppAPIMixIn(AuthAPIMixIn):
 
         :return: string
         """
-        return self._get(_name=APINames.Application, _method="version", **kwargs)
+        return self._get(
+            _name=APINames.Application,
+            _method="version",
+            response_class=six.text_type,
+            **kwargs
+        )
 
     @alias("app_webapiVersion")
-    @response_text(str)
     @login_required
     def app_web_api_version(self, **kwargs):
         """
@@ -140,12 +143,14 @@ class AppAPIMixIn(AuthAPIMixIn):
         :return: string
         """
         return self._MOCK_WEB_API_VERSION or self._get(
-            _name=APINames.Application, _method="webapiVersion", **kwargs
+            _name=APINames.Application,
+            _method="webapiVersion",
+            response_class=six.text_type,
+            **kwargs
         )
 
-    @endpoint_introduced("2.3", "app/buildInfo")
-    @response_json(BuildInfoDictionary)
     @alias("app_buildInfo")
+    @endpoint_introduced("2.3", "app/buildInfo")
     @login_required
     def app_build_info(self, **kwargs):
         """
@@ -153,14 +158,18 @@ class AppAPIMixIn(AuthAPIMixIn):
 
         :return: :class:`BuildInfoDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-build-info>`_
         """  # noqa: E501
-        return self._get(_name=APINames.Application, _method="buildInfo", **kwargs)
+        return self._get(
+            _name=APINames.Application,
+            _method="buildInfo",
+            response_class=BuildInfoDictionary,
+            **kwargs
+        )
 
     @login_required
     def app_shutdown(self, **kwargs):
         """Shutdown qBittorrent."""
         self._post(_name=APINames.Application, _method="shutdown", **kwargs)
 
-    @response_json(ApplicationPreferencesDictionary)
     @login_required
     def app_preferences(self, **kwargs):
         """
@@ -168,7 +177,12 @@ class AppAPIMixIn(AuthAPIMixIn):
 
         :return: :class:`ApplicationPreferencesDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-application-preferences>`_
         """  # noqa: E501
-        return self._get(_name=APINames.Application, _method="preferences", **kwargs)
+        return self._get(
+            _name=APINames.Application,
+            _method="preferences",
+            response_class=ApplicationPreferencesDictionary,
+            **kwargs
+        )
 
     @alias("app_setPreferences")
     @login_required
@@ -185,7 +199,6 @@ class AppAPIMixIn(AuthAPIMixIn):
         )
 
     @alias("app_defaultSavePath")
-    @response_text(str)
     @login_required
     def app_default_save_path(self, **kwargs):
         """
@@ -194,5 +207,8 @@ class AppAPIMixIn(AuthAPIMixIn):
         :return: string
         """
         return self._get(
-            _name=APINames.Application, _method="defaultSavePath", **kwargs
+            _name=APINames.Application,
+            _method="defaultSavePath",
+            response_class=six.text_type,
+            **kwargs
         )

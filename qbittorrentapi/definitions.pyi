@@ -1,17 +1,26 @@
 from enum import Enum
+from typing import Any
 from typing import Iterable
-from typing import MutableMapping
+from typing import List as ListT
+from typing import Mapping
+from typing import Optional
 from typing import Text
 from typing import Type
+from typing import TypeVar
 
 try:
     from collections import UserList
 except ImportError:
-    from UserList import UserList
+    from UserList import UserList  # type: ignore
 
 from qbittorrentapi._attrdict import AttrDict
 from qbittorrentapi.client import Client
 from qbittorrentapi.request import Request
+
+T = TypeVar("T")
+K = TypeVar("K")
+V = TypeVar("V")
+KWARGS = Any
 
 class APINames(Enum):
     Authorization: Text
@@ -60,19 +69,25 @@ class TorrentStates(Enum):
 
 class ClientCache:
     _client: Client
-    def __init__(self, *args, client: Request, **kwargs) -> None: ...
-
-class Dictionary(ClientCache, AttrDict):
-    def __init__(self, data: MutableMapping = None, client: Request = None): ...
-    @staticmethod
-    def _normalize(data: MutableMapping) -> AttrDict: ...
-
-class List(ClientCache, UserList):
     def __init__(
-        self,
-        list_entries: Iterable = None,
-        entry_class: Type[ListEntry] = None,
-        client: Request = None,
+        self, *args: ListT[Any], client: Request, **kwargs: KWARGS
     ) -> None: ...
 
-class ListEntry(Dictionary): ...
+class Dictionary(ClientCache, AttrDict[K, V]):
+    def __init__(
+        self,
+        data: Optional[Mapping[K, V]] = None,
+        client: Optional[Request] = None,
+    ): ...
+    @staticmethod
+    def _normalize(data: Mapping[K, V]) -> AttrDict[K, V]: ...
+
+class List(ClientCache, UserList[T]):
+    def __init__(
+        self,
+        list_entries: Optional[Iterable[ListEntry[Any, Any]]] = None,
+        entry_class: Optional[Type[ListEntry[Any, Any]]] = None,
+        client: Optional[Request] = None,
+    ) -> None: ...
+
+class ListEntry(Dictionary[K, V]): ...

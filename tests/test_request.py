@@ -3,10 +3,14 @@ import re
 import sys
 from os import environ
 
+import six
+
 try:
     from unittest.mock import MagicMock
+    from unittest.mock import PropertyMock
 except ImportError:  # python 2
     from mock import MagicMock
+    from mock import PropertyMock
 
 import pytest
 from requests import Response
@@ -15,6 +19,8 @@ from qbittorrentapi import APINames
 from qbittorrentapi import Client
 from qbittorrentapi import exceptions
 from qbittorrentapi._version_support import v
+from qbittorrentapi.definitions import Dictionary
+from qbittorrentapi.definitions import List
 from qbittorrentapi.request import Request
 from qbittorrentapi.torrents import TorrentDictionary
 from qbittorrentapi.torrents import TorrentInfoList
@@ -23,8 +29,10 @@ from tests.conftest import mkpath
 
 
 def test_method_name(client, app_version):
-    assert app_version == client._get("app", "version").text
-    assert app_version == client._get(APINames.Application, "version").text
+    assert app_version == client._get("app", "version", response_class=six.text_type)
+    assert app_version == client._get(
+        APINames.Application, "version", response_class=six.text_type
+    )
 
 
 def test_log_in():
@@ -251,6 +259,97 @@ def test_port(app_version):
 
     client = Client(host="localhost:8080", port=8081, VERIFY_WEBUI_CERTIFICATE=False)
     assert client.app.version == app_version
+
+
+def test_response_none(client):
+    response = MagicMock(spec_set=Response)
+
+    assert client._cast(response, None) == response
+    assert client._cast(response, response_class=None) == response
+
+
+def test_response_str(client):
+    response = MagicMock(spec_set=Response)
+
+    type(response).text = PropertyMock(return_value="text response")
+    assert client._cast(response, six.text_type) == "text response"
+
+    type(response).text = PropertyMock(return_value="text response")
+    with pytest.raises(exceptions.APIError, match="Exception during response parsing."):
+        client._cast(response, int)
+
+
+def test_response_int(client):
+    response = MagicMock(spec_set=Response)
+
+    type(response).text = PropertyMock(return_value="123")
+    assert client._cast(response, int) == 123
+
+    type(response).text = PropertyMock(return_value="text response")
+    with pytest.raises(exceptions.APIError, match="Exception during response parsing."):
+        client._cast(response, int)
+
+
+def test_response_bytes(client):
+    response = MagicMock(spec_set=Response)
+
+    type(response).content = PropertyMock(return_value=b"bytes response")
+    assert client._cast(response, bytes) == b"bytes response"
+
+
+def test_response_json_list(client):
+    response = MagicMock(spec_set=Response)
+
+    response.json.return_value = ["json", "response"]
+    assert client._cast(response, List) == ["json", "response"]
+
+    response.json.return_value = 123
+    with pytest.raises(exceptions.APIError, match="Exception during response parsing."):
+        client._cast(response, List)
+
+    del response.json
+
+    type(response).text = PropertyMock(return_value='["json", "response"]')
+    assert client._cast(response, List) == ["json", "response"]
+
+    type(response).text = PropertyMock(return_value=123)
+    with pytest.raises(exceptions.APIError, match="Exception during response parsing."):
+        client._cast(response, List)
+
+
+def test_response_json_dict(client):
+    response = MagicMock(spec_set=Response)
+
+    response.json.return_value = {"json": "response"}
+    assert client._cast(response, Dictionary) == {"json": "response"}
+
+    response.json.return_value = 123
+    with pytest.raises(exceptions.APIError, match="Exception during response parsing."):
+        client._cast(response, List)
+
+    del response.json
+
+    type(response).text = PropertyMock(return_value='{"json": "response"}')
+    assert client._cast(response, Dictionary) == {"json": "response"}
+
+    type(response).text = PropertyMock(return_value="123")
+    with pytest.raises(exceptions.APIError, match="Exception during response parsing."):
+        client._cast(response, List)
+
+
+def test_response_unsupported(client):
+    response = MagicMock(spec_set=Response)
+
+    type(response).text = PropertyMock(return_value="123.01")
+    with pytest.raises(
+        exceptions.APIError, match="No handler defined to cast response."
+    ):
+        client._cast(response, float)
+
+    with pytest.raises(
+        exceptions.APIError, match="No handler defined to cast response."
+    ):
+        client._get(_name=APINames.Application, _method="version", response_class=float)
 
 
 def test_simple_response(client, orig_torrent):

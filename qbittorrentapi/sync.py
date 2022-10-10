@@ -3,7 +3,6 @@ from qbittorrentapi.decorators import alias
 from qbittorrentapi.decorators import aliased
 from qbittorrentapi.decorators import handle_hashes
 from qbittorrentapi.decorators import login_required
-from qbittorrentapi.decorators import response_json
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary
@@ -24,7 +23,7 @@ class Sync(ClientCache):
     Usage:
         >>> from qbittorrentapi import Client
         >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
-        >>> # this are all the same attributes that are available as named in the
+        >>> # these are all the same attributes that are available as named in the
         >>> #  endpoints or the more pythonic names in Client (with or without 'sync_' prepended)
         >>> maindata = client.sync.maindata(rid="...")
         >>> # for use when continuously calling maindata for changes in torrents
@@ -102,7 +101,6 @@ class SyncAPIMixIn(AppAPIMixIn):
             self._sync = Sync(client=self)
         return self._sync
 
-    @response_json(SyncMainDataDictionary)
     @login_required
     def sync_maindata(self, rid=0, **kwargs):
         """
@@ -112,11 +110,16 @@ class SyncAPIMixIn(AppAPIMixIn):
         :return: :class:`SyncMainDataDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-main-data>`_
         """  # noqa: E501
         data = {"rid": rid}
-        return self._post(_name=APINames.Sync, _method="maindata", data=data, **kwargs)
+        return self._post(
+            _name=APINames.Sync,
+            _method="maindata",
+            data=data,
+            response_class=SyncMainDataDictionary,
+            **kwargs
+        )
 
     @alias("sync_torrentPeers")
     @handle_hashes
-    @response_json(SyncTorrentPeersDictionary)
     @login_required
     def sync_torrent_peers(self, torrent_hash=None, rid=0, **kwargs):
         """
@@ -130,5 +133,9 @@ class SyncAPIMixIn(AppAPIMixIn):
         """  # noqa: E501
         data = {"hash": torrent_hash, "rid": rid}
         return self._post(
-            _name=APINames.Sync, _method="torrentPeers", data=data, **kwargs
+            _name=APINames.Sync,
+            _method="torrentPeers",
+            data=data,
+            response_class=SyncTorrentPeersDictionary,
+            **kwargs
         )

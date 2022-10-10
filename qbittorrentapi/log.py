@@ -1,6 +1,5 @@
 from qbittorrentapi.app import AppAPIMixIn
 from qbittorrentapi.decorators import login_required
-from qbittorrentapi.decorators import response_json
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import List
@@ -138,7 +137,6 @@ class LogAPIMixIn(AppAPIMixIn):
             self._log = Log(client=self)
         return self._log
 
-    @response_json(LogMainList)
     @login_required
     def log_main(
         self,
@@ -167,10 +165,13 @@ class LogAPIMixIn(AppAPIMixIn):
             "last_known_id": last_known_id,
         }
         return self._get(
-            _name=APINames.Log, _method="main", params=parameters, **kwargs
+            _name=APINames.Log,
+            _method="main",
+            params=parameters,
+            response_class=LogMainList,
+            **kwargs
         )
 
-    @response_json(LogPeersList)
     @login_required
     def log_peers(self, last_known_id=None, **kwargs):
         """
@@ -181,5 +182,9 @@ class LogAPIMixIn(AppAPIMixIn):
         """
         parameters = {"last_known_id": last_known_id}
         return self._get(
-            _name=APINames.Log, _method="peers", params=parameters, **kwargs
+            _name=APINames.Log,
+            _method="peers",
+            params=parameters,
+            response_class=LogPeersList,
+            **kwargs
         )

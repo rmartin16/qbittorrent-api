@@ -1,3 +1,6 @@
+from typing import Any
+from typing import Mapping
+from typing import Optional
 from typing import Text
 
 from qbittorrentapi.app import AppAPIMixIn
@@ -10,22 +13,35 @@ from qbittorrentapi.sync import SyncAPIMixIn
 from qbittorrentapi.torrents import TorrentsAPIMixIn
 from qbittorrentapi.transfer import TransferAPIMixIn
 
+KWARGS = Any
+
 class Client(
-    AppAPIMixIn,
-    AuthAPIMixIn,
     LogAPIMixIn,
     SyncAPIMixIn,
     TransferAPIMixIn,
     TorrentsAPIMixIn,
-    Request,
     RSSAPIMixIn,
     SearchAPIMixIn,
+    AuthAPIMixIn,
+    AppAPIMixIn,
+    Request,
 ):
     def __init__(
         self,
         host: Text = "",
-        port: Text | int = None,
-        username: Text = None,
-        password: Text = None,
-        **kwargs
+        port: Optional[Text | int] = None,
+        username: Optional[Text] = None,
+        password: Optional[Text] = None,
+        EXTRA_HEADERS: Optional[Mapping[Text, Text]] = None,
+        REQUESTS_ARGS: Optional[Mapping[Text, Any]] = None,
+        VERIFY_WEBUI_CERTIFICATE: bool = True,
+        FORCE_SCHEME_FROM_HOST: bool = False,
+        RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS: bool = False,
+        RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS: bool = False,
+        RAISE_ERROR_FOR_UNSUPPORTED_QBITTORRENT_VERSIONS: bool = False,
+        VERBOSE_RESPONSE_LOGGING: bool = False,
+        PRINT_STACK_FOR_EACH_REQUEST: bool = False,
+        SIMPLE_RESPONSES: bool = False,
+        DISABLE_LOGGING_DEBUG_OUTPUT: bool = False,
+        **kwargs: KWARGS
     ) -> None: ...

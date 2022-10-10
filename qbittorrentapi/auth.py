@@ -69,8 +69,8 @@ class AuthAPIMixIn(Request):
         completed.
 
         It isn't possible to know if qBittorrent will accept whatever SID is locally
-        cached...however, any request that is rejected because of the SID will be automatically
-        retried after a new SID is requested.
+        cached...however, any request that is rejected because of the SID will be
+        automatically retried after a new SID is requested.
 
         :returns: True/False for whether a log-in attempt was previously completed
         """

@@ -32,6 +32,8 @@ from abc import ABCMeta
 from abc import abstractmethod
 from re import match as re_match
 
+import six
+
 try:  # python 3
     from collections.abc import Mapping
     from collections.abc import MutableMapping
@@ -40,11 +42,6 @@ except ImportError:  # python 2
     from collections import Mapping
     from collections import MutableMapping
     from collections import Sequence
-
-from six import add_metaclass as six_add_metaclass
-from six import binary_type as six_binary_type
-from six import string_types as six_string_types
-from six import u as six_u
 
 
 def merge(left, right):
@@ -85,7 +82,7 @@ def merge(left, right):
     return merged
 
 
-@six_add_metaclass(ABCMeta)
+@six.add_metaclass(ABCMeta)
 class Attr(Mapping):
     """
     A mixin class for a mapping that allows for attribute-style access of
@@ -195,7 +192,7 @@ class Attr(Mapping):
         if isinstance(obj, Mapping):
             obj = self._constructor(obj, self._configuration())
         elif isinstance(obj, Sequence) and not isinstance(
-            obj, (six_string_types, six_binary_type)
+            obj, (six.string_types, six.binary_type)
         ):
             sequence_type = getattr(self, "_sequence_type", None)
 
@@ -217,13 +214,13 @@ class Attr(Mapping):
             'register').
         """
         return (
-            isinstance(key, six_string_types)
+            isinstance(key, six.string_types)
             and re_match("^[A-Za-z][A-Za-z0-9_]*$", key)
             and not hasattr(cls, key)
         )
 
 
-@six_add_metaclass(ABCMeta)
+@six.add_metaclass(ABCMeta)
 class MutableAttr(Attr, MutableMapping):
     """A mixin class for a mapping that allows for attribute-style access of
     values."""
@@ -289,7 +286,7 @@ class AttrDict(dict, MutableAttr):
 
     def __getstate__(self):
         """Serialize the object."""
-        return (self.copy(), self._sequence_type, self._allow_invalid_attributes)
+        return self.copy(), self._sequence_type, self._allow_invalid_attributes
 
     def __setstate__(self, state):
         """Deserialize the object."""
@@ -299,7 +296,7 @@ class AttrDict(dict, MutableAttr):
         self._setattr("_allow_invalid_attributes", allow_invalid_attributes)
 
     def __repr__(self):
-        return six_u("AttrDict({contents})").format(
+        return six.u("AttrDict({contents})").format(
             contents=super(AttrDict, self).__repr__()
         )
 
@@ -369,7 +366,7 @@ class AttrDict(dict, MutableAttr):
 #         # sequence type seems like more trouble than it is worth.
 #         # If people want full serialization, they can pickle, and in
 #         # 99% of cases, sequence_type won't change anyway
-#         return six_u("AttrMap({mapping})").format(mapping=repr(self._mapping))
+#         return six.u("AttrMap({mapping})").format(mapping=repr(self._mapping))
 #
 #     def __getstate__(self):
 #         """
@@ -474,7 +471,7 @@ class AttrDict(dict, MutableAttr):
 #         """
 #         Return a string representation of the object.
 #         """
-#         return six_u(
+#         return six.u(
 #             "AttrDefault({default_factory}, {pass_key}, {mapping})"
 #         ).format(
 #             default_factory=repr(self._default_factory),

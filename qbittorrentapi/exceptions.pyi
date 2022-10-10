@@ -1,3 +1,5 @@
+from typing import Optional
+
 from requests.exceptions import HTTPError as RequestsHTTPError
 from requests.exceptions import RequestException
 
@@ -11,7 +13,7 @@ class APIConnectionError(RequestException, APIError): ...
 class LoginFailed(APIConnectionError): ...
 
 class HTTPError(RequestsHTTPError, APIConnectionError):
-    http_status_code: int = None
+    http_status_code: Optional[int] = None
 
 class HTTP4XXError(HTTPError): ...
 class HTTP5XXError(HTTPError): ...
