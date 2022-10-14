@@ -1663,16 +1663,20 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     ):
         """
         Retrieves list of info for torrents.
-        Note: ``hashes`` introduced in Web API 2.0.1
 
-        :param status_filter: Filter list by all, downloading, completed, paused, active, inactive, resumed
-                              stalled, stalled_uploading and stalled_downloading added in Web API 2.4.1
+        :param status_filter: Filter list by torrent status.
+            Always available:
+            ``all``, ``downloading``, ``completed``, ``paused``, ``active``, ``inactive``, ``resumed``
+            Added in Web API 2.4.1:
+            ``stalled``, ``stalled_uploading`` and ``stalled_downloading``
+            Added Web API 2.8.15:
+            ``moving``
         :param category: Filter list by category
         :param sort: Sort list by any property returned
         :param reverse: Reverse sorting
         :param limit: Limit length of list
         :param offset: Start of list (if < 0, offset from end of list)
-        :param torrent_hashes: Filter list by hash (separate multiple hashes with a '|')
+        :param torrent_hashes: Filter list by hash (separate multiple hashes with a '|') (added in Web API 2.0.1)
         :param tag: Filter list by tag (empty string means "untagged"; no "tag" param means "any tag"; added in Web API 2.8.3)
         :return: :class:`TorrentInfoList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-list>`_
         """  # noqa: E501
