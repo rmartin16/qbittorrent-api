@@ -2,7 +2,6 @@ import platform
 from time import sleep
 
 import pytest
-from pkg_resources import parse_version as v
 
 from qbittorrentapi import Conflict409Error
 from qbittorrentapi import TorrentDictionary
@@ -12,6 +11,7 @@ from qbittorrentapi import TorrentPropertiesDictionary
 from qbittorrentapi import TorrentStates
 from qbittorrentapi import TrackersList
 from qbittorrentapi import WebSeedsList
+from qbittorrentapi._version_support import v
 from tests.conftest import get_func
 from tests.test_torrents import check
 from tests.test_torrents import disable_queueing

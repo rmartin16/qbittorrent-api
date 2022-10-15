@@ -3,8 +3,6 @@ from logging import getLogger
 from os import path
 from os import strerror as os_strerror
 
-from pkg_resources import parse_version as v
-
 try:
     from collections.abc import Iterable
     from collections.abc import Mapping
@@ -14,6 +12,7 @@ except ImportError:
 
 from six import text_type as six_text_type
 
+from qbittorrentapi._version_support import v
 from qbittorrentapi.app import AppAPIMixIn
 from qbittorrentapi.decorators import alias
 from qbittorrentapi.decorators import aliased

@@ -2,8 +2,7 @@ from functools import wraps
 from json import loads
 from logging import getLogger
 
-from pkg_resources import parse_version as v
-
+from qbittorrentapi._version_support import v
 from qbittorrentapi.exceptions import APIError
 from qbittorrentapi.exceptions import HTTP403Error
 

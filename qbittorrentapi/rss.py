@@ -1,7 +1,6 @@
 from json import dumps
 
-from pkg_resources import parse_version as v
-
+from qbittorrentapi._version_support import v
 from qbittorrentapi.app import AppAPIMixIn
 from qbittorrentapi.decorators import alias
 from qbittorrentapi.decorators import aliased

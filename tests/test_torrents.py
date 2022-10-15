@@ -4,8 +4,6 @@ import platform
 from sys import version_info
 from time import sleep
 
-from pkg_resources import parse_version as v
-
 try:
     from collections.abc import Iterable
 except ImportError:
@@ -14,6 +12,7 @@ except ImportError:
 import pytest
 import requests
 
+from qbittorrentapi._version_support import v
 from qbittorrentapi.exceptions import Conflict409Error
 from qbittorrentapi.exceptions import Forbidden403Error
 from qbittorrentapi.exceptions import InvalidRequest400Error

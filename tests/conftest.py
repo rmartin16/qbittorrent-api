@@ -5,13 +5,13 @@ from time import sleep
 
 import pytest
 import six
-from pkg_resources import parse_version as v
 
 from qbittorrentapi import APIConnectionError
 from qbittorrentapi import Client
 from qbittorrentapi._version_support import (
     APP_VERSION_2_API_VERSION_MAP as api_version_map,
 )
+from qbittorrentapi._version_support import v
 
 environ.setdefault("QBITTORRENTAPI_HOST", "localhost:8080")
 environ.setdefault("QBITTORRENTAPI_USERNAME", "admin")
