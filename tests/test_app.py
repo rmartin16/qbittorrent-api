@@ -1,7 +1,7 @@
 import pytest
-from pkg_resources import parse_version as v
 
 from qbittorrentapi._attrdict import AttrDict
+from qbittorrentapi._version_support import v
 from tests.conftest import IS_QBT_DEV
 
 

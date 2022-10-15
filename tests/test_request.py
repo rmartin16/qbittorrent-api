@@ -9,12 +9,12 @@ except ImportError:  # python 2
     from mock import MagicMock
 
 import pytest
-from pkg_resources import parse_version as v
 from requests import Response
 
 from qbittorrentapi import APINames
 from qbittorrentapi import Client
 from qbittorrentapi import exceptions
+from qbittorrentapi._version_support import v
 from qbittorrentapi.request import Request
 from qbittorrentapi.torrents import TorrentDictionary
 from qbittorrentapi.torrents import TorrentInfoList

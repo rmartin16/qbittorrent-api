@@ -1,3 +1,11 @@
+from pkg_resources import parse_version
+
+try:
+    from functools import lru_cache
+except ImportError:
+    from backports.functools_lru_cache import lru_cache
+
+
 APP_VERSION_2_API_VERSION_MAP = {
     "v4.1.0": "2.0",
     "v4.1.1": "2.0.1",
@@ -38,6 +46,12 @@ APP_VERSION_2_API_VERSION_MAP = {
 
 MOST_RECENT_SUPPORTED_APP_VERSION = "v4.4.5"
 MOST_RECENT_SUPPORTED_API_VERSION = "2.8.5"
+
+
+@lru_cache(maxsize=None)
+def v(version):
+    """Caching version parser."""
+    return parse_version(version)
 
 
 class Version(object):

@@ -1,9 +1,9 @@
 from time import sleep
 
 import pytest
-from pkg_resources import parse_version as v
 
 from qbittorrentapi import NotFound404Error
+from qbittorrentapi._version_support import v
 from qbittorrentapi.search import SearchJobDictionary
 from qbittorrentapi.search import SearchResultsDictionary
 from qbittorrentapi.search import SearchStatusesList

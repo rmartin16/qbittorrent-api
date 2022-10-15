@@ -2,9 +2,13 @@ from typing import Dict
 from typing import Set
 from typing import Text
 
+from pkg_resources.extern.packaging.version import Version as _Version
+
 MOST_RECENT_SUPPORTED_APP_VERSION: Text
 MOST_RECENT_SUPPORTED_API_VERSION: Text
 APP_VERSION_2_API_VERSION_MAP: Dict
+
+def v(version: Text) -> _Version: ...
 
 class Version:
     _supported_app_versions: Set = None
