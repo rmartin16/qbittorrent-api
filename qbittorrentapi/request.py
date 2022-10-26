@@ -8,7 +8,7 @@ try:  # python 3
     from collections.abc import Iterable
     from urllib.parse import urljoin
     from urllib.parse import urlparse
-except ImportError:  # python 2
+except ImportError:  # python 2  # pragma: no cover
     from collections import Iterable
     from urlparse import urljoin
     from urlparse import urlparse

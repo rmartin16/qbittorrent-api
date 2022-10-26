@@ -115,7 +115,9 @@ def test_add_delete(client, api_version, client_func):
     def add_by_filename(single):
         download_file(url=torrent1_url, filename=torrent1_filename)
         download_file(url=torrent2_url, filename=torrent2_filename)
-        files = ("~/%s" % torrent1_filename, "~/%s" % torrent2_filename)
+        # send bytes as a proxy for testing python 2
+        kw = {} if version_info.major == 2 else dict(encoding="utf-8")
+        files = ("~/%s" % torrent1_filename, bytes("~/%s" % torrent2_filename, **kw))
 
         if single:
             assert get_func(client, client_func[0])(torrent_files=files[0]) == "Ok."
