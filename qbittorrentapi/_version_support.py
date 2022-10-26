@@ -2,7 +2,7 @@ from pkg_resources import parse_version
 
 try:
     from functools import lru_cache
-except ImportError:
+except ImportError:  # pragma: no cover
     from backports.functools_lru_cache import lru_cache
 
 

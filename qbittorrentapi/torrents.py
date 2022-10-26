@@ -6,7 +6,7 @@ from os import strerror as os_strerror
 try:
     from collections.abc import Iterable
     from collections.abc import Mapping
-except ImportError:
+except ImportError:  # pragma: no cover
     from collections import Iterable
     from collections import Mapping
 
@@ -1262,9 +1262,9 @@ class TorrentsAPIMixIn(AppAPIMixIn):
                     # this does prevent providing more useful IO errors on python 2....but it's dead anyway...
                     try:
                         filepath = path.abspath(
-                            path.realpath(path.expanduser(str(torrent_file)))
+                            path.realpath(path.expanduser(torrent_file.decode()))
                         )
-                        if path.exists(filepath):
+                        if path.exists(filepath):  # pragma: no branch
                             fh = open(filepath, "rb")
                             files_to_close.append(fh)
                             name = path.basename(filepath)
