@@ -290,8 +290,11 @@ def rss_feed(client, api_version):
             pass
 
     if v(api_version) >= v("2.2"):
-        name = "DistroWatch"
-        url = "https://distrowatch.com/news/torrents.xml"
+        # distrowatch was causing protocol errors in qBittorrent
+        # name = "DistroWatch"  # noqa: E800
+        # url = "http://distrowatch.com/news/torrents.xml"  # noqa: E800
+        name = "YTS"
+        url = "https://yts.mx/rss/0/all/all/0/en"
         client.app.preferences = dict(rss_auto_downloading_enabled=False)
         # refreshing the feed is finicky...so try several times if necessary
         done = False
