@@ -1,12 +1,11 @@
-from pkg_resources import parse_version as v
+import six
 
+from qbittorrentapi._version_support import v
 from qbittorrentapi.app import AppAPIMixIn
 from qbittorrentapi.decorators import alias
 from qbittorrentapi.decorators import aliased
 from qbittorrentapi.decorators import endpoint_introduced
 from qbittorrentapi.decorators import login_required
-from qbittorrentapi.decorators import response_json
-from qbittorrentapi.decorators import response_text
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary
@@ -141,7 +140,6 @@ class TransferAPIMixIn(AppAPIMixIn):
             self._transfer = Transfer(client=self)
         return self._transfer
 
-    @response_json(TransferInfoDictionary)
     @login_required
     def transfer_info(self, **kwargs):
         """
@@ -149,10 +147,14 @@ class TransferAPIMixIn(AppAPIMixIn):
 
         :return: :class:`TransferInfoDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-global-transfer-info>`_
         """  # noqa: E501
-        return self._get(_name=APINames.Transfer, _method="info", **kwargs)
+        return self._get(
+            _name=APINames.Transfer,
+            _method="info",
+            response_class=TransferInfoDictionary,
+            **kwargs
+        )
 
     @alias("transfer_speedLimitsMode")
-    @response_text(str)
     @login_required
     def transfer_speed_limits_mode(self, **kwargs):
         """
@@ -160,7 +162,12 @@ class TransferAPIMixIn(AppAPIMixIn):
 
         :return: ``1`` if alternative speed limits are currently enabled, ``0`` otherwise
         """
-        return self._get(_name=APINames.Transfer, _method="speedLimitsMode", **kwargs)
+        return self._get(
+            _name=APINames.Transfer,
+            _method="speedLimitsMode",
+            response_class=six.text_type,
+            **kwargs
+        )
 
     @alias(
         "transfer_setSpeedLimitsMode",
@@ -196,7 +203,6 @@ class TransferAPIMixIn(AppAPIMixIn):
             )
 
     @alias("transfer_downloadLimit")
-    @response_text(int)
     @login_required
     def transfer_download_limit(self, **kwargs):
         """
@@ -204,10 +210,14 @@ class TransferAPIMixIn(AppAPIMixIn):
 
         :return: integer
         """
-        return self._get(_name=APINames.Transfer, _method="downloadLimit", **kwargs)
+        return self._get(
+            _name=APINames.Transfer,
+            _method="downloadLimit",
+            response_class=int,
+            **kwargs
+        )
 
     @alias("transfer_uploadLimit")
-    @response_text(int)
     @login_required
     def transfer_upload_limit(self, **kwargs):
         """
@@ -215,7 +225,9 @@ class TransferAPIMixIn(AppAPIMixIn):
 
         :return: integer
         """
-        return self._get(_name=APINames.Transfer, _method="uploadLimit", **kwargs)
+        return self._get(
+            _name=APINames.Transfer, _method="uploadLimit", response_class=int, **kwargs
+        )
 
     @alias("transfer_setDownloadLimit")
     @login_required

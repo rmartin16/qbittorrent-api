@@ -1,16 +1,10 @@
 import logging
-from json import dumps
 
 import pytest
 
-from qbittorrentapi import APIError
 from qbittorrentapi import Client
-from qbittorrentapi._attrdict import AttrDict
 from qbittorrentapi.decorators import endpoint_introduced
 from qbittorrentapi.decorators import handle_hashes
-from qbittorrentapi.decorators import response_bytes
-from qbittorrentapi.decorators import response_json
-from qbittorrentapi.decorators import response_text
 from qbittorrentapi.decorators import version_removed
 from qbittorrentapi.request import Request
 
@@ -64,73 +58,6 @@ def test_hash_handler_multiple_hashes(test_hashes, other_param):
     FakeClient().multiple_torrent_func(test_hashes, param=other_param)
     FakeClient().multiple_torrent_func(hashes=test_hashes, param=other_param)
     FakeClient().multiple_torrent_func(torrent_hashes=test_hashes, param=other_param)
-
-
-def test_response_text():
-    class ResponseTextTest:
-        @response_text(str)
-        def return_input_as_str(self, input):
-            return input
-
-        @response_text(dict)
-        def return_input_as_dict(self, input):
-            return input
-
-    input = "asdf"
-    assert input == ResponseTextTest().return_input_as_str(input)
-    with pytest.raises(APIError):
-        ResponseTextTest().return_input_as_dict(input)
-
-
-def test_response_bytes():
-    class Response:
-        def __init__(self, text):
-            self.content = text
-
-    @response_bytes
-    def return_input_as_bytes(text):
-        return Response(text)
-
-    input = "asdf"
-    assert input == return_input_as_bytes(input)
-
-
-def test_response_json():
-    class MyDict(AttrDict):
-        def __init__(self, *args):
-            super(AttrDict, self).__init__(args[0])
-            self._setattr("_allow_invalid_attributes", True)
-
-    class FakeJson(AttrDict):
-        data = None
-
-        def __init__(self):
-            super(AttrDict, self).__init__()
-            self._setattr("_allow_invalid_attributes", True)
-
-        @property
-        def text(self):
-            return dumps(self.data)
-
-    class ResponseJsonTest:
-        _SIMPLE_RESPONSES = False
-
-        @response_json(dict)
-        def return_input_as_dict(self, input):
-            return input
-
-        @response_json(MyDict)
-        def return_input_as_mydict(self, input):
-            return input
-
-    input = {"one": 1}
-    assert isinstance(ResponseJsonTest().return_input_as_dict(input), dict)
-    input = FakeJson()
-    input.data = {"one": 1}
-    assert isinstance(ResponseJsonTest().return_input_as_mydict(input), MyDict)
-    input.data = ["asdf"]
-    with pytest.raises(APIError):
-        ResponseJsonTest().return_input_as_mydict(input)
 
 
 def test_version_implemented():

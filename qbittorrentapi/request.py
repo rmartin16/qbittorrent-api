@@ -1,4 +1,5 @@
 from copy import deepcopy
+from json import loads
 from logging import NullHandler
 from logging import getLogger
 from os import environ
@@ -13,16 +14,19 @@ except ImportError:  # python 2  # pragma: no cover
     from urlparse import urljoin
     from urlparse import urlparse
 
+import six
 from requests import Session
 from requests import exceptions as requests_exceptions
 from requests.adapters import HTTPAdapter
-from six import string_types as six_string_types
 from urllib3 import disable_warnings
 from urllib3.exceptions import InsecureRequestWarning
 from urllib3.util.retry import Retry
 
 from qbittorrentapi.definitions import APINames
+from qbittorrentapi.definitions import Dictionary
+from qbittorrentapi.definitions import List
 from qbittorrentapi.exceptions import APIConnectionError
+from qbittorrentapi.exceptions import APIError
 from qbittorrentapi.exceptions import Conflict409Error
 from qbittorrentapi.exceptions import Forbidden403Error
 from qbittorrentapi.exceptions import HTTP5XXError
@@ -317,13 +321,25 @@ class Request(object):
         :param delimiter: delimiter for concatenation
         :return: if input is a list, concatenated string...else whatever the input was
         """
-        is_string = isinstance(input_list, six_string_types)
+        is_string = isinstance(input_list, six.string_types)
         is_iterable = isinstance(input_list, Iterable)
         if is_iterable and not is_string:
             return delimiter.join(map(str, input_list))
         return input_list
 
-    def _get(self, _name=APINames.EMPTY, _method="", **kwargs):
+    def _get(
+        self,
+        _name=APINames.EMPTY,
+        _method="",
+        requests_args=None,
+        requests_params=None,
+        headers=None,
+        params=None,
+        data=None,
+        files=None,
+        response_class=None,
+        **kwargs
+    ):
         """
         Send ``GET`` request.
 
@@ -334,10 +350,32 @@ class Request(object):
         :return: Requests :class:`~requests.Response`
         """
         return self._request_manager(
-            http_method="get", api_namespace=_name, api_method=_method, **kwargs
+            http_method="get",
+            api_namespace=_name,
+            api_method=_method,
+            requests_args=requests_args,
+            requests_params=requests_params,
+            headers=headers,
+            params=params,
+            data=data,
+            files=files,
+            response_class=response_class,
+            **kwargs
         )
 
-    def _post(self, _name=APINames.EMPTY, _method="", **kwargs):
+    def _post(
+        self,
+        _name=APINames.EMPTY,
+        _method="",
+        requests_args=None,
+        requests_params=None,
+        headers=None,
+        params=None,
+        data=None,
+        files=None,
+        response_class=None,
+        **kwargs
+    ):
         """
         Send ``POST`` request.
 
@@ -348,10 +386,35 @@ class Request(object):
         :return: Requests :class:`~requests.Response`
         """
         return self._request_manager(
-            http_method="post", api_namespace=_name, api_method=_method, **kwargs
+            http_method="post",
+            api_namespace=_name,
+            api_method=_method,
+            requests_args=requests_args,
+            requests_params=requests_params,
+            headers=headers,
+            params=params,
+            data=data,
+            files=files,
+            response_class=response_class,
+            **kwargs
         )
 
-    def _request_manager(self, _retries=1, _retry_backoff_factor=0.3, **kwargs):
+    def _request_manager(
+        self,
+        http_method,
+        api_namespace,
+        api_method,
+        _retries=1,
+        _retry_backoff_factor=0.3,
+        requests_args=None,
+        requests_params=None,
+        headers=None,
+        params=None,
+        data=None,
+        files=None,
+        response_class=None,
+        **kwargs
+    ):
         """
         Wrapper to manage request retries and severe exceptions.
 
@@ -398,12 +461,26 @@ class Request(object):
         max_retries = _retries if _retries >= 1 else 1
         for retry in range(0, (max_retries + 1)):  # pragma: no branch
             try:
-                return self._request(**kwargs)
+                return self._request(
+                    http_method=http_method,
+                    api_namespace=api_namespace,
+                    api_method=api_method,
+                    requests_args=requests_args,
+                    requests_params=requests_params,
+                    headers=headers,
+                    params=params,
+                    data=data,
+                    files=files,
+                    response_class=response_class,
+                    **kwargs
+                )
             except HTTPError as exc:
                 # retry the request for HTTP 500 statuses;
                 # raise immediately for other HTTP errors (e.g. 4XX statuses)
                 if retry >= max_retries or not isinstance(exc, HTTP5XXError):
                     raise
+            except APIError:
+                raise
             except Exception as exc:
                 if retry >= max_retries:
                     error_message = build_error_msg(exc=exc)
@@ -424,6 +501,7 @@ class Request(object):
         params=None,
         data=None,
         files=None,
+        response_class=None,
         **kwargs
     ):
         """
@@ -439,11 +517,11 @@ class Request(object):
         :param params: key/value pairs to send with a ``GET`` request
         :param data: key/value pairs to send with a ``POST`` request
         :param files: files to be sent with the request
+        :param response_class: class to use to cast the API response
         :param kwargs: arbitrary keyword args to send to qBittorrent with the request
         :return: Requests :class:`~requests.Response`
         """
-        kwargs = self._trim_known_kwargs(**kwargs)
-
+        response_kwargs, kwargs = self._get_response_kwargs(kwargs)
         requests_kwargs = self._get_requests_kwargs(requests_args, requests_params)
         headers = self._get_headers(headers, requests_kwargs.pop("headers", {}))
         url = self._url.build_url(api_namespace, api_method, headers, requests_kwargs)
@@ -461,23 +539,22 @@ class Request(object):
 
         self._verbose_logging(http_method, url, data, params, requests_kwargs, response)
         self._handle_error_responses(data, params, response)
-        return response
+        return self._cast(response, response_class, **response_kwargs)
 
     @staticmethod
-    def _trim_known_kwargs(**kwargs):
+    def _get_response_kwargs(kwargs):
         """
-        Since any extra keyword arguments from the user are automatically
-        included in the request to qBittorrent, this removes any "known"
-        arguments that definitely shouldn't be sent to qBittorrent. Generally,
-        these are removed in previous processing, but in certain circumstances,
-        they can survive in to request.
+        Determine the kwargs for managing the response to return.
 
         :param kwargs: extra keywords arguments to be passed along in request
         :return: sanitized arguments
         """
-        kwargs.pop("SIMPLE_RESPONSES", None)
-        kwargs.pop("SIMPLE_RESPONSE", None)
-        return kwargs
+        response_kwargs = {
+            "SIMPLE_RESPONSES": kwargs.pop(
+                "SIMPLE_RESPONSES", kwargs.pop("SIMPLE_RESPONSE", None)
+            )
+        }
+        return response_kwargs, kwargs
 
     def _get_requests_kwargs(self, requests_args=None, requests_params=None):
         """
@@ -493,7 +570,8 @@ class Request(object):
         requests_kwargs.update(requests_args or requests_params or {})
         return requests_kwargs
 
-    def _get_headers(self, headers=None, more_headers=None):
+    @staticmethod
+    def _get_headers(headers=None, more_headers=None):
         """
         Determine headers specific to this request. Request headers can be
         specified explicitly or with the requests kwargs. Headers specified in
@@ -507,7 +585,8 @@ class Request(object):
         user_headers.update(headers or {})
         return user_headers
 
-    def _get_data(self, http_method, params=None, data=None, files=None, **kwargs):
+    @staticmethod
+    def _get_data(http_method, params=None, data=None, files=None, **kwargs):
         """
         Determine data, params, and files for the Requests call.
 
@@ -531,6 +610,42 @@ class Request(object):
                 data.update(kwargs)
 
         return params, data, files
+
+    def _cast(self, response, response_class, **response_kwargs):
+        """
+        Returns the API response casted to the requested class.
+
+        :param response: requests ``Response`` from API
+        :param response_class: class to return response as; if none, response is returned
+        :param response_kwargs: request-specific configuration for response
+        :return: API response as type of ``response_class``
+        """
+        try:
+            if response_class is None:
+                return response
+            if response_class is six.text_type:
+                # convert back to bytes for python 2 since it's always worked that way...
+                return str(response.text)
+            if response_class is int:
+                return int(response.text)
+            if response_class is bytes:
+                return response.content
+            if issubclass(response_class, (Dictionary, List)):
+                try:
+                    result = response.json()
+                except AttributeError:
+                    # just in case the requests package is old and doesn't contain json()
+                    result = loads(response.text)
+                if self._SIMPLE_RESPONSES or response_kwargs.get("SIMPLE_RESPONSES"):
+                    return result
+                else:
+                    return response_class(result, client=self)
+        except Exception as exc:
+            logger.debug("Exception during response parsing.", exc_info=True)
+            raise APIError("Exception during response parsing. Error: %r" % exc)
+        else:
+            logger.debug("No handler defined to cast response.", exc_info=True)
+            raise APIError("No handler defined to cast response to %r" % response_class)
 
     @property
     def _session(self):

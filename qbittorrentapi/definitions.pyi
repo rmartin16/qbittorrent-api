@@ -1,17 +1,26 @@
 from enum import Enum
-from typing import Iterable
-from typing import MutableMapping
+from typing import Any
+from typing import Optional
 from typing import Text
 from typing import Type
+from typing import TypeVar
 
 try:
     from collections import UserList
 except ImportError:
-    from UserList import UserList
+    from UserList import UserList  # type: ignore
 
 from qbittorrentapi._attrdict import AttrDict
+from qbittorrentapi._types import DictInputT
+from qbittorrentapi._types import JsonDictionaryT
+from qbittorrentapi._types import KwargsT
+from qbittorrentapi._types import ListInputT
 from qbittorrentapi.client import Client
 from qbittorrentapi.request import Request
+
+K = TypeVar("K")
+V = TypeVar("V")
+ListEntryT = TypeVar("ListEntryT", bound=JsonDictionaryT)
 
 class APINames(Enum):
     Authorization: Text
@@ -60,19 +69,23 @@ class TorrentStates(Enum):
 
 class ClientCache:
     _client: Client
-    def __init__(self, *args, client: Request, **kwargs) -> None: ...
+    def __init__(self, *args: Any, client: Request, **kwargs: KwargsT) -> None: ...
 
-class Dictionary(ClientCache, AttrDict):
-    def __init__(self, data: MutableMapping = None, client: Request = None): ...
-    @staticmethod
-    def _normalize(data: MutableMapping) -> AttrDict: ...
-
-class List(ClientCache, UserList):
+class Dictionary(ClientCache, AttrDict[K, V]):
     def __init__(
         self,
-        list_entries: Iterable = None,
-        entry_class: Type[ListEntry] = None,
-        client: Request = None,
+        data: Optional[DictInputT] = None,
+        client: Optional[Request] = None,
+    ): ...
+    @classmethod
+    def _normalize(cls, data: DictInputT) -> AttrDict[K, V]: ...
+
+class List(ClientCache, UserList[ListEntryT]):
+    def __init__(
+        self,
+        list_entries: Optional[ListInputT] = None,
+        entry_class: Optional[Type[ListEntryT]] = None,
+        client: Optional[Request] = None,
     ) -> None: ...
 
-class ListEntry(Dictionary): ...
+class ListEntry(JsonDictionaryT): ...

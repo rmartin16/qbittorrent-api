@@ -17,7 +17,7 @@ repos:
         additional_dependencies: [toml]
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.38.4  # DO NOT UPGRADE THIS - v3 drops python 2 support
+    rev: v2.38.4  # DO NOT UPGRADE THIS - use v2.38.4 - v3 drops Python 2 support
     hooks:
       - id: pyupgrade
 
@@ -38,3 +38,34 @@ repos:
     hooks:
       - id: flake8
         additional_dependencies: [flake8-eradicate~=1.4]
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.991
+    hooks:
+      - id: mypy
+        files: '.*\.pyi'
+        additional_dependencies: ["types-requests", "types-six"]
+        args:
+          - "--strict"
+          - "--disallow-any-unimported"
+          - "--disallow-any-expr"
+          - "--disallow-any-decorated"
+          - "--warn-unreachable"
+          - "--warn-unused-ignores"
+          - "--warn-redundant-casts"
+          - "--strict-optional"
+          - "--show-traceback"
+          - "--pdb"
+
+  - repo: local
+    hooks:
+      - id: stubtest
+        name: mypy.stubtest
+        language: system
+        entry: stubtest
+        args: [ "qbittorrentapi", "--allowlist=tests/resources/mypy_stubtest_allowlist.txt" ]
+        pass_filenames: false
+        types_or:
+          - python
+          - text
+        files: '.*\.pyi?'
