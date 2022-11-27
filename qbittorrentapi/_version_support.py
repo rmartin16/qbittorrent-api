@@ -42,10 +42,12 @@ APP_VERSION_2_API_VERSION_MAP = {
     "v4.4.3.1": "2.8.5",
     "v4.4.4": "2.8.5",
     "v4.4.5": "2.8.5",
+    "v4.5.0beta1": "2.8.14",
+    "v4.5.0": "2.8.18",
 }
 
-MOST_RECENT_SUPPORTED_APP_VERSION = "v4.4.5"
-MOST_RECENT_SUPPORTED_API_VERSION = "2.8.5"
+MOST_RECENT_SUPPORTED_APP_VERSION = "v4.5.0"
+MOST_RECENT_SUPPORTED_API_VERSION = "2.8.18"
 
 
 @lru_cache(maxsize=None)

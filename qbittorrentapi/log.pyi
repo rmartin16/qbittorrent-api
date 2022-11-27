@@ -1,21 +1,27 @@
-from typing import Iterable
+from typing import Optional
 from typing import Text
 
+from qbittorrentapi._types import KwargsT
+from qbittorrentapi._types import ListInputT
 from qbittorrentapi.app import AppAPIMixIn
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import List
 from qbittorrentapi.definitions import ListEntry
 
-class LogPeersList(List):
+class LogPeersList(List[LogPeer]):
     def __init__(
-        self, list_entries: Iterable = None, client: LogAPIMixIn = None
+        self,
+        list_entries: ListInputT,
+        client: LogAPIMixIn,
     ) -> None: ...
 
 class LogPeer(ListEntry): ...
 
-class LogMainList(List):
+class LogMainList(List[LogEntry]):
     def __init__(
-        self, list_entries: Iterable = None, client: LogAPIMixIn = None
+        self,
+        list_entries: ListInputT,
+        client: LogAPIMixIn,
     ) -> None: ...
 
 class LogEntry(ListEntry): ...
@@ -24,53 +30,65 @@ class Log(ClientCache):
     main: _Main
     def __init__(self, client: LogAPIMixIn) -> None: ...
     def peers(
-        self, last_known_id: Text | int = None, **kwargs
-    ) -> LogPeersList[LogPeer]: ...
+        self,
+        last_known_id: Optional[Text | int] = None,
+        **kwargs: KwargsT,
+    ) -> LogPeersList: ...
 
     class _Main(ClientCache):
         def _api_call(
             self,
-            normal: bool = None,
-            info: bool = None,
-            warning: bool = None,
-            critical: bool = None,
-            last_known_id: bool = None,
-            **kwargs
-        ) -> LogMainList[LogEntry]: ...
+            normal: Optional[bool] = None,
+            info: Optional[bool] = None,
+            warning: Optional[bool] = None,
+            critical: Optional[bool] = None,
+            last_known_id: Optional[bool] = None,
+            **kwargs: KwargsT
+        ) -> LogMainList: ...
         def __call__(
             self,
-            normal: bool = None,
-            info: bool = None,
-            warning: bool = None,
-            critical: bool = None,
-            last_known_id: bool = None,
-            **kwargs
-        ) -> LogMainList[LogEntry]: ...
+            normal: Optional[bool] = None,
+            info: Optional[bool] = None,
+            warning: Optional[bool] = None,
+            critical: Optional[bool] = None,
+            last_known_id: Optional[bool] = None,
+            **kwargs: KwargsT
+        ) -> LogMainList: ...
         def info(
-            self, last_known_id: Text | int = None, **kwargs
-        ) -> LogMainList[LogEntry]: ...
+            self,
+            last_known_id: Optional[Text | int] = None,
+            **kwargs: KwargsT,
+        ) -> LogMainList: ...
         def normal(
-            self, last_known_id: Text | int = None, **kwargs
-        ) -> LogMainList[LogEntry]: ...
+            self,
+            last_known_id: Optional[Text | int] = None,
+            **kwargs: KwargsT,
+        ) -> LogMainList: ...
         def warning(
-            self, last_known_id: Text | int = None, **kwargs
-        ) -> LogMainList[LogEntry]: ...
+            self,
+            last_known_id: Optional[Text | int] = None,
+            **kwargs: KwargsT,
+        ) -> LogMainList: ...
         def critical(
-            self, last_known_id: Text | int = None, **kwargs
-        ) -> LogMainList[LogEntry]: ...
+            self,
+            last_known_id: Optional[Text | int] = None,
+            **kwargs: KwargsT,
+        ) -> LogMainList: ...
 
 class LogAPIMixIn(AppAPIMixIn):
     @property
     def log(self) -> Log: ...
     def log_main(
         self,
-        normal: bool = None,
-        info: bool = None,
-        warning: bool = None,
-        critical: bool = None,
-        last_known_id: bool = None,
-        **kwargs
-    ) -> LogMainList[LogEntry]: ...
+        normal: Optional[bool] = None,
+        info: Optional[bool] = None,
+        warning: Optional[bool] = None,
+        critical: Optional[bool] = None,
+        last_known_id: Optional[bool] = None,
+        **kwargs: KwargsT
+    ) -> LogMainList: ...
     def log_peers(
-        self, last_known_id: Text | int = None, **kwargs
-    ) -> LogPeersList[LogPeer]: ...
+        self,
+        last_known_id: Optional[Text | int] = None,
+        **kwargs: KwargsT,
+    ) -> LogPeersList: ...

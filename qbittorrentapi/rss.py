@@ -6,7 +6,6 @@ from qbittorrentapi.decorators import alias
 from qbittorrentapi.decorators import aliased
 from qbittorrentapi.decorators import endpoint_introduced
 from qbittorrentapi.decorators import login_required
-from qbittorrentapi.decorators import response_json
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary
@@ -147,7 +146,7 @@ class RSSAPIMixIn(AppAPIMixIn):
     @login_required
     def rss_add_folder(self, folder_path=None, **kwargs):
         """
-        Add a RSS folder. Any intermediate folders in path must already exist.
+        Add an RSS folder. Any intermediate folders in path must already exist.
 
         :raises Conflict409Error:
 
@@ -176,7 +175,7 @@ class RSSAPIMixIn(AppAPIMixIn):
     @login_required
     def rss_remove_item(self, item_path=None, **kwargs):
         """
-        Remove a RSS item (folder, feed, etc).
+        Remove an RSS item (folder, feed, etc).
 
         NOTE: Removing a folder also removes everything in it.
 
@@ -192,7 +191,7 @@ class RSSAPIMixIn(AppAPIMixIn):
     @login_required
     def rss_move_item(self, orig_item_path=None, new_item_path=None, **kwargs):
         """
-        Move/rename a RSS item (folder, feed, etc).
+        Move/rename an RSS item (folder, feed, etc).
 
         :raises Conflict409Error:
 
@@ -203,7 +202,6 @@ class RSSAPIMixIn(AppAPIMixIn):
         data = {"itemPath": orig_item_path, "destPath": new_item_path}
         self._post(_name=APINames.RSS, _method="moveItem", data=data, **kwargs)
 
-    @response_json(RSSitemsDictionary)
     @login_required
     def rss_items(self, include_feed_data=None, **kwargs):
         """
@@ -213,7 +211,13 @@ class RSSAPIMixIn(AppAPIMixIn):
         :return: :class:`RSSitemsDictionary`
         """
         params = {"withData": include_feed_data}
-        return self._get(_name=APINames.RSS, _method="items", params=params, **kwargs)
+        return self._get(
+            _name=APINames.RSS,
+            _method="items",
+            params=params,
+            response_class=RSSitemsDictionary,
+            **kwargs
+        )
 
     @endpoint_introduced("2.2", "rss/refreshItem")
     @alias("rss_refreshItem")
@@ -264,7 +268,7 @@ class RSSAPIMixIn(AppAPIMixIn):
     @login_required
     def rss_rename_rule(self, orig_rule_name=None, new_rule_name=None, **kwargs):
         """
-        Rename a RSS auto-download rule.
+        Rename an RSS auto-download rule.
 
         Note: this endpoint did not work properly until qBittorrent v4.3.0
 
@@ -287,7 +291,6 @@ class RSSAPIMixIn(AppAPIMixIn):
         data = {"ruleName": rule_name}
         self._post(_name=APINames.RSS, _method="removeRule", data=data, **kwargs)
 
-    @response_json(RSSRulesDictionary)
     @login_required
     def rss_rules(self, **kwargs):
         """
@@ -295,11 +298,15 @@ class RSSAPIMixIn(AppAPIMixIn):
 
         :return: :class:`RSSRulesDictionary`
         """
-        return self._get(_name=APINames.RSS, _method="rules", **kwargs)
+        return self._get(
+            _name=APINames.RSS,
+            _method="rules",
+            response_class=RSSRulesDictionary,
+            **kwargs
+        )
 
     @endpoint_introduced("2.5.1", "rss/matchingArticles")
     @alias("rss_matchingArticles")
-    @response_json(RSSitemsDictionary)
     @login_required
     def rss_matching_articles(self, rule_name=None, **kwargs):
         """
@@ -310,5 +317,9 @@ class RSSAPIMixIn(AppAPIMixIn):
         """
         data = {"ruleName": rule_name}
         return self._post(
-            _name=APINames.RSS, _method="matchingArticles", data=data, **kwargs
+            _name=APINames.RSS,
+            _method="matchingArticles",
+            data=data,
+            response_class=RSSitemsDictionary,
+            **kwargs
         )

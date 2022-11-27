@@ -1,5 +1,12 @@
 Change log
 ==========
+### v2022.11.40 (27 nov 2022)
+- Support qBittorrent v4.5.0 release
+- Add support for ``torrents/export``
+- Implement new ``transfer/setSpeedLimitsMode`` in place of existing ``transfer/toggleSpeedLimitsMode``
+- Add support for ``stopCondition`` in ``torrents/add``
+- Update typing to be complete, accurate, and shipped with the package
+
 ### v2022.10.39 (26 oct 2022)
 - Advertise support for Python 3.11
 

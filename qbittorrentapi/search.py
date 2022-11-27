@@ -3,7 +3,6 @@ from qbittorrentapi.decorators import alias
 from qbittorrentapi.decorators import aliased
 from qbittorrentapi.decorators import endpoint_introduced
 from qbittorrentapi.decorators import login_required
-from qbittorrentapi.decorators import response_json
 from qbittorrentapi.decorators import version_removed
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
@@ -45,9 +44,9 @@ class SearchResultsDictionary(Dictionary):
 class SearchStatusesList(List):
     """Response for :meth:`~SearchAPIMixIn.search_status`"""
 
-    def __init__(self, list_entries=None, client=None):
+    def __init__(self, list_entries, client):
         super(SearchStatusesList, self).__init__(
-            list_entries, entry_class=SearchStatus, client=client
+            client=client, entry_class=SearchStatus, list_entries=list_entries
         )
 
 
@@ -58,9 +57,9 @@ class SearchStatus(ListEntry):
 class SearchCategoriesList(List):
     """Response for :meth:`~SearchAPIMixIn.search_categories`"""
 
-    def __init__(self, list_entries=None, client=None):
+    def __init__(self, list_entries, client):
         super(SearchCategoriesList, self).__init__(
-            list_entries, entry_class=SearchCategory, client=client
+            client=client, entry_class=SearchCategory, list_entries=list_entries
         )
 
 
@@ -71,9 +70,9 @@ class SearchCategory(ListEntry):
 class SearchPluginsList(List):
     """Response for :meth:`~SearchAPIMixIn.search_plugins`"""
 
-    def __init__(self, list_entries=None, client=None):
+    def __init__(self, list_entries, client):
         super(SearchPluginsList, self).__init__(
-            list_entries, entry_class=SearchPlugin, client=client
+            client=client, entry_class=SearchPlugin, list_entries=list_entries
         )
 
 
@@ -187,7 +186,6 @@ class SearchAPIMixIn(AppAPIMixIn):
         return self._search
 
     @endpoint_introduced("2.1.1", "search/start")
-    @response_json(SearchJobDictionary)
     @login_required
     def search_start(self, pattern=None, plugins=None, category=None, **kwargs):
         """
@@ -206,7 +204,13 @@ class SearchAPIMixIn(AppAPIMixIn):
             "plugins": self._list2string(plugins, "|"),
             "category": category,
         }
-        return self._post(_name=APINames.Search, _method="start", data=data, **kwargs)
+        return self._post(
+            _name=APINames.Search,
+            _method="start",
+            data=data,
+            response_class=SearchJobDictionary,
+            **kwargs
+        )
 
     @endpoint_introduced("2.1.1", "search/stop")
     @login_required
@@ -223,7 +227,6 @@ class SearchAPIMixIn(AppAPIMixIn):
         self._post(_name=APINames.Search, _method="stop", data=data, **kwargs)
 
     @endpoint_introduced("2.1.1", "search/status")
-    @response_json(SearchStatusesList)
     @login_required
     def search_status(self, search_id=None, **kwargs):
         """
@@ -236,11 +239,14 @@ class SearchAPIMixIn(AppAPIMixIn):
         """  # noqa: E501
         params = {"id": search_id}
         return self._get(
-            _name=APINames.Search, _method="status", params=params, **kwargs
+            _name=APINames.Search,
+            _method="status",
+            params=params,
+            response_class=SearchStatusesList,
+            **kwargs
         )
 
     @endpoint_introduced("2.1.1", "search/results")
-    @response_json(SearchResultsDictionary)
     @login_required
     def search_results(self, search_id=None, limit=None, offset=None, **kwargs):
         """
@@ -255,7 +261,13 @@ class SearchAPIMixIn(AppAPIMixIn):
         :return: :class:`SearchResultsDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-results>`_
         """  # noqa: E501
         data = {"id": search_id, "limit": limit, "offset": offset}
-        return self._post(_name=APINames.Search, _method="results", data=data, **kwargs)
+        return self._post(
+            _name=APINames.Search,
+            _method="results",
+            data=data,
+            response_class=SearchResultsDictionary,
+            **kwargs
+        )
 
     @endpoint_introduced("2.1.1", "search/delete")
     @login_required
@@ -273,7 +285,6 @@ class SearchAPIMixIn(AppAPIMixIn):
 
     @endpoint_introduced("2.1.1", "search/categories")
     @version_removed("2.6", "search/categories")
-    @response_json(SearchCategoriesList)
     @login_required
     def search_categories(self, plugin_name=None, **kwargs):
         """
@@ -286,11 +297,14 @@ class SearchAPIMixIn(AppAPIMixIn):
         """
         data = {"pluginName": plugin_name}
         return self._post(
-            _name=APINames.Search, _method="categories", data=data, **kwargs
+            _name=APINames.Search,
+            _method="categories",
+            data=data,
+            response_class=SearchCategoriesList,
+            **kwargs
         )
 
     @endpoint_introduced("2.1.1", "search/plugins")
-    @response_json(SearchPluginsList)
     @login_required
     def search_plugins(self, **kwargs):
         """
@@ -298,7 +312,12 @@ class SearchAPIMixIn(AppAPIMixIn):
 
         :return: :class:`SearchPluginsList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-plugins>`_
         """  # noqa: E501
-        return self._get(_name=APINames.Search, _method="plugins", **kwargs)
+        return self._get(
+            _name=APINames.Search,
+            _method="plugins",
+            response_class=SearchPluginsList,
+            **kwargs
+        )
 
     @endpoint_introduced("2.1.1", "search/installPlugin")
     @alias("search_installPlugin")

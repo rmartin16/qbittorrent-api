@@ -88,7 +88,36 @@ class Client(
     :param DISABLE_LOGGING_DEBUG_OUTPUT: Turn off debug output from logging for this package as well as Requests & urllib3.
     """  # noqa: E501
 
-    def __init__(self, host="", port=None, username=None, password=None, **kwargs):
+    def __init__(
+        self,
+        host="",
+        port=None,
+        username=None,
+        password=None,
+        EXTRA_HEADERS=None,
+        REQUESTS_ARGS=None,
+        VERIFY_WEBUI_CERTIFICATE=True,
+        FORCE_SCHEME_FROM_HOST=False,
+        RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=False,
+        RAISE_ERROR_FOR_UNSUPPORTED_QBITTORRENT_VERSIONS=False,
+        VERBOSE_RESPONSE_LOGGING=False,
+        SIMPLE_RESPONSES=False,
+        DISABLE_LOGGING_DEBUG_OUTPUT=False,
+        **kwargs
+    ):
         super(Client, self).__init__(
-            host=host, port=port, username=username, password=password, **kwargs
+            host=host,
+            port=port,
+            username=username,
+            password=password,
+            EXTRA_HEADERS=EXTRA_HEADERS,
+            REQUESTS_ARGS=REQUESTS_ARGS,
+            VERIFY_WEBUI_CERTIFICATE=VERIFY_WEBUI_CERTIFICATE,
+            FORCE_SCHEME_FROM_HOST=FORCE_SCHEME_FROM_HOST,
+            RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS,  # noqa: E501
+            RAISE_ERROR_FOR_UNSUPPORTED_QBITTORRENT_VERSIONS=RAISE_ERROR_FOR_UNSUPPORTED_QBITTORRENT_VERSIONS,
+            VERBOSE_RESPONSE_LOGGING=VERBOSE_RESPONSE_LOGGING,
+            SIMPLE_RESPONSES=SIMPLE_RESPONSES,
+            DISABLE_LOGGING_DEBUG_OUTPUT=DISABLE_LOGGING_DEBUG_OUTPUT,
+            **kwargs
         )

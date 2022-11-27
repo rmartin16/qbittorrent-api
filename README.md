@@ -9,7 +9,7 @@ Python client implementation for qBittorrent Web API
 
 </div>
 
-Currently supports qBittorrent [v4.4.5](https://github.com/qbittorrent/qBittorrent/releases/tag/release-4.4.5) (Web API v2.8.5) released on Aug 29, 2022.
+Currently supports qBittorrent [v4.5.0](https://github.com/qbittorrent/qBittorrent/releases/tag/release-4.5.0) (Web API v2.8.18) released on Nov 26, 2022.
 
 User Guide and API Reference available on [Read the Docs](https://qbittorrent-api.readthedocs.io/).
 

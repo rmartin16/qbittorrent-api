@@ -1,9 +1,7 @@
 from functools import wraps
-from json import loads
 from logging import getLogger
 
 from qbittorrentapi._version_support import v
-from qbittorrentapi.exceptions import APIError
 from qbittorrentapi.exceptions import HTTP403Error
 
 logger = getLogger(__name__)
@@ -118,67 +116,6 @@ def handle_hashes(func):
         return func(client, *args, **kwargs)
 
     return wrapper
-
-
-def response_text(response_class):
-    """
-    Return the UTF-8 encoding of the API response.
-
-    :param response_class: class to cast the response to
-    :return: Text of the response casted to the specified class
-    """
-
-    def _inner(func):
-        @wraps(func)
-        def wrapper(client, *args, **kwargs):
-            result = func(client, *args, **kwargs)
-            if isinstance(result, response_class):
-                return result
-            try:
-                return response_class(result.text)
-            except Exception:
-                logger.debug("Exception during response parsing.", exc_info=True)
-                raise APIError("Exception during response parsing")
-
-        return wrapper
-
-    return _inner
-
-
-def response_json(response_class):
-    """
-    Return the JSON in the API response. JSON is parsed as instance of
-    response_class.
-
-    :param response_class: class to parse the JSON in to
-    :return: JSON as the response class
-    """
-
-    def _inner(func):
-        @wraps(func)
-        def wrapper(client, *args, **kwargs):
-            simple_response = client._SIMPLE_RESPONSES or kwargs.pop(
-                "SIMPLE_RESPONSES", kwargs.pop("SIMPLE_RESPONSE", False)
-            )
-            response = func(client, *args, **kwargs)
-            try:
-                if isinstance(response, response_class):
-                    return response
-                try:
-                    result = response.json()
-                except AttributeError:
-                    # just in case the requests package is old and doesn't contain json()
-                    result = loads(response.text)
-                if simple_response:
-                    return result
-                return response_class(result, client)
-            except Exception as exc:
-                logger.debug("Exception during response parsing.", exc_info=True)
-                raise APIError("Exception during response parsing. Error: %r" % exc)
-
-        return wrapper
-
-    return _inner
 
 
 def check_for_raise(client, error_message):
