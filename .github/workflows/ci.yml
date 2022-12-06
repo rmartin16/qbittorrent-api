@@ -14,10 +14,8 @@ env:
   LATEST_QBT_VER: "v4.5.0"
   SUBMIT_COVERAGE_VERSIONS: '[ "3.11" ]'
   QBITTORRENTAPI_HOST: "localhost:8080"
-  QBITTORRENTAPI_PASSWORD: "adminadmin"
   QBITTORRENTAPI_USERNAME: "admin"
-  DOCKER_IMAGE_NAME: "ghcr.io/rmartin16/qbittorrent-nox"
-  DOCKER_ARGS: "--name qbt --detach --publish 8080:8080 --volume ${{ github.workspace }}/tests/resources:/tmp/resources"
+  QBITTORRENTAPI_PASSWORD: "adminadmin"
 
 jobs:
   verify:
@@ -25,16 +23,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
-      qbittorrent-latest-version: ${{ steps.set-qbittorrent-latest-version.outputs.qbittorrent-latest-version }}
-      python-latest-version: ${{ steps.set-python-latest-version.outputs.python-latest-version }}
+      python-latest-version: ${{ steps.set-outputs.outputs.python-latest-version }}
+      qbittorrent-latest-version: ${{ steps.set-outputs.outputs.qbittorrent-latest-version }}
+      qbittorrent-host: ${{ steps.set-outputs.outputs.qbittorrent-host }}
+      qbittorrent-username: ${{ steps.set-outputs.outputs.qbittorrent-username }}
+      qbittorrent-password: ${{ steps.set-outputs.outputs.qbittorrent-password }}
+      coverage-versions: ${{ steps.set-outputs.outputs.coverage-versions }}
     steps:
-      - name: Declare Latest qBittorrent Version
-        id: set-qbittorrent-latest-version
-        run: echo "qbittorrent-latest-version=${{ env.LATEST_QBT_VER }}" >> ${GITHUB_OUTPUT}
-
-      - name: Declare Latest Python Version
-        id: set-python-latest-version
-        run: echo "python-latest-version=${{ env.LATEST_PYTHON_VER }}" >> ${GITHUB_OUTPUT}
+      - name: Declare Outputs
+        id: set-outputs
+        run: |
+          echo "python-latest-version=${{ env.LATEST_PYTHON_VER }}" >> ${GITHUB_OUTPUT}
+          echo "qbittorrent-latest-version=${{ env.LATEST_QBT_VER }}" >> ${GITHUB_OUTPUT}
+          echo "qbittorrent-host=${{ env.QBITTORRENTAPI_HOST }}" >> ${GITHUB_OUTPUT}
+          echo "qbittorrent-username=${{ env.QBITTORRENTAPI_USERNAME }}" >> ${GITHUB_OUTPUT}
+          echo "qbittorrent-password=${{ env.QBITTORRENTAPI_PASSWORD }}" >> ${GITHUB_OUTPUT}
+          echo "coverage-versions=${{ env.SUBMIT_COVERAGE_VERSIONS }}" >> ${GITHUB_OUTPUT}
 
       - name: Checkout Repo
         uses: actions/checkout@v3.1.0
@@ -53,114 +57,89 @@ jobs:
       - name: Lint
         uses: pre-commit/action@v3.0.0
 
-  Tests:
-    name: "Release Test ${{ matrix.PYTHON_VER }} - ${{ matrix.QBT_VER }}"
-    needs: [verify]
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    timeout-minutes: 30
-    env:
-      IS_QBT_DEV: ${{ matrix.IS_QBT_DEV }}
-      QBT_VER: ${{ matrix.QBT_VER }}
+  Tests-qBittorrent:
+    name: "Release Test ${{ needs.verify.outputs.python-latest-version }} - ${{ matrix.QBT_VER }}"
+    needs: verify
     strategy:
       matrix:
-        PYTHON_VER: [ "${{ needs.verify.outputs.python-latest-version }}" ]
-        QBT_VER: [ v4.5.0, v4.4.4, v4.3.9, v4.3.5, v4.3.4.1, v4.3.3, v4.3.2, v4.3.1, v4.3.0.1, v4.2.5, v4.2.0, v4.1.6, v4.1.0 ]
+        QBT_VER:
+          - "v4.4.4"
+          - "v4.3.9"
+          - "v4.3.5"
+          - "v4.3.4.1"
+          - "v4.3.3"
+          - "v4.3.2"
+          - "v4.3.1"
+          - "v4.3.0.1"
+          - "v4.2.5"
+          - "v4.2.0"
+          - "v4.1.6"
+          - "v4.1.0"
         include:
-          # test all python versions against latest qBittorrent
-          - PYTHON_VER: "3.12-dev"
-            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
-          - PYTHON_VER: "3.11"
-            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
-          - PYTHON_VER: "3.10"
-            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
-          - PYTHON_VER: "3.9"
-            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
-          - PYTHON_VER: "3.8"
-            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
-          - PYTHON_VER: "pypy3.8"
-            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
-          - PYTHON_VER: "3.7"
-            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
-          - PYTHON_VER: "pypy3.7"
-            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
-          - PYTHON_VER: "3.6"
-            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
-          - PYTHON_VER: "3.5"
-            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
-          - PYTHON_VER: "2.7"
-            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
-          - PYTHON_VER: "pypy2.7"
-            QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
+          - IS_QBT_DEV: false
           # test dev versions of qBittorrent
           - QBT_VER: "master"
             IS_QBT_DEV: true
-            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
           - QBT_VER: "v4_5_x"
             IS_QBT_DEV: true
-            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
           - QBT_VER: "v4_4_x"
             IS_QBT_DEV: true
-            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
           - QBT_VER: "v4_3_x"
             IS_QBT_DEV: true
-            PYTHON_VER: ${{ needs.verify.outputs.python-latest-version }}
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3.1.0
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+    with:
+      python-version: ${{ needs.verify.outputs.python-latest-version }}
+      qbittorrent-version: ${{ matrix.QBT_VER }}
+      qbittorrent-host: ${{ needs.verify.outputs.qbittorrent-host }}
+      qbittorrent-username: ${{ needs.verify.outputs.qbittorrent-username }}
+      qbittorrent-password: ${{ needs.verify.outputs.qbittorrent-password }}
+      is-qbt-dev: ${{ matrix.IS_QBT_DEV }}
+      coverage-versions: ${{ needs.verify.outputs.coverage-versions }}
 
-      - name: Set up Python ${{ matrix.PYTHON_VER }}
-        uses: actions/setup-python@v4.3.0
-        with:
-          python-version: ${{ matrix.PYTHON_VER }}
-          cache: 'pip'
-          check-latest: true
-          cache-dependency-path: ${{ github.workspace }}/setup.cfg
-
-      - name: Start qBittorrent ${{ matrix.QBT_VER }}
-        id: start-qbittorrent
-        run: docker run ${{ env.DOCKER_ARGS }} ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.QBT_VER }}-debug
-
-      - name: Install
-        run: pip install .[test]
-
-      - name: Test
-        run: pytest
-
-      - name: qBittorrent Log
-        if: (steps.start-qbittorrent.outcome == 'success') && (success() || failure())
-        run: docker logs qbt
-
-      - name: Upload Coverage to Codecov
-        if: |
-          contains(fromJson(env.SUBMIT_COVERAGE_VERSIONS), matrix.PYTHON_VER)
-          && contains(fromJson('["push", "pull_request"]'), github.event_name)
-        uses: codecov/codecov-action@v3.1.1
-        with:
-          fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Send mail
-        if: failure()
-        uses: dawidd6/action-send-mail@v3.7.1
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: ${{ github.job }} job of ${{ github.repository }} failed
-          body: |
-            ${{ github.job }} job in workflow ${{ github.workflow }} of ${{ github.repository }} failed.
-            https://github.com/rmartin16/qbittorrent-api/actions/runs/${{ github.run_id }}
-          to: rmartin16+github-action@gmail.com   # comma-separated string
-          from: rmartin16+github-action@gmail.com
+  Tests-Python:
+    name: "Release Test ${{ matrix.PYTHON_VER }} - ${{ needs.verify.outputs.qbittorrent-latest-version }}"
+    needs: verify
+    strategy:
+      matrix:
+        PYTHON_VER:
+          - "3.12-dev"
+          - "3.11"
+          - "3.10"
+          - "3.9"
+          - "3.8"
+          - "3.7"
+          - "3.6"
+          - "3.5"
+          - "2.7"
+          - "pypy3.8"
+          - "pypy3.7"
+          - "pypy2.7"
+        include:
+          - OS_VER: ubuntu-latest
+          # Python 3.5/6 is not available with ubuntu 22.04 or later
+          - PYTHON_VER: "3.6"
+            OS_VER: ubuntu-20.04
+          - PYTHON_VER: "3.5"
+            OS_VER: ubuntu-20.04
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+    with:
+      python-version: ${{ matrix.PYTHON_VER }}
+      qbittorrent-version: ${{ needs.verify.outputs.qbittorrent-latest-version }}
+      qbittorrent-host: ${{ needs.verify.outputs.qbittorrent-host }}
+      qbittorrent-username: ${{ needs.verify.outputs.qbittorrent-username }}
+      qbittorrent-password: ${{ needs.verify.outputs.qbittorrent-password }}
+      is-qbt-dev: false
+      coverage-versions: ${{ needs.verify.outputs.coverage-versions }}
+      runner-os: ${{ matrix.OS_VER }}
 
   package:
     #######
     # Verify build and packaging is successful
     #######
     name: Build & Verify Package
-    needs: [verify]
+    needs: verify
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -190,7 +169,7 @@ jobs:
     # Verify package can be installed on all platforms
     #######
     name: Verify Dev Install
-    needs: [verify]
+    needs: verify
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -219,7 +198,7 @@ jobs:
     # Verify documentation build succeeds
     #######
     name: Verify Doc Build
-    needs: [verify]
+    needs: verify
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
