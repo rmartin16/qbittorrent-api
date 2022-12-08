@@ -25,7 +25,7 @@ qbt_version = environ.get("QBT_VER", "")
 qbt_version = qbt_version if qbt_version.startswith("v") else "v" + qbt_version
 
 environ.setdefault("IS_QBT_DEV", "" if qbt_version in api_version_map else "1")
-IS_QBT_DEV = bool(environ.get("IS_QBT_DEV", False))
+IS_QBT_DEV = environ.get("IS_QBT_DEV", "false") not in ["", "false"]
 
 BASE_PATH = sys_path[0]
 RESOURCES = path.join(BASE_PATH, "tests", "resources")
