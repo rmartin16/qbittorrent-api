@@ -179,8 +179,10 @@ class URL(object):
                  (e.g. ``http://localhost:8080/api/v2/torrents/info``
                  or ``http://example.com/qbt/api/v2/torrents/info``)
         """
-        if isinstance(api_namespace, APINames):
+        try:
             api_namespace = api_namespace.value
+        except AttributeError:
+            pass
         return "/".join(
             str(path_part or "").strip("/")
             for path_part in [self.client._API_BASE_PATH, api_namespace, api_method]
