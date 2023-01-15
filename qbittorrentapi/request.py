@@ -729,8 +729,10 @@ class Request(object):
 
         During the next request, a new session will be created.
         """
-        if hasattr(self, "_http_session") and isinstance(self._http_session, Session):
+        try:
             self._http_session.close()
+        except AttributeError:
+            pass
         self._http_session = None
 
     @staticmethod
