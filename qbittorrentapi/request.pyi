@@ -1,3 +1,4 @@
+from logging import Logger
 from typing import Any
 from typing import Iterable
 from typing import Mapping
@@ -29,6 +30,8 @@ from qbittorrentapi.torrents import TorrentCategories
 from qbittorrentapi.torrents import Torrents
 from qbittorrentapi.torrents import TorrentTags
 from qbittorrentapi.transfer import Transfer
+
+logger: Logger
 
 FinalResponseT = TypeVar(
     "FinalResponseT",
@@ -103,7 +106,7 @@ class Request(object):
     _MOCK_WEB_API_VERSION: Text | None
     def __init__(
         self,
-        host: Optional[Text] = None,
+        host: Optional[Text] = "",
         port: Optional[Text | int] = None,
         username: Optional[Text] = None,
         password: Optional[Text] = None,

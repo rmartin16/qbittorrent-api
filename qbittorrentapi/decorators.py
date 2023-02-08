@@ -138,7 +138,6 @@ def endpoint_introduced(version_introduced, endpoint):
     def _inner(func):
         @wraps(func)
         def wrapper(client, *args, **kwargs):
-
             # if the endpoint doesn't exist, return None or log an error / raise an Exception
             if v(client.app_web_api_version()) < v(version_introduced):
                 error_message = (
@@ -169,7 +168,6 @@ def version_removed(version_obsoleted, endpoint):
     def _inner(func):
         @wraps(func)
         def wrapper(client, *args, **kwargs):
-
             # if the endpoint doesn't exist, return None or log an error / raise an Exception
             if v(client.app_web_api_version()) >= v(version_obsoleted):
                 error_message = (

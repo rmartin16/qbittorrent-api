@@ -70,7 +70,7 @@ def test_add_delete(client, api_version, client_func):
                     with open(mkpath("~/%s" % filename), "wb") as f:
                         for chunk in r.iter_content(chunk_size=1024):
                             f.write(chunk)
-            except (Exception if attempt < (max_attempts - 1) else ZeroDivisionError):
+            except Exception if attempt < (max_attempts - 1) else ZeroDivisionError:
                 pass  # throw away errors until we hit the retry limit
             else:
                 return
