@@ -9,6 +9,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   LATEST_PYTHON_VER: "3.11"
   LATEST_QBT_VER: "v4.5.0"

@@ -179,8 +179,10 @@ class URL(object):
                  (e.g. ``http://localhost:8080/api/v2/torrents/info``
                  or ``http://example.com/qbt/api/v2/torrents/info``)
         """
-        if isinstance(api_namespace, APINames):
+        try:
             api_namespace = api_namespace.value
+        except AttributeError:
+            pass
         return "/".join(
             str(path_part or "").strip("/")
             for path_part in [self.client._API_BASE_PATH, api_namespace, api_method]
@@ -729,8 +731,10 @@ class Request(object):
 
         During the next request, a new session will be created.
         """
-        if hasattr(self, "_http_session") and isinstance(self._http_session, Session):
+        try:
             self._http_session.close()
+        except AttributeError:
+            pass
         self._http_session = None
 
     @staticmethod

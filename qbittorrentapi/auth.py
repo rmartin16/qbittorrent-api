@@ -4,6 +4,7 @@ from qbittorrentapi import Version
 from qbittorrentapi.decorators import login_required
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
+from qbittorrentapi.exceptions import HTTP403Error
 from qbittorrentapi.exceptions import LoginFailed
 from qbittorrentapi.exceptions import UnsupportedQbittorrentVersion
 from qbittorrentapi.request import Request
@@ -65,16 +66,19 @@ class AuthAPIMixIn(Request):
     @property
     def is_logged_in(self):
         """
-        Returns True/False for whether a log-in attempt was ever successfully
-        completed.
+        Returns True if low-overhead API call succeeds; False otherwise.
 
-        It isn't possible to know if qBittorrent will accept whatever SID is locally
-        cached...however, any request that is rejected because of the SID will be
-        automatically retried after a new SID is requested.
+        There isn't a reliable way to know if an existing session is still valid
+        without attempting to use it. qBittorrent invalidates cookies when they expire.
 
-        :returns: True/False for whether a log-in attempt was previously completed
+        :returns: True/False if current auth cookie is accepted by qBittorrent.
         """
-        return bool(self._SID)
+        try:
+            self._post(_name=APINames.Application, _method="version")
+        except HTTP403Error:
+            return False
+        else:
+            return True
 
     def auth_log_in(self, username=None, password=None, **kwargs):
         """
@@ -93,13 +97,14 @@ class AuthAPIMixIn(Request):
 
         self._initialize_context()
         creds = {"username": self.username, "password": self._password}
-        self._post(_name=APINames.Authorization, _method="login", data=creds, **kwargs)
+        auth_response = self._post(
+            _name=APINames.Authorization, _method="login", data=creds, **kwargs
+        )
 
-        if not self.is_logged_in:
+        if auth_response.text != "Ok.":
             logger.debug("Login failed")
             raise LoginFailed()
         logger.debug("Login successful")
-        logger.debug("SID: %s", self._SID)
 
         # check if the connected qBittorrent is fully supported by this Client yet
         if self._RAISE_UNSUPPORTEDVERSIONERROR:
@@ -117,12 +122,22 @@ class AuthAPIMixIn(Request):
     @property
     def _SID(self):
         """
-        Authorization cookie from qBittorrent.
+        Authorization session cookie from qBittorrent using default cookie name
+        `SID`. Backwards compatible for :meth:`~AuthAPIMixIn._session_cookie`.
 
-        :return: SID auth cookie from qBittorrent or None if one isn't already acquired
+        :return: Auth cookie value from qBittorrent or None if one isn't already acquired
+        """
+        return self._session_cookie()
+
+    def _session_cookie(self, cookie_name="SID"):
+        """
+        Authorization session cookie from qBittorrent.
+
+        :param cookie_name: Name of the authorization cookie; configurable after v4.5.0.
+        :return: Auth cookie value from qBittorrent or None if one isn't already acquired
         """
         if self._http_session:
-            return self._http_session.cookies.get("SID", None)
+            return self._http_session.cookies.get(cookie_name, None)
         return None
 
     @login_required

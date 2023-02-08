@@ -70,7 +70,7 @@ def aliased(aliased_class):
 
 
 def login_required(func):
-    """Ensure client is logged in before calling API methods."""
+    """Ensure client is logged in when calling API methods."""
 
     def get_requests_kwargs(**kwargs):
         """Extract kwargs for performing transparent qBittorrent login."""
@@ -82,9 +82,12 @@ def login_required(func):
 
     @wraps(func)
     def wrapper(client, *args, **kwargs):
-        if not client.is_logged_in:
-            logger.debug("Not logged in...attempting login")
-            client.auth_log_in(**get_requests_kwargs(**kwargs))
+        """
+        Attempt API call; 403 is returned if the login is expired or the user
+        is banned.
+
+        Attempt a login and if successful try the API call a final time.
+        """
         try:
             return func(client, *args, **kwargs)
         except HTTP403Error:

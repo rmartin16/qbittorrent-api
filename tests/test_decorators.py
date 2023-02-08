@@ -16,15 +16,18 @@ def test_login_required(caplog, app_version):
         RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True,
         VERIFY_WEBUI_CERTIFICATE=False,
     )
+    # check if first API call works if already logged in
+    client.auth_log_in()
     with caplog.at_level(logging.DEBUG, logger="qbittorrentapi"):
         qbt_version = client.app.version
-    assert "Not logged in...attempting login" in caplog.text
+    assert "Login may have expired...attempting new login" not in caplog.text
     assert qbt_version == app_version
 
+    # ensure login happens after first API call fails
     client.auth_log_out()
     with caplog.at_level(logging.DEBUG, logger="qbittorrentapi"):
         qbt_version = client.app.version
-    assert "Not logged in...attempting login" in caplog.text
+    assert "Login may have expired...attempting new login" in caplog.text
     assert qbt_version == app_version
 
 
