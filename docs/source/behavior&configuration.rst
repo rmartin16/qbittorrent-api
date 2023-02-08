@@ -8,15 +8,25 @@ Untrusted WebUI Certificate
 * Failure to do this for will cause connections to qBittorrent to fail.
 * As a word of caution, doing this actually does turn off certificate verification. Therefore, for instance, potential man-in-the-middle attacks will not be detected and reported (since the error is suppressed). However, the connection will remain encrypted.
 
+.. code:: python
+
+    qbt_client = Client(..., VERIFY_WEBUI_CERTIFICATE=False}
+
 Host, Username and Password
 ***************************
-* These can be provided when instantiating ``Client``
+* The authentication credentials can be provided when instantiating ``Client``:
+
+.. code:: python
+
+    qbt_client = Client(host="localhost:8080", username='...', password='...')
+
+* The credentials can also be specified after ``Client`` is created but calling ``auth_log_in()`` is not strictly necessary to authenticate the client; this will happen automatically for any API request.
 
 .. code:: python
 
     qbt_client.auth_log_in(username='...', password='...')
 
-* Alternatively, set environment variables:
+* Alternatively, the credentials can be specified in environment variables:
 
   * ``QBITTORRENTAPI_HOST``
   * ``QBITTORRENTAPI_USERNAME``
