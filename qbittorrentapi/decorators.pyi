@@ -1,3 +1,4 @@
+from logging import Logger
 from typing import Callable
 from typing import Set
 from typing import Text
@@ -5,6 +6,8 @@ from typing import Type
 from typing import TypeVar
 
 from qbittorrentapi.request import Request
+
+logger: Logger
 
 APIClassT = TypeVar("APIClassT", bound=Request)
 APIReturnValueT = TypeVar("APIReturnValueT")

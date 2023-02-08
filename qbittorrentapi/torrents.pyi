@@ -1,3 +1,4 @@
+from logging import Logger
 from typing import IO
 from typing import Any
 from typing import Callable
@@ -19,6 +20,8 @@ from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import List
 from qbittorrentapi.definitions import ListEntry
 from qbittorrentapi.definitions import TorrentStates
+
+logger: Logger
 
 TorrentStatusesT = Literal[
     "all",

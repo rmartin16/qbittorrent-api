@@ -31,7 +31,7 @@ repos:
     rev: 6.0.0
     hooks:
       - id: flake8
-        #additional_dependencies: [flake8-eradicate]
+#        additional_dependencies: [flake8-eradicate]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.0.0

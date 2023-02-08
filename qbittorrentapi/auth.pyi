@@ -1,9 +1,12 @@
+from logging import Logger
 from typing import Optional
 from typing import Text
 
 from qbittorrentapi._types import KwargsT
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.request import Request
+
+logger: Logger
 
 class Authorization(ClientCache):
     @property

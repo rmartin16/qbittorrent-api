@@ -1,3 +1,4 @@
+from logging import Logger
 from typing import Mapping
 from typing import Optional
 from typing import Text
@@ -7,6 +8,8 @@ from qbittorrentapi._types import JsonValueT
 from qbittorrentapi._types import KwargsT
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.request import Request
+
+logger: Logger
 
 class ApplicationPreferencesDictionary(JsonDictionaryT): ...
 class BuildInfoDictionary(JsonDictionaryT): ...
