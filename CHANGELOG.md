@@ -1,5 +1,9 @@
 Change log
 ==========
+### v2023.2.41 (8 deb 2023)
+- Remove dependence on qBittorrent authentication cookie being named ``SID``
+- Minor typing fixes
+
 ### v2022.11.40 (27 nov 2022)
 - Support qBittorrent v4.5.0 release
 - Add support for ``torrents/export``
