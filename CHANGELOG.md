@@ -1,6 +1,9 @@
 Change log
 ==========
-### v2023.2.41 (8 deb 2023)
+### v2023.2.42 (13 feb 2023)
+- Advertise support for qBittorrent v4.5.1
+
+### v2023.2.41 (8 feb 2023)
 - Remove dependence on qBittorrent authentication cookie being named ``SID``
 - Minor typing fixes
 
@@ -37,10 +40,10 @@ Change log
 
 ### v2022.5.32 (30 may 2022)
 - Implement pre-commit checks
-- Advertise support for qBittorrent 4.4.3.1
+- Advertise support for qBittorrent v4.4.3.1
 
 ### v2022.5.31 (24 may 2022)
-- Advertise support for qBittorrent 4.4.3
+- Advertise support for qBittorrent v4.4.3
 - Revamp GitHub CI
 - Reorg ``Request`` for some more clarity (hopefully)
 
@@ -73,7 +76,7 @@ Change log
 - Support HTTP timeouts as well as arbitrary Requests configurations
 
 ### v2021.8.23 (28 aug 2021)
-- Advertise support for qBittorrent 4.3.8
+- Advertise support for qBittorrent v4.3.8
 - Drop support for Python 3.5
 
 ### v2021.5.22 (12 may 2021)
