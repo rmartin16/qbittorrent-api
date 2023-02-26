@@ -38,19 +38,19 @@ _orig_torrent_url = (
 )
 _orig_torrent_hash = "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0"
 
-torrent1_filename = "kubuntu-22.04.1-desktop-amd64.iso.torrent"
+torrent1_filename = "kubuntu-22.04.2-desktop-amd64.iso.torrent"
 with open(path.join(RESOURCES, torrent1_filename), mode="rb") as f:
     torrent1_file = f.read()
 torrent1_url = (
     "https://cdimage.ubuntu.com/kubuntu/releases/22.04/release/" + torrent1_filename
 )
-torrent1_hash = "8e905ea8e925c3a7fda9eb2e964a0e5c97cc2ce0"
+torrent1_hash = "0ee141f56407236b8acd136d56332f87674650d5"
 
-torrent2_filename = "xubuntu-22.04.1-desktop-amd64.iso.torrent"
+torrent2_filename = "xubuntu-22.04.2-desktop-amd64.iso.torrent"
 torrent2_url = (
     "https://cdimage.ubuntu.com/xubuntu/releases/22.04/release/" + torrent2_filename
 )
-torrent2_hash = "b813f485c0e6d17f6877c8d6942b3bdc7c227176"
+torrent2_hash = "3b2dda82a16378994dbb22c49bbb91c74d2fb19c"
 
 with open(path.join(RESOURCES, "root_folder.torrent"), mode="rb") as f:
     root_folder_torrent_file = f.read()
