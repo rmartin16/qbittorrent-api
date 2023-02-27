@@ -787,12 +787,14 @@ def test_set_share_limits(client, api_version, client_func, orig_torrent):
         "torrents.setLocation",
     ),
 )
-def test_set_location(client, api_version, client_func, new_torrent):
+def test_set_location(client, api_version, app_version, client_func, new_torrent):
     if v(api_version) >= v("2.0.2"):
-        with pytest.raises(Forbidden403Error):
-            get_func(client, client_func)(
-                location="/etc/", torrent_hashes=new_torrent.hash
-            )
+        # stopped erroring when the write check was removed for API
+        if v(app_version) < v("v4.5.2"):
+            with pytest.raises(Forbidden403Error):
+                get_func(client, client_func)(
+                    location="/etc/", torrent_hashes=new_torrent.hash
+                )
 
         loc = mkpath("/tmp", "1")
         get_func(client, client_func)(location=loc, torrent_hashes=new_torrent.hash)
