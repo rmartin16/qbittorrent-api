@@ -1,5 +1,8 @@
 Change log
 ==========
+### v2023.2.43 (27 feb 2023)
+- Advertise support for qBittorrent v4.5.2
+
 ### v2023.2.42 (13 feb 2023)
 - Advertise support for qBittorrent v4.5.1
 

@@ -1953,7 +1953,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         """
         Set location for torrents' files.
 
-        :raises Forbidden403Error: if the user doesn't have permissions to write to the location
+        :raises Forbidden403Error: if the user doesn't have permissions to write to the
+            location (only before v4.5.2 - write check was removed.)
         :raises Conflict409Error: if the directory cannot be created at the location
 
         :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
