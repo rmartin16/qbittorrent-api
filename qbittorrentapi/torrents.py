@@ -734,6 +734,29 @@ class Torrents(ClientCache):
                 **kwargs
             )
 
+        def seeding(
+            self,
+            category=None,
+            sort=None,
+            reverse=None,
+            limit=None,
+            offset=None,
+            torrent_hashes=None,
+            tag=None,
+            **kwargs
+        ):
+            return self._client.torrents_info(
+                status_filter="seeding",
+                category=category,
+                sort=sort,
+                reverse=reverse,
+                limit=limit,
+                offset=offset,
+                torrent_hashes=torrent_hashes,
+                tag=tag,
+                **kwargs
+            )
+
         def completed(
             self,
             category=None,
@@ -908,6 +931,75 @@ class Torrents(ClientCache):
         ):
             return self._client.torrents_info(
                 status_filter="stalled_downloading",
+                category=category,
+                sort=sort,
+                reverse=reverse,
+                limit=limit,
+                offset=offset,
+                torrent_hashes=torrent_hashes,
+                tag=tag,
+                **kwargs
+            )
+
+        def checking(
+            self,
+            category=None,
+            sort=None,
+            reverse=None,
+            limit=None,
+            offset=None,
+            torrent_hashes=None,
+            tag=None,
+            **kwargs
+        ):
+            return self._client.torrents_info(
+                status_filter="checking",
+                category=category,
+                sort=sort,
+                reverse=reverse,
+                limit=limit,
+                offset=offset,
+                torrent_hashes=torrent_hashes,
+                tag=tag,
+                **kwargs
+            )
+
+        def moving(
+            self,
+            category=None,
+            sort=None,
+            reverse=None,
+            limit=None,
+            offset=None,
+            torrent_hashes=None,
+            tag=None,
+            **kwargs
+        ):
+            return self._client.torrents_info(
+                status_filter="moving",
+                category=category,
+                sort=sort,
+                reverse=reverse,
+                limit=limit,
+                offset=offset,
+                torrent_hashes=torrent_hashes,
+                tag=tag,
+                **kwargs
+            )
+
+        def errored(
+            self,
+            category=None,
+            sort=None,
+            reverse=None,
+            limit=None,
+            offset=None,
+            torrent_hashes=None,
+            tag=None,
+            **kwargs
+        ):
+            return self._client.torrents_info(
+                status_filter="errored",
                 category=category,
                 sort=sort,
                 reverse=reverse,
@@ -1688,10 +1780,13 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         Retrieves list of info for torrents.
 
         :param status_filter: Filter list by torrent status.
-            ``all``, ``downloading``, ``completed``, ``paused``, ``active``, ``inactive``, ``resumed``
+            ``all``, ``downloading``, ``seeding``, ``completed``, ``paused``
+            ``active``, ``inactive``, ``resumed``, ``errored``
             Added in Web API 2.4.1:
-            ``stalled``, ``stalled_uploading`` and ``stalled_downloading``
-            Added Web API 2.8.15:
+            ``stalled``, ``stalled_uploading``, and ``stalled_downloading``
+            Added in Web API 2.8.4:
+            ``checking``
+            Added in Web API 2.8.18:
             ``moving``
         :param category: Filter list by category
         :param sort: Sort list by any property returned
