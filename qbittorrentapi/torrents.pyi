@@ -26,6 +26,7 @@ logger: Logger
 TorrentStatusesT = Literal[
     "all",
     "downloading",
+    "seeding",
     "completed",
     "paused",
     "active",
@@ -34,7 +35,7 @@ TorrentStatusesT = Literal[
     "stalled",
     "stalled_uploading",
     "stalled_downloading",
-    "moving",
+    "errored",
 ]
 
 TorrentFilesT = TypeVar(
