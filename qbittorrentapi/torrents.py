@@ -1010,6 +1010,7 @@ class Torrents(ClientCache):
                 **kwargs
             )
 
+
 @aliased
 class TorrentCategories(ClientCache):
     """
