@@ -35,6 +35,7 @@ TorrentStatusesT = Literal[
     "stalled",
     "stalled_uploading",
     "stalled_downloading",
+    "moving",
     "errored",
 ]
 
