@@ -1757,9 +1757,14 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         Retrieves list of info for torrents.
 
         :param status_filter: Filter list by torrent status.
-            ``all``, ``downloading``, ``seeding``, ``completed``, ``paused``, ``active``, ``inactive``, ``resumed``, ``errored``
+            ``all``, ``downloading``, ``seeding``, ``completed``, ``paused``
+            ``active``, ``inactive``, ``resumed``, ``errored``
             Added in Web API 2.4.1:
-            ``stalled``, ``stalled_uploading`` and ``stalled_downloading``
+            ``stalled``, ``stalled_uploading``, and ``stalled_downloading``
+            Added in Web API 2.8.4:
+            ``checking``
+            Added in Web API 2.8.18:
+            ``moving``
         :param category: Filter list by category
         :param sort: Sort list by any property returned
         :param reverse: Reverse sorting

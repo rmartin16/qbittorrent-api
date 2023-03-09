@@ -549,6 +549,7 @@ def test_torrents_info(client, orig_torrent_hash, client_func):
             get_func(client, client_func).stalled_downloading(), TorrentInfoList
         )
         assert isinstance(get_func(client, client_func).checking(), TorrentInfoList)
+        assert isinstance(get_func(client, client_func).moving(), TorrentInfoList)
         assert isinstance(get_func(client, client_func).errored(), TorrentInfoList)
 
 

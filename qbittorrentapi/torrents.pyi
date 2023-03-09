@@ -36,6 +36,7 @@ TorrentStatusesT = Literal[
     "stalled_uploading",
     "stalled_downloading",
     "checking",
+    "moving",
     "errored",
 ]
 
@@ -376,7 +377,7 @@ class Torrents(ClientCache):
             self,
             status_filter: Optional[TorrentStatusesT] = None,
             category: Optional[Text] = None,
-            sort: Optional[TorrentStatusesT] = None,
+            sort: Optional[Text] = None,
             reverse: Optional[bool] = None,
             limit: Optional[Text | int] = None,
             offset: Optional[Text | int] = None,
@@ -387,7 +388,7 @@ class Torrents(ClientCache):
         def all(
             self,
             category: Optional[Text] = None,
-            sort: Optional[TorrentStatusesT] = None,
+            sort: Optional[Text] = None,
             reverse: Optional[bool] = None,
             limit: Optional[Text | int] = None,
             offset: Optional[Text | int] = None,
@@ -398,7 +399,7 @@ class Torrents(ClientCache):
         def downloading(
             self,
             category: Optional[Text] = None,
-            sort: Optional[TorrentStatusesT] = None,
+            sort: Optional[Text] = None,
             reverse: Optional[bool] = None,
             limit: Optional[Text | int] = None,
             offset: Optional[Text | int] = None,
@@ -409,7 +410,7 @@ class Torrents(ClientCache):
         def seeding(
             self,
             category: Optional[Text] = None,
-            sort: Optional[TorrentStatusesT] = None,
+            sort: Optional[Text] = None,
             reverse: Optional[bool] = None,
             limit: Optional[Text | int] = None,
             offset: Optional[Text | int] = None,
@@ -420,7 +421,7 @@ class Torrents(ClientCache):
         def completed(
             self,
             category: Optional[Text] = None,
-            sort: Optional[TorrentStatusesT] = None,
+            sort: Optional[Text] = None,
             reverse: Optional[bool] = None,
             limit: Optional[Text | int] = None,
             offset: Optional[Text | int] = None,
@@ -431,7 +432,7 @@ class Torrents(ClientCache):
         def paused(
             self,
             category: Optional[Text] = None,
-            sort: Optional[TorrentStatusesT] = None,
+            sort: Optional[Text] = None,
             reverse: Optional[bool] = None,
             limit: Optional[Text | int] = None,
             offset: Optional[Text | int] = None,
@@ -442,7 +443,7 @@ class Torrents(ClientCache):
         def active(
             self,
             category: Optional[Text] = None,
-            sort: Optional[TorrentStatusesT] = None,
+            sort: Optional[Text] = None,
             reverse: Optional[bool] = None,
             limit: Optional[Text | int] = None,
             offset: Optional[Text | int] = None,
@@ -453,7 +454,7 @@ class Torrents(ClientCache):
         def inactive(
             self,
             category: Optional[Text] = None,
-            sort: Optional[TorrentStatusesT] = None,
+            sort: Optional[Text] = None,
             reverse: Optional[bool] = None,
             limit: Optional[Text | int] = None,
             offset: Optional[Text | int] = None,
@@ -464,7 +465,7 @@ class Torrents(ClientCache):
         def resumed(
             self,
             category: Optional[Text] = None,
-            sort: Optional[TorrentStatusesT] = None,
+            sort: Optional[Text] = None,
             reverse: Optional[bool] = None,
             limit: Optional[Text | int] = None,
             offset: Optional[Text | int] = None,
@@ -475,7 +476,7 @@ class Torrents(ClientCache):
         def stalled(
             self,
             category: Optional[Text] = None,
-            sort: Optional[TorrentStatusesT] = None,
+            sort: Optional[Text] = None,
             reverse: Optional[bool] = None,
             limit: Optional[Text | int] = None,
             offset: Optional[Text | int] = None,
@@ -486,7 +487,7 @@ class Torrents(ClientCache):
         def stalled_uploading(
             self,
             category: Optional[Text] = None,
-            sort: Optional[TorrentStatusesT] = None,
+            sort: Optional[Text] = None,
             reverse: Optional[bool] = None,
             limit: Optional[Text | int] = None,
             offset: Optional[Text | int] = None,
@@ -497,7 +498,7 @@ class Torrents(ClientCache):
         def stalled_downloading(
             self,
             category: Optional[Text] = None,
-            sort: Optional[TorrentStatusesT] = None,
+            sort: Optional[Text] = None,
             reverse: Optional[bool] = None,
             limit: Optional[Text | int] = None,
             offset: Optional[Text | int] = None,
@@ -508,7 +509,18 @@ class Torrents(ClientCache):
         def checking(
             self,
             category: Optional[Text] = None,
-            sort: Optional[TorrentStatusesT] = None,
+            sort: Optional[Text] = None,
+            reverse: Optional[bool] = None,
+            limit: Optional[Text | int] = None,
+            offset: Optional[Text | int] = None,
+            torrent_hashes: Optional[Iterable[Text]] = None,
+            tag: Optional[Text] = None,
+            **kwargs: KwargsT
+        ) -> TorrentInfoList: ...
+        def moving(
+            self,
+            category: Optional[Text] = None,
+            sort: Optional[Text] = None,
             reverse: Optional[bool] = None,
             limit: Optional[Text | int] = None,
             offset: Optional[Text | int] = None,
@@ -519,7 +531,7 @@ class Torrents(ClientCache):
         def errored(
             self,
             category: Optional[Text] = None,
-            sort: Optional[TorrentStatusesT] = None,
+            sort: Optional[Text] = None,
             reverse: Optional[bool] = None,
             limit: Optional[Text | int] = None,
             offset: Optional[Text | int] = None,
