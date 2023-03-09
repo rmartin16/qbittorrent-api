@@ -1,5 +1,8 @@
 Change log
 ==========
+### v2023.3.44 (09 mar 2023)
+- Add support for torrent status filters ``seeding``, ``moving``, ``errored``, and ``checking``.
+
 ### v2023.2.43 (27 feb 2023)
 - Advertise support for qBittorrent v4.5.2
 
