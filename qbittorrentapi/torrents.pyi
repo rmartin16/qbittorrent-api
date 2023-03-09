@@ -35,7 +35,7 @@ TorrentStatusesT = Literal[
     "stalled",
     "stalled_uploading",
     "stalled_downloading",
-    "moving",
+    "checking",
     "errored",
 ]
 
@@ -406,6 +406,17 @@ class Torrents(ClientCache):
             tag: Optional[Text] = None,
             **kwargs: KwargsT
         ) -> TorrentInfoList: ...
+        def seeding(
+            self,
+            category: Optional[Text] = None,
+            sort: Optional[TorrentStatusesT] = None,
+            reverse: Optional[bool] = None,
+            limit: Optional[Text | int] = None,
+            offset: Optional[Text | int] = None,
+            torrent_hashes: Optional[Iterable[Text]] = None,
+            tag: Optional[Text] = None,
+            **kwargs: KwargsT
+        ) -> TorrentInfoList: ...
         def completed(
             self,
             category: Optional[Text] = None,
@@ -484,6 +495,28 @@ class Torrents(ClientCache):
             **kwargs: KwargsT
         ) -> TorrentInfoList: ...
         def stalled_downloading(
+            self,
+            category: Optional[Text] = None,
+            sort: Optional[TorrentStatusesT] = None,
+            reverse: Optional[bool] = None,
+            limit: Optional[Text | int] = None,
+            offset: Optional[Text | int] = None,
+            torrent_hashes: Optional[Iterable[Text]] = None,
+            tag: Optional[Text] = None,
+            **kwargs: KwargsT
+        ) -> TorrentInfoList: ...
+        def checking(
+            self,
+            category: Optional[Text] = None,
+            sort: Optional[TorrentStatusesT] = None,
+            reverse: Optional[bool] = None,
+            limit: Optional[Text | int] = None,
+            offset: Optional[Text | int] = None,
+            torrent_hashes: Optional[Iterable[Text]] = None,
+            tag: Optional[Text] = None,
+            **kwargs: KwargsT
+        ) -> TorrentInfoList: ...
+        def errored(
             self,
             category: Optional[Text] = None,
             sort: Optional[TorrentStatusesT] = None,

@@ -535,6 +535,7 @@ def test_torrents_info(client, orig_torrent_hash, client_func):
     if "." in client_func:
         assert isinstance(get_func(client, client_func).all(), TorrentInfoList)
         assert isinstance(get_func(client, client_func).downloading(), TorrentInfoList)
+        assert isinstance(get_func(client, client_func).seeding(), TorrentInfoList)
         assert isinstance(get_func(client, client_func).completed(), TorrentInfoList)
         assert isinstance(get_func(client, client_func).paused(), TorrentInfoList)
         assert isinstance(get_func(client, client_func).active(), TorrentInfoList)
@@ -547,6 +548,8 @@ def test_torrents_info(client, orig_torrent_hash, client_func):
         assert isinstance(
             get_func(client, client_func).stalled_downloading(), TorrentInfoList
         )
+        assert isinstance(get_func(client, client_func).checking(), TorrentInfoList)
+        assert isinstance(get_func(client, client_func).errored(), TorrentInfoList)
 
 
 @pytest.mark.parametrize("client_func", ("torrents_info", "torrents.info"))
