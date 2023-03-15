@@ -45,7 +45,7 @@ jobs:
           echo "coverage-versions=${{ env.SUBMIT_COVERAGE_VERSIONS }}" >> ${GITHUB_OUTPUT}
 
       - name: Checkout Repo
-        uses: actions/checkout@v3.3.0
+        uses: actions/checkout@v3.4.0
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
         uses: actions/setup-python@v4.5.0
@@ -147,7 +147,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3.3.0
+        uses: actions/checkout@v3.4.0
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
         uses: actions/setup-python@v4.5.0
@@ -180,7 +180,7 @@ jobs:
         os: ["ubuntu-latest", "windows-latest", "macos-latest"]
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3.3.0
+        uses: actions/checkout@v3.4.0
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
         uses: actions/setup-python@v4.5.0
@@ -206,7 +206,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3.3.0
+        uses: actions/checkout@v3.4.0
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
         uses: actions/setup-python@v4.5.0
