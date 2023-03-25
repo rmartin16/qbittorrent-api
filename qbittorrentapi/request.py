@@ -813,7 +813,7 @@ class Request(object):
 
             resp_logger("Request URL: (%s) %s", http_method.upper(), response.url)
             resp_logger("Request Headers: %s", response.request.headers)
-            resp_logger("Request HTTP Data: %s", dict(data=data, params=params))
+            resp_logger("Request HTTP Data: %s", {"data": data, "params": params})
             resp_logger("Requests Config: %s", requests_kwargs)
             if (
                 str(response.request.body) not in ("None", "")

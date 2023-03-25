@@ -231,6 +231,7 @@ class TorrentPropertiesDictionary(JsonDictionaryT): ...
 class TorrentLimitsDictionary(JsonDictionaryT): ...
 class TorrentCategoriesDictionary(JsonDictionaryT): ...
 class TorrentsAddPeersDictionary(JsonDictionaryT): ...
+class TorrentFile(ListEntry): ...
 
 class TorrentFilesList(List[TorrentFile]):
     def __init__(
@@ -239,7 +240,7 @@ class TorrentFilesList(List[TorrentFile]):
         client: TorrentsAPIMixIn,
     ) -> None: ...
 
-class TorrentFile(ListEntry): ...
+class WebSeed(ListEntry): ...
 
 class WebSeedsList(List[WebSeed]):
     def __init__(
@@ -248,7 +249,7 @@ class WebSeedsList(List[WebSeed]):
         client: TorrentsAPIMixIn,
     ) -> None: ...
 
-class WebSeed(ListEntry): ...
+class Tracker(ListEntry): ...
 
 class TrackersList(List[Tracker]):
     def __init__(
@@ -257,16 +258,7 @@ class TrackersList(List[Tracker]):
         client: TorrentsAPIMixIn,
     ) -> None: ...
 
-class Tracker(ListEntry): ...
-
 class TorrentInfoList(List[TorrentDictionary]):
-    def __init__(
-        self,
-        list_entries: ListInputT,
-        client: TorrentsAPIMixIn,
-    ) -> None: ...
-
-class TorrentPieceInfoList(List[TorrentPieceData]):
     def __init__(
         self,
         list_entries: ListInputT,
@@ -275,7 +267,7 @@ class TorrentPieceInfoList(List[TorrentPieceData]):
 
 class TorrentPieceData(ListEntry): ...
 
-class TagList(List[Tag]):
+class TorrentPieceInfoList(List[TorrentPieceData]):
     def __init__(
         self,
         list_entries: ListInputT,
@@ -283,6 +275,13 @@ class TagList(List[Tag]):
     ) -> None: ...
 
 class Tag(ListEntry): ...
+
+class TagList(List[Tag]):
+    def __init__(
+        self,
+        list_entries: ListInputT,
+        client: TorrentsAPIMixIn,
+    ) -> None: ...
 
 class Torrents(ClientCache):
     info: _Info

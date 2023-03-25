@@ -13,6 +13,7 @@
 import os
 import sys
 from configparser import ConfigParser
+from datetime import datetime
 
 base_path = os.path.abspath("../..")
 sys.path.insert(0, base_path)
@@ -22,8 +23,6 @@ setup_cfg.read(os.path.join(base_path, "setup.cfg"))
 
 
 # -- Project information -----------------------------------------------------
-from datetime import datetime
-
 project = setup_cfg["metadata"]["name"]
 copyright = "{}, {}".format(datetime.today().year, setup_cfg["metadata"]["author"])
 author = setup_cfg["metadata"]["author"]

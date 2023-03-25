@@ -8,6 +8,8 @@ from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import List
 from qbittorrentapi.definitions import ListEntry
 
+class LogPeer(ListEntry): ...
+
 class LogPeersList(List[LogPeer]):
     def __init__(
         self,
@@ -15,7 +17,7 @@ class LogPeersList(List[LogPeer]):
         client: LogAPIMixIn,
     ) -> None: ...
 
-class LogPeer(ListEntry): ...
+class LogEntry(ListEntry): ...
 
 class LogMainList(List[LogEntry]):
     def __init__(
@@ -23,8 +25,6 @@ class LogMainList(List[LogEntry]):
         list_entries: ListInputT,
         client: LogAPIMixIn,
     ) -> None: ...
-
-class LogEntry(ListEntry): ...
 
 class Log(ClientCache):
     main: _Main
