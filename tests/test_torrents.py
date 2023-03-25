@@ -63,7 +63,7 @@ def test_add_delete(client, api_version, client_func):
         max_attempts = 3
         for attempt in range(max_attempts):
             try:
-                with requests.get(url) as r:
+                with requests.get(url, timeout=30) as r:
                     r.raise_for_status()
                     if return_bytes:
                         return r.content

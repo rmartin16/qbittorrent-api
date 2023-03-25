@@ -33,7 +33,7 @@ def test_latest_version():
         return
 
     # order of dictionary keys was guaranteed starting in python 3.7
-    if version_info.major >= 3 and version_info.minor >= 7:
+    if version_info >= (3, 7):
         expected_latest_api_version = list(api_version_map.values())[-1]
         expected_latest_app_version = list(api_version_map.keys())[-1]
         assert Version.latest_supported_api_version() == expected_latest_api_version

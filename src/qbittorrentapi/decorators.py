@@ -74,11 +74,11 @@ def login_required(func):
 
     def get_requests_kwargs(**kwargs):
         """Extract kwargs for performing transparent qBittorrent login."""
-        return dict(
-            requests_args=kwargs.get("requests_args"),
-            requests_params=kwargs.get("requests_params"),
-            headers=kwargs.get("headers"),
-        )
+        return {
+            "requests_args": kwargs.get("requests_args"),
+            "requests_params": kwargs.get("requests_params"),
+            "headers": kwargs.get("headers"),
+        }
 
     @wraps(func)
     def wrapper(client, *args, **kwargs):

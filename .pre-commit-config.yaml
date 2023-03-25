@@ -10,16 +10,16 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.259
+    hooks:
+      - id: ruff
+
   - repo: https://github.com/PyCQA/isort
     rev: 5.12.0
     hooks:
       - id: isort
         additional_dependencies: [toml]
-
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v2.38.4  # DO NOT UPGRADE THIS - use v2.38.4 - v3 drops Python 2 support
-    hooks:
-      - id: pyupgrade
 
   - repo: https://github.com/psf/black
     rev: 23.1.0
@@ -27,14 +27,8 @@ repos:
       - id: black
         language_version: python3
 
-  - repo: https://github.com/PyCQA/flake8
-    rev: 6.0.0
-    hooks:
-      - id: flake8
-#        additional_dependencies: [flake8-eradicate]
-
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.0.0
+    rev: v1.1.1
     hooks:
       - id: mypy
         files: '.*\.pyi'

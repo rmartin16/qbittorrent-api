@@ -298,7 +298,7 @@ def rss_feed(client, api_version):
         client.app.preferences = dict(rss_auto_downloading_enabled=False)
         # refreshing the feed is finicky...so try several times if necessary
         done = False
-        for i in range(30):
+        for i in range(5):
             delete_feed(name)
             client.rss.add_feed(url=url, item_path=name)
             # refreshing too quickly can cause it to never refresh.
