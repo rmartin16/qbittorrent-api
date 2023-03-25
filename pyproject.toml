@@ -42,11 +42,12 @@ parallel = true
 branch = true
 relative_files = true
 source_pkgs = ["qbittorrentapi"]
-omit = ["qbittorrentapi/_attrdict.py"]
+omit = ["**/_attrdict.py"]
 
 [tool.coverage.paths]
 source = [
-    "qbittorrentapi",
+    "src",
+    "**/site-packages",
 ]
 
 [tool.coverage.report]

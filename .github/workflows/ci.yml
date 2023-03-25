@@ -82,8 +82,8 @@ jobs:
         include:
           - IS_QBT_DEV: false
           # test dev versions of qBittorrent
-#          - QBT_VER: "master"
-#            IS_QBT_DEV: true
+          - QBT_VER: "master"
+            IS_QBT_DEV: true
           - QBT_VER: "v4_5_x"
             IS_QBT_DEV: true
           - QBT_VER: "v4_4_x"
@@ -140,7 +140,7 @@ jobs:
       runner-os: ${{ matrix.OS_VER }}
 
   coverage:
-    name: Combine & check coverage.
+    name: Combine & Check Coverage
     runs-on: ubuntu-latest
     needs: [Tests-qBittorrent, Tests-Python]
     steps:
