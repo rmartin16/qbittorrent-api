@@ -49,7 +49,7 @@ jobs:
 
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3.3.0
+        uses: actions/checkout@v3.5.0
 
       - name: Set up Python ${{ inputs.python-version }}
         uses: actions/setup-python@v4.5.0
