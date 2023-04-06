@@ -52,6 +52,11 @@ class RSS(ClientCache):
         """Implements :meth:`~RSSAPIMixIn.rss_add_feed`"""
         return self._client.rss_add_feed(url=url, item_path=item_path, **kwargs)
 
+    @alias("setFeedURL")
+    def set_feed_url(self, url=None, item_path=None, **kwargs):
+        """Implements :meth:`~RSSAPIMixIn.rss_set_feed_url`"""
+        return self._client.rss_set_feed_url(url=url, item_path=item_path, **kwargs)
+
     @alias("removeItem")
     def remove_item(self, item_path=None, **kwargs):
         """Implements :meth:`~RSSAPIMixIn.rss_remove_item`"""
@@ -168,8 +173,24 @@ class RSSAPIMixIn(AppAPIMixIn):
         :param item_path: Name and/or path for new feed (e.g. ``Folder\\Subfolder\\FeedName``)
         :return: None
         """
-        data = {"url": url, "path": item_path}
+        data = {"path": item_path, "url": url}
         self._post(_name=APINames.RSS, _method="addFeed", data=data, **kwargs)
+
+    @endpoint_introduced("2.9.1", "rss/setFeedURL")
+    @alias("rss_setFeedURL")
+    @login_required
+    def rss_set_feed_url(self, url=None, item_path=None, **kwargs):
+        """
+        Update the URL for an existing RSS feed.
+
+        :raises Conflict409Error:
+
+        :param url: URL of RSS feed (e.g https://distrowatch.com/news/torrents.xml)
+        :param item_path: Name and/or path for feed (e.g. ``Folder\\Subfolder\\FeedName``)
+        :return: None
+        """
+        data = {"path": item_path, "url": url}
+        self._post(_name=APINames.RSS, _method="setFeedURL", data=data, **kwargs)
 
     @alias("rss_removeItem")
     @login_required
