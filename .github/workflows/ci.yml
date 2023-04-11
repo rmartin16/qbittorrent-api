@@ -180,7 +180,7 @@ jobs:
 
     - name: Upload Coverage to Codecov
       if: contains(fromJson('["push", "pull_request"]'), github.event_name)
-      uses: codecov/codecov-action@v3.1.1
+      uses: codecov/codecov-action@3.1.2
       with:
         fail_ci_if_error: true
         token: ${{ secrets.CODECOV_TOKEN }}
