@@ -16,7 +16,6 @@ concurrency:
 env:
   LATEST_PYTHON_VER: "3.11"
   LATEST_QBT_VER: "v4.5.2"
-  SUBMIT_COVERAGE_VERSIONS: '[ "3.11" ]'
   QBITTORRENTAPI_HOST: "localhost:8080"
   QBITTORRENTAPI_USERNAME: "admin"
   QBITTORRENTAPI_PASSWORD: "adminadmin"
@@ -32,7 +31,6 @@ jobs:
       qbittorrent-host: ${{ steps.set-outputs.outputs.qbittorrent-host }}
       qbittorrent-username: ${{ steps.set-outputs.outputs.qbittorrent-username }}
       qbittorrent-password: ${{ steps.set-outputs.outputs.qbittorrent-password }}
-      coverage-versions: ${{ steps.set-outputs.outputs.coverage-versions }}
     steps:
       - name: Declare Outputs
         id: set-outputs
@@ -42,7 +40,6 @@ jobs:
           echo "qbittorrent-host=${{ env.QBITTORRENTAPI_HOST }}" >> ${GITHUB_OUTPUT}
           echo "qbittorrent-username=${{ env.QBITTORRENTAPI_USERNAME }}" >> ${GITHUB_OUTPUT}
           echo "qbittorrent-password=${{ env.QBITTORRENTAPI_PASSWORD }}" >> ${GITHUB_OUTPUT}
-          echo "coverage-versions=${{ env.SUBMIT_COVERAGE_VERSIONS }}" >> ${GITHUB_OUTPUT}
 
       - name: Checkout Repo
         uses: actions/checkout@v3.5.1
@@ -61,9 +58,42 @@ jobs:
       - name: Lint
         uses: pre-commit/action@v3.0.0
 
+  package:
+    #######
+    # Verify build and packaging is successful
+    #######
+    name: Build & Verify Package
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3.5.1
+
+      - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
+        uses: actions/setup-python@v4.5.0
+        with:
+          python-version: ${{ env.LATEST_PYTHON_VER }}
+          cache: 'pip'
+          cache-dependency-path: ${{ github.workspace }}/setup.cfg
+
+      - name: Install Build Tools
+        run: |
+          python -m pip install -U pip setuptools wheel
+          python -m pip install .[dev]
+
+      - name: Build Package
+        run: tox -e package
+
+      - name: Upload Package
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: package
+          path: dist
+          if-no-files-found: error
+
   Tests-qBittorrent:
     name: "Release Test ${{ needs.verify.outputs.python-latest-version }} - ${{ matrix.QBT_VER }}"
-    needs: verify
+    needs: [ verify, package ]
     strategy:
       matrix:
         QBT_VER:
@@ -99,11 +129,10 @@ jobs:
       qbittorrent-username: ${{ needs.verify.outputs.qbittorrent-username }}
       qbittorrent-password: ${{ needs.verify.outputs.qbittorrent-password }}
       is-qbt-dev: ${{ matrix.IS_QBT_DEV }}
-      coverage-versions: ${{ needs.verify.outputs.coverage-versions }}
 
   Tests-Python:
     name: "Release Test ${{ matrix.PYTHON_VER }} - ${{ needs.verify.outputs.qbittorrent-latest-version }}"
-    needs: verify
+    needs: [ verify, package ]
     strategy:
       matrix:
         PYTHON_VER:
@@ -136,7 +165,6 @@ jobs:
       qbittorrent-username: ${{ needs.verify.outputs.qbittorrent-username }}
       qbittorrent-password: ${{ needs.verify.outputs.qbittorrent-password }}
       is-qbt-dev: false
-      coverage-versions: ${{ needs.verify.outputs.coverage-versions }}
       runner-os: ${{ matrix.OS_VER }}
 
   coverage:
@@ -171,7 +199,7 @@ jobs:
         python -m coverage html --skip-covered --skip-empty
         python -m coverage report --fail-under=100
 
-    - name: Upload HTML report if check failed.
+    - name: Upload HTML report if check failed
       if: ${{ failure() }}
       uses: actions/upload-artifact@v3.1.2
       with:
@@ -184,37 +212,6 @@ jobs:
       with:
         fail_ci_if_error: true
         token: ${{ secrets.CODECOV_TOKEN }}
-
-
-  package:
-    #######
-    # Verify build and packaging is successful
-    #######
-    name: Build & Verify Package
-    needs: verify
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3.5.1
-
-      - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
-        uses: actions/setup-python@v4.5.0
-        with:
-          python-version: ${{ env.LATEST_PYTHON_VER }}
-          cache: 'pip'
-          cache-dependency-path: ${{ github.workspace }}/setup.cfg
-
-      - name: Install Build Tools
-        run: python -m pip install -U pip setuptools wheel twine build
-
-      - name: Build Package
-        run: python -m build
-
-      - name: List Result
-        run: ls -l dist
-
-      - name: Check long_description
-        run: python -m twine check dist/*
 
   install-dev:
     #######
@@ -244,31 +241,3 @@ jobs:
 
       - name: Import Package
         run: python -c "from qbittorrentapi import Client; assert Client().host == 'localhost:8080'"
-
-  docs-build:
-    #######
-    # Verify documentation build succeeds
-    #######
-    name: Verify Doc Build
-    needs: verify
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3.5.1
-
-      - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
-        uses: actions/setup-python@v4.5.0
-        with:
-          python-version: ${{ env.LATEST_PYTHON_VER }}
-          cache: 'pip'
-          cache-dependency-path: ${{ github.workspace }}/setup.cfg
-
-      - name: Install requirements
-        run: python -m pip install .[dev]
-
-      - name: Build Docs
-        run: |
-          cd docs
-          sphinx-build -v -W --keep-going -E -a -b linkcheck "source" "build"
-          sphinx-build -v -W --keep-going -E -a -b html "source" "build"
-          make html
