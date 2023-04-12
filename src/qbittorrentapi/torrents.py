@@ -36,7 +36,7 @@ logger = getLogger(__name__)
 @aliased
 class TorrentDictionary(Dictionary):
     """
-    Item in :class:`TorrentInfoList`. Alows interaction with individual
+    Item in :class:`TorrentInfoList`. Allows interaction with individual
     torrents via the ``Torrents`` API endpoints.
 
     :Usage:
@@ -1014,7 +1014,7 @@ class Torrents(ClientCache):
 @aliased
 class TorrentCategories(ClientCache):
     """
-    Alows interaction with torrent categories within the ``Torrents`` API
+    Allows interaction with torrent categories within the ``Torrents`` API
     endpoints.
 
     :Usage:
