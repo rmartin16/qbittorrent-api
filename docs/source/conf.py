@@ -93,6 +93,11 @@ intersphinx_mapping = {
     "requests": ("https://requests.readthedocs.io/en/latest/", None),
 }
 
+suppress_warnings = [
+    # Suppress builds warnings while building epub
+    "epub.unknown_project_files",
+]
+
 # -- Options for spelling -------------------------------------------
 
 # Spelling check needs an additional module that is not installed by default.
