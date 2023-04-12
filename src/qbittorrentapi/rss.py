@@ -1,6 +1,5 @@
 from json import dumps
 
-from qbittorrentapi._version_support import v
 from qbittorrentapi.app import AppAPIMixIn
 from qbittorrentapi.decorators import alias
 from qbittorrentapi.decorators import aliased
@@ -247,13 +246,14 @@ class RSSAPIMixIn(AppAPIMixIn):
         """
         Trigger a refresh for an RSS item.
 
+        Note: qBittorrent v4.1.5 thru v4.1.8 all use Web API 2.2. However, this endpoint was
+        introduced with v4.1.8; so, behavior may be undefined for these versions.
+
         :param item_path: path to item to be refreshed (e.g. ``Folder\\Subfolder\\ItemName``)
         :return: None
         """
-        # HACK: v4.1.7 and v4.1.8 both use api v2.2; however, refreshItem was introduced in v4.1.8
-        if v(self.app_version()) > v("v4.1.7"):
-            data = {"itemPath": item_path}
-            self._post(_name=APINames.RSS, _method="refreshItem", data=data, **kwargs)
+        data = {"itemPath": item_path}
+        self._post(_name=APINames.RSS, _method="refreshItem", data=data, **kwargs)
 
     @endpoint_introduced("2.5.1", "rss/markAsRead")
     @alias("rss_markAsRead")
