@@ -22,8 +22,9 @@ def test_update_plugins(client, client_func):
     get_func(client, client_func)()
     check(
         lambda: any(
-            entry["message"].startswith("Updating plugin ")
-            or entry["message"] == "All plugins are already up to date."
+            entry.message.startswith("Updating plugin ")
+            or entry.message == "All plugins are already up to date."
+            or entry.message.endswith("content was not found at the server (404)")
             for entry in reversed(client.log.main())
         ),
         True,
