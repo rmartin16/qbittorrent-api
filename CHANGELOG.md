@@ -1,5 +1,8 @@
 Change log
 ==========
+### v2023.4.46 (14 apr 2023)
+- Fix building docs after implementing ``src-layout``
+
 ### v2023.4.45 (11 apr 2023)
 - Add the ``TrackerStatus`` Enum to identify tracker statuses from ``torrents/trackers``
 
