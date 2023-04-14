@@ -25,7 +25,7 @@ from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary
 from qbittorrentapi.definitions import List
 from qbittorrentapi.definitions import ListEntry
-from qbittorrentapi.definitions import TorrentStates
+from qbittorrentapi.definitions import TorrentState
 from qbittorrentapi.exceptions import TorrentFileError
 from qbittorrentapi.exceptions import TorrentFileNotFoundError
 from qbittorrentapi.exceptions import TorrentFilePermissionError
@@ -73,12 +73,11 @@ class TorrentDictionary(Dictionary):
 
     @property
     def state_enum(self):
-        """Returns the formalized Enumeration for Torrent State instead of the
-        raw string."""
+        """Returns the state of a :class:`~qbittorrentapi.definitions.TorrentState`."""
         try:
-            return TorrentStates(self.state)
+            return TorrentState(self.state)
         except ValueError:
-            return TorrentStates.UNKNOWN
+            return TorrentState.UNKNOWN
 
     @property
     def info(self):
@@ -1422,6 +1421,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     def torrents_trackers(self, torrent_hash=None, **kwargs):
         """
         Retrieve individual torrent's trackers.
+        Tracker status is defined in :class:`~qbittorrentapi.definitions.TrackerStatus`.
 
         :raises NotFound404Error:
 

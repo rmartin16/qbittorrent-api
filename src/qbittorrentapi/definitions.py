@@ -35,7 +35,7 @@ class TorrentState(Enum):
         - code: `<https://github.com/qbittorrent/qBittorrent/blob/5dcc14153f046209f1067299494a82e5294d883a/src/base/bittorrent/torrent.h#L73>`_
 
     :Usage:
-        >>> from qbittorrentapi import Client, TorrentStates
+        >>> from qbittorrentapi import Client, TorrentState
         >>> client = Client()
         >>> # print torrent hashes for torrents that are downloading
         >>> for torrent in client.torrents_info():
@@ -43,7 +43,7 @@ class TorrentState(Enum):
         >>>     if torrent.state_enum.is_downloading:
         >>>         print(f'{torrent.hash} is downloading...')
         >>>     # the appropriate enum member can be directly derived
-        >>>     state_enum = TorrentStates(torrent.state)
+        >>>     state_enum = TorrentState(torrent.state)
         >>>     print(f'{torrent.hash}: {state_enum.value}')
     """
 

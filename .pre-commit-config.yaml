@@ -26,6 +26,8 @@ repos:
     rev: v0.0.261
     hooks:
       - id: ruff
+        args:
+          - "--fix"
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.2.0
@@ -50,7 +52,7 @@ repos:
         name: mypy.stubtest
         language: system
         entry: stubtest
-        args: [ "qbittorrentapi", "--allowlist=tests/resources/mypy_stubtest_allowlist.txt" ]
+        args: [ "qbittorrentapi", "--allowlist=tests/_resources/mypy_stubtest_allowlist.txt" ]
         pass_filenames: false
         types_or:
           - python
