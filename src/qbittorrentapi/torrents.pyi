@@ -634,7 +634,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         use_download_path: Optional[bool] = None,
         stop_condition: Optional[Literal["MetadataReceived", "FilesChecked"]] = None,
         **kwargs: KwargsT
-    ) -> Text: ...
+    ) -> Literal["Ok.", "Fails."]: ...
     @staticmethod
     def _normalize_torrent_files(
         user_files: TorrentFilesT,
