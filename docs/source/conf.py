@@ -44,7 +44,6 @@ extensions = [
     "sphinx.ext.todo",
     "sphinx.ext.githubpages",
     "sphinx.ext.autodoc",
-    "sphinx_autodoc_typehints",
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
 ]
@@ -111,4 +110,4 @@ spelling_lang = "en_US"
 # Location of word list.
 spelling_word_list_filename = "spelling_wordlist"
 
-spelling_ignore_pypi_package_names = True
+spelling_ignore_pypi_package_names = False

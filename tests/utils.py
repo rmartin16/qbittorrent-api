@@ -79,13 +79,17 @@ def check(check_func, value, reverse=False, negate=False, any=False, check_time=
     def _do_check(_check_func_val, _v, _negate, _reverse):
         if _negate:
             if _reverse:
+                # print("Looking that %s is _not_ in %s" % (_v, _check_func_val))
                 assert _v not in _check_func_val
             else:
+                # print("Looking that %s is _not_ in %s" % (_check_func_val, (_v,)))
                 assert _check_func_val not in (_v,)
         else:
             if _reverse:
+                # print("Looking for %s in %s" % (_v, _check_func_val))
                 assert _v in _check_func_val
             else:
+                # print("Looking for %s in %s" % (_check_func_val, (_v,)))
                 assert _check_func_val in (_v,)
 
     if isinstance(value, (six.string_types, int)):

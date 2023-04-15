@@ -171,10 +171,10 @@ def test_search(client, client_func):
     job = get_func(client, client_func[0])(
         pattern="Ubuntu", plugins="enabled", category="all"
     )
-    assert isinstance(job, SearchJobDictionary)
     statuses = get_func(client, client_func[1])(search_id=job["id"])
-    assert isinstance(statuses, SearchStatusesList)
     assert statuses[0]["status"] == "Running"
+    assert isinstance(job, SearchJobDictionary)
+    assert isinstance(statuses, SearchStatusesList)
     results = get_func(client, client_func[2])(search_id=job["id"], limit=1)
     assert isinstance(results, SearchResultsDictionary)
     results = job.results()
