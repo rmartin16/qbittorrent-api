@@ -29,3 +29,12 @@ def test_session_cookie(app_version):
     curr_sess_cookie = client._http_session.cookies["SID"]
     assert client._SID == curr_sess_cookie
     assert client._session_cookie() == curr_sess_cookie
+
+
+def test_login_context_manager():
+    with Client(
+        RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True,
+        VERIFY_WEBUI_CERTIFICATE=False,
+    ) as client:
+        assert client.is_logged_in
+    assert not client.is_logged_in

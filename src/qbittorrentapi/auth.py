@@ -144,3 +144,10 @@ class AuthAPIMixIn(Request):
     def auth_log_out(self, **kwargs):
         """End session with qBittorrent."""
         self._post(_name=APINames.Authorization, _method="logout", **kwargs)
+
+    def __enter__(self):
+        self.auth_log_in()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.auth_log_out()
