@@ -1,4 +1,7 @@
+import pytest
+
 from qbittorrentapi import Client
+from qbittorrentapi.exceptions import APIConnectionError
 
 
 def test_is_logged_in():
@@ -12,6 +15,23 @@ def test_is_logged_in():
     assert client.is_logged_in is True
 
     client.auth_log_out()
+    assert client.is_logged_in is False
+
+
+def test_is_logged_in_bad_client():
+    client = Client(
+        host="asdf",
+        RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True,
+        VERIFY_WEBUI_CERTIFICATE=False,
+    )
+    assert client.is_logged_in is False
+
+    with pytest.raises(APIConnectionError):
+        client.auth_log_in()
+    assert client.is_logged_in is False
+
+    with pytest.raises(APIConnectionError):
+        client.auth_log_out()
     assert client.is_logged_in is False
 
 

@@ -659,5 +659,5 @@ def test_verbose_logging(caplog):
 def test_stack_printing(capsys):
     client = Client(PRINT_STACK_FOR_EACH_REQUEST=True, VERIFY_WEBUI_CERTIFICATE=False)
     client.app_version()
-    captured = capsys.readouterr()
-    assert "print_stack()" in captured.err
+
+    assert "print_stack()" in capsys.readouterr().err

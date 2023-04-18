@@ -672,7 +672,8 @@ class Request(object):
 
                 # send Content-Length as 0 for empty POSTs...Requests will not send Content-Length
                 # if data is empty but qBittorrent will complain otherwise
-                is_data = any(x is not None for x in kwargs.get("data", {}).values())
+                data = kwargs.get("data") or {}
+                is_data = any(x is not None for x in data.values())
                 if method.lower() == "post" and not is_data:
                     kwargs.setdefault("headers", {}).update({"Content-Length": "0"})
 
@@ -733,7 +734,7 @@ class Request(object):
         """
         try:
             self._http_session.close()
-        except AttributeError:
+        except Exception:  # noqa: S110
             pass
         self._http_session = None
 

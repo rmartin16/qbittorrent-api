@@ -1,5 +1,6 @@
 import glob
 import os
+from contextlib import contextmanager
 from os import environ
 from os import path
 from sys import path as sys_path
@@ -108,7 +109,8 @@ def orig_torrent(client):
     return ORIG_TORRENT
 
 
-def new_torrent_standalone(client, torrent_hash=None, **kwargs):
+@contextmanager
+def new_torrent_standalone(client, torrent_hash=TORRENT1_HASH, **kwargs):
     check_limit = int(10 / CHECK_SLEEP)
 
     def add_test_torrent(torrent_hash, **kwargs):
@@ -126,7 +128,6 @@ def new_torrent_standalone(client, torrent_hash=None, **kwargs):
                     is_sequential_download=True,
                     is_first_last_piece_priority=True,
                 )
-                torrent_hash = TORRENT1_HASH
             try:
                 return get_torrent(client, torrent_hash)
             except Exception:
@@ -135,7 +136,7 @@ def new_torrent_standalone(client, torrent_hash=None, **kwargs):
                 sleep(CHECK_SLEEP)
 
     @retry()
-    def delete_test_torrent(torrent_hash):
+    def delete_test_torrent(client, torrent_hash):
         client.torrents_delete(torrent_hashes=torrent_hash, delete_files=True)
         check(
             lambda: [t.hash for t in client.torrents_info()],
@@ -146,15 +147,15 @@ def new_torrent_standalone(client, torrent_hash=None, **kwargs):
 
     try:
         yield add_test_torrent(torrent_hash, **kwargs)
-        delete_test_torrent(torrent_hash)
-    except APIConnectionError:
-        yield None  # if qBittorrent crashed, it'll get caught in abort fixture
+    finally:
+        delete_test_torrent(client, torrent_hash)
 
 
 @pytest.fixture(scope="function")
 def new_torrent(client):
     """Torrent that is added on demand to qBittorrent and then removed."""
-    yield next(new_torrent_standalone(client, TORRENT1_HASH))
+    with new_torrent_standalone(client) as torrent:
+        yield torrent
 
 
 @pytest.fixture(scope="session")
