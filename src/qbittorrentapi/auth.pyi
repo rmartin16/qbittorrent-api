@@ -1,7 +1,7 @@
 from logging import Logger
+from types import TracebackType
 from typing import Optional
 from typing import Text
-from typing import TracebackType
 from typing import Type
 
 from qbittorrentapi._types import KwargsT
