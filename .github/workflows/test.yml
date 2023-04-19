@@ -84,6 +84,7 @@ jobs:
         run: docker logs qbt
 
       - name: Store coverage data
+        if: success() || failure()
         uses: actions/upload-artifact@v3.1.2
         with:
           name: "coverage-data"

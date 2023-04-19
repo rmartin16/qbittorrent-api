@@ -235,73 +235,72 @@ def test_close_file_fail(client, monkeypatch, caplog):
     "content_layout", (None, "Original", "Subfolder", "NoSubfolder")
 )
 def test_add_options(client, api_version, keep_root_folder, content_layout):
-    client.torrents_delete(torrent_hashes=ROOT_FOLDER_TORRENT_HASH, delete_files=True)
     if v(api_version) >= v("2.3.0"):
         client.torrents_create_tags("option-tag")
-    torrent = next(
-        new_torrent_standalone(
-            client=client,
-            torrent_files=ROOT_FOLDER_TORRENT_FILE,
-            torrent_hash=ROOT_FOLDER_TORRENT_HASH,
-            save_path=mkpath("~/test_download/"),
-            category="test_category",
-            is_paused=True,
-            upload_limit=1024,
-            download_limit=2048,
-            is_sequential_download=True,
-            is_first_last_piece_priority=True,
-            is_root_folder=keep_root_folder,
-            rename="this is a new name for the torrent",
-            use_auto_torrent_management=False,
-            tags="option-tag",
-            content_layout=content_layout,
-            ratio_limit=2,
-            seeding_time_limit=120,
-        )
+    new_torrent = new_torrent_standalone(
+        client=client,
+        torrent_files=ROOT_FOLDER_TORRENT_FILE,
+        torrent_hash=ROOT_FOLDER_TORRENT_HASH,
+        save_path=mkpath("~/test_download/"),
+        category="test_category",
+        is_paused=True,
+        upload_limit=1024,
+        download_limit=2048,
+        is_sequential_download=True,
+        is_first_last_piece_priority=True,
+        is_root_folder=keep_root_folder,
+        rename="this is a new name for the torrent",
+        use_auto_torrent_management=False,
+        tags="option-tag",
+        content_layout=content_layout,
+        ratio_limit=2,
+        seeding_time_limit=120,
     )
-    check(lambda: torrent.info.category, "test_category")
-    check(
-        lambda: torrent.info.state,
-        ("pausedDL", "checkingResumeData"),
-        reverse=True,
-        any=True,
-    )
-    check(lambda: mkpath(torrent.info.save_path), mkpath("~/test_download/"))
-    check(lambda: torrent.info.up_limit, 1024)
-    check(lambda: torrent.info.dl_limit, 2048)
-    check(lambda: torrent.info.seq_dl, True)
-    if v(api_version) >= v("2.0.1"):
-        check(lambda: torrent.info.f_l_piece_prio, True)
-    if content_layout is None:
+
+    with new_torrent as torrent:
+        check(lambda: torrent.info.category, "test_category")
         check(
-            lambda: torrent.files[0]["name"].startswith("root_folder"),
-            keep_root_folder in {True, None},
+            lambda: torrent.info.state,
+            ("pausedDL", "checkingResumeData"),
+            reverse=True,
+            any=True,
         )
-    check(lambda: torrent.info.name, "this is a new name for the torrent")
-    check(lambda: torrent.info.auto_tmm, False)
-    if v(api_version) >= v("2.6.2"):
-        check(lambda: torrent.info.tags, "option-tag")
-
-    if v(api_version) >= v("2.7"):
-        # after web api v2.7...root dir is driven by content_layout
+        check(lambda: mkpath(torrent.info.save_path), mkpath("~/test_download/"))
+        check(lambda: torrent.info.up_limit, 1024)
+        check(lambda: torrent.info.dl_limit, 2048)
+        check(lambda: torrent.info.seq_dl, True)
+        if v(api_version) >= v("2.0.1"):
+            check(lambda: torrent.info.f_l_piece_prio, True)
         if content_layout is None:
-            should_root_dir_exists = keep_root_folder in {None, True}
-        else:
-            should_root_dir_exists = content_layout in {"Original", "Subfolder"}
-    else:
-        # before web api v2.7...it is driven by is_root_folder
-        if content_layout is not None and keep_root_folder is None:
-            should_root_dir_exists = content_layout in {"Original", "Subfolder"}
-        else:
-            should_root_dir_exists = keep_root_folder in {None, True}
-    check(
-        lambda: any(f["name"].startswith("root_folder") for f in torrent.files),
-        should_root_dir_exists,
-    )
+            check(
+                lambda: torrent.files[0]["name"].startswith("root_folder"),
+                keep_root_folder in {True, None},
+            )
+        check(lambda: torrent.info.name, "this is a new name for the torrent")
+        check(lambda: torrent.info.auto_tmm, False)
+        if v(api_version) >= v("2.6.2"):
+            check(lambda: torrent.info.tags, "option-tag")
 
-    if v(api_version) >= v("2.8.1"):
-        check(lambda: torrent.info.ratio_limit, 2)
-        check(lambda: torrent.info.seeding_time_limit, 120)
+        if v(api_version) >= v("2.7"):
+            # after web api v2.7...root dir is driven by content_layout
+            if content_layout is None:
+                should_root_dir_exists = keep_root_folder in {None, True}
+            else:
+                should_root_dir_exists = content_layout in {"Original", "Subfolder"}
+        else:
+            # before web api v2.7...it is driven by is_root_folder
+            if content_layout is not None and keep_root_folder is None:
+                should_root_dir_exists = content_layout in {"Original", "Subfolder"}
+            else:
+                should_root_dir_exists = keep_root_folder in {None, True}
+        check(
+            lambda: any(f["name"].startswith("root_folder") for f in torrent.files),
+            should_root_dir_exists,
+        )
+
+        if v(api_version) >= v("2.8.1"):
+            check(lambda: torrent.info.ratio_limit, 2)
+            check(lambda: torrent.info.seeding_time_limit, 120)
 
 
 @pytest.mark.skipif_before_api_version("2.8.4")
@@ -310,22 +309,25 @@ def test_torrents_add_download_path(client, use_download_path):
     client.torrents_delete(torrent_hashes=ROOT_FOLDER_TORRENT_HASH, delete_files=True)
     save_path = mkpath("/tmp", "down_path_save_path_test")
     download_path = mkpath("/tmp", "down_path_test")
-    torrent = next(
-        new_torrent_standalone(
-            client=client,
-            torrent_hash=ROOT_FOLDER_TORRENT_HASH,
-            torrent_files=ROOT_FOLDER_TORRENT_FILE,
-            download_path=download_path,
-            use_download_path=use_download_path,
-            test_download_limit=1024,
-            save_path=save_path,
-        )
+    new_torrent = new_torrent_standalone(
+        client=client,
+        torrent_hash=ROOT_FOLDER_TORRENT_HASH,
+        torrent_files=ROOT_FOLDER_TORRENT_FILE,
+        download_path=download_path,
+        use_download_path=use_download_path,
+        test_download_limit=1024,
+        save_path=save_path,
     )
 
-    if use_download_path is False:
-        check(lambda: mkpath(torrent.info.download_path), download_path, negate=True)
-    else:
-        check(lambda: mkpath(torrent.info.download_path), download_path)
+    with new_torrent as torrent:
+        if use_download_path is False:
+            check(
+                lambda: mkpath(torrent.info.download_path), download_path, negate=True
+            )
+        else:
+            check(lambda: mkpath(torrent.info.download_path), download_path)
+
+    # client.torrents_delete(torrent_hashes=ROOT_FOLDER_TORRENT_HASH, delete_files=True)
 
 
 def test_properties(client, orig_torrent):
@@ -446,9 +448,9 @@ def test_file_priority(client, orig_torrent, client_func):
 
 
 @pytest.mark.parametrize("new_name", ("new name 2", "new_name_2"))
-def test_rename(client, orig_torrent, new_name):
-    client.torrents_rename(torrent_hash=orig_torrent.hash, new_torrent_name=new_name)
-    check(lambda: orig_torrent.info.name.replace("+", " "), new_name)
+def test_rename(client, new_torrent, new_name):
+    client.torrents_rename(torrent_hash=new_torrent.hash, new_torrent_name=new_name)
+    check(lambda: new_torrent.info.name.replace("+", " "), new_name)
 
 
 @pytest.mark.skipif_before_api_version("2.4.0")
@@ -832,6 +834,7 @@ def test_set_location(client, app_version, client_func, new_torrent):
                 location="/etc/", torrent_hashes=new_torrent.hash
             )
 
+    sleep(0.5)
     loc = mkpath("/tmp", "1")
     get_func(client, client_func)(location=loc, torrent_hashes=new_torrent.hash)
     # qBittorrent may return trailing separators depending on version....

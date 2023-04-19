@@ -4,7 +4,6 @@ from qbittorrentapi import Version
 from qbittorrentapi.decorators import login_required
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
-from qbittorrentapi.exceptions import HTTP403Error
 from qbittorrentapi.exceptions import LoginFailed
 from qbittorrentapi.exceptions import UnsupportedQbittorrentVersion
 from qbittorrentapi.request import Request
@@ -75,7 +74,7 @@ class AuthAPIMixIn(Request):
         """
         try:
             self._post(_name=APINames.Application, _method="version")
-        except HTTP403Error:
+        except Exception:
             return False
         else:
             return True

@@ -184,63 +184,28 @@ def test_upload_limit(orig_torrent, client_func):
 @pytest.mark.skipif_before_api_version("2.0.2")
 @pytest.mark.parametrize("client_func", ("set_location", "setLocation"))
 def test_set_location(new_torrent, client_func):
-    exp = None
-    for attempt in range(2):
-        try:
-            loc = mkpath("/tmp", "3")
-            get_func(new_torrent, client_func)(loc)
-            check(
-                lambda: mkpath(new_torrent.info.save_path),
-                mkpath(loc),
-                any=True,
-            )
-            break
-        except AssertionError as e:
-            exp = e
-    if exp:
-        raise exp
+    sleep(0.5)
+    loc = mkpath("/tmp", "3")
+    get_func(new_torrent, client_func)(loc)
+    check(lambda: mkpath(new_torrent.info.save_path), mkpath(loc))
 
 
 @pytest.mark.skipif_before_api_version("2.8.4")
 @pytest.mark.parametrize("client_func", ("set_save_path", "setSavePath"))
 def test_set_save_path(new_torrent, client_func):
-    exp = None
-    for attempt in range(2):
-        try:
-            loc = mkpath("/tmp", "savepath3")
-            get_func(new_torrent, client_func)(loc)
-            # qBittorrent may return trailing separators depending on version....
-            check(
-                lambda: mkpath(new_torrent.info.save_path),
-                mkpath(loc),
-                any=True,
-            )
-            break
-        except AssertionError as e:
-            exp = e
-    if exp:
-        raise exp
+    loc = mkpath("/tmp", "savepath3")
+    get_func(new_torrent, client_func)(loc)
+    # qBittorrent may return trailing separators depending on version....
+    check(lambda: mkpath(new_torrent.info.save_path), mkpath(loc))
 
 
 @pytest.mark.skipif_before_api_version("2.8.4")
 @pytest.mark.parametrize("client_func", ("set_download_path", "setDownloadPath"))
 def test_set_download_path(new_torrent, client_func):
-    exp = None
-    for attempt in range(2):
-        try:
-            loc = mkpath("/tmp", "downloadpath3")
-            get_func(new_torrent, client_func)(loc)
-            # qBittorrent may return trailing separators depending on version....
-            check(
-                lambda: mkpath(new_torrent.info.download_path),
-                mkpath(loc),
-                any=True,
-            )
-            break
-        except AssertionError as e:
-            exp = e
-    if exp:
-        raise exp
+    loc = mkpath("/tmp", "downloadpath3")
+    get_func(new_torrent, client_func)(loc)
+    # qBittorrent may return trailing separators depending on version....
+    check(lambda: mkpath(new_torrent.info.download_path), mkpath(loc))
 
 
 @pytest.mark.parametrize("client_func", ("set_category", "setCategory"))
@@ -478,9 +443,9 @@ def test_file_priority(orig_torrent, client_func):
 
 
 @pytest.mark.parametrize("name", ("new_name", "new name"))
-def test_rename(orig_torrent, name):
-    orig_torrent.rename(new_name=name)
-    check(lambda: orig_torrent.info.name.replace("+", " "), name)
+def test_rename(new_torrent, name):
+    new_torrent.rename(new_name=name)
+    check(lambda: new_torrent.info.name.replace("+", " "), name)
 
 
 @pytest.mark.skipif_before_api_version("2.3.0")
