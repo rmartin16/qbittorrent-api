@@ -1,5 +1,8 @@
 Change log
 ==========
+### v2023.4.47 (19 apr 2023)
+- ``Client`` can now be used as a context manager
+
 ### v2023.4.46 (14 apr 2023)
 - Fix building docs after implementing ``src-layout``
 
