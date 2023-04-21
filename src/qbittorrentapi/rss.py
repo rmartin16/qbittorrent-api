@@ -260,8 +260,8 @@ class RSSAPIMixIn(AppAPIMixIn):
     @login_required
     def rss_mark_as_read(self, item_path=None, article_id=None, **kwargs):
         """
-        Mark RSS article as read. If article ID is not provider, the entire
-        feed is marked as read.
+        Mark RSS article as read. If article ID is not provider, the entire feed is
+        marked as read.
 
         :raises NotFound404Error:
 

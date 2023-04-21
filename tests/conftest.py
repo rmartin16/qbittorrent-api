@@ -60,7 +60,8 @@ def abort_if_qbittorrent_crashes(client):
 
 @pytest.fixture(autouse=True)
 def skip_if_not_implemented(request, api_version):
-    """Skips test if `skipif_before_api_version` marker specifies minimum API version."""
+    """Skips test if `skipif_before_api_version` marker specifies minimum API
+    version."""
     if request.node.get_closest_marker("skipif_before_api_version"):
         version = request.node.get_closest_marker("skipif_before_api_version").args[0]
         if v(api_version) < v(version):

@@ -1422,8 +1422,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     @login_required
     def torrents_trackers(self, torrent_hash=None, **kwargs):
         """
-        Retrieve individual torrent's trackers.
-        Tracker status is defined in :class:`~qbittorrentapi.definitions.TrackerStatus`.
+        Retrieve individual torrent's trackers. Tracker status is defined in
+        :class:`~qbittorrentapi.definitions.TrackerStatus`.
 
         :raises NotFound404Error:
 
@@ -2132,8 +2132,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     @login_required
     def torrents_set_auto_management(self, enable=None, torrent_hashes=None, **kwargs):
         """
-        Enable or disable automatic torrent management for one or more
-        torrents.
+        Enable or disable automatic torrent management for one or more torrents.
 
         :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
         :param enable: True or False

@@ -1074,8 +1074,8 @@ def test_torrents_add_peers_not_implemented(client, client_func):
 
 
 def _categories_save_path_key(api_version):
-    """With qBittorrent 4.4.0 (Web API 2.8.4), the key in the category
-    definition returned changed from savePath to save_path...."""
+    """With qBittorrent 4.4.0 (Web API 2.8.4), the key in the category definition
+    returned changed from savePath to save_path...."""
     if v(api_version) == v("2.8.4"):
         return "save_path"
     return "savePath"

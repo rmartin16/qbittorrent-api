@@ -121,8 +121,8 @@ class AuthAPIMixIn(Request):
     @property
     def _SID(self):
         """
-        Authorization session cookie from qBittorrent using default cookie name
-        `SID`. Backwards compatible for :meth:`~AuthAPIMixIn._session_cookie`.
+        Authorization session cookie from qBittorrent using default cookie name `SID`.
+        Backwards compatible for :meth:`~AuthAPIMixIn._session_cookie`.
 
         :return: Auth cookie value from qBittorrent or None if one isn't already acquired
         """

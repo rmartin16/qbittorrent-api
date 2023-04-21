@@ -37,7 +37,8 @@ def setup_environ():
 
 
 def get_func(obj, method_name):
-    """Retrieve a method from an object.
+    """
+    Retrieve a method from an object.
 
     For example, ``torrents_info`` or ``torrents.info``.
     """
@@ -64,9 +65,9 @@ def get_torrent(client, torrent_hash):
 
 def check(check_func, value, reverse=False, negate=False, any=False, check_time=None):
     """
-    Compare the return value of an arbitrary function to expected value with
-    retries. Since some requests take some time to take effect in qBittorrent,
-    the retries every second for 10 seconds.
+    Compare the return value of an arbitrary function to expected value with retries.
+    Since some requests take some time to take effect in qBittorrent, the retries every
+    second for 10 seconds.
 
     :param check_func: callable to generate values to check
     :param value: str, int, or iterator of values to look for
