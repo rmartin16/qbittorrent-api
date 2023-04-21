@@ -420,9 +420,9 @@ class Request(object):
         """
         Wrapper to manage request retries and severe exceptions.
 
-        This should retry at least once to account for the Web API
-        switching from HTTP to HTTPS. During the second attempt, the URL
-        is rebuilt using HTTP or HTTPS as appropriate.
+        This should retry at least once to account for the Web API switching from HTTP
+        to HTTPS. During the second attempt, the URL is rebuilt using HTTP or HTTPS as
+        appropriate.
         """
 
         def build_error_msg(exc):
@@ -451,9 +451,8 @@ class Request(object):
             """
             Back off on attempting each subsequent request retry.
 
-            The first retry is always immediate. if the backoff factor
-            is 0.3, then will sleep for 0s then .3s, then .6s, etc.
-            between retries.
+            The first retry is always immediate. if the backoff factor is 0.3, then will
+            sleep for 0s then .3s, then .6s, etc. between retries.
             """
             if retry_count > 0:
                 backoff_time = _retry_backoff_factor * (2 ** ((retry_count + 1) - 1))
@@ -661,9 +660,8 @@ class Request(object):
             """
             Wrapper to augment Requests Session.
 
-            Requests doesn't allow Session to default certain
-            configuration globally. This gets around that by setting
-            defaults for each request.
+            Requests doesn't allow Session to default certain configuration globally.
+            This gets around that by setting defaults for each request.
             """
 
             def request(self, method, url, **kwargs):
