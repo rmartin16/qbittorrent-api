@@ -6,11 +6,11 @@ updates:
     schedule:
       interval: "weekly"
       day: "saturday"
-      time: "8:00"
+      time: "08:00"
 
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "saturday"
-      time: "8:00"
+      time: "08:00"
