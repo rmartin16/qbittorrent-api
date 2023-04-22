@@ -17,14 +17,14 @@ repos:
         additional_dependencies: [toml]
 
   - repo: https://github.com/PyCQA/docformatter
-    rev: v1.6.1
+    rev: v1.6.2
     hooks:
       - id: docformatter
         exclude: _attrdict.py
         args: [--in-place, --pre-summary-newline, --wrap-descriptions=88, --wrap-summaries=88]
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.261
+    rev: v0.0.262
     hooks:
       - id: ruff
         args:
