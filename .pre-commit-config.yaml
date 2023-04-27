@@ -17,7 +17,7 @@ repos:
         additional_dependencies: [toml]
 
   - repo: https://github.com/PyCQA/docformatter
-    rev: v1.6.3
+    rev: v1.6.4
     hooks:
       - id: docformatter
         exclude: _attrdict.py

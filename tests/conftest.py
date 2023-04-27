@@ -79,7 +79,7 @@ def skip_if_implemented(request, api_version):
 
 @pytest.fixture(scope="session", autouse=True)
 def client():
-    """qBittorrent Client for testing session."""
+    """QBittorrent Client for testing session."""
     client = Client(
         RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True,
         VERBOSE_RESPONSE_LOGGING=True,
@@ -161,7 +161,7 @@ def new_torrent(client):
 
 @pytest.fixture(scope="session")
 def app_version(client):
-    """qBittorrent Version being used for testing."""
+    """QBittorrent Version being used for testing."""
     if IS_QBT_DEV:
         return client.app.version
     return QBT_VERSION
@@ -169,7 +169,7 @@ def app_version(client):
 
 @pytest.fixture(scope="session")
 def api_version(client):
-    """qBittorrent Web API Version being used for testing."""
+    """QBittorrent Web API Version being used for testing."""
     try:
         return api_version_map[QBT_VERSION]
     except KeyError as exp:
