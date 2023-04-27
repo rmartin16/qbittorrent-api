@@ -443,7 +443,7 @@ def test_requests_timeout(api_version):
 
 
 def test_request_extra_params(client, orig_torrent):
-    """extra params can be sent directly to qBittorrent but there aren't any real use-
+    """Extra params can be sent directly to qBittorrent but there aren't any real use-
     cases so force it."""
     json_response = client._post(
         APINames.Torrents, "info", hashes=orig_torrent.hash
