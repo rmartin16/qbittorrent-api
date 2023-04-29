@@ -92,7 +92,7 @@ jobs:
 
       - name: Send mail
         if: failure() && github.event_name != 'pull_request'
-        uses: dawidd6/action-send-mail@v3.7.1
+        uses: dawidd6/action-send-mail@v3.7.2
         with:
           server_address: "smtp.gmail.com"
           server_port: 587
