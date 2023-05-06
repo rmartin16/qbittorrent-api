@@ -15,6 +15,7 @@ permissions:
 
 env:
   BRANCH_NAME: "autoupdates/pre-commit"
+  FORCE_COLOR: "1"
 
 defaults:
   run:

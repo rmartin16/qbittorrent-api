@@ -19,6 +19,7 @@ env:
   QBITTORRENTAPI_HOST: "localhost:8080"
   QBITTORRENTAPI_USERNAME: "admin"
   QBITTORRENTAPI_PASSWORD: "adminadmin"
+  FORCE_COLOR: "1"
 
 jobs:
   verify:
@@ -63,8 +64,6 @@ jobs:
     # Verify build and packaging is successful
     #######
     name: Build & Verify Package
-    needs:
-      - verify
     runs-on: "ubuntu-latest"
     steps:
       - name: Checkout Repo
@@ -202,12 +201,13 @@ jobs:
         run: python -m coverage combine
 
       - name: Generate coverage report
+        id: coverage
         run: |
           python -m coverage html --skip-covered --skip-empty
           python -m coverage report --fail-under=100
 
       - name: Upload HTML report if check failed
-        if: ${{ failure() }}
+        if: always() && steps.coverage.outcome == 'failure'
         uses: actions/upload-artifact@v3.1.2
         with:
           name: "html-coverage-report"
