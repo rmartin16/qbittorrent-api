@@ -29,6 +29,7 @@ on:
 env:
   DOCKER_IMAGE_NAME: "ghcr.io/rmartin16/qbittorrent-nox"
   DOCKER_ARGS: "--name qbt --detach --publish 8080:8080 --volume ${{ github.workspace }}/tests/_resources:/tmp/_resources"
+  FORCE_COLOR: "1"
 
 jobs:
 

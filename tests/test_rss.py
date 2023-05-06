@@ -7,6 +7,7 @@ from qbittorrentapi.exceptions import APIError
 from qbittorrentapi.rss import RSSitemsDictionary
 from tests.utils import check
 from tests.utils import get_func
+from tests.utils import retry
 
 FOLDER_ONE = "testFolderOne"
 FOLDER_TWO = "testFolderTwo"
@@ -55,20 +56,26 @@ def rss_feed(client, api_version):
     ["rss_refresh_item", "rss_refreshItem", "rss.refresh_item", "rss.refreshItem"],
 )
 def test_refresh_item(client, rss_feed, client_func):
-    get_func(client, client_func)(item_path=rss_feed)
-    check(
-        lambda: client.rss_items(include_feed_data=True)[rss_feed]["lastBuildDate"],
-        "",
-        negate=True,
-    )
-    last_refresh = client.rss_items(include_feed_data=True)[rss_feed]["lastBuildDate"]
-    sleep(1)
-    get_func(client, client_func)(item_path=rss_feed)
-    check(
-        lambda: client.rss_items(include_feed_data=True)[rss_feed]["lastBuildDate"],
-        last_refresh,
-        negate=True,
-    )
+    @retry()
+    def run_test():
+        get_func(client, client_func)(item_path=rss_feed)
+        check(
+            lambda: client.rss_items(include_feed_data=True)[rss_feed]["lastBuildDate"],
+            "",
+            negate=True,
+        )
+        last_refresh = client.rss_items(include_feed_data=True)[rss_feed][
+            "lastBuildDate"
+        ]
+        sleep(1)
+        get_func(client, client_func)(item_path=rss_feed)
+        check(
+            lambda: client.rss_items(include_feed_data=True)[rss_feed]["lastBuildDate"],
+            last_refresh,
+            negate=True,
+        )
+
+    run_test()
 
 
 # inconsistent behavior with endpoint for API version 2.2

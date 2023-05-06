@@ -4,6 +4,9 @@ on:
   release:
     types: [created]
 
+env:
+  FORCE_COLOR: "1"
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
