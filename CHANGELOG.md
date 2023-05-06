@@ -1,5 +1,8 @@
 Change log
 ==========
+### v2023.5.48 (29 may 2023)
+- Advertise support for qBittorrent v4.5.3
+
 ### v2023.4.47 (19 apr 2023)
 - ``Client`` can now be used as a context manager
 
@@ -114,7 +117,7 @@ Change log
 - Generally refactor ``requests.py`` so it's better and easier to read
 - Persist a Requests Session between API calls instead of always creating a new one...small perf benefit
 - Move auth endpoints back to a dedicated module
-- Since ``attrdict`` is apparently going to break in Python 3.10 and it is no longer maintained, I've vendored a modified version (fixes #45).
+- Since ``attrdict`` is apparently going to break in Python 3.10 and it is no longer maintained, I've vendored a modified version (fixes #45)
 - Created ``handle_hashes`` decorator to hide the cruft of continuing to support hash and hashes arguments
 
 ### v2021.1.16 (26 jan 2021)
@@ -132,18 +135,18 @@ Change log
 
 ### v2020.12.14 (6 dec 2020)
 - Add support for non-standard API endpoint paths (Fixes #37)
-- Allows users to leverage this client when qBittorrent is configured behind a reverse proxy.
-  - For instance, if the Web API is being exposed at "http://localhost/qbt/", then users can instantiate via ``Client(host='localhost/qbt')`` and all API endpoint paths will be prefixed with "/qbt".
-- Additionally, the scheme (i.e. http or https) from the user will now be respected as the first choice for which scheme is used to communicate with qBittorrent.
-  - However, users still don't need to even specify a scheme; it'll be automatically determined on the first connection to qBittorrent.
-- Neither of these should be breaking changes, but if you're instantiating with an incorrect scheme or an irrelevant path, you may need to prevent doing that now.
+- Allows users to leverage this client when qBittorrent is configured behind a reverse proxy
+  - For instance, if the Web API is being exposed at "http://localhost/qbt/", then users can instantiate via ``Client(host='localhost/qbt')`` and all API endpoint paths will be prefixed with "/qbt"
+- Additionally, the scheme (i.e. http or https) from the user will now be respected as the first choice for which scheme is used to communicate with qBittorrent
+  - However, users still don't need to even specify a scheme; it'll be automatically determined on the first connection to qBittorrent
+- Neither of these should be breaking changes, but if you're instantiating with an incorrect scheme or an irrelevant path, you may need to prevent doing that now
 
 ### v2020.11.13 (29 nov 2020)
 - Support qBittorrent v4.3.1 and Web API v2.6.1
 - Path of torrent content now available via ``content_path`` from ``torrents/info``
 
 ### v2020.11.12 (16 nov 2020)
-- Fix support for raw bytes for ``torrent_files`` in ``torrents_add()`` for Python 3. Fixes #34.
+- Fix support for raw bytes for ``torrent_files`` in ``torrents_add()`` for Python 3 (Fixes #34)
 
 ### v2020.10.11 (29 oct 2020)
 - Support qBittorrent v4.3.0.1 and Web API v2.6
@@ -156,46 +159,46 @@ Change log
 - Only request ``enum34`` for Python 2
 
 ### v2020.8.8 (14 aug 2020)
-- Support adding torrents from raw torrent files as bytes or file handles. Fixes #23.
-- Introduce ``TorrentStates`` enum for qBittorrent list of torrent states.
+- Support adding torrents from raw torrent files as bytes or file handles (Fixes #23)
+- Introduce ``TorrentStates`` enum for qBittorrent list of torrent states
 
 ### v2020.7.7 (26 jul 2020)
-- Update tests and misc small fixes.
+- Update tests and misc small fixes
 
 ### v2020.7.6 (25 jul 2020)
-- Re-release of v2020.7.5.
+- Re-release of v2020.7.5
 
 ### v2020.7.5 (25 jul 2020)
-- Add RTD documentation.
+- Add RTD documentation
 
 ### v2020.6.4 (9 jun 2020)
-- Bug fix release. Reorganized code and classes to be more logical.
-- Started returning None from many methods that were returning Requests Responses.
-- Content-Length header is now explicitly sent as "0" for any POSTs without a body.
-- Endpoint input parameters ``hash`` and ``hashes`` are renamed to ``torrent_hash`` and ``torrent_hashes``. ``hash`` and ``hashes`` remain supported.
-- ``search_uninstall_plugin`` now works. search_enable_plugin now supports multiple plugins.
-- ``Torrent.download_limit`` now only return the value instead of a dictionary. ``Torrent.upload_limit`` now works.
-- Drop advertising Python 2.6 and 3.4 support; add PyPy3 support.
-- Implement test suite and CI that can test all supported qBittorrent versions on all pythons.
+- Bug fix release. Reorganized code and classes to be more logical
+- Started returning None from many methods that were returning Requests Responses
+- Content-Length header is now explicitly sent as "0" for any POSTs without a body
+- Endpoint input parameters ``hash`` and ``hashes`` are renamed to ``torrent_hash`` and ``torrent_hashes``. ``hash`` and ``hashes`` remain supported
+- ``search_uninstall_plugin`` now works. search_enable_plugin now supports multiple plugins
+- ``Torrent.download_limit`` now only return the value instead of a dictionary. ``Torrent.upload_limit`` now works
+- Drop advertising Python 2.6 and 3.4 support; add PyPy3 support
+- Implement test suite and CI that can test all supported qBittorrent versions on all pythons
 
 ### v2020.5.3 (11 may 2020)
-- Include currently supported qBittorrent version in README. Fixes #11.
+- Include currently supported qBittorrent version in README (Fixes #11)
 
 ### v2020.4.2 (25 apr 2020)
-- Add support for ``rss/markAsRead`` and ``rss/matchingArticles``. Added in v2.5.1. Fixes #10
+- Add support for ``rss/markAsRead`` and ``rss/matchingArticles``. Added in v2.5.1 (Fixes #10)
 
 ### v2020.4.1 (25 apr 2020)
-- Add ``stalled()``, ``stalled_uploading()``, and ``stalled_downloading()`` to ``torrents.info`` interaction. Added in Web API v2.4.1.
-- Implement torrent file renaming. Added in Web API v2.4.0. Fixes #3.
-- Since versioning was botched last release, implement calendar versioning.
-- List of files returned from ``torrents_files()`` now contains file ID in ``id``.
+- Add ``stalled()``, ``stalled_uploading()``, and ``stalled_downloading()`` to ``torrents.info`` interaction; added in Web API v2.4.1
+- Implement torrent file renaming. Added in Web API v2.4.0 (Fixes #3)
+- Since versioning was botched last release, implement calendar versioning
+- List of files returned from ``torrents_files()`` now contains file ID in ``id``
 
 ### v6.0.0 (22 apr 2020)
-- Performance gains for responses with payloads...especially for large payloads.
-- Fixes #6. Adds support for ``SIMPLE_RESPONSES`` for the entire client and individual methods.
+- Performance gains for responses with payloads...especially for large payloads
+- Fixes #6. Adds support for ``SIMPLE_RESPONSES`` for the entire client and individual methods
 
 ### v0.5.2 (19 apr 2020)
-- Fixes #8. Remove whitespace from in setPreferences requests for older qBittorrent versions.
+- Fixes #8. Remove whitespace from in setPreferences requests for older qBittorrent versions
 
 ### v0.5.1 (2 jan 2020)
 - Add Python3.8 version for PyPI
@@ -235,9 +238,9 @@ Change log
 - Finalized interaction layer interfaces
 
 ### v0.2 (13 may 2019)
-- Introduced the "interaction layer" for transparent interaction with the qBittorrent API.
+- Introduced the "interaction layer" for transparent interaction with the qBittorrent API
 
 ### v0.1 (7 may 2019)
-- Complete implementation of qBittorrent WebUI API 2.2.
-- Each API endpoint is available via the ``Client`` class.
-- Automatic re-login is supported in the event of login expiration.
+- Complete implementation of qBittorrent WebUI API 2.2
+- Each API endpoint is available via the ``Client`` class
+- Automatic re-login is supported in the event of login expiration

@@ -46,9 +46,11 @@ APP_VERSION_2_API_VERSION_MAP = {
     "v4.5.0": "2.8.18",
     "v4.5.1": "2.8.19",
     "v4.5.2": "2.8.19",
+    "v4.6.0alpha1": "2.9.1",
+    "v4.5.3": "2.8.19",
 }
 
-MOST_RECENT_SUPPORTED_APP_VERSION = "v4.5.2"
+MOST_RECENT_SUPPORTED_APP_VERSION = "v4.5.3"
 MOST_RECENT_SUPPORTED_API_VERSION = "2.8.19"
 
 
