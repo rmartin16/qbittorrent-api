@@ -21,7 +21,7 @@ repos:
     hooks:
       - id: docformatter
         exclude: _attrdict.py
-        args: [--in-place, --pre-summary-newline, --wrap-descriptions=88, --wrap-summaries=88]
+        args: [--in-place, --pre-summary-newline, --black, --non-cap=qBittorrent]
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     rev: v0.0.267
