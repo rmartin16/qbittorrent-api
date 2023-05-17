@@ -161,7 +161,7 @@ def new_torrent(client):
 
 @pytest.fixture(scope="session")
 def app_version(client):
-    """QBittorrent Version being used for testing."""
+    """qBittorrent Version being used for testing."""
     if IS_QBT_DEV:
         return client.app.version
     return QBT_VERSION
@@ -169,7 +169,7 @@ def app_version(client):
 
 @pytest.fixture(scope="session")
 def api_version(client):
-    """QBittorrent Web API Version being used for testing."""
+    """qBittorrent Web API Version being used for testing."""
     try:
         return api_version_map[QBT_VERSION]
     except KeyError as exp:
