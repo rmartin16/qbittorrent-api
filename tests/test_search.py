@@ -10,8 +10,8 @@ from tests.utils import check
 from tests.utils import get_func
 from tests.utils import retry
 
-PLUGIN_NAME = "legittorrents"
-LEGIT_TORRENTS_URL = "https://raw.githubusercontent.com/qbittorrent/search-plugins/master/nova3/engines/legittorrents.py"
+PLUGIN_NAME = "yts"
+PLUGIN_URL = "https://raw.githubusercontent.com/khensolomon/leyts/master/yts.py"
 
 
 @pytest.mark.skipif_before_api_version("2.1.1")
@@ -97,7 +97,7 @@ def test_enable_plugin_not_implemented(client, client_func):
 def test_install_uninstall_plugin(client, client_func):
     @retry()
     def install_plugin(client, client_func):
-        get_func(client, client_func[0])(sources=LEGIT_TORRENTS_URL)
+        get_func(client, client_func[0])(sources=PLUGIN_URL)
         check(
             lambda: (p.name for p in client.search.plugins),
             PLUGIN_NAME,
