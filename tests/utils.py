@@ -71,7 +71,8 @@ def check(check_func, value, reverse=False, negate=False, any=False, check_time=
 
     :param check_func: callable to generate values to check
     :param value: str, int, or iterator of values to look for
-    :param reverse: False: look for check_func return in value; True: look for value in check_func return
+    :param reverse: False: look for check_func return in value; True: look for value in
+        check_func return
     :param negate: False: value must be found; True: value must not be found
     :param check_time: maximum number of seconds to spend checking
     :param any: False: all values must be (not) found; True: any value must be (not) found

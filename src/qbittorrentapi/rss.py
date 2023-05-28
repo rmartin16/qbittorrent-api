@@ -228,7 +228,8 @@ class RSSAPIMixIn(AppAPIMixIn):
         Retrieve RSS items and optionally feed data.
 
         :param include_feed_data: True or false to include feed data
-        :return: :class:`RSSitemsDictionary`
+        :return:
+        :class: `RSSitemsDictionary`
         """
         params = {"withData": include_feed_data}
         return self._get(
@@ -317,7 +318,8 @@ class RSSAPIMixIn(AppAPIMixIn):
         """
         Retrieve RSS auto-download rule definitions.
 
-        :return: :class:`RSSRulesDictionary`
+        :return:
+        :class: `RSSRulesDictionary`
         """
         return self._get(
             _name=APINames.RSS,
@@ -334,7 +336,8 @@ class RSSAPIMixIn(AppAPIMixIn):
         Fetch all articles matching a rule.
 
         :param rule_name: Name of rule to return matching articles
-        :return: :class:`RSSitemsDictionary`
+        :return:
+        :class: `RSSitemsDictionary`
         """
         data = {"ruleName": rule_name}
         return self._post(

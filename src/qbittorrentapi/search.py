@@ -193,11 +193,11 @@ class SearchAPIMixIn(AppAPIMixIn):
         searches.
 
         :raises Conflict409Error:
-
         :param pattern: term to search for
         :param plugins: list of plugins to use for searching (supports 'all' and 'enabled')
         :param category: categories to limit search; dependent on plugins. (supports 'all')
-        :return: :class:`SearchJobDictionary`
+        :return:
+        :class: `SearchJobDictionary`
         """
         data = {
             "pattern": pattern,
@@ -219,7 +219,6 @@ class SearchAPIMixIn(AppAPIMixIn):
         Stop a running search.
 
         :raises NotFound404Error:
-
         :param search_id: ID of search job to stop
         :return: None
         """
@@ -276,7 +275,6 @@ class SearchAPIMixIn(AppAPIMixIn):
         Delete a search job.
 
         :raises NotFound404Error:
-
         :param search_id: ID of search to delete
         :return: None
         """
