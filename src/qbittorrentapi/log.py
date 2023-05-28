@@ -178,7 +178,8 @@ class LogAPIMixIn(AppAPIMixIn):
         Retrieve qBittorrent peer log.
 
         :param last_known_id: only entries with an ID greater than this value will be returned
-        :return: :class:`LogPeersList`
+        :return:
+        :class: `LogPeersList`
         """
         parameters = {"last_known_id": last_known_id}
         return self._get(

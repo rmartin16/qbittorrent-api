@@ -653,7 +653,8 @@ class Request(object):
         """
         Create or return existing HTTP session.
 
-        :return: Requests :class:`~requests.Session` object
+        :return: Requests
+        :class: `~requests.Session` object
         """
 
         class QbittorrentSession(Session):
