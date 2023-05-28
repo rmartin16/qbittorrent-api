@@ -14,7 +14,7 @@ permissions:
   pull-requests: write
 
 env:
-  BRANCH_NAME: "autoupdates/pre-commit"
+  BRANCH_PREFIX: "autoupdates/pre-commit"
   FORCE_COLOR: "1"
 
 defaults:
@@ -95,8 +95,8 @@ jobs:
         uses: peter-evans/create-pull-request@v5.0.1
         with:
           token: ${{ secrets.PAT }}
-          title: "Bumped pre-commit hook for ${{ steps.pr.outputs.hook-name }}"
-          branch: '${{ env.BRANCH_NAME }}/${{ steps.pr.outputs.hook-name }}'
+          title: "Bump pre-commit hook for ${{ steps.pr.outputs.hook-name }}"
+          branch: "${{ env.BRANCH_PREFIX }}/${{ steps.pr.outputs.hook-name }}"
           commit-message: "Bumped pre-commit hook for ${{ steps.pr.outputs.hook-name }}"
           committer: "pre-commit updater <noreply@example.org>"
           author: "pre-commit updater <noreply@example.org>"
