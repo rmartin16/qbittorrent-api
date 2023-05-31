@@ -33,6 +33,8 @@ filterwarnings = [
     # this'll need to be addressed eventually...
     "ignore:pkg_resources is deprecated as an API:DeprecationWarning",
     "ignore:Deprecated call to `pkg_resources.declare_namespace:DeprecationWarning",
+    # Work around https://github.com/pytest-dev/pytest/issues/10977 for Python 3.12
+    'ignore:(ast\.Str|ast\.NameConstant|ast\.Num|Attribute s) is deprecated and will be removed.*:DeprecationWarning:',
 ]
 markers = [
     "skipif_before_api_version(api_version): skips test for current api version",
