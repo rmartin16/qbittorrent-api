@@ -1529,7 +1529,6 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         Add trackers to a torrent.
 
         :raises NotFound404Error:
-
         :param torrent_hash: hash for torrent
         :param urls: tracker URLs to add to torrent
         :return: None
@@ -1553,7 +1552,6 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :raises InvalidRequest400Error:
         :raises NotFound404Error:
         :raises Conflict409Error:
-
         :param torrent_hash: hash for torrent
         :param original_url: URL for existing tracker
         :param new_url: new URL to replace
@@ -1576,7 +1574,6 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
         :raises NotFound404Error:
         :raises Conflict409Error:
-
         :param torrent_hash: hash for torrent
         :param urls: tracker URLs to removed from torrent
         :return: None
@@ -1620,7 +1617,6 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         Rename a torrent.
 
         :raises NotFound404Error:
-
         :param torrent_hash: hash for torrent
         :param new_torrent_name: new name for torrent
         :return: None
@@ -1647,7 +1643,6 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :raises MissingRequiredParameters400Error:
         :raises NotFound404Error:
         :raises Conflict409Error:
-
         :param torrent_hash: hash for torrent
         :param file_id: id for file (removed in Web API 2.7)
         :param new_file_name: new name for file (removed in Web API 2.7)
@@ -1713,7 +1708,6 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :raises MissingRequiredParameters400Error:
         :raises NotFound404Error:
         :raises Conflict409Error:
-
         :param torrent_hash: hash for torrent
         :param old_path: path of file to rename (added in Web API 2.7)
         :param new_path: new path of file to rename (added in Web API 2.7)
@@ -1748,7 +1742,6 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
         :raises NotFound404Error: torrent not found
         :raises Conflict409Error: unable to export .torrent file
-
         :param torrent_hash: hash for torrent
         :return: bytes .torrent file
         """
@@ -2278,9 +2271,9 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         Create a new torrent category.
 
         :raises Conflict409Error: if category name is not valid or unable to create
-
         :param name: name for new category
-        :param save_path: location to save torrents for this category (added in Web API 2.1.0)
+        :param save_path: location to save torrents for this category (added in Web API
+            2.1.0)
         :param download_path: download location for torrents with this category
         :param enable_download_path: True or False to enable or disable download path
         :return: None
