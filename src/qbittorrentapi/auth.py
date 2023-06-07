@@ -67,8 +67,8 @@ class AuthAPIMixIn(Request):
         """
         Returns True if low-overhead API call succeeds; False otherwise.
 
-        There isn't a reliable way to know if an existing session is still valid
-        without attempting to use it. qBittorrent invalidates cookies when they expire.
+        There isn't a reliable way to know if an existing session is still valid without
+        attempting to use it. qBittorrent invalidates cookies when they expire.
 
         :returns: True/False if current authorization cookie is accepted by qBittorrent
         """
@@ -133,7 +133,8 @@ class AuthAPIMixIn(Request):
         Authorization session cookie from qBittorrent.
 
         :param cookie_name: Name of the authorization cookie; configurable after v4.5.0.
-        :return: Auth cookie value from qBittorrent or None if one isn't already acquired
+        :return: Auth cookie value from qBittorrent or None if one isn't already
+            acquired
         """
         if self._http_session:
             return self._http_session.cookies.get(cookie_name, None)

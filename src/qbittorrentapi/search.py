@@ -219,7 +219,6 @@ class SearchAPIMixIn(AppAPIMixIn):
         Stop a running search.
 
         :raises NotFound404Error:
-
         :param search_id: ID of search job to stop
         :return: None
         """
@@ -276,7 +275,6 @@ class SearchAPIMixIn(AppAPIMixIn):
         Delete a search job.
 
         :raises NotFound404Error:
-
         :param search_id: ID of search to delete
         :return: None
         """

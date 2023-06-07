@@ -179,8 +179,8 @@ class TransferAPIMixIn(AppAPIMixIn):
         """
         Sets whether alternative speed limits are enabled.
 
-        :param intended_state: True to enable alt speed and False to disable.
-                               Leaving None will toggle the current state.
+        :param intended_state: True to enable alt speed and False to disable. Leaving
+            None will toggle the current state.
         :return: None
         """
         if intended_state is None:
@@ -264,7 +264,8 @@ class TransferAPIMixIn(AppAPIMixIn):
         """
         Ban one or more peers.
 
-        :param peers: one or more peers to ban. each peer should take the form 'host:port'
+        :param peers: one or more peers to ban. each peer should take the form
+            'host:port'
         :return: None
         """
         data = {"peers": self._list2string(peers, "|")}
