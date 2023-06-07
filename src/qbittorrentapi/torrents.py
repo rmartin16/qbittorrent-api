@@ -448,7 +448,14 @@ class Tracker(ListEntry):
     """Item in :class:`TrackersList`"""
 
 
-class TorrentInfoList(List):
+class _ListWithClient(List):
+    def __getitem__(self, i):
+        if isinstance(i, slice):
+            return self.__class__(self.data[i], client=self._client)
+        else:
+            return self.data[i]
+
+class TorrentInfoList(_ListWithClient):
     """Response to :meth:`~TorrentsAPIMixIn.torrents_info`"""
 
     def __init__(self, list_entries, client):
@@ -457,7 +464,7 @@ class TorrentInfoList(List):
         )
 
 
-class TorrentPieceInfoList(List):
+class TorrentPieceInfoList(_ListWithClient):
     """Response to :meth:`~TorrentsAPIMixIn.torrents_piece_states` and
     :meth:`~TorrentsAPIMixIn.torrents_piece_hashes`"""
 
@@ -471,7 +478,7 @@ class TorrentPieceData(ListEntry):
     """Item in :class:`TorrentPieceInfoList`"""
 
 
-class TagList(List):
+class TagList(_ListWithClient):
     """Response to :meth:`~TorrentsAPIMixIn.torrents_tags`"""
 
     def __init__(self, list_entries, client):
