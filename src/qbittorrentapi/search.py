@@ -44,9 +44,9 @@ class SearchResultsDictionary(Dictionary):
 class SearchStatusesList(List):
     """Response for :meth:`~SearchAPIMixIn.search_status`"""
 
-    def __init__(self, list_entries, client):
+    def __init__(self, list_entries, client=None):
         super(SearchStatusesList, self).__init__(
-            client=client, entry_class=SearchStatus, list_entries=list_entries
+            list_entries, entry_class=SearchStatus, client=client
         )
 
 
@@ -57,9 +57,9 @@ class SearchStatus(ListEntry):
 class SearchCategoriesList(List):
     """Response for :meth:`~SearchAPIMixIn.search_categories`"""
 
-    def __init__(self, list_entries, client):
+    def __init__(self, list_entries, client=None):
         super(SearchCategoriesList, self).__init__(
-            client=client, entry_class=SearchCategory, list_entries=list_entries
+            list_entries, entry_class=SearchCategory, client=client
         )
 
 
@@ -70,9 +70,9 @@ class SearchCategory(ListEntry):
 class SearchPluginsList(List):
     """Response for :meth:`~SearchAPIMixIn.search_plugins`"""
 
-    def __init__(self, list_entries, client):
+    def __init__(self, list_entries, client=None):
         super(SearchPluginsList, self).__init__(
-            client=client, entry_class=SearchPlugin, list_entries=list_entries
+            list_entries, entry_class=SearchPlugin, client=client
         )
 
 

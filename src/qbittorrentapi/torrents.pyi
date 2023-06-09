@@ -237,7 +237,7 @@ class TorrentFilesList(List[TorrentFile]):
     def __init__(
         self,
         list_entries: ListInputT,
-        client: TorrentsAPIMixIn,
+        client: Optional[TorrentsAPIMixIn] = None,
     ) -> None: ...
 
 class WebSeed(ListEntry): ...
@@ -246,7 +246,7 @@ class WebSeedsList(List[WebSeed]):
     def __init__(
         self,
         list_entries: ListInputT,
-        client: TorrentsAPIMixIn,
+        client: Optional[TorrentsAPIMixIn] = None,
     ) -> None: ...
 
 class Tracker(ListEntry): ...
@@ -255,14 +255,14 @@ class TrackersList(List[Tracker]):
     def __init__(
         self,
         list_entries: ListInputT,
-        client: TorrentsAPIMixIn,
+        client: Optional[TorrentsAPIMixIn] = None,
     ) -> None: ...
 
 class TorrentInfoList(List[TorrentDictionary]):
     def __init__(
         self,
         list_entries: ListInputT,
-        client: TorrentsAPIMixIn,
+        client: Optional[TorrentsAPIMixIn] = None,
     ) -> None: ...
 
 class TorrentPieceData(ListEntry): ...
@@ -271,7 +271,7 @@ class TorrentPieceInfoList(List[TorrentPieceData]):
     def __init__(
         self,
         list_entries: ListInputT,
-        client: TorrentsAPIMixIn,
+        client: Optional[TorrentsAPIMixIn] = None,
     ) -> None: ...
 
 class Tag(ListEntry): ...
@@ -280,7 +280,7 @@ class TagList(List[Tag]):
     def __init__(
         self,
         list_entries: ListInputT,
-        client: TorrentsAPIMixIn,
+        client: Optional[TorrentsAPIMixIn] = None,
     ) -> None: ...
 
 class Torrents(ClientCache):

@@ -1,7 +1,7 @@
 import errno
 import logging
 import platform
-from sys import version_info
+import sys
 from time import sleep
 
 try:
@@ -117,7 +117,7 @@ def test_add_delete(client, client_func):
         download_file(url=TORRENT1_URL, filename=TORRENT1_FILENAME)
         download_file(url=TORRENT2_URL, filename=TORRENT2_FILENAME)
         # send bytes as a proxy for testing python 2
-        kw = {} if version_info.major == 2 else dict(encoding="utf-8")
+        kw = {} if sys.version_info.major == 2 else dict(encoding="utf-8")
         files = ("~/%s" % TORRENT1_FILENAME, bytes("~/%s" % TORRENT2_FILENAME, **kw))
 
         if single:
@@ -196,7 +196,7 @@ def test_add_delete(client, client_func):
 
 def test_add_torrent_file_fail(client, monkeypatch):
     # torrent add is wonky in python2 because of support for raw bytes...
-    if version_info[0] > 2:
+    if sys.version_info[0] > 2:
         with pytest.raises(TorrentFileNotFoundError):
             client.torrents_add(torrent_files="/tmp/asdfasdfasdfasdf")
 
@@ -221,7 +221,7 @@ def test_close_file_fail(client, monkeypatch, caplog):
     def post(*args, **kwargs):
         return "OK"
 
-    if version_info[0] > 2:
+    if sys.version_info[0] > 2:
         with monkeypatch.context() as m:
             m.setattr(client, "_normalize_torrent_files", fake_norm_files)
             m.setattr(client, "_post", post)
@@ -338,16 +338,22 @@ def test_properties(client, orig_torrent):
 def test_trackers(client, orig_torrent):
     trackers = client.torrents_trackers(torrent_hash=orig_torrent.hash)
     assert isinstance(trackers, TrackersList)
+    if sys.version_info < (3,) or sys.version_info >= (3, 7):
+        assert isinstance(trackers[1:2], TrackersList)
 
 
 def test_webseeds(client, orig_torrent):
     web_seeds = client.torrents_webseeds(torrent_hash=orig_torrent.hash)
     assert isinstance(web_seeds, WebSeedsList)
+    if sys.version_info < (3,) or sys.version_info >= (3, 7):
+        assert isinstance(web_seeds[1:2], WebSeedsList)
 
 
 def test_files(client, orig_torrent):
     files = client.torrents_files(torrent_hash=orig_torrent.hash)
     assert isinstance(files, TorrentFilesList)
+    if sys.version_info < (3,) or sys.version_info >= (3, 7):
+        assert isinstance(files[1:2], TorrentFilesList)
     assert "availability" in files[0]
 
     assert all(file["id"] == file["index"] for file in files)
@@ -359,6 +365,8 @@ def test_files(client, orig_torrent):
 def test_piece_states(client, orig_torrent, client_func):
     piece_states = get_func(client, client_func)(torrent_hash=orig_torrent.hash)
     assert isinstance(piece_states, TorrentPieceInfoList)
+    if sys.version_info < (3,) or sys.version_info >= (3, 7):
+        assert isinstance(piece_states[1:2], TorrentPieceInfoList)
 
 
 @pytest.mark.parametrize(
@@ -367,6 +375,8 @@ def test_piece_states(client, orig_torrent, client_func):
 def test_piece_hashes(client, orig_torrent, client_func):
     piece_hashes = get_func(client, client_func)(torrent_hash=orig_torrent.hash)
     assert isinstance(piece_hashes, TorrentPieceInfoList)
+    if sys.version_info < (3,) or sys.version_info >= (3, 7):
+        assert isinstance(piece_hashes[1:2], TorrentPieceInfoList)
 
 
 @pytest.mark.parametrize("trackers", ("127.0.0.1", ("127.0.0.2", "127.0.0.3")))
@@ -552,6 +562,8 @@ def test_export_not_implemented(client):
 @pytest.mark.parametrize("client_func", ("torrents_info", "torrents.info"))
 def test_torrents_info(client, client_func):
     assert isinstance(get_func(client, client_func)(), TorrentInfoList)
+    if sys.version_info < (3,) or sys.version_info >= (3, 7):
+        assert isinstance(get_func(client, client_func)()[1:2], TorrentInfoList)
     if "." in client_func:
         assert isinstance(get_func(client, client_func).all(), TorrentInfoList)
         assert isinstance(get_func(client, client_func).downloading(), TorrentInfoList)
@@ -1274,8 +1286,12 @@ def test_remove_category(client, api_version, orig_torrent, client_func, categor
 def test_tags(client, client_func):
     try:
         assert isinstance(get_func(client, client_func)(), TagList)
+        if sys.version_info < (3,) or sys.version_info >= (3, 7):
+            assert isinstance(get_func(client, client_func)()[1:2], TagList)
     except TypeError:
         assert isinstance(get_func(client, client_func), TagList)
+        if sys.version_info < (3,) or sys.version_info >= (3, 7):
+            assert isinstance(get_func(client, client_func)[1:2], TagList)
 
 
 @pytest.mark.skipif_after_api_version("2.3.0")

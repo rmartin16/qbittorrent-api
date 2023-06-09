@@ -34,7 +34,7 @@ class SearchStatusesList(List[SearchStatus]):
     def __init__(
         self,
         list_entries: ListInputT,
-        client: SearchAPIMixIn,
+        client: Optional[SearchAPIMixIn] = None,
     ) -> None: ...
 
 class SearchCategory(ListEntry): ...
@@ -43,7 +43,7 @@ class SearchCategoriesList(List[SearchCategory]):
     def __init__(
         self,
         list_entries: ListInputT,
-        client: SearchAPIMixIn,
+        client: Optional[SearchAPIMixIn] = None,
     ) -> None: ...
 
 class SearchPlugin(ListEntry): ...
@@ -52,7 +52,7 @@ class SearchPluginsList(List[SearchPlugin]):
     def __init__(
         self,
         list_entries: ListInputT,
-        client: SearchAPIMixIn,
+        client: Optional[SearchAPIMixIn] = None,
     ) -> None: ...
 
 class Search(ClientCache):

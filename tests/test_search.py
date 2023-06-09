@@ -1,9 +1,12 @@
+import sys
 from time import sleep
 
 import pytest
 
 from qbittorrentapi import NotFound404Error
+from qbittorrentapi.search import SearchCategoriesList
 from qbittorrentapi.search import SearchJobDictionary
+from qbittorrentapi.search import SearchPluginsList
 from qbittorrentapi.search import SearchResultsDictionary
 from qbittorrentapi.search import SearchStatusesList
 from tests.utils import check
@@ -55,6 +58,9 @@ def test_enable_plugin(client, client_func):
             plugins = get_func(client, client_func[0])()
         except TypeError:
             plugins = get_func(client, client_func[0])
+        assert isinstance(plugins, SearchPluginsList)
+        if sys.version_info < (3,) or sys.version_info >= (3, 7):
+            assert isinstance(plugins[1:2], SearchPluginsList)
         get_func(client, client_func[1])(
             plugins=(p["name"] for p in plugins), enable=False
         )
@@ -137,6 +143,9 @@ def test_install_uninstall_plugin_not_implemented(client, client_func):
 @pytest.mark.skipif_after_api_version("2.6")
 @pytest.mark.parametrize("client_func", ("search_categories", "search.categories"))
 def test_categories(client, client_func):
+    assert isinstance(get_func(client, client_func)(), SearchCategoriesList)
+    if sys.version_info < (3,) or sys.version_info >= (3, 7):
+        assert isinstance(get_func(client, client_func)()[1:2], SearchCategoriesList)
     check(lambda: get_func(client, client_func)(), "All categories", reverse=True)
 
 
@@ -175,6 +184,8 @@ def test_search(client, client_func):
     assert statuses[0]["status"] == "Running"
     assert isinstance(job, SearchJobDictionary)
     assert isinstance(statuses, SearchStatusesList)
+    if sys.version_info < (3,) or sys.version_info >= (3, 7):
+        assert isinstance(statuses[1:2], SearchStatusesList)
     results = get_func(client, client_func[2])(search_id=job["id"], limit=1)
     assert isinstance(results, SearchResultsDictionary)
     results = job.results()

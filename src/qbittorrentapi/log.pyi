@@ -14,7 +14,7 @@ class LogPeersList(List[LogPeer]):
     def __init__(
         self,
         list_entries: ListInputT,
-        client: LogAPIMixIn,
+        client: Optional[LogAPIMixIn] = None,
     ) -> None: ...
 
 class LogEntry(ListEntry): ...
@@ -23,7 +23,7 @@ class LogMainList(List[LogEntry]):
     def __init__(
         self,
         list_entries: ListInputT,
-        client: LogAPIMixIn,
+        client: Optional[LogAPIMixIn] = None,
     ) -> None: ...
 
 class Log(ClientCache):

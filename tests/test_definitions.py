@@ -1,3 +1,4 @@
+import sys
 from enum import Enum
 
 import pytest
@@ -155,10 +156,44 @@ def test_dictionary():
     assert Dictionary({"three": 3})["three"] == 3
 
 
-def test_list():
+def test_list(client):
     assert len(List()) == 0
-    list_entries = ({"one": "1"}, {"two": "2"}, {"three": "3"})
-    test_list = List(list_entries=list_entries, entry_class=ListEntry)
+    list_entries = [{"one": "1"}, {"two": "2"}, {"three": "3"}]
+    test_list = List(list_entries, entry_class=ListEntry, client=client)
     assert len(test_list) == 3
     assert issubclass(type(test_list[0]), ListEntry)
     assert test_list[0].one == "1"
+
+
+def test_list_without_client():
+    list_one = List([{"one": "1"}, {"two": "2"}], entry_class=ListEntry)
+    # without client, the entries will not be converted
+    assert not isinstance(list_one[0], ListEntry)
+    assert isinstance(list_one[0], dict)
+
+
+def test_list_actions(client):
+    list_one = List(
+        [{"one": "1"}, {"two": "2"}, {"three": "3"}],
+        entry_class=ListEntry,
+        client=client,
+    )
+    list_two = List([{"four": "4"}], entry_class=ListEntry, client=client)
+
+    assert list_one[1:3] == [
+        ListEntry({"two": "2"}, client=client),
+        ListEntry({"three": "3"}, client=client),
+    ]
+    assert list_one + list_two == [
+        ListEntry({"one": "1"}, client=client),
+        ListEntry({"two": "2"}, client=client),
+        ListEntry({"three": "3"}, client=client),
+    ] + [ListEntry({"four": "4"}, client=client)]
+
+    # UserList doesn't have copy in 2.7
+    if sys.version_info > (3,):
+        assert list_one.copy() == [
+            ListEntry({"one": "1"}, client=client),
+            ListEntry({"two": "2"}, client=client),
+            ListEntry({"three": "3"}, client=client),
+        ]

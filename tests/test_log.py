@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 
 from qbittorrentapi.log import LogMainList
@@ -30,6 +32,10 @@ def test_main(client, normal, info, warning, critical, last_known_id):
         ),
         LogMainList,
     )
+    if sys.version_info < (3,) or sys.version_info >= (3, 7):
+        assert isinstance(
+            client.log.main(last_known_id=last_known_id)[1:2], LogMainList
+        )
     assert isinstance(client.log.main.info(last_known_id=last_known_id), LogMainList)
     assert isinstance(client.log.main.normal(last_known_id=last_known_id), LogMainList)
     assert isinstance(client.log.main.warning(last_known_id=last_known_id), LogMainList)
@@ -40,5 +46,9 @@ def test_main(client, normal, info, warning, critical, last_known_id):
 
 @pytest.mark.parametrize("last_known_id", (None, 0, 100000))
 def test_log_peers(client, last_known_id):
+    if sys.version_info < (3,) or sys.version_info >= (3, 7):
+        assert isinstance(
+            client.log_peers(last_known_id=last_known_id)[1:2], LogPeersList
+        )
     assert isinstance(client.log_peers(last_known_id=last_known_id), LogPeersList)
     assert isinstance(client.log.peers(last_known_id=last_known_id), LogPeersList)

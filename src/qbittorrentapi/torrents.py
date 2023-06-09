@@ -408,9 +408,9 @@ class TorrentsAddPeersDictionary(Dictionary):
 class TorrentFilesList(List):
     """Response to :meth:`~TorrentsAPIMixIn.torrents_files`"""
 
-    def __init__(self, list_entries, client):
+    def __init__(self, list_entries, client=None):
         super(TorrentFilesList, self).__init__(
-            client=client, entry_class=TorrentFile, list_entries=list_entries
+            list_entries, entry_class=TorrentFile, client=client
         )
         # until v4.3.5, the index key wasn't returned...default it to ID for older versions.
         # when index is returned, maintain backwards compatibility and populate id with index value.
@@ -425,9 +425,9 @@ class TorrentFile(ListEntry):
 class WebSeedsList(List):
     """Response to :meth:`~TorrentsAPIMixIn.torrents_webseeds`"""
 
-    def __init__(self, list_entries, client):
+    def __init__(self, list_entries, client=None):
         super(WebSeedsList, self).__init__(
-            client=client, entry_class=WebSeed, list_entries=list_entries
+            list_entries, entry_class=WebSeed, client=client
         )
 
 
@@ -438,9 +438,9 @@ class WebSeed(ListEntry):
 class TrackersList(List):
     """Response to :meth:`~TorrentsAPIMixIn.torrents_trackers`"""
 
-    def __init__(self, list_entries, client):
+    def __init__(self, list_entries, client=None):
         super(TrackersList, self).__init__(
-            client=client, entry_class=Tracker, list_entries=list_entries
+            list_entries, entry_class=Tracker, client=client
         )
 
 
@@ -451,9 +451,9 @@ class Tracker(ListEntry):
 class TorrentInfoList(List):
     """Response to :meth:`~TorrentsAPIMixIn.torrents_info`"""
 
-    def __init__(self, list_entries, client):
+    def __init__(self, list_entries, client=None):
         super(TorrentInfoList, self).__init__(
-            client=client, entry_class=TorrentDictionary, list_entries=list_entries
+            list_entries, entry_class=TorrentDictionary, client=client
         )
 
 
@@ -461,9 +461,9 @@ class TorrentPieceInfoList(List):
     """Response to :meth:`~TorrentsAPIMixIn.torrents_piece_states` and
     :meth:`~TorrentsAPIMixIn.torrents_piece_hashes`"""
 
-    def __init__(self, list_entries, client):
+    def __init__(self, list_entries, client=None):
         super(TorrentPieceInfoList, self).__init__(
-            client=client, entry_class=TorrentPieceData, list_entries=list_entries
+            list_entries, entry_class=TorrentPieceData, client=client
         )
 
 
@@ -474,10 +474,8 @@ class TorrentPieceData(ListEntry):
 class TagList(List):
     """Response to :meth:`~TorrentsAPIMixIn.torrents_tags`"""
 
-    def __init__(self, list_entries, client):
-        super(TagList, self).__init__(
-            client=client, entry_class=Tag, list_entries=list_entries
-        )
+    def __init__(self, list_entries, client=None):
+        super(TagList, self).__init__(list_entries, entry_class=Tag, client=client)
 
 
 class Tag(ListEntry):
