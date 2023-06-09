@@ -9,9 +9,9 @@ from qbittorrentapi.definitions import ListEntry
 class LogPeersList(List):
     """Response for :meth:`~LogAPIMixIn.log_peers`"""
 
-    def __init__(self, list_entries, client):
+    def __init__(self, list_entries, client=None):
         super(LogPeersList, self).__init__(
-            client=client, entry_class=LogPeer, list_entries=list_entries
+            list_entries, entry_class=LogPeer, client=client
         )
 
 
@@ -22,9 +22,9 @@ class LogPeer(ListEntry):
 class LogMainList(List):
     """Response to :meth:`~LogAPIMixIn.log_main`"""
 
-    def __init__(self, list_entries, client):
+    def __init__(self, list_entries, client=None):
         super(LogMainList, self).__init__(
-            client=client, entry_class=LogEntry, list_entries=list_entries
+            list_entries, entry_class=LogEntry, client=client
         )
 
 

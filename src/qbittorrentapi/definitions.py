@@ -192,18 +192,18 @@ class Dictionary(ClientCache, AttrDict):
         return data
 
 
-class List(ClientCache, UserList):
+class List(UserList):
     """Base definition for list-like objects returned from qBittorrent."""
 
     def __init__(self, list_entries=None, entry_class=None, client=None):
+        is_safe_cast = None not in {client, entry_class}
         super(List, self).__init__(
             [
                 entry_class(data=entry, client=client)
-                if isinstance(entry, dict)
+                if is_safe_cast and isinstance(entry, dict)
                 else entry
                 for entry in list_entries or ()
-            ],
-            client=client,
+            ]
         )
 
 
