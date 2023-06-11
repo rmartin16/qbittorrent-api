@@ -69,8 +69,10 @@ jobs:
         run: python -m pip install .[dev]
 
       - name: Update pre-commit hooks
+        id: update
         run: |
-          pre-commit autoupdate --repo ${{ matrix.hook-repo }}
+          pre-commit autoupdate --repo ${{ matrix.hook-repo }} | tee update.log
+          echo "vers-bump-str=$(grep -ohE '(v.* -> v.*)' update.log | sed 's/->/to/')" >> ${GITHUB_OUTPUT}
           pre-commit install-hooks
 
       - name: Run pre-commit
@@ -95,10 +97,10 @@ jobs:
         uses: peter-evans/create-pull-request@v5.0.1
         with:
           token: ${{ secrets.PAT }}
-          title: "Bump pre-commit hook for ${{ steps.pr.outputs.hook-name }}"
+          title: "Bump pre-commit hook for ${{ steps.pr.outputs.hook-name }} from ${{ steps.update.output.vers-bump-str }}"
           branch: "${{ env.BRANCH_PREFIX }}/${{ steps.pr.outputs.hook-name }}"
-          commit-message: "Bumped pre-commit hook for ${{ steps.pr.outputs.hook-name }}"
+          commit-message: "Bumped pre-commit hook for ${{ steps.pr.outputs.hook-name }} from ${{ steps.update.output.vers-bump-str }}"
           committer: "pre-commit updater <noreply@example.org>"
           author: "pre-commit updater <noreply@example.org>"
-          body: "Automatically bumped `pre-commit` hook for `${{ steps.pr.outputs.hook-name }}` and ran the update against the repo."
+          body: "Automatically bumped `pre-commit` hook for `${{ steps.pr.outputs.hook-name }}` from ${{ steps.update.output.vers-bump-str }} and ran the update against the repo."
           labels: "dependencies"
