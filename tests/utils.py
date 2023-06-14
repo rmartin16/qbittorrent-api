@@ -89,7 +89,7 @@ def check(check_func, value, reverse=False, negate=False, any=False, check_time=
                 assert _check_func_val not in (_v,)
         else:
             if _reverse:
-                # print("Looking for %s in %s" % (_v, _check_func_val))
+                print("Looking for %s in %s" % (_v, _check_func_val))
                 assert _v in _check_func_val
             else:
                 # print("Looking for %s in %s" % (_check_func_val, (_v,)))

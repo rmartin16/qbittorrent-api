@@ -523,7 +523,14 @@ def test_rename_folder(client, app_version, new_torrent, new_name, client_func):
             old_path=orig_file_path,
             new_path=new_folder + "/" + orig_file_path,
         )
-        sleep(0.25)  # qBittorrent crashes if you make these calls too fast...
+
+        # wait for the folder to be renamed
+        check(
+            lambda: [f.name.split("/")[0] for f in new_torrent.files],
+            new_folder,
+            reverse=True,
+        )
+
         # test rename that new folder
         get_func(client, client_func)(
             torrent_hash=new_torrent.hash,
