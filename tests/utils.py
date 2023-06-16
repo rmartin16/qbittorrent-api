@@ -50,7 +50,9 @@ def get_func(obj, method_name):
 def mkpath(*user_path):
     """Create the fully qualified path to an iterable of directories and/or file."""
     if any(user_path):
-        return path.abspath(path.realpath(path.expanduser(path.join(*user_path))))
+        return path.abspath(
+            path.realpath(path.expanduser(path.join(*map(str, user_path))))
+        )
     return ""
 
 
@@ -89,7 +91,7 @@ def check(check_func, value, reverse=False, negate=False, any=False, check_time=
                 assert _check_func_val not in (_v,)
         else:
             if _reverse:
-                print("Looking for %s in %s" % (_v, _check_func_val))
+                # print("Looking for %s in %s" % (_v, _check_func_val))
                 assert _v in _check_func_val
             else:
                 # print("Looking for %s in %s" % (_check_func_val, (_v,)))

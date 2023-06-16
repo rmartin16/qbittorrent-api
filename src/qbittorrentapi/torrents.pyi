@@ -754,7 +754,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     ) -> None: ...
     def torrents_delete(
         self,
-        delete_files: bool = False,
+        delete_files: Optional[bool] = False,
         torrent_hashes: Optional[Iterable[Text]] = None,
         **kwargs: KwargsT
     ) -> None: ...

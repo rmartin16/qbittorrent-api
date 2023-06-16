@@ -77,10 +77,10 @@ class Log(ClientCache):
 
         def __call__(
             self,
-            normal=None,
-            info=None,
-            warning=None,
-            critical=None,
+            normal=True,
+            info=True,
+            warning=True,
+            critical=True,
             last_known_id=None,
             **kwargs
         ):
@@ -88,7 +88,7 @@ class Log(ClientCache):
                 normal=normal,
                 info=info,
                 warning=warning,
-                critial=critical,
+                critical=critical,
                 last_known_id=last_known_id,
                 **kwargs
             )
@@ -157,17 +157,17 @@ class LogAPIMixIn(AppAPIMixIn):
         :param last_known_id: only entries with an ID greater than this value will be returned
         :return: :class:`LogMainList`
         """
-        parameters = {
-            "normal": normal,
-            "info": info,
-            "warning": warning,
-            "critical": critical,
+        params = {
+            "normal": None if normal is None else bool(normal),
+            "info": None if info is None else bool(info),
+            "warning": None if warning is None else bool(warning),
+            "critical": None if critical is None else bool(critical),
             "last_known_id": last_known_id,
         }
         return self._get(
             _name=APINames.Log,
             _method="main",
-            params=parameters,
+            params=params,
             response_class=LogMainList,
             **kwargs
         )
@@ -180,11 +180,11 @@ class LogAPIMixIn(AppAPIMixIn):
         :param last_known_id: only entries with an ID greater than this value will be returned
         :return: :class:`LogPeersList`
         """
-        parameters = {"last_known_id": last_known_id}
+        params = {"last_known_id": last_known_id}
         return self._get(
             _name=APINames.Log,
             _method="peers",
-            params=parameters,
+            params=params,
             response_class=LogPeersList,
             **kwargs
         )

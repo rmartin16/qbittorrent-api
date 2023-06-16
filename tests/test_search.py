@@ -1,5 +1,4 @@
 import sys
-from time import sleep
 
 import pytest
 
@@ -10,7 +9,6 @@ from qbittorrentapi.search import SearchPluginsList
 from qbittorrentapi.search import SearchResultsDictionary
 from qbittorrentapi.search import SearchStatusesList
 from tests.utils import check
-from tests.utils import get_func
 from tests.utils import retry
 
 PLUGIN_NAME = "yts"
@@ -19,10 +17,10 @@ PLUGIN_URL = "https://raw.githubusercontent.com/khensolomon/leyts/master/yts.py"
 
 @pytest.mark.skipif_before_api_version("2.1.1")
 @pytest.mark.parametrize(
-    "client_func", ("search_update_plugins", "search.update_plugins")
+    "update_func", ["search_update_plugins", "search.update_plugins"]
 )
-def test_update_plugins(client, client_func):
-    get_func(client, client_func)()
+def test_update_plugins(client, update_func):
+    client.func(update_func)()
     check(
         lambda: any(
             entry.message.startswith("Updating plugin ")
@@ -36,45 +34,45 @@ def test_update_plugins(client, client_func):
 
 @pytest.mark.skipif_after_api_version("2.1.1")
 @pytest.mark.parametrize(
-    "client_func", ("search_update_plugins", "search.update_plugins")
+    "update_func", ["search_update_plugins", "search.update_plugins"]
 )
-def test_update_plugins_not_implemented(client, client_func):
+def test_update_plugins_not_implemented(client, update_func):
     with pytest.raises(NotImplementedError):
-        client.search_update_plugins()
+        client.func(update_func)()
 
 
 @pytest.mark.skipif_before_api_version("2.1.1")
 @pytest.mark.parametrize(
-    "client_func",
+    "search_func, enable_func",
     (
-        ("search_plugins", "search_enable_plugin"),
-        ("search.plugins", "search.enable_plugin"),
+        ["search_plugins", "search_enable_plugin"],
+        ["search.plugins", "search.enable_plugin"],
     ),
 )
-def test_enable_plugin(client, client_func):
+def test_enable_plugin(client, search_func, enable_func):
+    def get_plugins():
+        try:
+            return client.func(search_func)()
+        except TypeError:
+            return client.func(search_func)
+
     @retry()
     def enable_plugin():
-        try:
-            plugins = get_func(client, client_func[0])()
-        except TypeError:
-            plugins = get_func(client, client_func[0])
-        assert isinstance(plugins, SearchPluginsList)
-        if sys.version_info < (3,) or sys.version_info >= (3, 7):
-            assert isinstance(plugins[1:2], SearchPluginsList)
-        get_func(client, client_func[1])(
-            plugins=(p["name"] for p in plugins), enable=False
+        assert isinstance(get_plugins(), SearchPluginsList)
+        client.func(enable_func)(
+            plugins=(p["name"] for p in get_plugins()), enable=False
         )
         check(
-            lambda: (p["enabled"] for p in client.search_plugins()),
+            lambda: (p["enabled"] for p in get_plugins()),
             True,
             reverse=True,
             negate=True,
         )
-        get_func(client, client_func[1])(
-            plugins=(p["name"] for p in plugins), enable=True
+        client.func(enable_func)(
+            plugins=(p["name"] for p in get_plugins()), enable=True
         )
         check(
-            lambda: (p["enabled"] for p in client.search_plugins()),
+            lambda: (p["enabled"] for p in get_plugins()),
             False,
             reverse=True,
             negate=True,
@@ -83,27 +81,35 @@ def test_enable_plugin(client, client_func):
     enable_plugin()
 
 
+@pytest.mark.skipif_before_api_version("2.1.1")
+def test_plugins_slice(client):
+    if sys.version_info < (3,) or sys.version_info >= (3, 7):
+        assert isinstance(client.search_plugins()[1:2], SearchPluginsList)
+    else:
+        assert isinstance(client.search_plugins()[1:2], list)
+
+
 @pytest.mark.skipif_after_api_version("2.1.1")
 @pytest.mark.parametrize(
-    "client_func", ("search_enable_plugin", "search.enable_plugin")
+    "enable_func", ["search_enable_plugin", "search.enable_plugin"]
 )
-def test_enable_plugin_not_implemented(client, client_func):
+def test_enable_plugin_not_implemented(client, enable_func):
     with pytest.raises(NotImplementedError):
-        get_func(client, client_func)()
+        client.func(enable_func)()
 
 
 @pytest.mark.skipif_before_api_version("2.1.1")
 @pytest.mark.parametrize(
-    "client_func",
+    "install_func, uninstall_func",
     (
-        ("search_install_plugin", "search_uninstall_plugin"),
-        ("search.install_plugin", "search.uninstall_plugin"),
+        ["search_install_plugin", "search_uninstall_plugin"],
+        ["search.install_plugin", "search.uninstall_plugin"],
     ),
 )
-def test_install_uninstall_plugin(client, client_func):
+def test_install_uninstall_plugin(client, install_func, uninstall_func):
     @retry()
-    def install_plugin(client, client_func):
-        get_func(client, client_func[0])(sources=PLUGIN_URL)
+    def install_plugin():
+        client.func(install_func)(sources=PLUGIN_URL)
         check(
             lambda: (p.name for p in client.search.plugins),
             PLUGIN_NAME,
@@ -111,8 +117,8 @@ def test_install_uninstall_plugin(client, client_func):
         )
 
     @retry()
-    def uninstall_plugin(client, client_func):
-        get_func(client, client_func[1])(names=PLUGIN_NAME)
+    def uninstall_plugin():
+        client.func(uninstall_func)(names=PLUGIN_NAME)
         check(
             lambda: (p.name for p in client.search.plugins),
             PLUGIN_NAME,
@@ -120,46 +126,46 @@ def test_install_uninstall_plugin(client, client_func):
             negate=True,
         )
 
-    install_plugin(client, client_func)
-    uninstall_plugin(client, client_func)
+    install_plugin()
+    uninstall_plugin()
 
 
 @pytest.mark.skipif_after_api_version("2.1.1")
 @pytest.mark.parametrize(
-    "client_func",
+    "install_func, uninstall_func",
     (
-        ("search_install_plugin", "search_uninstall_plugin"),
-        ("search.install_plugin", "search.uninstall_plugin"),
+        ["search_install_plugin", "search_uninstall_plugin"],
+        ["search.install_plugin", "search.uninstall_plugin"],
     ),
 )
-def test_install_uninstall_plugin_not_implemented(client, client_func):
+def test_install_uninstall_plugin_not_implemented(client, install_func, uninstall_func):
     with pytest.raises(NotImplementedError):
-        get_func(client, client_func[0])()
+        client.func(install_func)()
     with pytest.raises(NotImplementedError):
-        get_func(client, client_func[1])()
+        client.func(uninstall_func)()
 
 
 @pytest.mark.skipif_before_api_version("2.1.1")
 @pytest.mark.skipif_after_api_version("2.6")
-@pytest.mark.parametrize("client_func", ("search_categories", "search.categories"))
-def test_categories(client, client_func):
-    assert isinstance(get_func(client, client_func)(), SearchCategoriesList)
+@pytest.mark.parametrize("categories_func", ["search_categories", "search.categories"])
+def test_categories(client, categories_func):
+    assert isinstance(client.func(categories_func)(), SearchCategoriesList)
     if sys.version_info < (3,) or sys.version_info >= (3, 7):
-        assert isinstance(get_func(client, client_func)()[1:2], SearchCategoriesList)
-    check(lambda: get_func(client, client_func)(), "All categories", reverse=True)
+        assert isinstance(client.func(categories_func)()[1:2], SearchCategoriesList)
+    check(lambda: client.func(categories_func)(), "All categories", reverse=True)
 
 
 @pytest.mark.skipif_after_api_version("2.1.1")
-@pytest.mark.parametrize("client_func", ("search_categories", "search.categories"))
-def test_categories_not_implemented(client, client_func):
+@pytest.mark.parametrize("categories_func", ["search_categories", "search.categories"])
+def test_categories_not_implemented(client, categories_func):
     with pytest.raises(NotImplementedError):
-        get_func(client, client_func)()
+        client.func(categories_func)()
 
 
 @pytest.mark.skipif_before_api_version("2.1.1")
 @pytest.mark.parametrize(
-    "client_func",
-    (
+    "start_func, status_func, results_func, stop_func, delete_stop",
+    [
         (
             "search_start",
             "search_status",
@@ -174,36 +180,42 @@ def test_categories_not_implemented(client, client_func):
             "search.stop",
             "search.delete",
         ),
-    ),
+    ],
 )
-def test_search(client, client_func):
-    job = get_func(client, client_func[0])(
-        pattern="Ubuntu", plugins="enabled", category="all"
-    )
-    statuses = get_func(client, client_func[1])(search_id=job["id"])
+def test_search(client, start_func, status_func, results_func, stop_func, delete_stop):
+    job = client.func(start_func)(pattern="Ubuntu", plugins="enabled", category="all")
+
+    statuses = client.func(status_func)(search_id=job["id"])
     assert statuses[0]["status"] == "Running"
     assert isinstance(job, SearchJobDictionary)
     assert isinstance(statuses, SearchStatusesList)
-    if sys.version_info < (3,) or sys.version_info >= (3, 7):
-        assert isinstance(statuses[1:2], SearchStatusesList)
-    results = get_func(client, client_func[2])(search_id=job["id"], limit=1)
+
+    results = client.func(results_func)(search_id=job["id"], limit=1)
     assert isinstance(results, SearchResultsDictionary)
     results = job.results()
     assert isinstance(results, SearchResultsDictionary)
-    get_func(client, client_func[3])(search_id=job["id"])
-    check(
-        lambda: get_func(client, client_func[1])(search_id=job["id"])[0]["status"],
-        "Stopped",
-    )
-    get_func(client, client_func[4])(search_id=job["id"])
-    statuses = get_func(client, client_func[1])()
+
+    client.func(stop_func)(search_id=job["id"])
+    check(lambda: client.func(status_func)(search_id=job["id"])[0]["status"], "Stopped")
+
+    client.func(delete_stop)(search_id=job["id"])
+    statuses = client.func(status_func)()
     assert not statuses
+
+
+@pytest.mark.skipif_before_api_version("2.1.1")
+@pytest.mark.parametrize("status_func", ["search_status", "search.status"])
+def test_statuses_slice(client, status_func):
+    if sys.version_info < (3,) or sys.version_info >= (3, 7):
+        assert isinstance(client.func(status_func)()[1:2], SearchStatusesList)
+    else:
+        assert isinstance(client.func(status_func)()[1:2], list)
 
 
 @pytest.mark.skipif_after_api_version("2.1.1")
 @pytest.mark.parametrize(
     "client_func",
-    (
+    [
         "search_start",
         "search_status",
         "search_results",
@@ -214,40 +226,38 @@ def test_search(client, client_func):
         "search.results",
         "search.stop",
         "search.delete",
-    ),
+    ],
 )
 def test_search_not_implemented(client, client_func):
     with pytest.raises(NotImplementedError):
-        get_func(client, client_func)()
+        client.func(client_func)()
 
 
 @pytest.mark.skipif_before_api_version("2.1.1")
 @pytest.mark.parametrize(
-    "client_func", (("search_stop", "search_start"), ("search.stop", "search.start"))
+    "stop_func, start_func",
+    [("search_stop", "search_start"), ("search.stop", "search.start")],
 )
-def test_stop(client, client_func):
-    job = get_func(client, client_func[1])(
-        pattern="Ubuntu", plugins="enabled", category="all"
-    )
-    sleep(1)
-    get_func(client, client_func[0])(search_id=job.id)
+def test_stop(client, stop_func, start_func):
+    job = client.func(start_func)(pattern="Ubuntu", plugins="enabled", category="all")
+    check(lambda: client.search.status(search_id=job["id"])[0]["status"], "Running")
+
+    client.func(stop_func)(search_id=job.id)
     check(lambda: client.search.status(search_id=job["id"])[0]["status"], "Stopped")
 
-    job = get_func(client, client_func[1])(
-        pattern="Ubuntu", plugins="enabled", category="all"
-    )
-    sleep(1)
+    job = client.func(start_func)(pattern="Ubuntu", plugins="enabled", category="all")
+    check(lambda: client.search.status(search_id=job["id"])[0]["status"], "Running")
     job.stop()
     check(lambda: client.search.status(search_id=job["id"])[0]["status"], "Stopped")
 
 
 @pytest.mark.skipif_after_api_version("2.1.1")
 @pytest.mark.parametrize(
-    "client_func", ("search_stop", "search_start", "search.stop", "search.start")
+    "client_func", ["search_stop", "search_start", "search.stop", "search.start"]
 )
 def test_stop_not_implemented(client, client_func):
     with pytest.raises(NotImplementedError):
-        get_func(client, client_func)()
+        client.func(client_func)()
 
 
 @pytest.mark.skipif_before_api_version("2.1.1")

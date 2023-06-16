@@ -47,10 +47,10 @@ class Log(ClientCache):
         ) -> LogMainList: ...
         def __call__(
             self,
-            normal: Optional[bool] = None,
-            info: Optional[bool] = None,
-            warning: Optional[bool] = None,
-            critical: Optional[bool] = None,
+            normal: Optional[bool] = True,
+            info: Optional[bool] = True,
+            warning: Optional[bool] = True,
+            critical: Optional[bool] = True,
             last_known_id: Optional[bool] = None,
             **kwargs: KwargsT
         ) -> LogMainList: ...

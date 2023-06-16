@@ -353,10 +353,13 @@ class SearchAPIMixIn(AppAPIMixIn):
         Enable or disable search plugin(s).
 
         :param plugins: list of plugin names
-        :param enable: True or False
+        :param enable: Defaults to ``True`` if ``None`` or unset; use ``False`` to disable
         :return: None
         """
-        data = {"names": self._list2string(plugins, "|"), "enable": enable}
+        data = {
+            "names": self._list2string(plugins, "|"),
+            "enable": True if enable is None else bool(enable),
+        }
         self._post(_name=APINames.Search, _method="enablePlugin", data=data, **kwargs)
 
     @endpoint_introduced("2.1.1", "search/updatePlugin")

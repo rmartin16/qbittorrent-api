@@ -1844,7 +1844,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         """
         data = {
             "hashes": self._list2string(torrent_hashes, "|"),
-            "deleteFiles": delete_files,
+            "deleteFiles": bool(delete_files),
         }
         self._post(_name=APINames.Torrents, _method="delete", data=data, **kwargs)
 
@@ -2126,12 +2126,12 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         Enable or disable automatic torrent management for one or more torrents.
 
         :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :param enable: True or False
+        :param enable: Defaults to ``True`` if ``None`` or unset; use ``False`` to disable
         :return: None
         """
         data = {
             "hashes": self._list2string(torrent_hashes, "|"),
-            "enable": enable,
+            "enable": True if enable is None else bool(enable),
         }
         self._post(
             _name=APINames.Torrents, _method="setAutoManagement", data=data, **kwargs
@@ -2181,12 +2181,13 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         Force start one or more torrents.
 
         :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :param enable: True or False (False makes this equivalent to torrents_resume())
+        :param enable: Defaults to ``True`` if ``None`` or unset; ``False`` is equivalent to
+            :meth:`~TorrentsAPIMixIn.torrents_resume()`.
         :return: None
         """
         data = {
             "hashes": self._list2string(torrent_hashes, "|"),
-            "value": enable,
+            "value": True if enable is None else bool(enable),
         }
         self._post(
             _name=APINames.Torrents, _method="setForceStart", data=data, **kwargs
@@ -2200,12 +2201,12 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         Set one or more torrents as super seeding.
 
         :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :param enable: True or False
+        :param enable: Defaults to ``True`` if ``None`` or unset; ``False`` to disable
         :return:
         """
         data = {
             "hashes": self._list2string(torrent_hashes, "|"),
-            "value": enable,
+            "value": True if enable is None else bool(enable),
         }
         self._post(
             _name=APINames.Torrents, _method="setSuperSeeding", data=data, **kwargs
