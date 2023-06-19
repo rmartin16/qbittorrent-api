@@ -27,8 +27,6 @@ on:
         type: string
 
 env:
-  DOCKER_IMAGE_NAME: "ghcr.io/rmartin16/qbittorrent-nox"
-  DOCKER_ARGS: "--name qbt --detach --publish 8080:8080 --volume ${{ github.workspace }}/tests/_resources:/tmp/_resources"
   FORCE_COLOR: "1"
 
 jobs:
@@ -44,6 +42,9 @@ jobs:
       QBITTORRENTAPI_USERNAME: "${{ inputs.qbittorrent-username }}"
       QBITTORRENTAPI_PASSWORD: "${{ inputs.qbittorrent-password }}"
       IS_QBT_DEV: ${{ inputs.is-qbt-dev }}
+      DOCKER_QBT_IMAGE_NAME: "ghcr.io/rmartin16/qbittorrent-nox"
+      DOCKER_QBT_IMAGE_TAG: "${{ inputs.qbittorrent-version }}-debug"
+      DOCKER_ARGS: "--name qbt-tox-testing --detach --publish 8080:8080 --volume ${{ github.workspace }}/tests/_resources:/tmp/_resources"
 
     steps:
       - name: Checkout Repo
@@ -65,10 +66,10 @@ jobs:
 
       - name: Start qBittorrent ${{ inputs.qbittorrent-version }}
         id: start-qbittorrent
-        run: docker run ${{ env.DOCKER_ARGS }} ${{ env.DOCKER_IMAGE_NAME }}:${{ inputs.qbittorrent-version }}-debug
+        run: docker run ${DOCKER_ARGS} ${DOCKER_QBT_IMAGE_NAME}:${DOCKER_QBT_IMAGE_TAG}
 
       - name: qBittorrent Build Commits
-        run: docker exec qbt /bin/sh -c "tail -n+1 /build_commit.*"
+        run: docker exec qbt-tox-testing /bin/sh -c "tail -n+1 /build_commit.*"
 
       - name: Install
         run: |
@@ -77,7 +78,7 @@ jobs:
 
       - name: Test
         if: ${{ !contains(fromJSON('["3.6", "3.5", "2.7", "pypy2.7"]'), inputs.python-version) }}
-        run: tox -e py --installpkg dist/qbittorrent_api-*.whl
+        run: tox -e py-ci --installpkg dist/qbittorrent_api-*.whl
 
       - name: Test (legacy)
         if: contains(fromJSON('["3.6", "3.5", "2.7", "pypy2.7"]'), inputs.python-version)
@@ -85,7 +86,7 @@ jobs:
 
       - name: qBittorrent Log
         if: (steps.start-qbittorrent.outcome == 'success') && (success() || failure())
-        run: docker logs qbt
+        run: docker logs qbt-tox-testing
 
       - name: Store coverage data
         if: success() || failure()

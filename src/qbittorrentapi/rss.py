@@ -230,7 +230,9 @@ class RSSAPIMixIn(AppAPIMixIn):
         :param include_feed_data: True or false to include feed data
         :return: :class:`RSSitemsDictionary`
         """
-        params = {"withData": include_feed_data}
+        params = {
+            "withData": None if include_feed_data is None else bool(include_feed_data)
+        }
         return self._get(
             _name=APINames.RSS,
             _method="items",

@@ -1,6 +1,7 @@
 import glob
 import os
 from contextlib import contextmanager
+from functools import partial
 from os import environ
 from os import path
 from sys import path as sys_path
@@ -16,10 +17,27 @@ from qbittorrentapi._version_support import (
 from qbittorrentapi._version_support import v
 from tests.utils import CHECK_SLEEP
 from tests.utils import check
+from tests.utils import get_func
 from tests.utils import get_torrent
 from tests.utils import mkpath
 from tests.utils import retry
 from tests.utils import setup_environ
+
+try:
+    from unittest.mock import MagicMock
+except ImportError:  # python 2
+    from mock import MagicMock
+
+
+class staticmethod:
+    """Override staticmethod since it only become callable in 3.10."""
+
+    def __init__(self, _func):
+        self.f = _func
+
+    def __call__(self, *a, **k):
+        return self.f(*a, **k)
+
 
 QBT_VERSION, IS_QBT_DEV = setup_environ()
 
@@ -77,7 +95,7 @@ def skip_if_implemented(request, api_version):
             pytest.skip("testing %s; needs before %s" % (v(api_version), version))
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture
 def client():
     """QBittorrent Client for testing session."""
     client = Client(
@@ -97,31 +115,35 @@ def client():
         web_ui_max_auth_fail_count=1000,
         web_ui_ban_duration=1,
     )
+    client._request = MagicMock(wraps=client._request)
+    client._get = MagicMock(wraps=client._get)
+    client._post = MagicMock(wraps=client._post)
+    client.func = staticmethod(partial(get_func, client))
     return client
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def orig_torrent(client):
     """Torrent to remain in qBittorrent for entirety of session."""
     global ORIG_TORRENT
     if ORIG_TORRENT is None:
         ORIG_TORRENT = get_torrent(client, torrent_hash=ORIG_TORRENT_HASH)
+        ORIG_TORRENT.func = staticmethod(partial(get_func, ORIG_TORRENT))
     ORIG_TORRENT.sync_local()  # ensure torrent is up-to-date
     return ORIG_TORRENT
 
 
 @contextmanager
-def new_torrent_standalone(client, torrent_hash=TORRENT1_HASH, **kwargs):
-    check_limit = int(10 / CHECK_SLEEP)
-
-    def add_test_torrent(torrent_hash, **kwargs):
+def new_torrent_standalone(client, torrent_hash=TORRENT1_HASH, tmp_path=None, **kwargs):
+    def add_test_torrent(torrent_hash_, **kw):
+        check_limit = int(10 / CHECK_SLEEP)
         for attempt in range(check_limit):
-            if kwargs:
-                client.torrents.add(**kwargs)
-            else:
+            if kw:
+                client.torrents.add(**kw)
+            elif tmp_path:
                 client.torrents.add(
                     torrent_files=TORRENT1_FILE,
-                    save_path=path.expanduser("~/test_download/"),
+                    save_path=mkpath(tmp_path, "test_download"),
                     category="test_category",
                     is_paused=True,
                     upload_limit=1024,
@@ -129,19 +151,24 @@ def new_torrent_standalone(client, torrent_hash=TORRENT1_HASH, **kwargs):
                     is_sequential_download=True,
                     is_first_last_piece_priority=True,
                 )
+            else:
+                raise Exception("invalid params")
             try:
-                return get_torrent(client, torrent_hash)
+                torrent = get_torrent(client, torrent_hash_)
             except Exception:
                 if attempt >= check_limit - 1:
                     raise
                 sleep(CHECK_SLEEP)
+            else:
+                torrent.func = staticmethod(partial(get_func, torrent))
+                return torrent
 
     @retry()
-    def delete_test_torrent(client, torrent_hash):
-        client.torrents_delete(torrent_hashes=torrent_hash, delete_files=True)
+    def delete_test_torrent(client_, torrent_hash_):
+        client_.torrents_delete(torrent_hashes=torrent_hash_, delete_files=True)
         check(
-            lambda: [t.hash for t in client.torrents_info()],
-            torrent_hash,
+            lambda: [t.hash for t in client_.torrents_info()],
+            torrent_hash_,
             reverse=True,
             negate=True,
         )
@@ -152,14 +179,14 @@ def new_torrent_standalone(client, torrent_hash=TORRENT1_HASH, **kwargs):
         delete_test_torrent(client, torrent_hash)
 
 
-@pytest.fixture(scope="function")
-def new_torrent(client):
+@pytest.fixture
+def new_torrent(client, tmp_path):
     """Torrent that is added on demand to qBittorrent and then removed."""
-    with new_torrent_standalone(client) as torrent:
+    with new_torrent_standalone(client, tmp_path=tmp_path) as torrent:
         yield torrent
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def app_version(client):
     """qBittorrent Version being used for testing."""
     if IS_QBT_DEV:
@@ -167,7 +194,7 @@ def app_version(client):
     return QBT_VERSION
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def api_version(client):
     """qBittorrent Web API Version being used for testing."""
     try:
