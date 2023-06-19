@@ -1,5 +1,8 @@
 Change log
 ==========
+### v2023.6.50 (19 jun 2023)
+- Advertise support for qBittorrent v4.5.4
+
 ### v2023.6.49 (9 jun 2023)
 - The `Client` is no longer binded to `List`s (#230)
 - This does not affect normal operation but allows for slicing, adding, and copying `List`s
