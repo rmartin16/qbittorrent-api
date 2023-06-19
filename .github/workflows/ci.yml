@@ -15,7 +15,7 @@ concurrency:
 
 env:
   LATEST_PYTHON_VER: "3.11"
-  LATEST_QBT_VER: "v4.5.3"
+  LATEST_QBT_VER: "v4.5.4"
   QBITTORRENTAPI_HOST: "localhost:8080"
   QBITTORRENTAPI_USERNAME: "admin"
   QBITTORRENTAPI_PASSWORD: "adminadmin"
@@ -99,7 +99,7 @@ jobs:
     strategy:
       matrix:
         QBT_VER:
-          - "v4.6.0alpha1"
+          - "v4.6.0beta1"
           - "v4.4.4"
           - "v4.3.9"
           - "v4.3.5"
