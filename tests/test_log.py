@@ -32,9 +32,9 @@ def test_log_main_slice(client, main_func):
         assert isinstance(client.func(main_func)()[1:2], list)
 
 
-def test_log_main_info(client):
-    assert isinstance(client.log.main.info(), LogMainList)
-    client._get.assert_called_with(
+def test_log_main_info(client_mock):
+    assert isinstance(client_mock.log.main.info(), LogMainList)
+    client_mock._get.assert_called_with(
         _name=APINames.Log,
         _method="main",
         params={
@@ -48,9 +48,9 @@ def test_log_main_info(client):
     )
 
 
-def test_log_main_normal(client):
-    assert isinstance(client.log.main.normal(), LogMainList)
-    client._get.assert_called_with(
+def test_log_main_normal(client_mock):
+    assert isinstance(client_mock.log.main.normal(), LogMainList)
+    client_mock._get.assert_called_with(
         _name=APINames.Log,
         _method="main",
         params={
@@ -64,9 +64,9 @@ def test_log_main_normal(client):
     )
 
 
-def test_log_main_warning(client):
-    assert isinstance(client.log.main.warning(), LogMainList)
-    client._get.assert_called_with(
+def test_log_main_warning(client_mock):
+    assert isinstance(client_mock.log.main.warning(), LogMainList)
+    client_mock._get.assert_called_with(
         _name=APINames.Log,
         _method="main",
         params={
@@ -80,9 +80,9 @@ def test_log_main_warning(client):
     )
 
 
-def test_log_main_critical(client):
-    assert isinstance(client.log.main.critical(), LogMainList)
-    client._get.assert_called_with(
+def test_log_main_critical(client_mock):
+    assert isinstance(client_mock.log.main.critical(), LogMainList)
+    client_mock._get.assert_called_with(
         _name=APINames.Log,
         _method="main",
         params={
@@ -98,8 +98,8 @@ def test_log_main_critical(client):
 
 @pytest.mark.parametrize("main_func", ["log_main", "log.main"])
 @pytest.mark.parametrize("include_level", (True, False, None, 1, 0))
-def test_log_main_levels(client, main_func, include_level):
-    client.func(main_func)(
+def test_log_main_levels(client_mock, main_func, include_level):
+    client_mock.func(main_func)(
         normal=include_level,
         info=include_level,
         warning=include_level,
@@ -107,7 +107,7 @@ def test_log_main_levels(client, main_func, include_level):
     )
 
     actual_include = None if include_level is None else bool(include_level)
-    client._get.assert_called_with(
+    client_mock._get.assert_called_with(
         _name=APINames.Log,
         _method="main",
         params={

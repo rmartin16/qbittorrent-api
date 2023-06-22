@@ -80,9 +80,9 @@ def test_pause_resume(client, new_torrent):
 
 
 @pytest.mark.parametrize("delete", [True, False, None, 0, 1])
-def test_delete(client, new_torrent, delete):
+def test_delete(client_mock, new_torrent, delete):
     new_torrent.delete(delete_files=delete)
-    client._post.assert_called_with(
+    client_mock._post.assert_called_with(
         _name=APINames.Torrents,
         _method="delete",
         data={
@@ -91,7 +91,7 @@ def test_delete(client, new_torrent, delete):
         },
     )
     check(
-        lambda: [t.hash for t in client.torrents_info()],
+        lambda: [t.hash for t in client_mock.torrents_info()],
         new_torrent.hash,
         reverse=True,
         negate=True,
