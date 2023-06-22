@@ -17,6 +17,7 @@ from tests.test_torrents import disable_queueing
 from tests.test_torrents import enable_queueing
 from tests.utils import check
 from tests.utils import mkpath
+from tests.utils import retry
 
 
 def test_info(orig_torrent, monkeypatch):
@@ -379,14 +380,23 @@ def test_reannounce_not_implemented(orig_torrent):
 @pytest.mark.parametrize("rename_file_func", ["rename_file", "renameFile"])
 @pytest.mark.parametrize("name", ["new_name", "new name"])
 def test_rename_file(app_version, new_torrent, rename_file_func, name):
-    new_torrent.func(rename_file_func)(file_id=0, new_file_name=name)
-    check(lambda: new_torrent.files[0].name, name)
+    @retry()
+    def run_test_old():
+        new_torrent.func(rename_file_func)(file_id=0, new_file_name=name)
+        check(lambda: new_torrent.files[0].name, name)
+
+    run_test_old()
 
     if v(app_version) >= v("v4.3.3"):
-        curr_name = new_torrent.files[0].name
-        new_name = "NEW_" + name
-        new_torrent.func(rename_file_func)(old_path=curr_name, new_path=new_name)
-        check(lambda: new_torrent.files[0].name, new_name)
+
+        @retry()
+        def run_test_new():
+            curr_name = new_torrent.files[0].name
+            new_name = "NEW_" + name
+            new_torrent.func(rename_file_func)(old_path=curr_name, new_path=new_name)
+            check(lambda: new_torrent.files[0].name, new_name)
+
+        run_test_new()
 
 
 @pytest.mark.skipif_after_api_version("2.4.0")
