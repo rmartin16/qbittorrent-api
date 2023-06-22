@@ -78,8 +78,7 @@ def abort_if_qbittorrent_crashes(client):
 
 @pytest.fixture(autouse=True)
 def skip_if_not_implemented(request, api_version):
-    """Skips test if `skipif_before_api_version` marker specifies minimum API
-    version."""
+    """Skips test if `skipif_before_api_version` marker specifies min API version."""
     if request.node.get_closest_marker("skipif_before_api_version"):
         version = request.node.get_closest_marker("skipif_before_api_version").args[0]
         if v(api_version) < v(version):
@@ -88,25 +87,22 @@ def skip_if_not_implemented(request, api_version):
 
 @pytest.fixture(autouse=True)
 def skip_if_implemented(request, api_version):
-    """Skips test if `skipif_after_api_version` marker specifies maximum API version."""
+    """Skips test if `skipif_after_api_version` marker specifies max API version."""
     if request.node.get_closest_marker("skipif_after_api_version"):
         version = request.node.get_closest_marker("skipif_after_api_version").args[0]
         if v(api_version) >= v(version):
             pytest.skip("testing %s; needs before %s" % (v(api_version), version))
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def client():
-    """QBittorrent Client for testing session."""
+    """qBittorrent Client for testing session."""
     client = Client(
         RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True,
         VERBOSE_RESPONSE_LOGGING=True,
         VERIFY_WEBUI_CERTIFICATE=False,
     )
     client.auth_log_in()
-    # add ORIG_TORRENT to qBittorrent
-    client.torrents_add(urls=ORIG_TORRENT_URL, upload_limit=10, download_limit=10)
-    check(lambda: [t.hash for t in client.torrents_info()], ORIG_TORRENT_HASH, True)
     # update preferences
     client.app.preferences = dict(
         # enable RSS fetching
@@ -115,11 +111,22 @@ def client():
         web_ui_max_auth_fail_count=1000,
         web_ui_ban_duration=1,
     )
-    client._request = MagicMock(wraps=client._request)
+    client.func = staticmethod(partial(get_func, client))
+    client.torrents_add(urls=ORIG_TORRENT_URL, upload_limit=10, download_limit=10)
+    check(lambda: [t.hash for t in client.torrents_info()], ORIG_TORRENT_HASH, True)
+    return client
+
+
+@pytest.fixture
+def client_mock(client):
+    """qBittorrent Client for testing with request mocks."""
     client._get = MagicMock(wraps=client._get)
     client._post = MagicMock(wraps=client._post)
-    client.func = staticmethod(partial(get_func, client))
-    return client
+    try:
+        yield client
+    finally:
+        client._get = client._get
+        client._post = client._post
 
 
 @pytest.fixture
