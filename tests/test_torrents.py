@@ -879,7 +879,7 @@ def test_set_location(client, app_version, new_torrent, set_loc_func, tmp_path):
         with pytest.raises(Forbidden403Error):
             client.func(set_loc_func)(location="/etc/", torrent_hashes=new_torrent.hash)
 
-    sleep(0.25)
+    sleep(0.5)
     loc = mkpath(tmp_path, "1")
     client.func(set_loc_func)(location=loc, torrent_hashes=new_torrent.hash)
     # qBittorrent may return trailing separators depending on version....
