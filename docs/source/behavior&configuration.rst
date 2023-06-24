@@ -62,7 +62,7 @@ Requests Configuration
 
 .. code:: python
 
-    qbt_client.torrents_info(..., requests_args={'timeout': (3.1, 30))
+    qbt_client.torrents_info(..., requests_args={'timeout': (3.1, 30)})
 
 Additional HTTP Headers
 ***********************
