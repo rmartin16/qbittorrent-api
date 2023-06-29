@@ -3,7 +3,7 @@ from typing import Optional
 from typing import Set
 from typing import Text
 
-from pkg_resources.extern.packaging.version import Version as _Version  # type: ignore
+from packaging.version import Version as _Version  # type: ignore
 
 MOST_RECENT_SUPPORTED_APP_VERSION: Text
 MOST_RECENT_SUPPORTED_API_VERSION: Text

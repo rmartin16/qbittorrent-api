@@ -16,6 +16,7 @@ from qbittorrentapi._version_support import (
 )
 from qbittorrentapi._version_support import v
 from tests.utils import CHECK_SLEEP
+from tests.utils import add_torrent
 from tests.utils import check
 from tests.utils import get_func
 from tests.utils import get_torrent
@@ -103,7 +104,6 @@ def client():
         VERIFY_WEBUI_CERTIFICATE=False,
     )
     client.auth_log_in()
-    # update preferences
     client.app.preferences = dict(
         # enable RSS fetching
         rss_processing_enabled=True,
@@ -112,8 +112,10 @@ def client():
         web_ui_ban_duration=1,
     )
     client.func = staticmethod(partial(get_func, client))
-    client.torrents_add(urls=ORIG_TORRENT_URL, upload_limit=10, download_limit=10)
-    check(lambda: [t.hash for t in client.torrents_info()], ORIG_TORRENT_HASH, True)
+    try:
+        add_torrent(client, ORIG_TORRENT_URL, ORIG_TORRENT_HASH)
+    except Exception:
+        pytest.exit("failed to add orig_torrent during setup")
     return client
 
 

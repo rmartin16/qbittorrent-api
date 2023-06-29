@@ -56,6 +56,23 @@ def mkpath(*user_path):
     return ""
 
 
+def retry(retries=3):
+    """Decorator to retry a function if there's an exception."""
+
+    def inner(f):
+        def wrapper(*args, **kwargs):
+            for retry_count in range(retries):
+                try:
+                    return f(*args, **kwargs)
+                except Exception:
+                    if retry_count >= (retries - 1):
+                        raise
+
+        return wrapper
+
+    return inner
+
+
 def get_torrent(client, torrent_hash):
     """Retrieve a torrent from qBittorrent."""
     try:
@@ -63,6 +80,14 @@ def get_torrent(client, torrent_hash):
         return [t for t in client.torrents_info() if t.hash == torrent_hash][0]
     except Exception:
         pytest.exit("Failed to find torrent for %s" % torrent_hash)
+
+
+@retry(200)
+def add_torrent(client, torrent_url, torrent_hash):
+    client.torrents_add(urls=torrent_url, upload_limit=10, download_limit=10)
+    if torrent_hash not in [t.hash for t in client.torrents_info()]:
+        sleep(0.1)
+        raise Exception("didn't find added torrent")
 
 
 def check(check_func, value, reverse=False, negate=False, any=False, check_time=None):
@@ -142,20 +167,3 @@ def check(check_func, value, reverse=False, negate=False, any=False, check_time=
 
     if not success:
         raise Exception("Test neither succeeded nor failed...")
-
-
-def retry(retries=3):
-    """Decorator to retry a function if there's an exception."""
-
-    def inner(f):
-        def wrapper(*args, **kwargs):
-            for retry_count in range(retries):
-                try:
-                    return f(*args, **kwargs)
-                except Exception:
-                    if retry_count >= (retries - 1):
-                        raise
-
-        return wrapper
-
-    return inner
