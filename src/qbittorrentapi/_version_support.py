@@ -1,4 +1,4 @@
-from pkg_resources import parse_version
+from packaging.version import Version as _Version
 
 try:
     from functools import lru_cache
@@ -59,7 +59,7 @@ MOST_RECENT_SUPPORTED_API_VERSION = "2.8.19"
 @lru_cache(maxsize=None)
 def v(version):
     """Caching version parser."""
-    return parse_version(version)
+    return _Version(version)
 
 
 class Version(object):
