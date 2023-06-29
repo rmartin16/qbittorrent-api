@@ -106,6 +106,6 @@ jobs:
           subject: "${{ github.job }} job of ${{ github.repository }} failed"
           body: |
             ${{ github.job }} job in workflow ${{ github.workflow }} of ${{ github.repository }} failed.
-            https://github.com/rmartin16/qbittorrent-api/actions/runs/${{ github.run_id }}
-          to: "rmartin16+github-action@gmail.com"   # comma-separated string
-          from: "rmartin16+github-action@gmail.com"
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          to: "${{ secrets.EMAIL_ADDRESS }}"   # comma-separated string
+          from: "${{ secrets.EMAIL_USERNAME }}"
