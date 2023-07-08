@@ -1405,7 +1405,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :raises NotFound404Error:
 
         :param torrent_hash: hash for torrent
-        :return: :class:`TorrentPropertiesDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-generic-properties>`_
+        :return: :class:`TorrentPropertiesDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-generic-properties>`_
         """  # noqa: E501
         data = {"hash": torrent_hash}
         return self._post(
@@ -1426,7 +1426,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :raises NotFound404Error:
 
         :param torrent_hash: hash for torrent
-        :return: :class:`TrackersList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-trackers>`_
+        :return: :class:`TrackersList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-trackers>`_
         """  # noqa: E501
         data = {"hash": torrent_hash}
         return self._post(
@@ -1446,7 +1446,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :raises NotFound404Error:
 
         :param torrent_hash: hash for torrent
-        :return: :class:`WebSeedsList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-web-seeds>`_
+        :return: :class:`WebSeedsList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-web-seeds>`_
         """  # noqa: E501
         data = {"hash": torrent_hash}
         return self._post(
@@ -1466,7 +1466,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :raises NotFound404Error:
 
         :param torrent_hash: hash for torrent
-        :return: :class:`TorrentFilesList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-contents>`_
+        :return: :class:`TorrentFilesList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-contents>`_
         """  # noqa: E501
         data = {"hash": torrent_hash}
         return self._post(
@@ -1598,7 +1598,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :raises Conflict409Error: if torrent metadata has not finished downloading or at least one file was not found
         :param torrent_hash: hash for torrent
         :param file_ids: single file ID or a list.
-        :param priority: priority for file(s) - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#set-file-priority>`_
+        :param priority: priority for file(s) - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-set-file-priority>`_
         :return: None
         """  # noqa: E501
         data = {
@@ -1788,7 +1788,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :param offset: Start of list (if < 0, offset from end of list)
         :param torrent_hashes: Filter list by hash (separate multiple hashes with a '|') (added in Web API 2.0.1)
         :param tag: Filter list by tag (empty string means "untagged"; no "tag" parameter means "any tag"; added in Web API 2.8.3)
-        :return: :class:`TorrentInfoList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-list>`_
+        :return: :class:`TorrentInfoList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-list>`_
         """  # noqa: E501
         data = {
             "filter": status_filter,

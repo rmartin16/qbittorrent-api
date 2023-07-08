@@ -156,7 +156,7 @@ class AppAPIMixIn(AuthAPIMixIn):
         """
         Retrieve build info.
 
-        :return: :class:`BuildInfoDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-build-info>`_
+        :return: :class:`BuildInfoDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-build-info>`_
         """  # noqa: E501
         return self._get(
             _name=APINames.Application,
@@ -175,7 +175,7 @@ class AppAPIMixIn(AuthAPIMixIn):
         """
         Retrieve qBittorrent application preferences.
 
-        :return: :class:`ApplicationPreferencesDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-application-preferences>`_
+        :return: :class:`ApplicationPreferencesDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-application-preferences>`_
         """  # noqa: E501
         return self._get(
             _name=APINames.Application,

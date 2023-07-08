@@ -234,7 +234,7 @@ class SearchAPIMixIn(AppAPIMixIn):
         :raises NotFound404Error:
 
         :param search_id: ID of search to get status; leave empty for status of all jobs
-        :return: :class:`SearchStatusesList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-status>`_
+        :return: :class:`SearchStatusesList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-search-status>`_
         """  # noqa: E501
         params = {"id": search_id}
         return self._get(
@@ -257,7 +257,7 @@ class SearchAPIMixIn(AppAPIMixIn):
         :param search_id: ID of search job
         :param limit: number of results to return
         :param offset: where to start returning results
-        :return: :class:`SearchResultsDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-results>`_
+        :return: :class:`SearchResultsDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-search-results>`_
         """  # noqa: E501
         data = {"id": search_id, "limit": limit, "offset": offset}
         return self._post(
@@ -308,7 +308,7 @@ class SearchAPIMixIn(AppAPIMixIn):
         """
         Retrieve details of search plugins.
 
-        :return: :class:`SearchPluginsList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-search-plugins>`_
+        :return: :class:`SearchPluginsList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-search-plugins>`_
         """  # noqa: E501
         return self._get(
             _name=APINames.Search,

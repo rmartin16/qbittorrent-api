@@ -31,7 +31,7 @@ class TorrentState(Enum):
     Torrent States as defined by qBittorrent.
 
     Definitions:
-        - wiki: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-list>`_
+        - wiki: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-list>`_
         - code: `<https://github.com/qbittorrent/qBittorrent/blob/5dcc14153f046209f1067299494a82e5294d883a/src/base/bittorrent/torrent.h#L73>`_
 
     :Usage:
@@ -133,7 +133,7 @@ class TrackerStatus(Enum):
     Tracker Statuses as defined by qBittorrent.
 
     Definitions:
-        - wiki: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-trackers>`_
+        - wiki: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-trackers>`_
         - code: `<https://github.com/qbittorrent/qBittorrent/blob/5dcc14153f046209f1067299494a82e5294d883a/src/base/bittorrent/trackerentry.h#L42>`_
 
     :Usage:

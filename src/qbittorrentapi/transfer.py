@@ -145,7 +145,7 @@ class TransferAPIMixIn(AppAPIMixIn):
         """
         Retrieves the global transfer info found in qBittorrent status bar.
 
-        :return: :class:`TransferInfoDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-global-transfer-info>`_
+        :return: :class:`TransferInfoDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-global-transfer-info>`_
         """  # noqa: E501
         return self._get(
             _name=APINames.Transfer,
