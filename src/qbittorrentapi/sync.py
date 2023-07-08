@@ -107,7 +107,7 @@ class SyncAPIMixIn(AppAPIMixIn):
         Retrieves sync data.
 
         :param rid: response ID
-        :return: :class:`SyncMainDataDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-main-data>`_
+        :return: :class:`SyncMainDataDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-main-data>`_
         """  # noqa: E501
         data = {"rid": rid}
         return self._post(
@@ -129,7 +129,7 @@ class SyncAPIMixIn(AppAPIMixIn):
 
         :param torrent_hash: hash for torrent
         :param rid: response ID
-        :return: :class:`SyncTorrentPeersDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-peers-data>`_
+        :return: :class:`SyncTorrentPeersDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-peers-data>`_
         """  # noqa: E501
         data = {"hash": torrent_hash, "rid": rid}
         return self._post(
