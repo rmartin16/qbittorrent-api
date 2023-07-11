@@ -559,9 +559,9 @@ class Request(object):
 
     def _get_requests_kwargs(self, requests_args=None, requests_params=None):
         """
-        Determine the requests_kwargs for the call to Requests. The global
-        configuration in ``self._REQUESTS_ARGS`` is updated by any arguments
-        provided for a specific call.
+        Determine the requests_kwargs for the call to Requests. The global configuration
+        in ``self._REQUESTS_ARGS`` is updated by any arguments provided for a specific
+        call.
 
         :param requests_args: default location to expect Requests ``requests_kwargs``
         :param requests_params: alternative location to expect Requests ``requests_kwargs``
@@ -574,8 +574,8 @@ class Request(object):
     @staticmethod
     def _get_headers(headers=None, more_headers=None):
         """
-        Determine headers specific to this request. Request headers can be
-        specified explicitly or with the requests kwargs. Headers specified in
+        Determine headers specific to this request. Request headers can be specified
+        explicitly or with the requests kwargs. Headers specified in
         ``self._EXTRA_HEADERS`` are merged in Requests itself.
 
         :param headers: headers specified for this specific request

@@ -131,8 +131,7 @@ class Conflict409Error(HTTP409Error):
 
 
 class UnsupportedMediaType415Error(HTTP415Error):
-    """``torrents/add`` endpoint will return this for invalid URL(s) or
-    files."""
+    """``torrents/add`` endpoint will return this for invalid URL(s) or files."""
 
 
 class InternalServerError500Error(HTTP500Error):

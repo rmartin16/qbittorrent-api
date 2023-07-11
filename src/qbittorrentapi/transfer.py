@@ -48,20 +48,17 @@ class Transfer(ClientCache):
 
     @speedLimitsMode.setter
     def speedLimitsMode(self, v):
-        """Implements
-        :meth:`~TransferAPIMixIn.transfer_set_speed_limits_mode`"""
+        """Implements :meth:`~TransferAPIMixIn.transfer_set_speed_limits_mode`"""
         self.speed_limits_mode = v
 
     @speed_limits_mode.setter
     def speed_limits_mode(self, v):
-        """Implements
-        :meth:`~TransferAPIMixIn.transfer_set_speed_limits_mode`"""
+        """Implements :meth:`~TransferAPIMixIn.transfer_set_speed_limits_mode`"""
         self.set_speed_limits_mode(intended_state=v)
 
     @alias("setSpeedLimitsMode", "toggleSpeedLimitsMode", "toggle_speed_limits_mode")
     def set_speed_limits_mode(self, intended_state=None, **kwargs):
-        """Implements
-        :meth:`~TransferAPIMixIn.transfer_set_speed_limits_mode`"""
+        """Implements :meth:`~TransferAPIMixIn.transfer_set_speed_limits_mode`"""
         return self._client.transfer_set_speed_limits_mode(
             intended_state=intended_state, **kwargs
         )
