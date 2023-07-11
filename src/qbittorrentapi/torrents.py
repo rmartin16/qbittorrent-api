@@ -36,8 +36,8 @@ logger = getLogger(__name__)
 @aliased
 class TorrentDictionary(Dictionary):
     """
-    Item in :class:`TorrentInfoList`. Allows interaction with individual
-    torrents via the ``Torrents`` API endpoints.
+    Item in :class:`TorrentInfoList`. Allows interaction with individual torrents via
+    the ``Torrents`` API endpoints.
 
     :Usage:
         >>> from qbittorrentapi import Client
@@ -239,8 +239,7 @@ class TorrentDictionary(Dictionary):
 
     @alias("toggleSequentialDownload")
     def toggle_sequential_download(self, **kwargs):
-        """Implements
-        :meth:`~TorrentsAPIMixIn.torrents_toggle_sequential_download`"""
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_toggle_sequential_download`"""
         self._client.torrents_toggle_sequential_download(
             torrent_hashes=self._torrent_hash, **kwargs
         )
@@ -1011,8 +1010,7 @@ class Torrents(ClientCache):
 @aliased
 class TorrentCategories(ClientCache):
     """
-    Allows interaction with torrent categories within the ``Torrents`` API
-    endpoints.
+    Allows interaction with torrent categories within the ``Torrents`` API endpoints.
 
     :Usage:
         >>> from qbittorrentapi import Client
