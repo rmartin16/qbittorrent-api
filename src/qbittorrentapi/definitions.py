@@ -26,7 +26,7 @@ class APINames(Enum):
     EMPTY = ""
 
 
-class TorrentState(Enum):
+class TorrentState(str, Enum):
     """
     Torrent States as defined by qBittorrent.
 
