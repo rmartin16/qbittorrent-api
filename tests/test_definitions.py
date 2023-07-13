@@ -77,6 +77,11 @@ def test_all_states(state):
     assert TorrentState(state) in TorrentState
 
 
+@pytest.mark.parametrize("state", torrent_all_states)
+def test_states_cmp_str(state):
+    assert TorrentState(state) == TorrentState(state).value
+
+
 @pytest.mark.parametrize("state", torrent_downloading_states)
 def test_downloading_states(state):
     assert TorrentState(state).is_downloading
@@ -110,6 +115,11 @@ def test_paused_states(state):
 @pytest.mark.parametrize("status", [0, 1, 2, 3, 4])
 def test_tracker_statuses_exist(status):
     assert isinstance(TrackerStatus(status), Enum)
+
+
+@pytest.mark.parametrize("status", [0, 1, 2, 3, 4])
+def test_tracker_statuses_cmp_int(status):
+    assert TrackerStatus(status) == TrackerStatus(status).value
 
 
 @pytest.mark.parametrize(

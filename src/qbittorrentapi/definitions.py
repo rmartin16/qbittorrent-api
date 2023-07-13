@@ -8,7 +8,7 @@ except ImportError:  # pragma: no cover
 from qbittorrentapi._attrdict import AttrDict
 
 
-class APINames(Enum):
+class APINames(str, Enum):
     """
     API namespaces for API endpoints.
 
@@ -26,7 +26,7 @@ class APINames(Enum):
     EMPTY = ""
 
 
-class TorrentState(Enum):
+class TorrentState(str, Enum):
     """
     Torrent States as defined by qBittorrent.
 
@@ -128,7 +128,7 @@ class TorrentState(Enum):
 TorrentStates = TorrentState
 
 
-class TrackerStatus(Enum):
+class TrackerStatus(int, Enum):
     """
     Tracker Statuses as defined by qBittorrent.
 
