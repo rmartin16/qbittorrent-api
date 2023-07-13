@@ -24,15 +24,15 @@ V = TypeVar("V")
 ListEntryT = TypeVar("ListEntryT", bound=JsonDictionaryT)
 
 class APINames(Enum):
-    Authorization: Text
-    Application: Text
-    Log: Text
-    Sync: Text
-    Transfer: Text
-    Torrents: Text
-    RSS: Text
-    Search: Text
-    EMPTY: Text
+    Authorization: Literal["auth"]
+    Application: Literal["app"]
+    Log: Literal["log"]
+    Sync: Literal["sync"]
+    Transfer: Literal["transfer"]
+    Torrents: Literal["torrents"]
+    RSS: Literal["rss"]
+    Search: Literal["search"]
+    EMPTY: Literal[""]
 
 class TorrentState(Enum):
     ERROR: Literal["error"]
