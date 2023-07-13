@@ -1,5 +1,8 @@
 Change log
 ==========
+### v2023.7.52 (13 jul 2023)
+- Ensure the wheel is uploaded with the release to PyPI
+
 ### v2023.7.51 (13 jul 2023)
 - Convert ``APINames`` and ``TorrentStatus`` to ``StrEnum`` and ``TrackerStatus`` to ``IntEnum`` (#267)
 
