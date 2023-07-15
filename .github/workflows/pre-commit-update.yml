@@ -61,7 +61,7 @@ jobs:
           git config user.name "pre-commit updates"
 
       - name: Set up Python
-        uses: actions/setup-python@v4.6.1
+        uses: actions/setup-python@v4.7.0
         with:
           python-version: 3.X
 
