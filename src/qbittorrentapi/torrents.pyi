@@ -77,6 +77,7 @@ class TorrentDictionary(JsonDictionaryT):
         self,
         ratio_limit: Optional[Text | int] = None,
         seeding_time_limit: Optional[Text | int] = None,
+        inactive_seeding_time_limit: Optional[Text | int] = None,
         **kwargs: KwargsT
     ) -> None: ...
     setShareLimits = set_share_limits
@@ -809,6 +810,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         self,
         ratio_limit: Optional[Text | int] = None,
         seeding_time_limit: Optional[Text | int] = None,
+        inactive_seeding_time_limit: Optional[Text | int] = None,
         torrent_hashes: Optional[Iterable[Text]] = None,
         **kwargs: KwargsT
     ) -> None: ...
