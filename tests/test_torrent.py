@@ -149,9 +149,13 @@ def test_priority(
     "set_share_limits_func", ["set_share_limits", "setShareLimits"]
 )
 def test_set_share_limits(orig_torrent, set_share_limits_func):
-    orig_torrent.func(set_share_limits_func)(ratio_limit=5, seeding_time_limit=100)
+    orig_torrent.func(set_share_limits_func)(
+        ratio_limit=5, seeding_time_limit=100, inactive_seeding_time_limit=200
+    )
     check(lambda: orig_torrent.info.max_ratio, 5)
     check(lambda: orig_torrent.info.max_seeding_time, 100)
+    if "max_inactive_seeding_time" in orig_torrent.info:
+        check(lambda: orig_torrent.info.max_inactive_seeding_time, 200)
 
 
 @pytest.mark.skipif_after_api_version("2.0.1")

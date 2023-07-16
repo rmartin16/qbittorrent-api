@@ -141,11 +141,18 @@ class TorrentDictionary(Dictionary):
         )
 
     @alias("setShareLimits")
-    def set_share_limits(self, ratio_limit=None, seeding_time_limit=None, **kwargs):
+    def set_share_limits(
+        self,
+        ratio_limit=None,
+        seeding_time_limit=None,
+        inactive_seeding_time_limit=None,
+        **kwargs
+    ):
         """Implements :meth:`~TorrentsAPIMixIn.torrents_set_share_limits`"""
         self._client.torrents_set_share_limits(
             ratio_limit=ratio_limit,
             seeding_time_limit=seeding_time_limit,
+            inactive_seeding_time_limit=inactive_seeding_time_limit,
             torrent_hashes=self._torrent_hash,
             **kwargs
         )
@@ -1975,7 +1982,12 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     @handle_hashes
     @login_required
     def torrents_set_share_limits(
-        self, ratio_limit=None, seeding_time_limit=None, torrent_hashes=None, **kwargs
+        self,
+        ratio_limit=None,
+        seeding_time_limit=None,
+        inactive_seeding_time_limit=None,
+        torrent_hashes=None,
+        **kwargs
     ):
         """
         Set share limits for one or more torrents.
@@ -1983,12 +1995,15 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
         :param ratio_limit: max ratio to seed a torrent. (-2 means use the global value and -1 is no limit)
         :param seeding_time_limit: minutes (-2 means use the global value and -1 is no limit)
+        :param inactive_seeding_time_limit: minutes (-2 means use the global value and -1 is no limit)
+            (added in Web API v2.9.2)
         :return: None
         """
         data = {
             "hashes": self._list2string(torrent_hashes, "|"),
             "ratioLimit": ratio_limit,
             "seedingTimeLimit": seeding_time_limit,
+            "inactiveSeedingTimeLimit": inactive_seeding_time_limit,
         }
         self._post(
             _name=APINames.Torrents, _method="setShareLimits", data=data, **kwargs

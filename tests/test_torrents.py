@@ -107,6 +107,7 @@ def test_add_delete(client, add_func, delete_func, tmp_path):
 
         return inner
 
+    @retry()
     @check_torrents_added
     def add_by_filename(single):
         download_file(url=TORRENT1_URL, filename=TORRENT1_FILENAME)
@@ -123,6 +124,7 @@ def test_add_delete(client, add_func, delete_func, tmp_path):
         else:
             assert client.func(add_func)(torrent_files=files) == "Ok."
 
+    @retry()
     @check_torrents_added
     def add_by_filename_dict(single):
         download_file(url=TORRENT1_URL, filename=TORRENT1_FILENAME)
@@ -144,6 +146,7 @@ def test_add_delete(client, add_func, delete_func, tmp_path):
             }
             assert client.func(add_func)(torrent_files=files) == "Ok."
 
+    @retry()
     @check_torrents_added
     def add_by_filehandles(single):
         download_file(url=TORRENT1_URL, filename=TORRENT1_FILENAME)
@@ -161,6 +164,7 @@ def test_add_delete(client, add_func, delete_func, tmp_path):
         for file in files:
             file.close()
 
+    @retry()
     @check_torrents_added
     def add_by_bytes(single):
         files = (
@@ -173,6 +177,7 @@ def test_add_delete(client, add_func, delete_func, tmp_path):
         else:
             assert client.func(add_func)(torrent_files=files) == "Ok."
 
+    @retry()
     @check_torrents_added
     def add_by_url(single):
         urls = (TORRENT1_URL, TORRENT2_URL)
@@ -837,15 +842,26 @@ def test_upload_limit(client, orig_torrent, set_up_limit_func, up_limit_func):
 )
 def test_set_share_limits(client, orig_torrent, set_share_limits_func):
     client.func(set_share_limits_func)(
-        ratio_limit=2, seeding_time_limit=5, torrent_hashes=orig_torrent.hash
+        ratio_limit=2,
+        seeding_time_limit=5,
+        inactive_seeding_time_limit=8,
+        torrent_hashes=orig_torrent.hash,
     )
     check(lambda: orig_torrent.info.max_ratio, 2)
     check(lambda: orig_torrent.info.max_seeding_time, 5)
+    if "max_inactive_seeding_time" in orig_torrent.info:
+        check(lambda: orig_torrent.info.max_inactive_seeding_time, 8)
+
     client.func(set_share_limits_func)(
-        ratio_limit=3, seeding_time_limit=6, torrent_hashes=orig_torrent.hash
+        ratio_limit=3,
+        seeding_time_limit=6,
+        inactive_seeding_time_limit=9,
+        torrent_hashes=orig_torrent.hash,
     )
     check(lambda: orig_torrent.info.max_ratio, 3)
     check(lambda: orig_torrent.info.max_seeding_time, 6)
+    if "max_inactive_seeding_time" in orig_torrent.info:
+        check(lambda: orig_torrent.info.max_inactive_seeding_time, 9)
 
 
 @pytest.mark.skipif_after_api_version("2.0.1")
