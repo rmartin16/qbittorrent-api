@@ -11,6 +11,8 @@ from qbittorrentapi.decorators import login_required
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary
+from qbittorrentapi.definitions import List
+from qbittorrentapi.definitions import ListEntry
 
 logger = getLogger(__name__)
 
@@ -21,6 +23,26 @@ class ApplicationPreferencesDictionary(Dictionary):
 
 class BuildInfoDictionary(Dictionary):
     """Response for :meth:`~AppAPIMixIn.app_build_info`"""
+
+
+class NetworkInterfaceList(List):
+    """Response for :meth:`~AppAPIMixIn.app_network_interface_list`"""
+
+    def __init__(self, list_entries, client=None):
+        super(NetworkInterfaceList, self).__init__(
+            list_entries, entry_class=NetworkInterface, client=client
+        )
+
+
+class NetworkInterface(ListEntry):
+    """Item in :class:`NetworkInterfaceList`"""
+
+
+class NetworkInterfaceAddressList(List):
+    """Response for :meth:`~AppAPIMixIn.app_network_interface_address_list`"""
+
+    def __init__(self, list_entries, client=None):
+        super(NetworkInterfaceAddressList, self).__init__(list_entries)
 
 
 @aliased
@@ -92,6 +114,20 @@ class Application(ClientCache):
         return self._client.app_default_save_path()
 
     defaultSavePath = default_save_path
+
+    @property
+    def network_interface_list(self):
+        """Implements :meth:`~AppAPIMixIn.app_network_interface_list`"""
+        return self._client.app_network_interface_list()
+
+    networkInterfaceList = network_interface_list
+
+    @alias("networkInterfaceAddressList")
+    def network_interface_address_list(self, interface_name="", **kwargs):
+        """Implements :meth:`~AppAPIMixIn.app_network_interface_list`"""
+        return self._client.app_network_interface_address_list(
+            interface_name=interface_name, **kwargs
+        )
 
 
 @aliased
@@ -210,5 +246,40 @@ class AppAPIMixIn(AuthAPIMixIn):
             _name=APINames.Application,
             _method="defaultSavePath",
             response_class=six.text_type,
+            **kwargs
+        )
+
+    @alias("app_networkInterfaceList")
+    @endpoint_introduced("2.3", "app/networkInterfaceList")
+    @login_required
+    def app_network_interface_list(self, **kwargs):
+        """
+        Retrieves the list of network interfaces.
+
+        :return: :class:`NetworkInterfaceList`
+        """
+        return self._get(
+            _name=APINames.Application,
+            _method="networkInterfaceList",
+            response_class=NetworkInterfaceList,
+            **kwargs
+        )
+
+    @alias("app_networkInterfaceAddressList")
+    @endpoint_introduced("2.3", "app/networkInterfaceAddressList")
+    @login_required
+    def app_network_interface_address_list(self, interface_name="", **kwargs):
+        """
+        Retrieves the addresses for a network interface; omit name for all addresses.
+
+        :param interface_name: Name of interface to retrieve addresses for
+        :return: :class:`NetworkInterfaceAddressList`
+        """
+        data = {"iface": interface_name}
+        return self._post(
+            _name=APINames.Application,
+            _method="networkInterfaceAddressList",
+            data=data,
+            response_class=NetworkInterfaceAddressList,
             **kwargs
         )
