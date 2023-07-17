@@ -21,3 +21,18 @@ Application
     :members:
     :undoc-members:
     :show-inheritance:
+
+.. autoclass:: qbittorrentapi.app.NetworkInterfaceList
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: qbittorrentapi.app.NetworkInterface
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: qbittorrentapi.app.NetworkInterfaceAddressList
+    :members:
+    :undoc-members:
+    :show-inheritance:

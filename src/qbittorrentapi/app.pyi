@@ -3,16 +3,32 @@ from typing import Mapping
 from typing import Optional
 from typing import Text
 
+import six
+
 from qbittorrentapi._types import JsonDictionaryT
 from qbittorrentapi._types import JsonValueT
 from qbittorrentapi._types import KwargsT
+from qbittorrentapi._types import ListInputT
 from qbittorrentapi.definitions import ClientCache
+from qbittorrentapi.definitions import List
+from qbittorrentapi.definitions import ListEntry
 from qbittorrentapi.request import Request
 
 logger: Logger
 
 class ApplicationPreferencesDictionary(JsonDictionaryT): ...
 class BuildInfoDictionary(JsonDictionaryT): ...
+class NetworkInterface(ListEntry): ...
+
+class NetworkInterfaceList(List[NetworkInterface]):
+    def __init__(
+        self, list_entries: ListInputT, client: Optional[AppAPIMixIn] = None
+    ) -> None: ...
+
+class NetworkInterfaceAddressList(List[six.text_type]):
+    def __init__(
+        self, list_entries: ListInputT, client: Optional[AppAPIMixIn] = None
+    ) -> None: ...
 
 class Application(ClientCache):
     @property
@@ -40,6 +56,14 @@ class Application(ClientCache):
     def default_save_path(self) -> Text: ...
     @property
     def defaultSavePath(self) -> Text: ...
+    @property
+    def network_interface_list(self, **kwargs: KwargsT) -> NetworkInterfaceList: ...
+    @property
+    def networkInterfaceList(self, **kwargs: KwargsT) -> NetworkInterfaceList: ...
+    def network_interface_address_list(
+        self, interface_name: Optional[Text] = "", **kwargs: KwargsT
+    ) -> NetworkInterfaceAddressList: ...
+    networkInterfaceAddressList = network_interface_address_list
 
 class AppAPIMixIn(Request):
     @property
@@ -64,3 +88,9 @@ class AppAPIMixIn(Request):
     app_setPreferences = app_set_preferences
     def app_default_save_path(self, **kwargs: KwargsT) -> str: ...
     app_defaultSavePath = app_default_save_path
+    def app_network_interface_list(self, **kwargs: KwargsT) -> NetworkInterfaceList: ...
+    app_networkInterfaceList = app_network_interface_list
+    def app_network_interface_address_list(
+        self, interface_name: Optional[Text] = "", **kwargs: KwargsT
+    ) -> NetworkInterfaceAddressList: ...
+    app_networkInterfaceAddressList = app_network_interface_address_list

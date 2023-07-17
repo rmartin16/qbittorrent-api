@@ -2,6 +2,9 @@ from qbittorrentapi._version_support import Version
 from qbittorrentapi.app import AppAPIMixIn
 from qbittorrentapi.app import ApplicationPreferencesDictionary
 from qbittorrentapi.app import BuildInfoDictionary
+from qbittorrentapi.app import NetworkInterface
+from qbittorrentapi.app import NetworkInterfaceAddressList
+from qbittorrentapi.app import NetworkInterfaceList
 from qbittorrentapi.auth import AuthAPIMixIn
 from qbittorrentapi.client import Client
 from qbittorrentapi.definitions import APINames
@@ -106,6 +109,9 @@ __all__ = (
     "LogPeer",
     "LogPeersList",
     "MissingRequiredParameters400Error",
+    "NetworkInterface",
+    "NetworkInterfaceList",
+    "NetworkInterfaceAddressList",
     "NotFound404Error",
     "Request",
     "RSSAPIMixIn",

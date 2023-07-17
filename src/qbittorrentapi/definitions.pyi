@@ -5,6 +5,9 @@ from typing import Optional
 from typing import Text
 from typing import Type
 from typing import TypeVar
+from typing import Union
+
+import six
 
 try:
     from collections import UserList
@@ -21,7 +24,7 @@ from qbittorrentapi.request import Request
 
 K = TypeVar("K")
 V = TypeVar("V")
-ListEntryT = TypeVar("ListEntryT", bound=JsonDictionaryT)
+ListEntryT = TypeVar("ListEntryT", bound=Union[JsonDictionaryT, six.text_type])
 
 class APINames(Enum):
     Authorization: Literal["auth"]
