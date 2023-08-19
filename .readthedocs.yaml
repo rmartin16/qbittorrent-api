@@ -21,7 +21,8 @@ sphinx:
   fail_on_warning: true
 
 # Build all output formats
-formats: all
+formats:
+  - pdf
 
 # Optionally declare the Python requirements required to build your docs
 python:
