@@ -77,11 +77,11 @@ jobs:
           python -m pip install $(ls dist/qbittorrent_api-*.whl)[dev]
 
       - name: Test
-        if: ${{ !contains(fromJSON('["3.6", "3.5", "2.7", "pypy2.7"]'), inputs.python-version) }}
+        if: ${{ !contains(fromJSON('["3.7", "3.6", "3.5", "2.7", "pypy2.7"]'), inputs.python-version) }}
         run: tox -e py-ci --installpkg dist/qbittorrent_api-*.whl
 
       - name: Test (legacy)
-        if: contains(fromJSON('["3.6", "3.5", "2.7", "pypy2.7"]'), inputs.python-version)
+        if: contains(fromJSON('["3.7", "3.6", "3.5", "2.7", "pypy2.7"]'), inputs.python-version)
         run: python -m coverage run -m pytest -vv
 
       - name: qBittorrent Log
