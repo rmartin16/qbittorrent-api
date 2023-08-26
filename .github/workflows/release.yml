@@ -35,7 +35,7 @@ jobs:
           path: dist
 
       - name: Create release
-        uses: ncipollo/release-action@v1.12.0
+        uses: ncipollo/release-action@v1.13.0
         with:
           name: release-${{ steps.build-vars.outputs.version }}
           draft: true
