@@ -1,5 +1,11 @@
 Change log
 ==========
+### v2023.9.53 (7 sept 2023)
+- Advertise support for Python 3.12
+- Advertise support for qBittorrent v4.5.5
+- Add ``inactive_seeding_time_limit`` for ``torrents/setShareLimits`` (#271)
+- Implement ``app/networkInterfaceList`` and ``app/networkInterfaceAddressList`` (#272)
+
 ### v2023.7.52 (13 jul 2023)
 - Ensure the wheel is uploaded with the release to PyPI
 
@@ -10,8 +16,8 @@ Change log
 - Advertise support for qBittorrent v4.5.4
 
 ### v2023.6.49 (9 jun 2023)
-- The `Client` is no longer binded to `List`s (#230)
-- This does not affect normal operation but allows for slicing, adding, and copying `List`s
+- The ``Client`` is no longer binded to ``List``s (#230)
+- This does not affect normal operation but allows for slicing, adding, and copying ``List``s
 
 ### v2023.5.48 (29 may 2023)
 - Advertise support for qBittorrent v4.5.3
