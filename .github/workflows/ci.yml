@@ -86,7 +86,7 @@ jobs:
         run: tox -e package
 
       - name: Upload Package
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: "package"
           path: "./dist"
@@ -208,7 +208,7 @@ jobs:
 
       - name: Upload HTML report if check failed
         if: always() && steps.coverage.outcome == 'failure'
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: "html-coverage-report"
           path: "./htmlcov"
