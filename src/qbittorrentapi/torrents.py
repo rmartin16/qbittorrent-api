@@ -64,6 +64,10 @@ class TorrentDictionary(Dictionary):
 
     def __init__(self, data, client):
         self._torrent_hash = data.get("hash", None)
+        # The countdown to the next announce was added in v5.0.0.
+        # To avoid clashing with `reannounce()`, rename to `reannounce_in`.
+        if "reannounce" in data:
+            data["reannounce_in"] = data.pop("reannounce")
         super(TorrentDictionary, self).__init__(client=client, data=data)
 
     def sync_local(self):

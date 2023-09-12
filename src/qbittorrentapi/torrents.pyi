@@ -10,7 +10,7 @@ from typing import Text
 from typing import Tuple
 from typing import TypeVar
 
-from qbittorrentapi._types import DictInputT
+from qbittorrentapi._types import DictMutableInputT
 from qbittorrentapi._types import FilesToSendT
 from qbittorrentapi._types import JsonDictionaryT
 from qbittorrentapi._types import KwargsT
@@ -50,7 +50,7 @@ TorrentFilesT = TypeVar(
 )
 
 class TorrentDictionary(JsonDictionaryT):
-    def __init__(self, data: DictInputT, client: TorrentsAPIMixIn) -> None: ...
+    def __init__(self, data: DictMutableInputT, client: TorrentsAPIMixIn) -> None: ...
     def sync_local(self) -> None: ...
     @property
     def state_enum(self) -> TorrentState: ...
