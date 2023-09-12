@@ -2,7 +2,9 @@ from enum import Enum
 
 try:
     from collections import UserList
+    from collections.abc import Mapping
 except ImportError:  # pragma: no cover
+    from collections import Mapping
     from UserList import UserList
 
 from qbittorrentapi._attrdict import AttrDict
@@ -187,7 +189,7 @@ class Dictionary(ClientCache, AttrDict):
     @classmethod
     def _normalize(cls, data):
         """Iterate through a dict converting any nested dicts to AttrDicts."""
-        if isinstance(data, dict):
+        if isinstance(data, Mapping):
             return AttrDict({key: cls._normalize(value) for key, value in data.items()})
         return data
 
