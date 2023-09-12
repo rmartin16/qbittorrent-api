@@ -86,14 +86,15 @@ class TorrentDictionary(Dictionary):
     @property
     def info(self):
         """Implements :meth:`~TorrentsAPIMixIn.torrents_info`"""
-        if v(self._client.app_web_api_version()) < v("2.0.1"):
-            info = [
-                t for t in self._client.torrents_info() if t.hash == self._torrent_hash
-            ]
-        else:
-            info = self._client.torrents_info(torrent_hashes=self._torrent_hash)
+        info = self._client.torrents_info(torrent_hashes=self._torrent_hash)
+        if len(info) == 1 and info[0].hash == self._torrent_hash:
+            return info[0]
+
+        # qBittorrent v4.1.0 didn't support torrent hash parameter
+        info = [t for t in self._client.torrents_info() if t.hash == self._torrent_hash]
         if len(info) == 1:
             return info[0]
+
         return TorrentDictionary(data={}, client=self._client)
 
     def resume(self, **kwargs):
