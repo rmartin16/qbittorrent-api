@@ -7,7 +7,6 @@ from typing import Literal
 from typing import Mapping
 from typing import Optional
 from typing import Text
-from typing import Tuple
 from typing import TypeVar
 
 from qbittorrentapi._types import DictMutableInputT
@@ -78,7 +77,7 @@ class TorrentDictionary(JsonDictionaryT):
         ratio_limit: Optional[Text | int] = None,
         seeding_time_limit: Optional[Text | int] = None,
         inactive_seeding_time_limit: Optional[Text | int] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     setShareLimits = set_share_limits
     @property
@@ -169,14 +168,14 @@ class TorrentDictionary(JsonDictionaryT):
         new_file_name: Optional[Text] = None,
         old_path: Optional[Text] = None,
         new_path: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     renameFile = rename_file
     def rename_folder(
         self,
         old_path: Optional[Text] = None,
         new_path: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     renameFolder = rename_folder
     @property
@@ -197,7 +196,7 @@ class TorrentDictionary(JsonDictionaryT):
         self,
         orig_url: Optional[Text] = None,
         new_url: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     editTracker = edit_tracker
     def remove_trackers(
@@ -210,7 +209,7 @@ class TorrentDictionary(JsonDictionaryT):
         self,
         file_ids: Optional[int | Iterable[Text | int]] = None,
         priority: Optional[Text | int] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     filePriority = file_priority
     def rename(self, new_name: Optional[Text] = None, **kwargs: KwargsT) -> None: ...
@@ -355,7 +354,7 @@ class Torrents(ClientCache):
         download_path: Optional[Text] = None,
         use_download_path: Optional[bool] = None,
         stop_condition: Optional[Literal["MetadataReceived", "FilesChecked"]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> Text: ...
 
     class _ActionForAllTorrents(ClientCache):
@@ -383,7 +382,7 @@ class Torrents(ClientCache):
             offset: Optional[Text | int] = None,
             torrent_hashes: Optional[Iterable[Text]] = None,
             tag: Optional[Text] = None,
-            **kwargs: KwargsT
+            **kwargs: KwargsT,
         ) -> TorrentInfoList: ...
         def all(
             self,
@@ -394,7 +393,7 @@ class Torrents(ClientCache):
             offset: Optional[Text | int] = None,
             torrent_hashes: Optional[Iterable[Text]] = None,
             tag: Optional[Text] = None,
-            **kwargs: KwargsT
+            **kwargs: KwargsT,
         ) -> TorrentInfoList: ...
         def downloading(
             self,
@@ -405,7 +404,7 @@ class Torrents(ClientCache):
             offset: Optional[Text | int] = None,
             torrent_hashes: Optional[Iterable[Text]] = None,
             tag: Optional[Text] = None,
-            **kwargs: KwargsT
+            **kwargs: KwargsT,
         ) -> TorrentInfoList: ...
         def seeding(
             self,
@@ -416,7 +415,7 @@ class Torrents(ClientCache):
             offset: Optional[Text | int] = None,
             torrent_hashes: Optional[Iterable[Text]] = None,
             tag: Optional[Text] = None,
-            **kwargs: KwargsT
+            **kwargs: KwargsT,
         ) -> TorrentInfoList: ...
         def completed(
             self,
@@ -427,7 +426,7 @@ class Torrents(ClientCache):
             offset: Optional[Text | int] = None,
             torrent_hashes: Optional[Iterable[Text]] = None,
             tag: Optional[Text] = None,
-            **kwargs: KwargsT
+            **kwargs: KwargsT,
         ) -> TorrentInfoList: ...
         def paused(
             self,
@@ -438,7 +437,7 @@ class Torrents(ClientCache):
             offset: Optional[Text | int] = None,
             torrent_hashes: Optional[Iterable[Text]] = None,
             tag: Optional[Text] = None,
-            **kwargs: KwargsT
+            **kwargs: KwargsT,
         ) -> TorrentInfoList: ...
         def active(
             self,
@@ -449,7 +448,7 @@ class Torrents(ClientCache):
             offset: Optional[Text | int] = None,
             torrent_hashes: Optional[Iterable[Text]] = None,
             tag: Optional[Text] = None,
-            **kwargs: KwargsT
+            **kwargs: KwargsT,
         ) -> TorrentInfoList: ...
         def inactive(
             self,
@@ -460,7 +459,7 @@ class Torrents(ClientCache):
             offset: Optional[Text | int] = None,
             torrent_hashes: Optional[Iterable[Text]] = None,
             tag: Optional[Text] = None,
-            **kwargs: KwargsT
+            **kwargs: KwargsT,
         ) -> TorrentInfoList: ...
         def resumed(
             self,
@@ -471,7 +470,7 @@ class Torrents(ClientCache):
             offset: Optional[Text | int] = None,
             torrent_hashes: Optional[Iterable[Text]] = None,
             tag: Optional[Text] = None,
-            **kwargs: KwargsT
+            **kwargs: KwargsT,
         ) -> TorrentInfoList: ...
         def stalled(
             self,
@@ -482,7 +481,7 @@ class Torrents(ClientCache):
             offset: Optional[Text | int] = None,
             torrent_hashes: Optional[Iterable[Text]] = None,
             tag: Optional[Text] = None,
-            **kwargs: KwargsT
+            **kwargs: KwargsT,
         ) -> TorrentInfoList: ...
         def stalled_uploading(
             self,
@@ -493,7 +492,7 @@ class Torrents(ClientCache):
             offset: Optional[Text | int] = None,
             torrent_hashes: Optional[Iterable[Text]] = None,
             tag: Optional[Text] = None,
-            **kwargs: KwargsT
+            **kwargs: KwargsT,
         ) -> TorrentInfoList: ...
         def stalled_downloading(
             self,
@@ -504,7 +503,7 @@ class Torrents(ClientCache):
             offset: Optional[Text | int] = None,
             torrent_hashes: Optional[Iterable[Text]] = None,
             tag: Optional[Text] = None,
-            **kwargs: KwargsT
+            **kwargs: KwargsT,
         ) -> TorrentInfoList: ...
         def checking(
             self,
@@ -515,7 +514,7 @@ class Torrents(ClientCache):
             offset: Optional[Text | int] = None,
             torrent_hashes: Optional[Iterable[Text]] = None,
             tag: Optional[Text] = None,
-            **kwargs: KwargsT
+            **kwargs: KwargsT,
         ) -> TorrentInfoList: ...
         def moving(
             self,
@@ -526,7 +525,7 @@ class Torrents(ClientCache):
             offset: Optional[Text | int] = None,
             torrent_hashes: Optional[Iterable[Text]] = None,
             tag: Optional[Text] = None,
-            **kwargs: KwargsT
+            **kwargs: KwargsT,
         ) -> TorrentInfoList: ...
         def errored(
             self,
@@ -537,7 +536,7 @@ class Torrents(ClientCache):
             offset: Optional[Text | int] = None,
             torrent_hashes: Optional[Iterable[Text]] = None,
             tag: Optional[Text] = None,
-            **kwargs: KwargsT
+            **kwargs: KwargsT,
         ) -> TorrentInfoList: ...
 
 class TorrentCategories(ClientCache):
@@ -551,7 +550,7 @@ class TorrentCategories(ClientCache):
         save_path: Optional[Text] = None,
         download_path: Optional[Text] = None,
         enable_download_path: Optional[bool] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     createCategory = create_category
     def edit_category(
@@ -560,7 +559,7 @@ class TorrentCategories(ClientCache):
         save_path: Optional[Text] = None,
         download_path: Optional[Text] = None,
         enable_download_path: Optional[bool] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     editCategory = edit_category
     def remove_categories(
@@ -579,14 +578,14 @@ class TorrentTags(ClientCache):
         self,
         tags: Optional[Iterable[Text]] = None,
         torrent_hashes: Optional[Iterable[Text]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     addTags = add_tags
     def remove_tags(
         self,
         tags: Optional[Iterable[Text]] = None,
         torrent_hashes: Optional[Iterable[Text]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     removeTags = remove_tags
     def create_tags(
@@ -634,12 +633,12 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         download_path: Optional[Text] = None,
         use_download_path: Optional[bool] = None,
         stop_condition: Optional[Literal["MetadataReceived", "FilesChecked"]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> Literal["Ok.", "Fails."]: ...
     @staticmethod
     def _normalize_torrent_files(
         user_files: TorrentFilesT,
-    ) -> Tuple[FilesToSendT, list[IO[bytes]]] | Tuple[None, None]: ...
+    ) -> FilesToSendT | None: ...
     def torrents_properties(
         self,
         torrent_hash: Optional[Text] = None,
@@ -676,7 +675,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         self,
         torrent_hash: Optional[Text] = None,
         urls: Optional[Iterable[Text]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_addTrackers = torrents_add_trackers
     def torrents_edit_tracker(
@@ -684,14 +683,14 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         torrent_hash: Optional[Text] = None,
         original_url: Optional[Text] = None,
         new_url: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_editTracker = torrents_edit_tracker
     def torrents_remove_trackers(
         self,
         torrent_hash: Optional[Text] = None,
         urls: Optional[Iterable[Text]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_removeTrackers = torrents_remove_trackers
     def torrents_file_priority(
@@ -699,14 +698,14 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         torrent_hash: Optional[Text] = None,
         file_ids: Optional[int | Iterable[Text | int]] = None,
         priority: Optional[Text | int] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_filePrio = torrents_file_priority
     def torrents_rename(
         self,
         torrent_hash: Optional[Text] = None,
         new_torrent_name: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     def torrents_rename_file(
         self,
@@ -715,7 +714,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         new_file_name: Optional[Text] = None,
         old_path: Optional[Text] = None,
         new_path: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_renameFile = torrents_rename_file
     def torrents_rename_folder(
@@ -723,7 +722,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         torrent_hash: Optional[Text] = None,
         old_path: Optional[Text] = None,
         new_path: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_renameFolder = torrents_rename_folder
     def torrents_export(
@@ -741,7 +740,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         offset: Optional[Text | int] = None,
         torrent_hashes: Optional[Iterable[Text]] = None,
         tag: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> TorrentInfoList: ...
     def torrents_resume(
         self,
@@ -757,7 +756,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         self,
         delete_files: Optional[bool] = False,
         torrent_hashes: Optional[Iterable[Text]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     def torrents_recheck(
         self,
@@ -803,7 +802,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         self,
         limit: Optional[Text | int] = None,
         torrent_hashes: Optional[Iterable[Text]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_setDownloadLimit = torrents_set_download_limit
     def torrents_set_share_limits(
@@ -812,7 +811,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         seeding_time_limit: Optional[Text | int] = None,
         inactive_seeding_time_limit: Optional[Text | int] = None,
         torrent_hashes: Optional[Iterable[Text]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_setShareLimits = torrents_set_share_limits
     def torrents_upload_limit(
@@ -825,42 +824,42 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         self,
         limit: Optional[Text | int] = None,
         torrent_hashes: Optional[Iterable[Text]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_setUploadLimit = torrents_set_upload_limit
     def torrents_set_location(
         self,
         location: Optional[Text] = None,
         torrent_hashes: Optional[Iterable[Text]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_setLocation = torrents_set_location
     def torrents_set_save_path(
         self,
         save_path: Optional[Text] = None,
         torrent_hashes: Optional[Iterable[Text]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_setSavePath = torrents_set_save_path
     def torrents_set_download_path(
         self,
         download_path: Optional[Text] = None,
         torrent_hashes: Optional[Iterable[Text]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_setDownloadPath = torrents_set_download_path
     def torrents_set_category(
         self,
         category: Optional[Text] = None,
         torrent_hashes: Optional[Iterable[Text]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_setCategory = torrents_set_category
     def torrents_set_auto_management(
         self,
         enable: Optional[bool] = None,
         torrent_hashes: Optional[Iterable[Text]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_setAutoManagement = torrents_set_auto_management
     def torrents_toggle_sequential_download(
@@ -879,21 +878,21 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         self,
         enable: Optional[bool] = None,
         torrent_hashes: Optional[Iterable[Text]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_setForceStart = torrents_set_force_start
     def torrents_set_super_seeding(
         self,
         enable: Optional[bool] = None,
         torrent_hashes: Optional[Iterable[Text]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_setSuperSeeding = torrents_set_super_seeding
     def torrents_add_peers(
         self,
         peers: Optional[Iterable[Text]] = None,
         torrent_hashes: Optional[Iterable[Text]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> TorrentsAddPeersDictionary: ...
     torrents_addPeers = torrents_add_peers
     def torrents_categories(self, **kwargs: KwargsT) -> TorrentCategoriesDictionary: ...
@@ -903,7 +902,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         save_path: Optional[Text] = None,
         download_path: Optional[Text] = None,
         enable_download_path: Optional[bool] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_createCategory = torrents_create_category
     def torrents_edit_category(
@@ -912,7 +911,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         save_path: Optional[Text] = None,
         download_path: Optional[Text] = None,
         enable_download_path: Optional[bool] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_editCategory = torrents_edit_category
     def torrents_remove_categories(
@@ -926,14 +925,14 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         self,
         tags: Optional[Iterable[Text]] = None,
         torrent_hashes: Optional[Iterable[Text]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_addTags = torrents_add_tags
     def torrents_remove_tags(
         self,
         tags: Optional[Iterable[Text]] = None,
         torrent_hashes: Optional[Iterable[Text]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     torrents_removeTags = torrents_remove_tags
     def torrents_create_tags(

@@ -1,16 +1,8 @@
 import logging
 import re
-import sys
 from os import environ
-
-import six
-
-try:
-    from unittest.mock import MagicMock
-    from unittest.mock import PropertyMock
-except ImportError:  # python 2
-    from mock import MagicMock
-    from mock import PropertyMock
+from unittest.mock import MagicMock
+from unittest.mock import PropertyMock
 
 import pytest
 from requests import Response
@@ -29,16 +21,20 @@ from tests.utils import mkpath
 
 
 def test_method_name(client, app_version):
-    assert app_version == client._get("app", "version", response_class=six.text_type)
+    assert app_version == client._get("app", "version", response_class=str)
     assert app_version == client._get(
-        APINames.Application, "version", response_class=six.text_type
+        APINames.Application,
+        "version",
+        response_class=str,
     )
 
 
 def test_log_in():
     client_good = Client(VERIFY_WEBUI_CERTIFICATE=False)
     client_bad = Client(
-        username="asdf", password="asdfasdf", VERIFY_WEBUI_CERTIFICATE=False
+        username="asdf",
+        password="asdfasdf",
+        VERIFY_WEBUI_CERTIFICATE=False,
     )
 
     client_good.auth_log_out()
@@ -57,7 +53,9 @@ def test_log_in():
 def test_log_in_via_auth():
     client_good = Client(VERIFY_WEBUI_CERTIFICATE=False)
     client_bad = Client(
-        username="asdf", password="asdfasdf", VERIFY_WEBUI_CERTIFICATE=False
+        username="asdf",
+        password="asdfasdf",
+        VERIFY_WEBUI_CERTIFICATE=False,
     )
 
     assert (
@@ -86,7 +84,9 @@ def test_log_in_via_auth():
 )
 def test_hostname_format(app_version, hostname):
     client = Client(
-        host=hostname, VERIFY_WEBUI_CERTIFICATE=False, REQUESTS_ARGS={"timeout": 1}
+        host=hostname,
+        VERIFY_WEBUI_CERTIFICATE=False,
+        REQUESTS_ARGS={"timeout": 1},
     )
     assert client.app.version == app_version
     # ensure the base URL is always normalized
@@ -272,7 +272,7 @@ def test_response_str(client):
     response = MagicMock(spec_set=Response)
 
     type(response).text = PropertyMock(return_value="text response")
-    assert client._cast(response, six.text_type) == "text response"
+    assert client._cast(response, str) == "text response"
 
     type(response).text = PropertyMock(return_value="text response")
     with pytest.raises(exceptions.APIError, match="Exception during response parsing."):
@@ -342,12 +342,14 @@ def test_response_unsupported(client):
 
     type(response).text = PropertyMock(return_value="123.01")
     with pytest.raises(
-        exceptions.APIError, match="No handler defined to cast response."
+        exceptions.APIError,
+        match="No handler defined to cast response.",
     ):
         client._cast(response, float)
 
     with pytest.raises(
-        exceptions.APIError, match="No handler defined to cast response."
+        exceptions.APIError,
+        match="No handler defined to cast response.",
     ):
         client._get(_name=APINames.Application, _method="version", response_class=float)
 
@@ -373,7 +375,8 @@ def test_simple_response(client):
 
 def test_request_extra_headers():
     client = Client(
-        VERIFY_WEBUI_CERTIFICATE=False, EXTRA_HEADERS={"X-MY-HEADER": "asdf"}
+        VERIFY_WEBUI_CERTIFICATE=False,
+        EXTRA_HEADERS={"X-MY-HEADER": "asdf"},
     )
     client.auth.log_in()
 
@@ -381,7 +384,9 @@ def test_request_extra_headers():
     assert r.request.headers["X-MY-HEADER"] == "asdf"
 
     r = client._get(
-        APINames.Application, "version", headers={"X-MY-HEADER-TWO": "zxcv"}
+        APINames.Application,
+        "version",
+        headers={"X-MY-HEADER-TWO": "zxcv"},
     )
     assert r.request.headers["X-MY-HEADER"] == "asdf"
     assert r.request.headers["X-MY-HEADER-TWO"] == "zxcv"
@@ -410,10 +415,6 @@ def test_request_extra_headers():
 
 @pytest.mark.skipif_before_api_version("2.2.1")
 def test_requests_timeout(api_version):
-    # timeouts are weird on python 2...just skip it...
-    if sys.version_info[0] < 3:
-        return
-
     class MyTimeoutError(Exception):
         pass
 
@@ -446,12 +447,16 @@ def test_request_extra_params(client, orig_torrent):
     """Extra params can be sent directly to qBittorrent but there aren't any real use-
     cases so force it."""
     json_response = client._post(
-        APINames.Torrents, "info", hashes=orig_torrent.hash
+        APINames.Torrents,
+        "info",
+        hashes=orig_torrent.hash,
     ).json()
     torrent = TorrentInfoList(json_response, client)[0]
     assert isinstance(torrent, TorrentDictionary)
     json_response = client._get(
-        APINames.Torrents, "info", hashes=orig_torrent.hash
+        APINames.Torrents,
+        "info",
+        hashes=orig_torrent.hash,
     ).json()
     torrent = TorrentInfoList(json_response, client)[0]
     assert isinstance(torrent, TorrentDictionary)
@@ -537,7 +542,9 @@ def test_http400(client, app_version, orig_torrent):
     if v(app_version) >= v("4.1.6"):
         with pytest.raises(exceptions.InvalidRequest400Error) as exc_info:
             client.torrents_file_priority(
-                hash=orig_torrent.hash, file_ids="asdf", priority="asdf"
+                hash=orig_torrent.hash,
+                file_ids="asdf",
+                priority="asdf",
             )
         assert exc_info.value.http_status_code == 400
 

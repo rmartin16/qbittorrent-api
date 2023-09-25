@@ -35,14 +35,14 @@ class Sync(ClientCache):
     """
 
     def __init__(self, client):
-        super(Sync, self).__init__(client=client)
+        super().__init__(client=client)
         self.maindata = self._MainData(client=client)
         self.torrent_peers = self._TorrentPeers(client=client)
         self.torrentPeers = self.torrent_peers
 
     class _MainData(ClientCache):
         def __init__(self, client):
-            super(Sync._MainData, self).__init__(client=client)
+            super().__init__(client=client)
             self._rid = 0
 
         def __call__(self, rid=None, **kwargs):
@@ -58,7 +58,7 @@ class Sync(ClientCache):
 
     class _TorrentPeers(ClientCache):
         def __init__(self, client):
-            super(Sync._TorrentPeers, self).__init__(client=client)
+            super().__init__(client=client)
             self._rid = None
 
         def __call__(self, torrent_hash=None, rid=None, **kwargs):
@@ -115,7 +115,7 @@ class SyncAPIMixIn(AppAPIMixIn):
             _method="maindata",
             data=data,
             response_class=SyncMainDataDictionary,
-            **kwargs
+            **kwargs,
         )
 
     @alias("sync_torrentPeers")
@@ -137,5 +137,5 @@ class SyncAPIMixIn(AppAPIMixIn):
             _method="torrentPeers",
             data=data,
             response_class=SyncTorrentPeersDictionary,
-            **kwargs
+            **kwargs,
         )

@@ -30,18 +30,10 @@ AttrMap and AttrDefault are left for posterity but commented out.
 
 from abc import ABCMeta
 from abc import abstractmethod
+from collections.abc import Mapping
+from collections.abc import MutableMapping
+from collections.abc import Sequence
 from re import match as re_match
-
-import six
-
-try:  # python 3
-    from collections.abc import Mapping
-    from collections.abc import MutableMapping
-    from collections.abc import Sequence
-except ImportError:  # python 2
-    from collections import Mapping
-    from collections import MutableMapping
-    from collections import Sequence
 
 
 def merge(left, right):
@@ -82,8 +74,7 @@ def merge(left, right):
     return merged
 
 
-@six.add_metaclass(ABCMeta)
-class Attr(Mapping):
+class Attr(Mapping, metaclass=ABCMeta):
     """
     A ``mixin`` class for a mapping that allows for attribute-style access of
     values.
@@ -191,9 +182,7 @@ class Attr(Mapping):
         """
         if isinstance(obj, Mapping):
             obj = self._constructor(obj, self._configuration())
-        elif isinstance(obj, Sequence) and not isinstance(
-            obj, (six.string_types, six.binary_type)
-        ):
+        elif isinstance(obj, Sequence) and not isinstance(obj, (str, bytes)):
             sequence_type = getattr(self, "_sequence_type", None)
 
             if sequence_type:
@@ -214,21 +203,20 @@ class Attr(Mapping):
             'register').
         """
         return (
-            isinstance(key, six.string_types)
+            isinstance(key, str)
             and re_match("^[A-Za-z][A-Za-z0-9_]*$", key)
             and not hasattr(cls, key)
         )
 
 
-@six.add_metaclass(ABCMeta)
-class MutableAttr(Attr, MutableMapping):
+class MutableAttr(Attr, MutableMapping, metaclass=ABCMeta):
     """A ``mixin`` class for a mapping that allows for attribute-style access of
     values."""
 
     def _setattr(self, key, value):
         """Add an attribute to the object, without attempting to add it as a
         key to the mapping."""
-        super(MutableAttr, self).__setattr__(key, value)
+        super().__setattr__(key, value)
 
     def __setattr__(self, key, value):
         """
@@ -240,7 +228,7 @@ class MutableAttr(Attr, MutableMapping):
         if self._valid_name(key):
             self[key] = value
         elif getattr(self, "_allow_invalid_attributes", True):
-            super(MutableAttr, self).__setattr__(key, value)
+            super().__setattr__(key, value)
         else:
             raise TypeError(
                 "'{cls}' does not allow attribute creation.".format(
@@ -251,7 +239,7 @@ class MutableAttr(Attr, MutableMapping):
     def _delattr(self, key):
         """Delete an attribute from the object, without attempting to remove it
         from the mapping."""
-        super(MutableAttr, self).__delattr__(key)
+        super().__delattr__(key)
 
     def __delattr__(self, key, force=False):
         """
@@ -262,7 +250,7 @@ class MutableAttr(Attr, MutableMapping):
         if self._valid_name(key):
             del self[key]
         elif getattr(self, "_allow_invalid_attributes", True):
-            super(MutableAttr, self).__delattr__(key)
+            super().__delattr__(key)
         else:
             raise TypeError(
                 "'{cls}' does not allow attribute deletion.".format(
@@ -275,7 +263,7 @@ class AttrDict(dict, MutableAttr):
     """A dict that implements MutableAttr."""
 
     def __init__(self, *args, **kwargs):
-        super(AttrDict, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self._setattr("_sequence_type", tuple)
         self._setattr("_allow_invalid_attributes", False)
@@ -296,9 +284,7 @@ class AttrDict(dict, MutableAttr):
         self._setattr("_allow_invalid_attributes", allow_invalid_attributes)
 
     def __repr__(self):
-        return six.u("AttrDict({contents})").format(
-            contents=super(AttrDict, self).__repr__()
-        )
+        return f"AttrDict({super().__repr__()})"
 
     @classmethod
     def _constructor(cls, mapping, configuration):

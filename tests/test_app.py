@@ -1,5 +1,4 @@
 import pytest
-import six
 
 from qbittorrentapi._attrdict import AttrDict
 from qbittorrentapi.app import NetworkInterface
@@ -75,7 +74,7 @@ def test_network_interface_address_list(client):
     assert isinstance(
         client.app_network_interface_address_list(), NetworkInterfaceAddressList
     )
-    assert isinstance(client.app_network_interface_address_list()[0], six.text_type)
+    assert isinstance(client.app_network_interface_address_list()[0], str)
     assert isinstance(
         client.app.network_interface_address_list(), NetworkInterfaceAddressList
     )
@@ -83,7 +82,7 @@ def test_network_interface_address_list(client):
         client.app.network_interface_address_list(interface_name="lo"),
         NetworkInterfaceAddressList,
     )
-    assert isinstance(client.app.network_interface_address_list()[0], six.text_type)
+    assert isinstance(client.app.network_interface_address_list()[0], str)
 
 
 @pytest.mark.skipif_after_api_version("2.3")

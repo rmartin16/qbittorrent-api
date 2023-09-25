@@ -112,9 +112,9 @@ class Client(
         VERBOSE_RESPONSE_LOGGING=False,
         SIMPLE_RESPONSES=False,
         DISABLE_LOGGING_DEBUG_OUTPUT=False,
-        **kwargs
+        **kwargs,
     ):
-        super(Client, self).__init__(
+        super().__init__(
             host=host,
             port=port,
             username=username,
@@ -128,5 +128,5 @@ class Client(
             VERBOSE_RESPONSE_LOGGING=VERBOSE_RESPONSE_LOGGING,
             SIMPLE_RESPONSES=SIMPLE_RESPONSES,
             DISABLE_LOGGING_DEBUG_OUTPUT=DISABLE_LOGGING_DEBUG_OUTPUT,
-            **kwargs
+            **kwargs,
         )

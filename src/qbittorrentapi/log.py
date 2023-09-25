@@ -10,9 +10,7 @@ class LogPeersList(List):
     """Response for :meth:`~LogAPIMixIn.log_peers`"""
 
     def __init__(self, list_entries, client=None):
-        super(LogPeersList, self).__init__(
-            list_entries, entry_class=LogPeer, client=client
-        )
+        super().__init__(list_entries, entry_class=LogPeer, client=client)
 
 
 class LogPeer(ListEntry):
@@ -23,9 +21,7 @@ class LogMainList(List):
     """Response to :meth:`~LogAPIMixIn.log_main`"""
 
     def __init__(self, list_entries, client=None):
-        super(LogMainList, self).__init__(
-            list_entries, entry_class=LogEntry, client=client
-        )
+        super().__init__(list_entries, entry_class=LogEntry, client=client)
 
 
 class LogEntry(ListEntry):
@@ -49,7 +45,7 @@ class Log(ClientCache):
     """
 
     def __init__(self, client):
-        super(Log, self).__init__(client=client)
+        super().__init__(client=client)
         self.main = Log._Main(client=client)
 
     def peers(self, last_known_id=None, **kwargs):
@@ -64,7 +60,7 @@ class Log(ClientCache):
             warning=None,
             critical=None,
             last_known_id=None,
-            **kwargs
+            **kwargs,
         ):
             return self._client.log_main(
                 normal=normal,
@@ -72,7 +68,7 @@ class Log(ClientCache):
                 warning=warning,
                 critical=critical,
                 last_known_id=last_known_id,
-                **kwargs
+                **kwargs,
             )
 
         def __call__(
@@ -82,7 +78,7 @@ class Log(ClientCache):
             warning=True,
             critical=True,
             last_known_id=None,
-            **kwargs
+            **kwargs,
         ):
             return self._api_call(
                 normal=normal,
@@ -90,7 +86,7 @@ class Log(ClientCache):
                 warning=warning,
                 critical=critical,
                 last_known_id=last_known_id,
-                **kwargs
+                **kwargs,
             )
 
         def info(self, last_known_id=None, **kwargs):
@@ -110,7 +106,7 @@ class Log(ClientCache):
                 normal=False,
                 warning=False,
                 last_known_id=last_known_id,
-                **kwargs
+                **kwargs,
             )
 
 
@@ -145,7 +141,7 @@ class LogAPIMixIn(AppAPIMixIn):
         warning=None,
         critical=None,
         last_known_id=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Retrieve the qBittorrent log entries. Iterate over returned object.
@@ -169,7 +165,7 @@ class LogAPIMixIn(AppAPIMixIn):
             _method="main",
             params=params,
             response_class=LogMainList,
-            **kwargs
+            **kwargs,
         )
 
     @login_required
@@ -186,5 +182,5 @@ class LogAPIMixIn(AppAPIMixIn):
             _method="peers",
             params=params,
             response_class=LogPeersList,
-            **kwargs
+            **kwargs,
         )

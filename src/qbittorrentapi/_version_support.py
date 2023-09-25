@@ -1,10 +1,6 @@
+from functools import lru_cache
+
 from packaging.version import Version as _Version
-
-try:
-    from functools import lru_cache
-except ImportError:  # pragma: no cover
-    from backports.functools_lru_cache import lru_cache
-
 
 APP_VERSION_2_API_VERSION_MAP = {
     "v4.1.0": "2.0",
@@ -65,7 +61,7 @@ def v(version):
     return _Version(version)
 
 
-class Version(object):
+class Version:
     """
     Allows introspection for whether this Client supports different versions of the
     qBittorrent application and its Web API.

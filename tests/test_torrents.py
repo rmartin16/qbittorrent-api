@@ -1,13 +1,6 @@
 import errno
-import logging
 import platform
-import sys
 from time import sleep
-
-try:
-    from collections.abc import Iterable
-except ImportError:
-    from collections import Iterable  # noqa: F401
 
 import pytest
 import requests
@@ -112,11 +105,9 @@ def test_add_delete(client, add_func, delete_func, tmp_path):
     def add_by_filename(single):
         download_file(url=TORRENT1_URL, filename=TORRENT1_FILENAME)
         download_file(url=TORRENT2_URL, filename=TORRENT2_FILENAME)
-        # send bytes as a proxy for testing python 2
-        kw = {} if sys.version_info.major == 2 else dict(encoding="utf-8")
         files = (
             mkpath(tmp_path, TORRENT1_FILENAME),
-            bytes(mkpath(tmp_path, TORRENT2_FILENAME), **kw),
+            mkpath(tmp_path, TORRENT2_FILENAME),
         )
 
         if single:
@@ -200,39 +191,21 @@ def test_add_delete(client, add_func, delete_func, tmp_path):
 
 
 def test_add_torrent_file_fail(client, monkeypatch):
-    # torrent add is wonky in python2 because of support for raw bytes...
-    if sys.version_info[0] > 2:
-        with pytest.raises(TorrentFileNotFoundError):
-            client.torrents_add(torrent_files="/tmp/asdfasdfasdfasdf")
+    with pytest.raises(TorrentFileNotFoundError):
+        client.torrents_add(torrent_files="/tmp/asdfasdfasdfasdf")
 
-        with pytest.raises(TorrentFilePermissionError):
-            client.torrents_add(torrent_files="/etc/shadow")
+    with pytest.raises(TorrentFilePermissionError):
+        client.torrents_add(torrent_files="/etc/shadow")
 
-        if platform.python_implementation() == "CPython":
-            with pytest.raises(TorrentFileError):
+    if platform.python_implementation() == "CPython":
+        with pytest.raises(TorrentFileError):
 
-                def fake_open(*arg, **kwargs):
-                    raise IOError(errno.ENODEV)
+            def fake_open(*arg, **kwargs):
+                raise OSError(errno.ENODEV)
 
-                with monkeypatch.context() as m:
-                    m.setitem(__builtins__, "open", fake_open)
-                    client.torrents_add(torrent_files="/etc/hosts")
-
-
-def test_close_file_fail(client, monkeypatch, caplog):
-    def fake_norm_files(files):
-        return {object: object}, (object,)
-
-    def post(*args, **kwargs):
-        return "OK"
-
-    if sys.version_info[0] > 2:
-        with monkeypatch.context() as m:
-            m.setattr(client, "_normalize_torrent_files", fake_norm_files)
-            m.setattr(client, "_post", post)
-            with caplog.at_level(logging.WARNING, logger="qbittorrentapi"):
-                client.torrents_add(torrent_files=object)
-                assert "Failed to close file" in caplog.text
+            with monkeypatch.context() as m:
+                m.setitem(__builtins__, "open", fake_open)
+                client.torrents_add(torrent_files="/etc/hosts")
 
 
 @pytest.mark.parametrize("keep_root_folder", [True, False, None])
@@ -345,10 +318,7 @@ def test_trackers(client, orig_torrent):
 
 def test_trackers_slice(client, orig_torrent):
     trackers = client.torrents_trackers(torrent_hash=orig_torrent.hash)
-    if sys.version_info < (3,) or sys.version_info >= (3, 7):
-        assert isinstance(trackers[1:2], TrackersList)
-    else:
-        assert isinstance(trackers[1:2], list)
+    assert isinstance(trackers[1:2], TrackersList)
 
 
 def test_webseeds(client, orig_torrent):
@@ -358,10 +328,7 @@ def test_webseeds(client, orig_torrent):
 
 def test_webseeds_slice(client, orig_torrent):
     web_seeds = client.torrents_webseeds(torrent_hash=orig_torrent.hash)
-    if sys.version_info < (3,) or sys.version_info >= (3, 7):
-        assert isinstance(web_seeds[1:2], WebSeedsList)
-    else:
-        assert isinstance(web_seeds[1:2], list)
+    assert isinstance(web_seeds[1:2], WebSeedsList)
 
 
 def test_files(client, orig_torrent):
@@ -373,10 +340,7 @@ def test_files(client, orig_torrent):
 
 def test_files_slice(client, orig_torrent):
     files = client.torrents_files(torrent_hash=orig_torrent.hash)
-    if sys.version_info < (3,) or sys.version_info >= (3, 7):
-        assert isinstance(files[1:2], TorrentFilesList)
-    else:
-        assert isinstance(files[1:2], list)
+    assert isinstance(files[1:2], TorrentFilesList)
 
 
 @pytest.mark.parametrize(
@@ -389,10 +353,7 @@ def test_piece_states(client, orig_torrent, piece_state_func):
 
 def test_piece_states_slice(client, orig_torrent):
     piece_states = client.torrents_piece_states(torrent_hash=orig_torrent.hash)
-    if sys.version_info < (3,) or sys.version_info >= (3, 7):
-        assert isinstance(piece_states[1:2], TorrentPieceInfoList)
-    else:
-        assert isinstance(piece_states[1:2], list)
+    assert isinstance(piece_states[1:2], TorrentPieceInfoList)
 
 
 @pytest.mark.parametrize(
@@ -405,10 +366,7 @@ def test_piece_hashes(client, orig_torrent, piece_hashes_func):
 
 def test_piece_hashes_slice(client, orig_torrent):
     piece_hashes = client.torrents_piece_hashes(torrent_hash=orig_torrent.hash)
-    if sys.version_info < (3,) or sys.version_info >= (3, 7):
-        assert isinstance(piece_hashes[1:2], TorrentPieceInfoList)
-    else:
-        assert isinstance(piece_hashes[1:2], list)
+    assert isinstance(piece_hashes[1:2], TorrentPieceInfoList)
 
 
 @pytest.mark.parametrize("trackers", ["127.0.0.1", ["127.0.0.2", "127.0.0.3"]])
@@ -619,10 +577,7 @@ def test_torrents_info(client, info_func):
 
 
 def test_torrents_info_slice(client):
-    if sys.version_info < (3,) or sys.version_info >= (3, 7):
-        assert isinstance(client.torrents_info()[1:2], TorrentInfoList)
-    else:
-        assert isinstance(client.torrents_info()[1:2], list)
+    assert isinstance(client.torrents_info()[1:2], TorrentInfoList)
 
 
 @pytest.mark.skipif_before_api_version("2.8.3")
@@ -1345,10 +1300,7 @@ def test_tags(client, tags_func):
 
 @pytest.mark.skipif_before_api_version("2.3.0")
 def test_tags_slice(client):
-    if sys.version_info < (3,) or sys.version_info >= (3, 7):
-        assert isinstance(client.torrents_tags()[1:2], TagList)
-    else:
-        assert isinstance(client.torrents_tags()[1:2], list)
+    assert isinstance(client.torrents_tags()[1:2], TagList)
 
 
 @pytest.mark.skipif_after_api_version("2.3.0")

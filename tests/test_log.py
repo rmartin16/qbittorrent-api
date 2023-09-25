@@ -1,5 +1,3 @@
-import sys
-
 import pytest
 
 from qbittorrentapi.definitions import APINames
@@ -26,10 +24,7 @@ def test_log_main_large_id(client, main_func):
 
 @pytest.mark.parametrize("main_func", ["log_main", "log.main"])
 def test_log_main_slice(client, main_func):
-    if sys.version_info < (3,) or sys.version_info >= (3, 7):
-        assert isinstance(client.func(main_func)()[1:2], LogMainList)
-    else:
-        assert isinstance(client.func(main_func)()[1:2], list)
+    assert isinstance(client.func(main_func)()[1:2], LogMainList)
 
 
 def test_log_main_info(client_mock):
@@ -141,7 +136,4 @@ def test_log_peers(client, peers_func):
 
 @pytest.mark.parametrize("peers_func", ["log_peers", "log.peers"])
 def test_log_peers_slice(client, peers_func):
-    if sys.version_info < (3,) or sys.version_info >= (3, 7):
-        assert isinstance(client.func(peers_func)()[1:2], LogPeersList)
-    else:
-        assert isinstance(client.func(peers_func)()[1:2], list)
+    assert isinstance(client.func(peers_func)()[1:2], LogPeersList)

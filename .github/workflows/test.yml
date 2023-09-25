@@ -21,30 +21,26 @@ on:
       is-qbt-dev:
         required: true
         type: boolean
-      runner-os:
-        required: false
-        default: ubuntu-latest
-        type: string
 
 env:
-  FORCE_COLOR: "1"
+  FORCE_COLOR: 1
 
 jobs:
 
   test:
     name: Test
-    runs-on: "${{ inputs.runner-os }}"
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     continue-on-error: true
     env:
-      QBT_VER: "${{ inputs.qbittorrent-version }}"
-      QBITTORRENTAPI_HOST: "${{ inputs.qbittorrent-host }}"
-      QBITTORRENTAPI_USERNAME: "${{ inputs.qbittorrent-username }}"
-      QBITTORRENTAPI_PASSWORD: "${{ inputs.qbittorrent-password }}"
+      QBT_VER: ${{ inputs.qbittorrent-version }}
+      QBITTORRENTAPI_HOST: ${{ inputs.qbittorrent-host }}
+      QBITTORRENTAPI_USERNAME: ${{ inputs.qbittorrent-username }}
+      QBITTORRENTAPI_PASSWORD: ${{ inputs.qbittorrent-password }}
       IS_QBT_DEV: ${{ inputs.is-qbt-dev }}
-      DOCKER_QBT_IMAGE_NAME: "ghcr.io/rmartin16/qbittorrent-nox"
-      DOCKER_QBT_IMAGE_TAG: "${{ inputs.qbittorrent-version }}-debug"
-      DOCKER_ARGS: "--name qbt-tox-testing --detach --publish 8080:8080 --volume ${{ github.workspace }}/tests/_resources:/tmp/_resources"
+      DOCKER_QBT_IMAGE_NAME: ghcr.io/rmartin16/qbittorrent-nox
+      DOCKER_QBT_IMAGE_TAG: ${{ inputs.qbittorrent-version }}-debug
+      DOCKER_ARGS: --name qbt-tox-testing --detach --publish 8080:8080 --volume ${{ github.workspace }}/tests/_resources:/tmp/_resources
 
     steps:
       - name: Checkout Repo
@@ -53,14 +49,14 @@ jobs:
       - name: Get packages
         uses: actions/download-artifact@v3.0.2
         with:
-          name: "package"
-          path: "./dist"
+          name: package
+          path: ./dist
 
       - name: Set up Python ${{ inputs.python-version }}
         uses: actions/setup-python@v4.7.0
         with:
-          python-version: "${{ inputs.python-version }}"
-          cache: "pip"
+          python-version: ${{ inputs.python-version }}
+          cache: pip
           check-latest: true
           cache-dependency-path: ${{ github.workspace }}/setup.cfg
 
@@ -77,12 +73,7 @@ jobs:
           python -m pip install $(ls dist/qbittorrent_api-*.whl)[dev]
 
       - name: Test
-        if: ${{ !contains(fromJSON('["3.7", "3.6", "3.5", "2.7", "pypy2.7"]'), inputs.python-version) }}
         run: tox -e py-ci --installpkg dist/qbittorrent_api-*.whl
-
-      - name: Test (legacy)
-        if: contains(fromJSON('["3.7", "3.6", "3.5", "2.7", "pypy2.7"]'), inputs.python-version)
-        run: python -m coverage run -m pytest -vv
 
       - name: qBittorrent Log
         if: (steps.start-qbittorrent.outcome == 'success') && (success() || failure())
@@ -92,20 +83,20 @@ jobs:
         if: success() || failure()
         uses: actions/upload-artifact@v3.1.3
         with:
-          name: "coverage-data"
-          path: "./.coverage.*"
+          name: coverage-data
+          path: ./.coverage.*
 
       - name: Send mail
         if: failure() && github.event_name != 'pull_request'
         uses: dawidd6/action-send-mail@v3.8.0
         with:
-          server_address: "smtp.gmail.com"
+          server_address: smtp.gmail.com
           server_port: 587
-          username: "${{ secrets.EMAIL_USERNAME }}"
-          password: "${{ secrets.EMAIL_PASSWORD }}"
-          subject: "${{ github.job }} job of ${{ github.repository }} failed"
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: ${{ github.job }} job of ${{ github.repository }} failed
           body: |
             ${{ github.job }} job in workflow ${{ github.workflow }} of ${{ github.repository }} failed.
             ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          to: "${{ secrets.EMAIL_ADDRESS }}"   # comma-separated string
-          from: "${{ secrets.EMAIL_USERNAME }}"
+          to: ${{ secrets.EMAIL_ADDRESS }}  # comma-separated string
+          from: ${{ secrets.EMAIL_USERNAME }}

@@ -43,7 +43,7 @@ class Log(ClientCache):
             warning: Optional[bool] = None,
             critical: Optional[bool] = None,
             last_known_id: Optional[bool] = None,
-            **kwargs: KwargsT
+            **kwargs: KwargsT,
         ) -> LogMainList: ...
         def __call__(
             self,
@@ -52,7 +52,7 @@ class Log(ClientCache):
             warning: Optional[bool] = True,
             critical: Optional[bool] = True,
             last_known_id: Optional[bool] = None,
-            **kwargs: KwargsT
+            **kwargs: KwargsT,
         ) -> LogMainList: ...
         def info(
             self,
@@ -85,7 +85,7 @@ class LogAPIMixIn(AppAPIMixIn):
         warning: Optional[bool] = None,
         critical: Optional[bool] = None,
         last_known_id: Optional[bool] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> LogMainList: ...
     def log_peers(
         self,

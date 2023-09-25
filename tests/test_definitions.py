@@ -1,4 +1,3 @@
-import sys
 from enum import Enum
 
 import pytest
@@ -200,10 +199,8 @@ def test_list_actions(client):
         ListEntry({"three": "3"}, client=client),
     ] + [ListEntry({"four": "4"}, client=client)]
 
-    # UserList doesn't have copy in 2.7
-    if sys.version_info > (3,):
-        assert list_one.copy() == [
-            ListEntry({"one": "1"}, client=client),
-            ListEntry({"two": "2"}, client=client),
-            ListEntry({"three": "3"}, client=client),
-        ]
+    assert list_one.copy() == [
+        ListEntry({"one": "1"}, client=client),
+        ListEntry({"two": "2"}, client=client),
+        ListEntry({"three": "3"}, client=client),
+    ]

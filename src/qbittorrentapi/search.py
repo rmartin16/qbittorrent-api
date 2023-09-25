@@ -16,7 +16,7 @@ class SearchJobDictionary(Dictionary):
 
     def __init__(self, data, client):
         self._search_job_id = data.get("id", None)
-        super(SearchJobDictionary, self).__init__(data=data, client=client)
+        super().__init__(data=data, client=client)
 
     def stop(self, **kwargs):
         """Implements :meth:`~SearchAPIMixIn.search_stop`"""
@@ -45,9 +45,7 @@ class SearchStatusesList(List):
     """Response for :meth:`~SearchAPIMixIn.search_status`"""
 
     def __init__(self, list_entries, client=None):
-        super(SearchStatusesList, self).__init__(
-            list_entries, entry_class=SearchStatus, client=client
-        )
+        super().__init__(list_entries, entry_class=SearchStatus, client=client)
 
 
 class SearchStatus(ListEntry):
@@ -58,9 +56,7 @@ class SearchCategoriesList(List):
     """Response for :meth:`~SearchAPIMixIn.search_categories`"""
 
     def __init__(self, list_entries, client=None):
-        super(SearchCategoriesList, self).__init__(
-            list_entries, entry_class=SearchCategory, client=client
-        )
+        super().__init__(list_entries, entry_class=SearchCategory, client=client)
 
 
 class SearchCategory(ListEntry):
@@ -71,9 +67,7 @@ class SearchPluginsList(List):
     """Response for :meth:`~SearchAPIMixIn.search_plugins`"""
 
     def __init__(self, list_entries, client=None):
-        super(SearchPluginsList, self).__init__(
-            list_entries, entry_class=SearchPlugin, client=client
-        )
+        super().__init__(list_entries, entry_class=SearchPlugin, client=client)
 
 
 class SearchPlugin(ListEntry):
@@ -105,7 +99,10 @@ class Search(ClientCache):
     def start(self, pattern=None, plugins=None, category=None, **kwargs):
         """Implements :meth:`~SearchAPIMixIn.search_start`"""
         return self._client.search_start(
-            pattern=pattern, plugins=plugins, category=category, **kwargs
+            pattern=pattern,
+            plugins=plugins,
+            category=category,
+            **kwargs,
         )
 
     def stop(self, search_id=None, **kwargs):
@@ -119,7 +116,10 @@ class Search(ClientCache):
     def results(self, search_id=None, limit=None, offset=None, **kwargs):
         """Implements :meth:`~SearchAPIMixIn.search_results`"""
         return self._client.search_results(
-            search_id=search_id, limit=limit, offset=offset, **kwargs
+            search_id=search_id,
+            limit=limit,
+            offset=offset,
+            **kwargs,
         )
 
     def delete(self, search_id=None, **kwargs):
@@ -149,7 +149,9 @@ class Search(ClientCache):
     def enable_plugin(self, plugins=None, enable=None, **kwargs):
         """Implements :meth:`~SearchAPIMixIn.search_enable_plugin`"""
         return self._client.search_enable_plugin(
-            plugins=plugins, enable=enable, **kwargs
+            plugins=plugins,
+            enable=enable,
+            **kwargs,
         )
 
     @alias("updatePlugins")
@@ -209,7 +211,7 @@ class SearchAPIMixIn(AppAPIMixIn):
             _method="start",
             data=data,
             response_class=SearchJobDictionary,
-            **kwargs
+            **kwargs,
         )
 
     @endpoint_introduced("2.1.1", "search/stop")
@@ -242,7 +244,7 @@ class SearchAPIMixIn(AppAPIMixIn):
             _method="status",
             params=params,
             response_class=SearchStatusesList,
-            **kwargs
+            **kwargs,
         )
 
     @endpoint_introduced("2.1.1", "search/results")
@@ -265,7 +267,7 @@ class SearchAPIMixIn(AppAPIMixIn):
             _method="results",
             data=data,
             response_class=SearchResultsDictionary,
-            **kwargs
+            **kwargs,
         )
 
     @endpoint_introduced("2.1.1", "search/delete")
@@ -299,7 +301,7 @@ class SearchAPIMixIn(AppAPIMixIn):
             _method="categories",
             data=data,
             response_class=SearchCategoriesList,
-            **kwargs
+            **kwargs,
         )
 
     @endpoint_introduced("2.1.1", "search/plugins")
@@ -314,7 +316,7 @@ class SearchAPIMixIn(AppAPIMixIn):
             _name=APINames.Search,
             _method="plugins",
             response_class=SearchPluginsList,
-            **kwargs
+            **kwargs,
         )
 
     @endpoint_introduced("2.1.1", "search/installPlugin")
@@ -342,7 +344,10 @@ class SearchAPIMixIn(AppAPIMixIn):
         """
         data = {"names": self._list2string(names, "|")}
         self._post(
-            _name=APINames.Search, _method="uninstallPlugin", data=data, **kwargs
+            _name=APINames.Search,
+            _method="uninstallPlugin",
+            data=data,
+            **kwargs,
         )
 
     @endpoint_introduced("2.1.1", "search/enablePlugin")

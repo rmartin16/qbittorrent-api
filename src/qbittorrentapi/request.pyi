@@ -110,7 +110,7 @@ class Request(object):
         port: Optional[Text | int] = None,
         username: Optional[Text] = None,
         password: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     def _initialize_context(self) -> None: ...
     def _initialize_lesser(
@@ -146,7 +146,7 @@ class Request(object):
         data: Optional[Mapping[Text, Any]] = None,
         files: Optional[FilesToSendT] = None,
         response_class: Optional[Type[FinalResponseT]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> FinalResponseT: ...
     def _post(
         self,
@@ -159,7 +159,7 @@ class Request(object):
         data: Optional[Mapping[Text, Any]] = None,
         files: Optional[FilesToSendT] = None,
         response_class: Optional[Type[FinalResponseT]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> FinalResponseT: ...
     def _request_manager(
         self,
@@ -175,7 +175,7 @@ class Request(object):
         data: Optional[Mapping[Text, Any]] = None,
         files: Optional[FilesToSendT] = None,
         response_class: Optional[Type[FinalResponseT]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> FinalResponseT: ...
     def _request(
         self,
@@ -189,7 +189,7 @@ class Request(object):
         data: Optional[Mapping[Text, Any]] = None,
         files: Optional[FilesToSendT] = None,
         response_class: Optional[Type[FinalResponseT]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> FinalResponseT: ...
     @staticmethod
     def _get_response_kwargs(
@@ -211,13 +211,13 @@ class Request(object):
         params: Optional[Mapping[Text, Any]] = None,
         data: Optional[Mapping[Text, Any]] = None,
         files: Optional[FilesToSendT] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> Tuple[dict[Text, Any], dict[Text, Any], FilesToSendT]: ...
     def _cast(
         self,
         response: Response,
         response_class: Type[FinalResponseT],
-        **response_kwargs: KwargsT
+        **response_kwargs: KwargsT,
     ) -> FinalResponseT: ...
     @property
     def _session(self) -> Session: ...

@@ -14,14 +14,12 @@ Introduction
    :target: https://pypi.org/project/qbittorrent-api/
 .. |pypi versions| image:: https://img.shields.io/pypi/pyversions/qbittorrent-api?style=flat-square
    :target: https://pypi.org/project/qbittorrent-api/
-.. |pypi implementations| image:: https://img.shields.io/pypi/implementation/qbittorrent-api?style=flat-square
-   :target: https://pypi.org/project/qbittorrent-api/
 .. |pypi downloads| image:: https://img.shields.io/pypi/dw/qbittorrent-api?color=blue&style=flat-square
    :target: https://pypi.org/project/qbittorrent-api/
 
 |github ci| |codecov| |coverity| |codacy|
 
-|pypi| |pypi versions| |pypi implementations| |pypi downloads|
+|pypi| |pypi versions| |pypi downloads|
 
 Python client implementation for qBittorrent Web API.
 
@@ -31,7 +29,6 @@ Features
 ------------
 - The entire qBittorrent `Web API <https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)>`_ is implemented.
 - qBittorrent version checking for an endpoint's existence/features is automatically handled.
-- All Python versions are supported.
 - If the authentication cookie expires, a new one is automatically requested in line with any API call.
 
 Installation

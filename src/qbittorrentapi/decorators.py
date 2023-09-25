@@ -7,7 +7,7 @@ from qbittorrentapi.exceptions import HTTP403Error
 logger = getLogger(__name__)
 
 
-class alias(object):
+class alias:
     """
     Alias class that can be used as a decorator for making methods callable
     through other names (or "aliases").
@@ -141,9 +141,8 @@ def endpoint_introduced(version_introduced, endpoint):
             # if the endpoint doesn't exist, return None or log an error / raise an Exception
             if v(client.app_web_api_version()) < v(version_introduced):
                 error_message = (
-                    "ERROR: Endpoint '%s' is Not Implemented in this version of qBittorrent. "
-                    "This endpoint is available starting in Web API v%s."
-                    % (endpoint, version_introduced)
+                    f"ERROR: Endpoint '{endpoint}' is Not Implemented in this version of qBittorrent. "
+                    f"This endpoint is available starting in Web API v{version_introduced}."
                 )
                 check_for_raise(client=client, error_message=error_message)
                 return None
@@ -171,9 +170,8 @@ def version_removed(version_obsoleted, endpoint):
             # if the endpoint doesn't exist, return None or log an error / raise an Exception
             if v(client.app_web_api_version()) >= v(version_obsoleted):
                 error_message = (
-                    "ERROR: Endpoint '%s' is Not Implemented. "
-                    "This endpoint was removed in Web API v%s."
-                    % (endpoint, version_obsoleted)
+                    f"ERROR: Endpoint '{endpoint}' is Not Implemented. "
+                    f"This endpoint was removed in Web API v{version_obsoleted}."
                 )
                 check_for_raise(client=client, error_message=error_message)
                 return None

@@ -38,7 +38,7 @@ class RSS(ClientCache):
     """
 
     def __init__(self, client):
-        super(RSS, self).__init__(client=client)
+        super().__init__(client=client)
         self.items = RSS._Items(client=client)
 
     @alias("addFolder")
@@ -65,7 +65,9 @@ class RSS(ClientCache):
     def move_item(self, orig_item_path=None, new_item_path=None, **kwargs):
         """Implements :meth:`~RSSAPIMixIn.rss_move_item`"""
         return self._client.rss_move_item(
-            orig_item_path=orig_item_path, new_item_path=new_item_path, **kwargs
+            orig_item_path=orig_item_path,
+            new_item_path=new_item_path,
+            **kwargs,
         )
 
     @alias("refreshItem")
@@ -77,21 +79,27 @@ class RSS(ClientCache):
     def mark_as_read(self, item_path=None, article_id=None, **kwargs):
         """Implements :meth:`~RSSAPIMixIn.rss_mark_as_read`"""
         return self._client.rss_mark_as_read(
-            item_path=item_path, article_id=article_id, **kwargs
+            item_path=item_path,
+            article_id=article_id,
+            **kwargs,
         )
 
     @alias("setRule")
     def set_rule(self, rule_name=None, rule_def=None, **kwargs):
         """Implements :meth:`~RSSAPIMixIn.rss_set_rule`"""
         return self._client.rss_set_rule(
-            rule_name=rule_name, rule_def=rule_def, **kwargs
+            rule_name=rule_name,
+            rule_def=rule_def,
+            **kwargs,
         )
 
     @alias("renameRule")
     def rename_rule(self, orig_rule_name=None, new_rule_name=None, **kwargs):
         """Implements :meth:`~RSSAPIMixIn.rss_rename_rule`"""
         return self._client.rss_rename_rule(
-            orig_rule_name=orig_rule_name, new_rule_name=new_rule_name, **kwargs
+            orig_rule_name=orig_rule_name,
+            new_rule_name=new_rule_name,
+            **kwargs,
         )
 
     @alias("removeRule")
@@ -168,7 +176,7 @@ class RSSAPIMixIn(AppAPIMixIn):
 
         :raises Conflict409Error:
 
-        :param url: URL of RSS feed (e.g https://distrowatch.com/news/torrents.xml)
+        :param url: URL of RSS feed (e.g. https://distrowatch.com/news/torrents.xml)
         :param item_path: Name and/or path for new feed (e.g. ``Folder\\Subfolder\\FeedName``)
         :return: None
         """
@@ -184,7 +192,7 @@ class RSSAPIMixIn(AppAPIMixIn):
 
         :raises Conflict409Error:
 
-        :param url: URL of RSS feed (e.g https://distrowatch.com/news/torrents.xml)
+        :param url: URL of RSS feed (e.g. https://distrowatch.com/news/torrents.xml)
         :param item_path: Name and/or path for feed (e.g. ``Folder\\Subfolder\\FeedName``)
         :return: None
         """
@@ -211,7 +219,7 @@ class RSSAPIMixIn(AppAPIMixIn):
     @login_required
     def rss_move_item(self, orig_item_path=None, new_item_path=None, **kwargs):
         """
-        Move/rename an RSS item (folder, feed, etc).
+        Move/rename an RSS item (folder, feed, etc.).
 
         :raises Conflict409Error:
 
@@ -238,7 +246,7 @@ class RSSAPIMixIn(AppAPIMixIn):
             _method="items",
             params=params,
             response_class=RSSitemsDictionary,
-            **kwargs
+            **kwargs,
         )
 
     @endpoint_introduced("2.2", "rss/refreshItem")
@@ -325,7 +333,7 @@ class RSSAPIMixIn(AppAPIMixIn):
             _name=APINames.RSS,
             _method="rules",
             response_class=RSSRulesDictionary,
-            **kwargs
+            **kwargs,
         )
 
     @endpoint_introduced("2.5.1", "rss/matchingArticles")
@@ -344,5 +352,5 @@ class RSSAPIMixIn(AppAPIMixIn):
             _method="matchingArticles",
             data=data,
             response_class=RSSitemsDictionary,
-            **kwargs
+            **kwargs,
         )

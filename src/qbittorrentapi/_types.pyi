@@ -1,4 +1,3 @@
-from typing import IO
 from typing import Any
 from typing import Iterable
 from typing import Mapping
@@ -27,4 +26,4 @@ DictMutableInputT = MutableMapping[Text, JsonValueT]
 # Type for inputs to build a List
 ListInputT = Iterable[Mapping[Text, JsonValueT]]
 # Type for `files` in requests.get()/post()
-FilesToSendT = Mapping[Text, IO[bytes] | Tuple[Text, IO[bytes]]]
+FilesToSendT = Mapping[Text, bytes | Tuple[Text, bytes]]
