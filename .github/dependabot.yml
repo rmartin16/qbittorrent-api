@@ -1,12 +1,17 @@
-
 version: 2
+
 updates:
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "saturday"
       time: "08:00"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
 
   - package-ecosystem: "pip"
     directory: "/"
@@ -14,3 +19,7 @@ updates:
       interval: "weekly"
       day: "saturday"
       time: "08:00"
+    groups:
+      pip:
+        patterns:
+          - "*"
