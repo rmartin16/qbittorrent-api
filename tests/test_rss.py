@@ -6,14 +6,16 @@ from qbittorrentapi._version_support import v
 from qbittorrentapi.exceptions import APIError
 from qbittorrentapi.rss import RSSitemsDictionary
 from tests.utils import check
-from tests.utils import retry
 
 FOLDER_ONE = "testFolderOne"
 FOLDER_TWO = "testFolderTwo"
 
-ITEM_ONE = "YTS"
-ITEM_TWO = "YTSNew"
-URL = "https://yts.mx/rss/0/all/all/0/en"
+ITEM_ONE = "RSSOne"
+ITEM_TWO = "RSSTwo"
+RSS_URL = (
+    "https://gist.githubusercontent.com/rmartin16/"
+    "d615e1066f54186b44e8018d31af18f1/raw/b59cdc878fedfaf08efe6fc4321d18e8ded01e09/rss.xml"
+)
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -31,7 +33,7 @@ def rss_feed(client, api_version):
         done = False
         for i in range(5):
             delete_feed(ITEM_ONE)
-            client.rss.add_feed(url=URL, item_path=ITEM_ONE)
+            client.rss.add_feed(url=RSS_URL, item_path=ITEM_ONE)
             check(lambda: client.rss_items(), ITEM_ONE, reverse=True)
             # wait until feed is refreshed
             for j in range(20):
@@ -55,26 +57,15 @@ def rss_feed(client, api_version):
     ["rss_refresh_item", "rss_refreshItem", "rss.refresh_item", "rss.refreshItem"],
 )
 def test_rss_refresh_item(client, rss_feed, refresh_item_func):
-    @retry()
-    def run_test():
-        client.func(refresh_item_func)(item_path=rss_feed)
-        check(
-            lambda: client.rss_items(include_feed_data=True)[rss_feed]["lastBuildDate"],
-            "",
-            negate=True,
-        )
-        last_refresh = client.rss_items(include_feed_data=True)[rss_feed][
-            "lastBuildDate"
-        ]
-        sleep(1)
-        client.func(refresh_item_func)(item_path=rss_feed)
-        check(
-            lambda: client.rss_items(include_feed_data=True)[rss_feed]["lastBuildDate"],
-            last_refresh,
-            negate=True,
-        )
+    last_log_id = client.log.main()[-1].id
 
-    run_test()
+    client.func(refresh_item_func)(item_path=rss_feed)
+
+    check(
+        lambda: [e.message for e in client.log.main(last_known_id=last_log_id)],
+        "RSS feed at '%s' updated. Added 0 new articles." % RSS_URL,
+        reverse=True,
+    )
 
 
 # inconsistent behavior with endpoint for API version 2.2
@@ -275,7 +266,7 @@ def test_rss_rules(
 
     rule_name = ITEM_ONE + "Rule"
     rule_name_new = rule_name + "New"
-    rule_def = {"enabled": True, "affectedFeeds": URL, "addPaused": True}
+    rule_def = {"enabled": True, "affectedFeeds": RSS_URL, "addPaused": True}
     try:
         client.func(set_rule_func)(rule_name=rule_name, rule_def=rule_def)
         check_for_rule(rule_name)
