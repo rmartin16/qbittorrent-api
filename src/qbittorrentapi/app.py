@@ -1,8 +1,6 @@
 from json import dumps
 from logging import getLogger
 
-import six
-
 from qbittorrentapi.auth import AuthAPIMixIn
 from qbittorrentapi.decorators import alias
 from qbittorrentapi.decorators import aliased
@@ -29,9 +27,7 @@ class NetworkInterfaceList(List):
     """Response for :meth:`~AppAPIMixIn.app_network_interface_list`"""
 
     def __init__(self, list_entries, client=None):
-        super(NetworkInterfaceList, self).__init__(
-            list_entries, entry_class=NetworkInterface, client=client
-        )
+        super().__init__(list_entries, entry_class=NetworkInterface, client=client)
 
 
 class NetworkInterface(ListEntry):
@@ -42,7 +38,7 @@ class NetworkInterfaceAddressList(List):
     """Response for :meth:`~AppAPIMixIn.app_network_interface_address_list`"""
 
     def __init__(self, list_entries, client=None):
-        super(NetworkInterfaceAddressList, self).__init__(list_entries)
+        super().__init__(list_entries)
 
 
 @aliased
@@ -126,7 +122,8 @@ class Application(ClientCache):
     def network_interface_address_list(self, interface_name="", **kwargs):
         """Implements :meth:`~AppAPIMixIn.app_network_interface_list`"""
         return self._client.app_network_interface_address_list(
-            interface_name=interface_name, **kwargs
+            interface_name=interface_name,
+            **kwargs,
         )
 
 
@@ -164,10 +161,7 @@ class AppAPIMixIn(AuthAPIMixIn):
         :return: string
         """
         return self._get(
-            _name=APINames.Application,
-            _method="version",
-            response_class=six.text_type,
-            **kwargs
+            _name=APINames.Application, _method="version", response_class=str, **kwargs
         )
 
     @alias("app_webapiVersion")
@@ -181,8 +175,8 @@ class AppAPIMixIn(AuthAPIMixIn):
         return self._MOCK_WEB_API_VERSION or self._get(
             _name=APINames.Application,
             _method="webapiVersion",
-            response_class=six.text_type,
-            **kwargs
+            response_class=str,
+            **kwargs,
         )
 
     @alias("app_buildInfo")
@@ -198,7 +192,7 @@ class AppAPIMixIn(AuthAPIMixIn):
             _name=APINames.Application,
             _method="buildInfo",
             response_class=BuildInfoDictionary,
-            **kwargs
+            **kwargs,
         )
 
     @login_required
@@ -217,7 +211,7 @@ class AppAPIMixIn(AuthAPIMixIn):
             _name=APINames.Application,
             _method="preferences",
             response_class=ApplicationPreferencesDictionary,
-            **kwargs
+            **kwargs,
         )
 
     @alias("app_setPreferences")
@@ -231,7 +225,10 @@ class AppAPIMixIn(AuthAPIMixIn):
         """
         data = {"json": dumps(prefs, separators=(",", ":"))}
         self._post(
-            _name=APINames.Application, _method="setPreferences", data=data, **kwargs
+            _name=APINames.Application,
+            _method="setPreferences",
+            data=data,
+            **kwargs,
         )
 
     @alias("app_defaultSavePath")
@@ -245,8 +242,8 @@ class AppAPIMixIn(AuthAPIMixIn):
         return self._get(
             _name=APINames.Application,
             _method="defaultSavePath",
-            response_class=six.text_type,
-            **kwargs
+            response_class=str,
+            **kwargs,
         )
 
     @alias("app_networkInterfaceList")
@@ -262,7 +259,7 @@ class AppAPIMixIn(AuthAPIMixIn):
             _name=APINames.Application,
             _method="networkInterfaceList",
             response_class=NetworkInterfaceList,
-            **kwargs
+            **kwargs,
         )
 
     @alias("app_networkInterfaceAddressList")
@@ -281,5 +278,5 @@ class AppAPIMixIn(AuthAPIMixIn):
             _method="networkInterfaceAddressList",
             data=data,
             response_class=NetworkInterfaceAddressList,
-            **kwargs
+            **kwargs,
         )

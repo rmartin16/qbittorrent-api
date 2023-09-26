@@ -97,7 +97,10 @@ class AuthAPIMixIn(Request):
         self._initialize_context()
         creds = {"username": self.username, "password": self._password}
         auth_response = self._post(
-            _name=APINames.Authorization, _method="login", data=creds, **kwargs
+            _name=APINames.Authorization,
+            _method="login",
+            data=creds,
+            **kwargs,
         )
 
         if auth_response.text != "Ok.":
@@ -114,8 +117,8 @@ class AuthAPIMixIn(Request):
                 and Version.is_app_version_supported(app_version)
             ):
                 raise UnsupportedQbittorrentVersion(
-                    "This version of qBittorrent is not fully supported => App Version: %s API Version: %s"
-                    % (app_version, api_version)
+                    "This version of qBittorrent is not fully supported => "
+                    f"App Version: {app_version} API Version: {api_version}"
                 )
 
     @property

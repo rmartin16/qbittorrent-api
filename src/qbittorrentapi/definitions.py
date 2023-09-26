@@ -1,11 +1,6 @@
+from collections import UserList
+from collections.abc import Mapping
 from enum import Enum
-
-try:
-    from collections import UserList
-    from collections.abc import Mapping
-except ImportError:  # pragma: no cover
-    from collections import Mapping
-    from UserList import UserList
 
 from qbittorrentapi._attrdict import AttrDict
 
@@ -166,7 +161,7 @@ class TrackerStatus(int, Enum):
         }[self]
 
 
-class ClientCache(object):
+class ClientCache:
     """
     Caches the client.
 
@@ -175,14 +170,14 @@ class ClientCache(object):
 
     def __init__(self, *args, **kwargs):
         self._client = kwargs.pop("client")
-        super(ClientCache, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class Dictionary(ClientCache, AttrDict):
     """Base definition of dictionary-like objects returned from qBittorrent."""
 
     def __init__(self, data=None, client=None):
-        super(Dictionary, self).__init__(self._normalize(data or {}), client=client)
+        super().__init__(self._normalize(data or {}), client=client)
         # allows updating properties that aren't necessarily a part of the AttrDict
         self._setattr("_allow_invalid_attributes", True)
 
@@ -199,7 +194,7 @@ class List(UserList):
 
     def __init__(self, list_entries=None, entry_class=None, client=None):
         is_safe_cast = None not in {client, entry_class}
-        super(List, self).__init__(
+        super().__init__(
             [
                 entry_class(data=entry, client=client)
                 if is_safe_cast and isinstance(entry, dict)

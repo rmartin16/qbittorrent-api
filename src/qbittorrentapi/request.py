@@ -1,20 +1,14 @@
+from collections.abc import Iterable
+from contextlib import suppress
 from copy import deepcopy
 from json import loads
 from logging import NullHandler
 from logging import getLogger
 from os import environ
 from time import sleep
+from urllib.parse import urljoin
+from urllib.parse import urlparse
 
-try:  # python 3
-    from collections.abc import Iterable
-    from urllib.parse import urljoin
-    from urllib.parse import urlparse
-except ImportError:  # python 2  # pragma: no cover
-    from collections import Iterable
-    from urlparse import urljoin
-    from urlparse import urlparse
-
-import six
 from requests import Session
 from requests import exceptions as requests_exceptions
 from requests.adapters import HTTPAdapter
@@ -43,7 +37,7 @@ logger = getLogger(__name__)
 getLogger("qbittorrentapi").addHandler(NullHandler())
 
 
-class URL(object):
+class URL:
     """Management for the qBittorrent Web API URL."""
 
     def __init__(self, client):
@@ -133,7 +127,12 @@ class URL(object):
         return base_url_str
 
     def detect_scheme(
-        self, base_url, default_scheme, alt_scheme, headers, requests_kwargs
+        self,
+        base_url,
+        default_scheme,
+        alt_scheme,
+        headers,
+        requests_kwargs,
     ):
         """
         Determine if the URL endpoint is using HTTP or HTTPS.
@@ -179,17 +178,16 @@ class URL(object):
                  (e.g. ``http://localhost:8080/api/v2/torrents/info``
                  or ``http://example.com/qbt/api/v2/torrents/info``)
         """
-        try:
+        with suppress(AttributeError):
             api_namespace = api_namespace.value
-        except AttributeError:
-            pass
+
         return "/".join(
             str(path_part or "").strip("/")
             for path_part in [self.client._API_BASE_PATH, api_namespace, api_method]
         )
 
 
-class Request(object):
+class Request:
     """Facilitates HTTP requests to qBittorrent's Web API."""
 
     def __init__(self, host="", port=None, username=None, password=None, **kwargs):
@@ -275,14 +273,15 @@ class Request(object):
             RAISE_ERROR_FOR_UNSUPPORTED_QBITTORRENT_VERSIONS
         )
         if bool(DISABLE_LOGGING_DEBUG_OUTPUT):
-            for logger_ in ("qbittorrentapi", "requests", "urllib3"):
+            for logger_ in ["qbittorrentapi", "requests", "urllib3"]:
                 if getLogger(logger_).level < 20:
                     getLogger(logger_).setLevel("INFO")
 
         # Environment variables have the lowest priority
         if not self.host:
             env_host = environ.get(
-                "QBITTORRENTAPI_HOST", environ.get("PYTHON_QBITTORRENTAPI_HOST")
+                "QBITTORRENTAPI_HOST",
+                environ.get("PYTHON_QBITTORRENTAPI_HOST"),
             )
             if env_host is not None:
                 logger.debug(
@@ -291,14 +290,16 @@ class Request(object):
                 self.host = env_host
         if not self.username:
             env_username = environ.get(
-                "QBITTORRENTAPI_USERNAME", environ.get("PYTHON_QBITTORRENTAPI_USERNAME")
+                "QBITTORRENTAPI_USERNAME",
+                environ.get("PYTHON_QBITTORRENTAPI_USERNAME"),
             )
             if env_username is not None:
                 logger.debug("Using QBITTORRENTAPI_USERNAME env variable for username")
                 self.username = env_username
         if not self._password:
             env_password = environ.get(
-                "QBITTORRENTAPI_PASSWORD", environ.get("PYTHON_QBITTORRENTAPI_PASSWORD")
+                "QBITTORRENTAPI_PASSWORD",
+                environ.get("PYTHON_QBITTORRENTAPI_PASSWORD"),
             )
             if env_password is not None:
                 logger.debug("Using QBITTORRENTAPI_PASSWORD env variable for password")
@@ -323,9 +324,7 @@ class Request(object):
         :param delimiter: delimiter for concatenation
         :return: if input is a list, concatenated string...else whatever the input was
         """
-        is_string = isinstance(input_list, six.string_types)
-        is_iterable = isinstance(input_list, Iterable)
-        if is_iterable and not is_string:
+        if isinstance(input_list, Iterable) and not isinstance(input_list, str):
             return delimiter.join(map(str, input_list))
         return input_list
 
@@ -340,7 +339,7 @@ class Request(object):
         data=None,
         files=None,
         response_class=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Send ``GET`` request.
@@ -362,7 +361,7 @@ class Request(object):
             data=data,
             files=files,
             response_class=response_class,
-            **kwargs
+            **kwargs,
         )
 
     def _post(
@@ -376,7 +375,7 @@ class Request(object):
         data=None,
         files=None,
         response_class=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Send ``POST`` request.
@@ -398,7 +397,7 @@ class Request(object):
             data=data,
             files=files,
             response_class=response_class,
-            **kwargs
+            **kwargs,
         )
 
     def _request_manager(
@@ -415,7 +414,7 @@ class Request(object):
         data=None,
         files=None,
         response_class=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Wrapper to manage request retries and severe exceptions.
@@ -434,15 +433,14 @@ class Request(object):
                 "certificate verification consequently exposing the HTTPS connection to man-in-the-middle "
                 "attacks), set VERIFY_WEBUI_CERTIFICATE=False when instantiating Client or set "
                 "environment variable PYTHON_QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE "
-                "to a non-null value. SSL Error: %s" % repr(exc),
-                requests_exceptions.HTTPError: "Invalid HTTP Response: %s" % repr(exc),
-                requests_exceptions.TooManyRedirects: "Too many redirects: %s"
-                % repr(exc),
-                requests_exceptions.ConnectionError: "Connection Error: %s" % repr(exc),
-                requests_exceptions.Timeout: "Timeout Error: %s" % repr(exc),
-                requests_exceptions.RequestException: "Requests Error: %s" % repr(exc),
+                f"to a non-null value. SSL Error: {repr(exc)}",
+                requests_exceptions.HTTPError: f"Invalid HTTP Response: {repr(exc)}",
+                requests_exceptions.TooManyRedirects: f"Too many redirects: {repr(exc)}",
+                requests_exceptions.ConnectionError: f"Connection Error: {repr(exc)}",
+                requests_exceptions.Timeout: f"Timeout Error: {repr(exc)}",
+                requests_exceptions.RequestException: f"Requests Error: {repr(exc)}",
             }
-            err_msg = error_messages.get(type(exc), "Unknown Error: %s" % repr(exc))
+            err_msg = error_messages.get(type(exc), f"Unknown Error: {repr(exc)}")
             err_msg = error_prologue + err_msg
             logger.debug(err_msg)
             return err_msg
@@ -473,7 +471,7 @@ class Request(object):
                     data=data,
                     files=files,
                     response_class=response_class,
-                    **kwargs
+                    **kwargs,
                 )
             except HTTPError as exc:
                 # retry the request for HTTP 500 statuses;
@@ -503,7 +501,7 @@ class Request(object):
         data=None,
         files=None,
         response_class=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Meat and potatoes of sending requests to qBittorrent.
@@ -535,7 +533,7 @@ class Request(object):
             data=data,
             files=files,
             headers=headers,
-            **requests_kwargs
+            **requests_kwargs,
         )
 
         self._verbose_logging(http_method, url, data, params, requests_kwargs, response)
@@ -552,7 +550,8 @@ class Request(object):
         """
         response_kwargs = {
             "SIMPLE_RESPONSES": kwargs.pop(
-                "SIMPLE_RESPONSES", kwargs.pop("SIMPLE_RESPONSE", None)
+                "SIMPLE_RESPONSES",
+                kwargs.pop("SIMPLE_RESPONSE", None),
             )
         }
         return response_kwargs, kwargs
@@ -624,11 +623,8 @@ class Request(object):
         try:
             if response_class is None:
                 return response
-            if response_class is six.text_type:
-                # convert back to bytes for python 2 since it's always worked that way...
-                return str(response.text)
-            if response_class is int:
-                return int(response.text)
+            if response_class in (str, int):
+                return response_class(response.text)
             if response_class is bytes:
                 return response.content
             if issubclass(response_class, (Dictionary, List)):
@@ -643,10 +639,10 @@ class Request(object):
                     return response_class(result, client=self)
         except Exception as exc:
             logger.debug("Exception during response parsing.", exc_info=True)
-            raise APIError("Exception during response parsing. Error: %r" % exc)
+            raise APIError(f"Exception during response parsing. Error: {exc!r}")
         else:
             logger.debug("No handler defined to cast response.", exc_info=True)
-            raise APIError("No handler defined to cast response to %r" % response_class)
+            raise APIError(f"No handler defined to cast response to {response_class}")
 
     @property
     def _session(self):
@@ -675,7 +671,7 @@ class Request(object):
                 if method.lower() == "post" and not is_data:
                     kwargs.setdefault("headers", {}).update({"Content-Length": "0"})
 
-                return super(QbittorrentSession, self).request(method, url, **kwargs)
+                return super().request(method, url, **kwargs)
 
         if self._http_session:
             return self._http_session
@@ -730,10 +726,8 @@ class Request(object):
 
         During the next request, a new session will be created.
         """
-        try:
+        with suppress(Exception):
             self._http_session.close()
-        except Exception:  # noqa: S110
-            pass
         self._http_session = None
 
     @staticmethod
@@ -830,7 +824,9 @@ class Request(object):
                 )
 
             resp_logger(
-                "Response status: %s (%s)", response.status_code, response.reason
+                "Response status: %s (%s)",
+                response.status_code,
+                response.reason,
             )
             if response.text:
                 text_len = (

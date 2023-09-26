@@ -23,7 +23,7 @@ class SearchJobDictionary(JsonDictionaryT):
         self,
         limit: Optional[Text | int] = None,
         offset: Optional[Text | int] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> SearchResultsDictionary: ...
     def delete(self, **kwargs: KwargsT) -> None: ...
 
@@ -61,7 +61,7 @@ class Search(ClientCache):
         pattern: Optional[Text] = None,
         plugins: Optional[Iterable[Text]] = None,
         category: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> SearchJobDictionary: ...
     def stop(
         self,
@@ -78,7 +78,7 @@ class Search(ClientCache):
         search_id: Optional[Text | int] = None,
         limit: Optional[Text | int] = None,
         offset: Optional[Text | int] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> SearchResultsDictionary: ...
     def delete(
         self,
@@ -108,7 +108,7 @@ class Search(ClientCache):
         self,
         plugins: Optional[Iterable[Text]] = None,
         enable: Optional[bool] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     enablePlugin = enable_plugin
     def update_plugins(self, **kwargs: KwargsT) -> None: ...
@@ -122,7 +122,7 @@ class SearchAPIMixIn(AppAPIMixIn):
         pattern: Optional[Text] = None,
         plugins: Optional[Iterable[Text]] = None,
         category: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> SearchJobDictionary: ...
     def search_stop(
         self,
@@ -139,7 +139,7 @@ class SearchAPIMixIn(AppAPIMixIn):
         search_id: Optional[Text | int] = None,
         limit: Optional[Text | int] = None,
         offset: Optional[Text | int] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> SearchResultsDictionary: ...
     def search_delete(
         self,
@@ -168,7 +168,7 @@ class SearchAPIMixIn(AppAPIMixIn):
         self,
         plugins: Optional[Iterable[Text]] = None,
         enable: Optional[bool] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     search_enablePlugin = search_enable_plugin
     def search_update_plugins(self, **kwargs: KwargsT) -> None: ...

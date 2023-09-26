@@ -1,5 +1,3 @@
-from sys import version_info
-
 import pytest
 
 from qbittorrentapi import Version
@@ -28,9 +26,7 @@ def test_is_supported(app_version, api_version):
 
 @pytest.mark.skipif(IS_QBT_DEV, reason="testing devel version of qBittorrent")
 def test_latest_version():
-    # order of dictionary keys was guaranteed starting in python 3.7
-    if version_info >= (3, 7):
-        expected_latest_api_version = list(api_version_map.values())[-1]
-        expected_latest_app_version = list(api_version_map.keys())[-1]
-        assert Version.latest_supported_api_version() == expected_latest_api_version
-        assert Version.latest_supported_app_version() == expected_latest_app_version
+    expected_latest_api_version = list(api_version_map.values())[-1]
+    expected_latest_app_version = list(api_version_map.keys())[-1]
+    assert Version.latest_supported_api_version() == expected_latest_api_version
+    assert Version.latest_supported_app_version() == expected_latest_app_version

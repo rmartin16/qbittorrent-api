@@ -42,5 +42,5 @@ class Client(
         VERBOSE_RESPONSE_LOGGING: Optional[bool] = False,
         SIMPLE_RESPONSES: Optional[bool] = False,
         DISABLE_LOGGING_DEBUG_OUTPUT: Optional[bool] = False,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...

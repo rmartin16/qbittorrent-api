@@ -3,7 +3,6 @@ from os import path
 from time import sleep
 
 import pytest
-import six
 
 from qbittorrentapi import APIConnectionError
 from qbittorrentapi import Client
@@ -122,7 +121,7 @@ def check(check_func, value, reverse=False, negate=False, any=False, check_time=
                 # print("Looking for %s in %s" % (_check_func_val, (_v,)))
                 assert _check_func_val in (_v,)
 
-    if isinstance(value, (six.string_types, int)):
+    if isinstance(value, (str, int)):
         value = (value,)
 
     check_limit = int((check_time or CHECK_TIME) / CHECK_SLEEP)

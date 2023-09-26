@@ -17,7 +17,7 @@ class Authorization(ClientCache):
         self,
         username: Optional[Text] = None,
         password: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     def log_out(self, **kwargs: KwargsT) -> None: ...
 
@@ -32,7 +32,7 @@ class AuthAPIMixIn(Request):
         self,
         username: Optional[Text] = None,
         password: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     @property
     def _SID(self) -> Optional[Text]: ...

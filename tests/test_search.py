@@ -1,5 +1,3 @@
-import sys
-
 import pytest
 
 from qbittorrentapi import NotFound404Error
@@ -83,10 +81,7 @@ def test_enable_plugin(client, search_func, enable_func):
 
 @pytest.mark.skipif_before_api_version("2.1.1")
 def test_plugins_slice(client):
-    if sys.version_info < (3,) or sys.version_info >= (3, 7):
-        assert isinstance(client.search_plugins()[1:2], SearchPluginsList)
-    else:
-        assert isinstance(client.search_plugins()[1:2], list)
+    assert isinstance(client.search_plugins()[1:2], SearchPluginsList)
 
 
 @pytest.mark.skipif_after_api_version("2.1.1")
@@ -150,8 +145,7 @@ def test_install_uninstall_plugin_not_implemented(client, install_func, uninstal
 @pytest.mark.parametrize("categories_func", ["search_categories", "search.categories"])
 def test_categories(client, categories_func):
     assert isinstance(client.func(categories_func)(), SearchCategoriesList)
-    if sys.version_info < (3,) or sys.version_info >= (3, 7):
-        assert isinstance(client.func(categories_func)()[1:2], SearchCategoriesList)
+    assert isinstance(client.func(categories_func)()[1:2], SearchCategoriesList)
     check(lambda: client.func(categories_func)(), "All categories", reverse=True)
 
 
@@ -206,10 +200,7 @@ def test_search(client, start_func, status_func, results_func, stop_func, delete
 @pytest.mark.skipif_before_api_version("2.1.1")
 @pytest.mark.parametrize("status_func", ["search_status", "search.status"])
 def test_statuses_slice(client, status_func):
-    if sys.version_info < (3,) or sys.version_info >= (3, 7):
-        assert isinstance(client.func(status_func)()[1:2], SearchStatusesList)
-    else:
-        assert isinstance(client.func(status_func)()[1:2], list)
+    assert isinstance(client.func(status_func)()[1:2], SearchStatusesList)
 
 
 @pytest.mark.skipif_after_api_version("2.1.1")

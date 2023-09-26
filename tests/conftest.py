@@ -1,11 +1,13 @@
 import glob
 import os
 from contextlib import contextmanager
+from contextlib import suppress
 from functools import partial
 from os import environ
 from os import path
 from sys import path as sys_path
 from time import sleep
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -23,11 +25,6 @@ from tests.utils import get_torrent
 from tests.utils import mkpath
 from tests.utils import retry
 from tests.utils import setup_environ
-
-try:
-    from unittest.mock import MagicMock
-except ImportError:  # python 2
-    from mock import MagicMock
 
 
 class staticmethod:
@@ -83,7 +80,7 @@ def skip_if_not_implemented(request, api_version):
     if request.node.get_closest_marker("skipif_before_api_version"):
         version = request.node.get_closest_marker("skipif_before_api_version").args[0]
         if v(api_version) < v(version):
-            pytest.skip("testing %s; needs %s or later" % (v(api_version), version))
+            pytest.skip(f"testing {v(api_version)}; needs {version} or later")
 
 
 @pytest.fixture(autouse=True)
@@ -92,7 +89,7 @@ def skip_if_implemented(request, api_version):
     if request.node.get_closest_marker("skipif_after_api_version"):
         version = request.node.get_closest_marker("skipif_after_api_version").args[0]
         if v(api_version) >= v(version):
-            pytest.skip("testing %s; needs before %s" % (v(api_version), version))
+            pytest.skip(f"testing {v(api_version)}; needs before {version}")
 
 
 @pytest.fixture(scope="session")
@@ -216,24 +213,18 @@ def api_version(client):
 
 def pytest_sessionfinish(session, exitstatus):
     for fh in [TORRENT1_FILE_HANDLE, ROOT_FOLDER_TORRENT_FILE_HANDLE]:
-        try:
+        with suppress(Exception):
             fh.close()
-        except Exception:
-            pass
     if environ.get("CI") != "true":
         client = Client()
-        try:
+        with suppress(Exception):
             # remove all torrents
             for torrent in client.torrents_info():
                 torrent.delete(delete_files=True)
-        except Exception:
-            pass
         # delete coverage files if not in CI
         for file in glob.iglob(path.join(BASE_PATH, ".coverage*")):
             os.unlink(file)
         # delete downloaded files if not in CI
         for filename in [TORRENT1_FILENAME, TORRENT2_FILENAME]:
-            try:
+            with suppress(Exception):
                 os.unlink(mkpath("~", filename))
-            except Exception:
-                pass

@@ -1,5 +1,3 @@
-import six
-
 from qbittorrentapi._version_support import v
 from qbittorrentapi.app import AppAPIMixIn
 from qbittorrentapi.decorators import alias
@@ -60,7 +58,8 @@ class Transfer(ClientCache):
     def set_speed_limits_mode(self, intended_state=None, **kwargs):
         """Implements :meth:`~TransferAPIMixIn.transfer_set_speed_limits_mode`"""
         return self._client.transfer_set_speed_limits_mode(
-            intended_state=intended_state, **kwargs
+            intended_state=intended_state,
+            **kwargs,
         )
 
     @property
@@ -148,7 +147,7 @@ class TransferAPIMixIn(AppAPIMixIn):
             _name=APINames.Transfer,
             _method="info",
             response_class=TransferInfoDictionary,
-            **kwargs
+            **kwargs,
         )
 
     @alias("transfer_speedLimitsMode")
@@ -162,8 +161,8 @@ class TransferAPIMixIn(AppAPIMixIn):
         return self._get(
             _name=APINames.Transfer,
             _method="speedLimitsMode",
-            response_class=six.text_type,
-            **kwargs
+            response_class=str,
+            **kwargs,
         )
 
     @alias(
@@ -182,13 +181,17 @@ class TransferAPIMixIn(AppAPIMixIn):
         """
         if intended_state is None:
             self._post(
-                _name=APINames.Transfer, _method="toggleSpeedLimitsMode", **kwargs
+                _name=APINames.Transfer,
+                _method="toggleSpeedLimitsMode",
+                **kwargs,
             )
         elif v(self.app_web_api_version()) < v("2.8.14") and (
             (self.transfer.speed_limits_mode == "1") is not bool(intended_state)
         ):
             self._post(
-                _name=APINames.Transfer, _method="toggleSpeedLimitsMode", **kwargs
+                _name=APINames.Transfer,
+                _method="toggleSpeedLimitsMode",
+                **kwargs,
             )
         else:
             data = {"mode": 1 if intended_state else 0}
@@ -196,7 +199,7 @@ class TransferAPIMixIn(AppAPIMixIn):
                 _name=APINames.Transfer,
                 _method="setSpeedLimitsMode",
                 data=data,
-                **kwargs
+                **kwargs,
             )
 
     @alias("transfer_downloadLimit")
@@ -211,7 +214,7 @@ class TransferAPIMixIn(AppAPIMixIn):
             _name=APINames.Transfer,
             _method="downloadLimit",
             response_class=int,
-            **kwargs
+            **kwargs,
         )
 
     @alias("transfer_uploadLimit")
@@ -223,7 +226,10 @@ class TransferAPIMixIn(AppAPIMixIn):
         :return: integer
         """
         return self._get(
-            _name=APINames.Transfer, _method="uploadLimit", response_class=int, **kwargs
+            _name=APINames.Transfer,
+            _method="uploadLimit",
+            response_class=int,
+            **kwargs,
         )
 
     @alias("transfer_setDownloadLimit")
@@ -237,7 +243,10 @@ class TransferAPIMixIn(AppAPIMixIn):
         """
         data = {"limit": limit}
         self._post(
-            _name=APINames.Transfer, _method="setDownloadLimit", data=data, **kwargs
+            _name=APINames.Transfer,
+            _method="setDownloadLimit",
+            data=data,
+            **kwargs,
         )
 
     @alias("transfer_setUploadLimit")
@@ -251,7 +260,10 @@ class TransferAPIMixIn(AppAPIMixIn):
         """
         data = {"limit": limit}
         self._post(
-            _name=APINames.Transfer, _method="setUploadLimit", data=data, **kwargs
+            _name=APINames.Transfer,
+            _method="setUploadLimit",
+            data=data,
+            **kwargs,
         )
 
     @alias("transfer_banPeers")

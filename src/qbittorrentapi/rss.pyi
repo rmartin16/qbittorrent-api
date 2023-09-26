@@ -24,14 +24,14 @@ class RSS(ClientCache):
         self,
         url: Optional[Text] = None,
         item_path: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     addFeed = add_feed
     def set_feed_url(
         self,
         url: Optional[Text] = None,
         item_path: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     setFeedURL = set_feed_url
     def remove_item(
@@ -44,7 +44,7 @@ class RSS(ClientCache):
         self,
         orig_item_path: Optional[Text] = None,
         new_item_path: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     moveItem = move_item
     def refresh_item(self, item_path: Optional[Text] = None) -> None: ...
@@ -53,21 +53,21 @@ class RSS(ClientCache):
         self,
         item_path: Optional[Text] = None,
         article_id: Optional[Text | int] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     markAsRead = mark_as_read
     def set_rule(
         self,
         rule_name: Optional[Text] = None,
         rule_def: Optional[Mapping[Text, JsonValueT]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     setRule = set_rule
     def rename_rule(
         self,
         orig_rule_name: Optional[Text] = None,
         new_rule_name: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     renameRule = rename_rule
     def remove_rule(
@@ -109,14 +109,14 @@ class RSSAPIMixIn(AppAPIMixIn):
         self,
         url: Optional[Text] = None,
         item_path: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     rss_addFeed = rss_add_feed
     def rss_set_feed_url(
         self,
         url: Optional[Text] = None,
         item_path: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     rss_setFeedURL = rss_set_feed_url
     def rss_remove_item(
@@ -129,7 +129,7 @@ class RSSAPIMixIn(AppAPIMixIn):
         self,
         orig_item_path: Optional[Text] = None,
         new_item_path: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     rss_moveItem = rss_move_item
     def rss_items(
@@ -147,21 +147,21 @@ class RSSAPIMixIn(AppAPIMixIn):
         self,
         item_path: Optional[Text] = None,
         article_id: Optional[Text | int] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     rss_markAsRead = rss_mark_as_read
     def rss_set_rule(
         self,
         rule_name: Optional[Text] = None,
         rule_def: Optional[Mapping[Text, JsonValueT]] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     rss_setRule = rss_set_rule
     def rss_rename_rule(
         self,
         orig_rule_name: Optional[Text] = None,
         new_rule_name: Optional[Text] = None,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> None: ...
     rss_renameRule = rss_rename_rule
     def rss_remove_rule(

@@ -37,7 +37,7 @@ class Sync(ClientCache):
             self,
             torrent_hash: Optional[Text] = None,
             rid: Optional[Text | int] = None,
-            **kwargs: KwargsT
+            **kwargs: KwargsT,
         ) -> SyncTorrentPeersDictionary: ...
         def delta(
             self,
@@ -58,6 +58,6 @@ class SyncAPIMixIn(AppAPIMixIn):
         self,
         torrent_hash: Optional[Text] = None,
         rid: Text | int = 0,
-        **kwargs: KwargsT
+        **kwargs: KwargsT,
     ) -> SyncTorrentPeersDictionary: ...
     sync_torrentPeers = sync_torrent_peers
