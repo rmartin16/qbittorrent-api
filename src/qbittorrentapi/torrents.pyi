@@ -253,6 +253,7 @@ class WebSeedsList(List[WebSeed]):
 class Tracker(TypedDict):
     url: str
     msg: str
+    num_downloaded: int
 
 class TrackersList(List[Tracker]):
     def __init__(
