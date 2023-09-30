@@ -7,8 +7,8 @@ from typing import Literal
 from typing import Mapping
 from typing import Optional
 from typing import Text
-from typing import TypeVar
 from typing import TypedDict
+from typing import TypeVar
 
 from qbittorrentapi._types import DictMutableInputT
 from qbittorrentapi._types import FilesToSendT
