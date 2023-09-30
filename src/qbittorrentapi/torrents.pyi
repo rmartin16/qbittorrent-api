@@ -8,6 +8,7 @@ from typing import Mapping
 from typing import Optional
 from typing import Text
 from typing import TypeVar
+from typing import TypedDict
 
 from qbittorrentapi._types import DictMutableInputT
 from qbittorrentapi._types import FilesToSendT
@@ -249,7 +250,9 @@ class WebSeedsList(List[WebSeed]):
         client: Optional[TorrentsAPIMixIn] = None,
     ) -> None: ...
 
-class Tracker(ListEntry): ...
+class Tracker(TypedDict):
+    url: str
+    msg: str
 
 class TrackersList(List[Tracker]):
     def __init__(
