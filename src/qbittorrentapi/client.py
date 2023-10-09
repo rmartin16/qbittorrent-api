@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import Any
+from typing import Mapping
+
 from qbittorrentapi.log import LogAPIMixIn
 from qbittorrentapi.rss import RSSAPIMixIn
 from qbittorrentapi.search import SearchAPIMixIn
@@ -73,7 +78,7 @@ class Client(
         to convert a large payload. Set this to True to return the simple JSON
         back. Alternatively, set this to True only for an individual method call.
         For instance, when requesting the files for a torrent:
-        ``client.torrents_files(hash='...', SIMPLE_RESPONSES=True)``
+        ``client.torrents_files(torrent_hash='...', SIMPLE_RESPONSES=True)``
     :param VERIFY_WEBUI_CERTIFICATE: Set to False to skip verify certificate for
         HTTPS connections; for instance, if the connection is using a self-signed
         certificate. Not setting this to False for self-signed certs will cause a
@@ -95,24 +100,23 @@ class Client(
         qBittorrent is not fully supported by this client. Defaults ``False``.
     :param DISABLE_LOGGING_DEBUG_OUTPUT: Turn off debug output from logging for
         this package as well as Requests & urllib3.
-    """  # noqa: E501
+    """
 
     def __init__(
         self,
-        host="",
-        port=None,
-        username=None,
-        password=None,
-        EXTRA_HEADERS=None,
-        REQUESTS_ARGS=None,
-        VERIFY_WEBUI_CERTIFICATE=True,
-        FORCE_SCHEME_FROM_HOST=False,
-        RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=False,
-        RAISE_ERROR_FOR_UNSUPPORTED_QBITTORRENT_VERSIONS=False,
-        VERBOSE_RESPONSE_LOGGING=False,
-        SIMPLE_RESPONSES=False,
-        DISABLE_LOGGING_DEBUG_OUTPUT=False,
-        **kwargs,
+        host: str = "",
+        port: str | int | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        EXTRA_HEADERS: Mapping[str, str] | None = None,
+        REQUESTS_ARGS: Mapping[str, Any] | None = None,
+        VERIFY_WEBUI_CERTIFICATE: bool = True,
+        FORCE_SCHEME_FROM_HOST: bool = False,
+        RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS: bool = False,
+        RAISE_ERROR_FOR_UNSUPPORTED_QBITTORRENT_VERSIONS: bool = False,
+        VERBOSE_RESPONSE_LOGGING: bool = False,
+        SIMPLE_RESPONSES: bool = False,
+        DISABLE_LOGGING_DEBUG_OUTPUT: bool = False,
     ):
         super().__init__(
             host=host,
@@ -128,5 +132,4 @@ class Client(
             VERBOSE_RESPONSE_LOGGING=VERBOSE_RESPONSE_LOGGING,
             SIMPLE_RESPONSES=SIMPLE_RESPONSES,
             DISABLE_LOGGING_DEBUG_OUTPUT=DISABLE_LOGGING_DEBUG_OUTPUT,
-            **kwargs,
         )

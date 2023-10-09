@@ -6,6 +6,7 @@ import pytest
 
 from qbittorrentapi import APIConnectionError
 from qbittorrentapi import Client
+from qbittorrentapi import TorrentDictionary
 from qbittorrentapi._version_support import (
     APP_VERSION_2_API_VERSION_MAP as api_version_map,
 )
@@ -72,7 +73,7 @@ def retry(retries=3):
     return inner
 
 
-def get_torrent(client, torrent_hash):
+def get_torrent(client, torrent_hash) -> TorrentDictionary:
     """Retrieve a torrent from qBittorrent."""
     try:
         # not all versions of torrents_info() support passing a hash

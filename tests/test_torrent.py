@@ -1,6 +1,7 @@
 import platform
 from time import sleep
 from types import MethodType
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -24,9 +25,9 @@ from tests.utils import retry
 def test_info(orig_torrent, monkeypatch):
     assert orig_torrent.info.hash == orig_torrent.hash
     # mimic <=v2.0.1 where torrents_info() doesn't support hash arg
-    orig_torrent._client._MOCK_WEB_API_VERSION = "2"
-    assert orig_torrent.info.hash == orig_torrent.hash
-    orig_torrent._client._MOCK_WEB_API_VERSION = None
+    with monkeypatch.context() as m:
+        m.setattr(orig_torrent._client, "app_version", MagicMock(return_value="2.0.0"))
+        assert orig_torrent.info.hash == orig_torrent.hash
 
     # ensure if things are really broken, an empty TorrentDictionary is returned...
     if platform.python_implementation() == "CPython":
@@ -70,13 +71,17 @@ def test_state_enum(orig_torrent):
 def test_pause_resume(client, new_torrent):
     new_torrent.pause()
     check(
-        lambda: client.torrents_info(hashes=new_torrent.hash)[0].state_enum.is_paused,
+        lambda: client.torrents_info(torrent_hashes=new_torrent.hash)[
+            0
+        ].state_enum.is_paused,
         True,
     )
 
     new_torrent.resume()
     check(
-        lambda: client.torrents_info(hashes=new_torrent.hash)[0].state_enum.is_paused,
+        lambda: client.torrents_info(torrent_hashes=new_torrent.hash)[
+            0
+        ].state_enum.is_paused,
         False,
     )
 

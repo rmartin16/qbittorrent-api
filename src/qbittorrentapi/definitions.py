@@ -1,8 +1,46 @@
+from __future__ import annotations
+
+import sys
 from collections import UserList
-from collections.abc import Mapping
 from enum import Enum
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import Generic
+from typing import Iterable
+from typing import Mapping
+from typing import Sequence
+from typing import Tuple
+from typing import TypeVar
+from typing import Union
 
 from qbittorrentapi._attrdict import AttrDict
+
+if TYPE_CHECKING:
+    from qbittorrentapi import Request
+
+K = TypeVar("K")
+V = TypeVar("V")
+T = TypeVar("T")
+
+#: Type to define JSON.
+JsonValueT = Union[
+    None,
+    int,
+    str,
+    bool,
+    Sequence["JsonValueT"],
+    Mapping[str, "JsonValueT"],
+]
+#: Type ``Any`` for ``kwargs`` parameters for API methods.
+APIKwargsT = Any
+#: Type for this API Client.
+ClientT = TypeVar("ClientT", bound="Request")
+#: Type for entry in List from API.
+ListEntryT = TypeVar("ListEntryT", bound="ListEntry")
+#: Type for List input to API method.
+ListInputT = Iterable[Mapping[str, JsonValueT]]
+#: Type for Files input to API method.
+FilesToSendT = Mapping[str, Union[bytes, Tuple[str, bytes]]]
 
 
 class APINames(str, Enum):
@@ -66,7 +104,7 @@ class TorrentState(str, Enum):
     UNKNOWN = "unknown"
 
     @property
-    def is_downloading(self):
+    def is_downloading(self) -> bool:
         """Returns ``True`` if the State is categorized as Downloading."""
         return self in {
             TorrentState.DOWNLOADING,
@@ -80,7 +118,7 @@ class TorrentState(str, Enum):
         }
 
     @property
-    def is_uploading(self):
+    def is_uploading(self) -> bool:
         """Returns ``True`` if the State is categorized as Uploading."""
         return self in {
             TorrentState.UPLOADING,
@@ -91,7 +129,7 @@ class TorrentState(str, Enum):
         }
 
     @property
-    def is_complete(self):
+    def is_complete(self) -> bool:
         """Returns ``True`` if the State is categorized as Complete."""
         return self in {
             TorrentState.UPLOADING,
@@ -103,7 +141,7 @@ class TorrentState(str, Enum):
         }
 
     @property
-    def is_checking(self):
+    def is_checking(self) -> bool:
         """Returns ``True`` if the State is categorized as Checking."""
         return self in {
             TorrentState.CHECKING_UPLOAD,
@@ -112,12 +150,12 @@ class TorrentState(str, Enum):
         }
 
     @property
-    def is_errored(self):
+    def is_errored(self) -> bool:
         """Returns ``True`` if the State is categorized as Errored."""
         return self in {TorrentState.MISSING_FILES, TorrentState.ERROR}
 
     @property
-    def is_paused(self):
+    def is_paused(self) -> bool:
         """Returns ``True`` if the State is categorized as Paused."""
         return self in {TorrentState.PAUSED_UPLOAD, TorrentState.PAUSED_DOWNLOAD}
 
@@ -150,7 +188,7 @@ class TrackerStatus(int, Enum):
     NOT_WORKING = 4
 
     @property
-    def display(self):
+    def display(self) -> str:
         """Returns a descriptive display value for status."""
         return {
             TrackerStatus.DISABLED: "Disabled",
@@ -161,48 +199,75 @@ class TrackerStatus(int, Enum):
         }[self]
 
 
-class ClientCache:
+class ClientCache(Generic[ClientT]):
     """
     Caches the client.
 
     Subclass this for any object that needs access to the Client.
     """
 
-    def __init__(self, *args, **kwargs):
-        self._client = kwargs.pop("client")
+    def __init__(self, *args: Any, client: ClientT, **kwargs: Any):
+        self._client = client
         super().__init__(*args, **kwargs)
 
 
-class Dictionary(ClientCache, AttrDict):
+class Dictionary(AttrDict[V]):
     """Base definition of dictionary-like objects returned from qBittorrent."""
 
-    def __init__(self, data=None, client=None):
-        super().__init__(self._normalize(data or {}), client=client)
+    def __init__(self, data: Mapping[str, JsonValueT] | None = None, **kwargs: Any):
+        super().__init__(self._normalize(data or {}))
         # allows updating properties that aren't necessarily a part of the AttrDict
         self._setattr("_allow_invalid_attributes", True)
 
     @classmethod
-    def _normalize(cls, data):
+    def _normalize(cls, data: Mapping[str, V] | T) -> AttrDict[V] | T:
         """Iterate through a dict converting any nested dicts to AttrDicts."""
         if isinstance(data, Mapping):
             return AttrDict({key: cls._normalize(value) for key, value in data.items()})
         return data
 
 
-class List(UserList):
-    """Base definition for list-like objects returned from qBittorrent."""
+# Python 3.8 does not support UserList as a proper Generic
+if sys.version_info < (3, 9):
 
-    def __init__(self, list_entries=None, entry_class=None, client=None):
-        is_safe_cast = None not in {client, entry_class}
-        super().__init__(
-            [
-                entry_class(data=entry, client=client)
-                if is_safe_cast and isinstance(entry, dict)
-                else entry
-                for entry in list_entries or ()
-            ]
-        )
+    class List(UserList, Generic[ListEntryT]):
+        """Base definition for list-like objects returned from qBittorrent."""
+
+        def __init__(
+            self,
+            list_entries: ListInputT | None = None,
+            entry_class: type[ListEntryT] | None = None,
+            **kwargs: Any,
+        ):
+            super().__init__(
+                [
+                    entry_class(data=entry, **kwargs)
+                    if entry_class is not None and isinstance(entry, Mapping)
+                    else entry
+                    for entry in list_entries or []
+                ]
+            )
+
+else:
+
+    class List(UserList[ListEntryT]):
+        """Base definition for list-like objects returned from qBittorrent."""
+
+        def __init__(
+            self,
+            list_entries: ListInputT | None = None,
+            entry_class: type[ListEntryT] | None = None,
+            **kwargs: Any,
+        ):
+            super().__init__(
+                [
+                    entry_class(data=entry, **kwargs)  # type: ignore[misc]
+                    if entry_class is not None and isinstance(entry, Mapping)
+                    else entry
+                    for entry in list_entries or []
+                ]
+            )
 
 
-class ListEntry(Dictionary):
+class ListEntry(Dictionary[JsonValueT]):
     """Base definition for objects within a list returned from qBittorrent."""

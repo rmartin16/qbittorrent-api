@@ -1,5 +1,11 @@
 Change log
 ==========
+### vXXXX.X.XX (X xxx XXXX)
+- Dropped support for legacy Python versions; Python 3.8+ is supported (#333)
+- Refactored typing from stub files in to source (#345)
+- Dropped support for API method arguments ``hash`` and ``hashes``; use ``torrent_hash`` and ``torrent_hashes``, respectively (#345)
+  - For example, replace ``client.torrents_info(hashes="...")`` with ``client.torrents_info(torrent_hashes="...")``
+
 ### v2023.9.53 (7 sept 2023)
 - Advertise support for Python 3.12
 - Advertise support for qBittorrent v4.5.5

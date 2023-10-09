@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from requests.exceptions import HTTPError as RequestsHTTPError
 from requests.exceptions import RequestException
 
@@ -43,7 +45,7 @@ class HTTPError(RequestsHTTPError, APIConnectionError):
     statuses.
     """
 
-    http_status_code = None
+    http_status_code: int
 
 
 class HTTP4XXError(HTTPError):
@@ -57,49 +59,49 @@ class HTTP5XXError(HTTPError):
 class HTTP400Error(HTTP4XXError):
     """HTTP 400 Status."""
 
-    http_status_code = 400
+    http_status_code: int = 400
 
 
 class HTTP401Error(HTTP4XXError):
     """HTTP 401 Status."""
 
-    http_status_code = 401
+    http_status_code: int = 401
 
 
 class HTTP403Error(HTTP4XXError):
     """HTTP 403 Status."""
 
-    http_status_code = 403
+    http_status_code: int = 403
 
 
 class HTTP404Error(HTTP4XXError):
     """HTTP 404 Status."""
 
-    http_status_code = 404
+    http_status_code: int = 404
 
 
 class HTTP405Error(HTTP4XXError):
     """HTTP 405 Status."""
 
-    http_status_code = 405
+    http_status_code: int = 405
 
 
 class HTTP409Error(HTTP4XXError):
     """HTTP 409 Status."""
 
-    http_status_code = 409
+    http_status_code: int = 409
 
 
 class HTTP415Error(HTTP4XXError):
     """HTTP 415 Status."""
 
-    http_status_code = 415
+    http_status_code: int = 415
 
 
 class HTTP500Error(HTTP5XXError):
     """HTTP 500 Status."""
 
-    http_status_code = 500
+    http_status_code: int = 500
 
 
 class MissingRequiredParameters400Error(HTTP400Error):

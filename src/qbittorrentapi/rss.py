@@ -1,176 +1,70 @@
+from __future__ import annotations
+
+from functools import wraps
 from json import dumps
+from typing import Mapping
 
 from qbittorrentapi.app import AppAPIMixIn
-from qbittorrentapi.decorators import alias
-from qbittorrentapi.decorators import aliased
-from qbittorrentapi.decorators import endpoint_introduced
-from qbittorrentapi.decorators import login_required
+from qbittorrentapi.definitions import APIKwargsT
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary
+from qbittorrentapi.definitions import JsonValueT
 
 
-class RSSitemsDictionary(Dictionary):
+class RSSitemsDictionary(Dictionary[JsonValueT]):
     """Response for :meth:`~RSSAPIMixIn.rss_items`"""
 
 
-class RSSRulesDictionary(Dictionary):
+class RSSRulesDictionary(Dictionary[JsonValueT]):
     """Response for :meth:`~RSSAPIMixIn.rss_rules`"""
 
 
-@aliased
-class RSS(ClientCache):
-    """
-    Allows interaction with ``RSS`` API endpoints.
-
-    :Usage:
-        >>> from qbittorrentapi import Client
-        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
-        >>> # this is all the same attributes that are available as named in the
-        >>> #  endpoints or the more pythonic names in Client (with or without 'log_' prepended)
-        >>> rss_rules = client.rss.rules
-        >>> client.rss.addFolder(folder_path="TPB")
-        >>> client.rss.addFeed(url='...', item_path="TPB\\Top100")
-        >>> client.rss.remove_item(item_path="TPB") # deletes TPB and Top100
-        >>> client.rss.set_rule(rule_name="...", rule_def={...})
-        >>> items = client.rss.items.with_data
-        >>> items_no_data = client.rss.items.without_data
-    """
-
-    def __init__(self, client):
-        super().__init__(client=client)
-        self.items = RSS._Items(client=client)
-
-    @alias("addFolder")
-    def add_folder(self, folder_path=None, **kwargs):
-        """Implements :meth:`~RSSAPIMixIn.rss_add_folder`"""
-        return self._client.rss_add_folder(folder_path=folder_path, **kwargs)
-
-    @alias("addFeed")
-    def add_feed(self, url=None, item_path=None, **kwargs):
-        """Implements :meth:`~RSSAPIMixIn.rss_add_feed`"""
-        return self._client.rss_add_feed(url=url, item_path=item_path, **kwargs)
-
-    @alias("setFeedURL")
-    def set_feed_url(self, url=None, item_path=None, **kwargs):
-        """Implements :meth:`~RSSAPIMixIn.rss_set_feed_url`"""
-        return self._client.rss_set_feed_url(url=url, item_path=item_path, **kwargs)
-
-    @alias("removeItem")
-    def remove_item(self, item_path=None, **kwargs):
-        """Implements :meth:`~RSSAPIMixIn.rss_remove_item`"""
-        return self._client.rss_remove_item(item_path=item_path, **kwargs)
-
-    @alias("moveItem")
-    def move_item(self, orig_item_path=None, new_item_path=None, **kwargs):
-        """Implements :meth:`~RSSAPIMixIn.rss_move_item`"""
-        return self._client.rss_move_item(
-            orig_item_path=orig_item_path,
-            new_item_path=new_item_path,
-            **kwargs,
-        )
-
-    @alias("refreshItem")
-    def refresh_item(self, item_path=None):
-        """Implements :meth:`~RSSAPIMixIn.rss_refresh_item`"""
-        return self._client.rss_refresh_item(item_path=item_path)
-
-    @alias("markAsRead")
-    def mark_as_read(self, item_path=None, article_id=None, **kwargs):
-        """Implements :meth:`~RSSAPIMixIn.rss_mark_as_read`"""
-        return self._client.rss_mark_as_read(
-            item_path=item_path,
-            article_id=article_id,
-            **kwargs,
-        )
-
-    @alias("setRule")
-    def set_rule(self, rule_name=None, rule_def=None, **kwargs):
-        """Implements :meth:`~RSSAPIMixIn.rss_set_rule`"""
-        return self._client.rss_set_rule(
-            rule_name=rule_name,
-            rule_def=rule_def,
-            **kwargs,
-        )
-
-    @alias("renameRule")
-    def rename_rule(self, orig_rule_name=None, new_rule_name=None, **kwargs):
-        """Implements :meth:`~RSSAPIMixIn.rss_rename_rule`"""
-        return self._client.rss_rename_rule(
-            orig_rule_name=orig_rule_name,
-            new_rule_name=new_rule_name,
-            **kwargs,
-        )
-
-    @alias("removeRule")
-    def remove_rule(self, rule_name=None, **kwargs):
-        """Implements :meth:`~RSSAPIMixIn.rss_remove_rule`"""
-        return self._client.rss_remove_rule(rule_name=rule_name, **kwargs)
-
-    @property
-    def rules(self):
-        """Implements :meth:`~RSSAPIMixIn.rss_rules`"""
-        return self._client.rss_rules()
-
-    @alias("matchingArticles")
-    def matching_articles(self, rule_name=None, **kwargs):
-        """Implements :meth:`~RSSAPIMixIn.rss_matching_articles`"""
-        return self._client.rss_matching_articles(rule_name=rule_name, **kwargs)
-
-    class _Items(ClientCache):
-        def __call__(self, include_feed_data=None, **kwargs):
-            return self._client.rss_items(include_feed_data=include_feed_data, **kwargs)
-
-        @property
-        def without_data(self):
-            return self._client.rss_items(include_feed_data=False)
-
-        @property
-        def with_data(self):
-            return self._client.rss_items(include_feed_data=True)
-
-
-@aliased
 class RSSAPIMixIn(AppAPIMixIn):
     """
     Implementation of all ``RSS`` API methods.
 
     :Usage:
         >>> from qbittorrentapi import Client
-        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> client = Client(host="localhost:8080", username="admin", password="adminadmin")
         >>> rss_rules = client.rss_rules()
         >>> client.rss_set_rule(rule_name="...", rule_def={...})
     """
 
     @property
-    def rss(self):
+    def rss(self) -> RSS:
         """
         Allows for transparent interaction with RSS endpoints.
 
         See RSS class for usage.
-        :return: RSS object
         """
         if self._rss is None:
             self._rss = RSS(client=self)
         return self._rss
 
-    @alias("rss_addFolder")
-    @login_required
-    def rss_add_folder(self, folder_path=None, **kwargs):
+    def rss_add_folder(
+        self,
+        folder_path: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         """
         Add an RSS folder. Any intermediate folders in path must already exist.
 
         :raises Conflict409Error:
 
         :param folder_path: path to new folder (e.g. ``Linux\\ISOs``)
-        :return: None
         """
         data = {"path": folder_path}
         self._post(_name=APINames.RSS, _method="addFolder", data=data, **kwargs)
 
-    @alias("rss_addFeed")
-    @login_required
-    def rss_add_feed(self, url=None, item_path=None, **kwargs):
+    rss_addFolder = rss_add_folder
+
+    def rss_add_feed(
+        self,
+        url: str | None = None,
+        item_path: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         """
         Add new RSS feed. Folders in path must already exist.
 
@@ -178,30 +72,44 @@ class RSSAPIMixIn(AppAPIMixIn):
 
         :param url: URL of RSS feed (e.g. https://distrowatch.com/news/torrents.xml)
         :param item_path: Name and/or path for new feed (e.g. ``Folder\\Subfolder\\FeedName``)
-        :return: None
         """
         data = {"path": item_path, "url": url}
         self._post(_name=APINames.RSS, _method="addFeed", data=data, **kwargs)
 
-    @endpoint_introduced("2.9.1", "rss/setFeedURL")
-    @alias("rss_setFeedURL")
-    @login_required
-    def rss_set_feed_url(self, url=None, item_path=None, **kwargs):
+    rss_addFeed = rss_add_feed
+
+    def rss_set_feed_url(
+        self,
+        url: str | None = None,
+        item_path: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         """
         Update the URL for an existing RSS feed.
+
+        This method was introduced with qBittorrent v4.6.0 (Web API v2.9.1).
 
         :raises Conflict409Error:
 
         :param url: URL of RSS feed (e.g. https://distrowatch.com/news/torrents.xml)
         :param item_path: Name and/or path for feed (e.g. ``Folder\\Subfolder\\FeedName``)
-        :return: None
         """
         data = {"path": item_path, "url": url}
-        self._post(_name=APINames.RSS, _method="setFeedURL", data=data, **kwargs)
+        self._post(
+            _name=APINames.RSS,
+            _method="setFeedURL",
+            data=data,
+            version_introduced="2.9.1",
+            **kwargs,
+        )
 
-    @alias("rss_removeItem")
-    @login_required
-    def rss_remove_item(self, item_path=None, **kwargs):
+    rss_setFeedURL = rss_set_feed_url
+
+    def rss_remove_item(
+        self,
+        item_path: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         """
         Remove an RSS item (folder, feed, etc).
 
@@ -210,14 +118,18 @@ class RSSAPIMixIn(AppAPIMixIn):
         :raises Conflict409Error:
 
         :param item_path: path to item to be removed (e.g. ``Folder\\Subfolder\\ItemName``)
-        :return: None
         """
         data = {"path": item_path}
         self._post(_name=APINames.RSS, _method="removeItem", data=data, **kwargs)
 
-    @alias("rss_moveItem")
-    @login_required
-    def rss_move_item(self, orig_item_path=None, new_item_path=None, **kwargs):
+    rss_removeItem = rss_remove_item
+
+    def rss_move_item(
+        self,
+        orig_item_path: str | None = None,
+        new_item_path: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         """
         Move/rename an RSS item (folder, feed, etc.).
 
@@ -225,23 +137,26 @@ class RSSAPIMixIn(AppAPIMixIn):
 
         :param orig_item_path: path to item to be removed (e.g. ``Folder\\Subfolder\\ItemName``)
         :param new_item_path: path to item to be removed (e.g. ``Folder\\Subfolder\\ItemName``)
-        :return: None
         """
         data = {"itemPath": orig_item_path, "destPath": new_item_path}
         self._post(_name=APINames.RSS, _method="moveItem", data=data, **kwargs)
 
-    @login_required
-    def rss_items(self, include_feed_data=None, **kwargs):
+    rss_moveItem = rss_move_item
+
+    def rss_items(
+        self,
+        include_feed_data: bool | None = None,
+        **kwargs: APIKwargsT,
+    ) -> RSSitemsDictionary:
         """
         Retrieve RSS items and optionally feed data.
 
         :param include_feed_data: True or false to include feed data
-        :return: :class:`RSSitemsDictionary`
         """
         params = {
             "withData": None if include_feed_data is None else bool(include_feed_data)
         }
-        return self._get(
+        return self._get_cast(
             _name=APINames.RSS,
             _method="items",
             params=params,
@@ -249,108 +164,306 @@ class RSSAPIMixIn(AppAPIMixIn):
             **kwargs,
         )
 
-    @endpoint_introduced("2.2", "rss/refreshItem")
-    @alias("rss_refreshItem")
-    @login_required
-    def rss_refresh_item(self, item_path=None, **kwargs):
+    def rss_refresh_item(
+        self,
+        item_path: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         """
         Trigger a refresh for an RSS item.
 
-        Note: qBittorrent v4.1.5 thru v4.1.8 all use Web API 2.2. However, this endpoint was
-        introduced with v4.1.8; so, behavior may be undefined for these versions.
+        Note: qBittorrent v4.1.5 through v4.1.8 all use Web API 2.2 but this endpoint
+        was introduced with v4.1.8; so, behavior may be undefined for these versions.
 
         :param item_path: path to item to be refreshed (e.g. ``Folder\\Subfolder\\ItemName``)
-        :return: None
         """
         data = {"itemPath": item_path}
-        self._post(_name=APINames.RSS, _method="refreshItem", data=data, **kwargs)
+        self._post(
+            _name=APINames.RSS,
+            _method="refreshItem",
+            data=data,
+            version_introduced="2.2",
+            **kwargs,
+        )
 
-    @endpoint_introduced("2.5.1", "rss/markAsRead")
-    @alias("rss_markAsRead")
-    @login_required
-    def rss_mark_as_read(self, item_path=None, article_id=None, **kwargs):
+    rss_refreshItem = rss_refresh_item
+
+    def rss_mark_as_read(
+        self,
+        item_path: str | None = None,
+        article_id: str | int | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         """
         Mark RSS article as read. If article ID is not provider, the entire feed is
         marked as read.
+
+        This method was introduced with qBittorrent v4.2.5 (Web API v2.5.1).
 
         :raises NotFound404Error:
 
         :param item_path: path to item to be refreshed (e.g. ``Folder\\Subfolder\\ItemName``)
         :param article_id: article ID from :meth:`~RSSAPIMixIn.rss_items`
-        :return: None
         """
         data = {"itemPath": item_path, "articleId": article_id}
-        self._post(_name=APINames.RSS, _method="markAsRead", data=data, **kwargs)
+        self._post(
+            _name=APINames.RSS,
+            _method="markAsRead",
+            data=data,
+            version_introduced="2.5.1",
+            **kwargs,
+        )
 
-    @alias("rss_setRule")
-    @login_required
-    def rss_set_rule(self, rule_name=None, rule_def=None, **kwargs):
+    rss_markAsRead = rss_mark_as_read
+
+    def rss_set_rule(
+        self,
+        rule_name: str | None = None,
+        rule_def: Mapping[str, JsonValueT] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         """
         Create a new RSS auto-downloading rule.
 
         :param rule_name: name for new rule
         :param rule_def: dictionary with rule fields - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-set-auto-downloading-rule>`_
-        :return: None
         """  # noqa: E501
         data = {"ruleName": rule_name, "ruleDef": dumps(rule_def)}
         self._post(_name=APINames.RSS, _method="setRule", data=data, **kwargs)
 
-    @alias("rss_renameRule")
-    @login_required
-    def rss_rename_rule(self, orig_rule_name=None, new_rule_name=None, **kwargs):
+    rss_setRule = rss_set_rule
+
+    def rss_rename_rule(
+        self,
+        orig_rule_name: str | None = None,
+        new_rule_name: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         """
         Rename an RSS auto-download rule.
 
-        Note: this endpoint did not work properly until qBittorrent v4.3.0
+        This method did not work properly until qBittorrent v4.3.0 (Web API v2.6).
 
         :param orig_rule_name: current name of rule
         :param new_rule_name: new name for rule
-        :return: None
         """
         data = {"ruleName": orig_rule_name, "newRuleName": new_rule_name}
         self._post(_name=APINames.RSS, _method="renameRule", data=data, **kwargs)
 
-    @alias("rss_removeRule")
-    @login_required
-    def rss_remove_rule(self, rule_name=None, **kwargs):
+    rss_renameRule = rss_rename_rule
+
+    def rss_remove_rule(
+        self,
+        rule_name: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         """
         Delete a RSS auto-downloading rule.
 
         :param rule_name: Name of rule to delete
-        :return: None
         """
         data = {"ruleName": rule_name}
         self._post(_name=APINames.RSS, _method="removeRule", data=data, **kwargs)
 
-    @login_required
-    def rss_rules(self, **kwargs):
-        """
-        Retrieve RSS auto-download rule definitions.
-
-        :return: :class:`RSSRulesDictionary`
-        """
-        return self._get(
+    def rss_rules(self, **kwargs: APIKwargsT) -> RSSRulesDictionary:
+        """Retrieve RSS auto-download rule definitions."""
+        return self._get_cast(
             _name=APINames.RSS,
             _method="rules",
             response_class=RSSRulesDictionary,
             **kwargs,
         )
 
-    @endpoint_introduced("2.5.1", "rss/matchingArticles")
-    @alias("rss_matchingArticles")
-    @login_required
-    def rss_matching_articles(self, rule_name=None, **kwargs):
+    rss_removeRule = rss_remove_rule
+
+    def rss_matching_articles(
+        self,
+        rule_name: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> RSSitemsDictionary:
         """
         Fetch all articles matching a rule.
 
+        This method was introduced with qBittorrent v4.2.5 (Web API v2.5.1).
+
         :param rule_name: Name of rule to return matching articles
-        :return: :class:`RSSitemsDictionary`
         """
         data = {"ruleName": rule_name}
-        return self._post(
+        return self._post_cast(
             _name=APINames.RSS,
             _method="matchingArticles",
             data=data,
             response_class=RSSitemsDictionary,
+            version_introduced="2.5.1",
             **kwargs,
         )
+
+    rss_matchingArticles = rss_matching_articles
+
+
+class RSS(ClientCache[RSSAPIMixIn]):
+    """
+    Allows interaction with ``RSS`` API endpoints.
+
+    :Usage:
+        >>> from qbittorrentapi import Client
+        >>> client = Client(host="localhost:8080", username="admin", password="adminadmin")
+        >>> # this is all the same attributes that are available as named in the
+        >>> #  endpoints or the more pythonic names in Client (with or without 'log_' prepended)
+        >>> rss_rules = client.rss.rules
+        >>> client.rss.addFolder(folder_path="TPB")
+        >>> client.rss.addFeed(url="...", item_path="TPB\\Top100")
+        >>> client.rss.remove_item(item_path="TPB") # deletes TPB and Top100
+        >>> client.rss.set_rule(rule_name="...", rule_def={...})
+        >>> items = client.rss.items.with_data
+        >>> items_no_data = client.rss.items.without_data
+    """
+
+    def __init__(self, client: RSSAPIMixIn):
+        super().__init__(client=client)
+        self.items = RSS._Items(client=client)
+
+    @wraps(RSSAPIMixIn.rss_add_folder)
+    def add_folder(
+        self,
+        folder_path: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        return self._client.rss_add_folder(folder_path=folder_path, **kwargs)
+
+    addFolder = add_folder
+
+    @wraps(RSSAPIMixIn.rss_add_feed)
+    def add_feed(
+        self,
+        url: str | None = None,
+        item_path: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        return self._client.rss_add_feed(url=url, item_path=item_path, **kwargs)
+
+    addFeed = add_feed
+
+    @wraps(RSSAPIMixIn.rss_set_feed_url)
+    def set_feed_url(
+        self,
+        url: str | None = None,
+        item_path: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        return self._client.rss_set_feed_url(url=url, item_path=item_path, **kwargs)
+
+    setFeedURL = set_feed_url
+
+    @wraps(RSSAPIMixIn.rss_remove_item)
+    def remove_item(self, item_path: str | None = None, **kwargs: APIKwargsT) -> None:
+        return self._client.rss_remove_item(item_path=item_path, **kwargs)
+
+    removeItem = remove_item
+
+    @wraps(RSSAPIMixIn.rss_move_item)
+    def move_item(
+        self,
+        orig_item_path: str | None = None,
+        new_item_path: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        return self._client.rss_move_item(
+            orig_item_path=orig_item_path,
+            new_item_path=new_item_path,
+            **kwargs,
+        )
+
+    moveItem = move_item
+
+    @wraps(RSSAPIMixIn.rss_refresh_item)
+    def refresh_item(self, item_path: str | None = None) -> None:
+        return self._client.rss_refresh_item(item_path=item_path)
+
+    refreshItem = refresh_item
+
+    @wraps(RSSAPIMixIn.rss_mark_as_read)
+    def mark_as_read(
+        self,
+        item_path: str | None = None,
+        article_id: str | int | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        return self._client.rss_mark_as_read(
+            item_path=item_path,
+            article_id=article_id,
+            **kwargs,
+        )
+
+    markAsRead = mark_as_read
+
+    @wraps(RSSAPIMixIn.rss_set_rule)
+    def set_rule(
+        self,
+        rule_name: str | None = None,
+        rule_def: Mapping[str, JsonValueT] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        return self._client.rss_set_rule(
+            rule_name=rule_name,
+            rule_def=rule_def,
+            **kwargs,
+        )
+
+    setRule = set_rule
+
+    @wraps(RSSAPIMixIn.rss_rename_rule)
+    def rename_rule(
+        self,
+        orig_rule_name: str | None = None,
+        new_rule_name: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        return self._client.rss_rename_rule(
+            orig_rule_name=orig_rule_name,
+            new_rule_name=new_rule_name,
+            **kwargs,
+        )
+
+    renameRule = rename_rule
+
+    @wraps(RSSAPIMixIn.rss_remove_rule)
+    def remove_rule(
+        self,
+        rule_name: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        return self._client.rss_remove_rule(rule_name=rule_name, **kwargs)
+
+    removeRule = remove_rule
+
+    @property
+    @wraps(RSSAPIMixIn.rss_rules)
+    def rules(self) -> RSSRulesDictionary:
+        return self._client.rss_rules()
+
+    @wraps(RSSAPIMixIn.rss_matching_articles)
+    def matching_articles(
+        self,
+        rule_name: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> RSSitemsDictionary:
+        return self._client.rss_matching_articles(rule_name=rule_name, **kwargs)
+
+    matchingArticles = matching_articles
+
+    class _Items(ClientCache[RSSAPIMixIn]):
+        def __call__(
+            self,
+            include_feed_data: bool | None = None,
+            **kwargs: APIKwargsT,
+        ) -> RSSitemsDictionary:
+            return self._client.rss_items(include_feed_data=include_feed_data, **kwargs)
+
+        @property
+        def without_data(self) -> RSSitemsDictionary:
+            return self._client.rss_items(include_feed_data=False)
+
+        @property
+        def with_data(self) -> RSSitemsDictionary:
+            return self._client.rss_items(include_feed_data=True)

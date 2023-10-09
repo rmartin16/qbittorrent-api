@@ -10,7 +10,7 @@ Transfer
 .. autoclass:: qbittorrentapi.transfer.Transfer
     :members:
     :undoc-members:
-    :exclude-members: toggleSpeedLimitsMode, setDownloadLimit, setUploadLimit, banPeers, speedLimitsMode, downloadLimit, uploadLimit
+    :exclude-members: toggleSpeedLimitsMode, setDownloadLimit, setUploadLimit, banPeers, speedLimitsMode, downloadLimit, uploadLimit, setSpeedLimitsMode
 
 .. autoclass:: qbittorrentapi.transfer.TransferInfoDictionary
     :members:

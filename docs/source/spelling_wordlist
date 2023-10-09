@@ -1,5 +1,7 @@
 Attrs
+Auth
 bc
+boolean
 bt
 casted
 Curran
@@ -12,10 +14,14 @@ hostname
 instantiation
 iterable
 kwargs
+MitM
 namespace
 namespaces
 qBittorrent
+pem
 Reannounce
+ResponseT
+str
 untagged
 Untrusted
 untrusted

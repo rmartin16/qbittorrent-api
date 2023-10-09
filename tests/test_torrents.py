@@ -598,13 +598,17 @@ def test_torrents_info_tag(client, new_torrent, info_func):
 def test_pause_resume(client, new_torrent, pause_func, resume_func):
     client.func(pause_func)(torrent_hashes=new_torrent.hash)
     check(
-        lambda: client.torrents_info(hashes=new_torrent.hash)[0].state_enum.is_paused,
+        lambda: client.torrents_info(torrent_hashes=new_torrent.hash)[
+            0
+        ].state_enum.is_paused,
         True,
     )
 
     client.func(resume_func)(torrent_hashes=new_torrent.hash)
     check(
-        lambda: client.torrents_info(hashes=new_torrent.hash)[0].state_enum.is_paused,
+        lambda: client.torrents_info(torrent_hashes=new_torrent.hash)[
+            0
+        ].state_enum.is_paused,
         False,
     )
 
@@ -613,14 +617,14 @@ def test_action_for_all_torrents(client):
     client.torrents.resume.all()
     for torrent in client.torrents.info():
         check(
-            lambda: client.torrents_info(torrents_hashes=torrent.hash)[0].state,
+            lambda: client.torrents_info(torrent_hashes=torrent.hash)[0].state,
             {"pausedDL"},
             negate=True,
         )
     client.torrents.pause.all()
     for torrent in client.torrents.info():
         check(
-            lambda: client.torrents_info(torrents_hashes=torrent.hash)[0].state,
+            lambda: client.torrents_info(torrent_hashes=torrent.hash)[0].state,
             {"stalledDL", "pausedDL"},
             any=True,
         )
