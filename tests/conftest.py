@@ -120,12 +120,16 @@ def client():
 def client_mock(client):
     """qBittorrent Client for testing with request mocks."""
     client._get = MagicMock(wraps=client._get)
+    client._get_cast = MagicMock(wraps=client._get_cast)
     client._post = MagicMock(wraps=client._post)
+    client._post_cast = MagicMock(wraps=client._post_cast)
     try:
         yield client
     finally:
         client._get = client._get
+        client._get_cast = client._get_cast
         client._post = client._post
+        client._post_cast = client._post_cast
 
 
 @pytest.fixture

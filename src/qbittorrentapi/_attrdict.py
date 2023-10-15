@@ -25,18 +25,28 @@ Functions and Classes from attrdict.
 AttrDict finally broke with Python 3.10 since abstract base classes can no
 longer be imported from collections but should use collections.abc instead.
 Since AttrDict is abandoned, I've consolidated the code here for future use.
-AttrMap and AttrDefault are left for posterity but commented out.
+AttrMap and AttrDefault were removed altogether.
 """
+from __future__ import annotations
 
-from abc import ABCMeta
+from abc import ABC
 from abc import abstractmethod
-from collections.abc import Mapping
-from collections.abc import MutableMapping
-from collections.abc import Sequence
-from re import match as re_match
+from re import compile as re_compile
+from typing import Any
+from typing import Dict
+from typing import Mapping
+from typing import MutableMapping
+from typing import Sequence
+from typing import TypeVar
+
+K = TypeVar("K")
+V = TypeVar("V")
+T = TypeVar("T")
+
+VALID_KEY_RE = re_compile(r"^[A-Za-z][A-Za-z0-9_]*$")
 
 
-def merge(left, right):
+def merge(left: Mapping[K, V], right: Mapping[K, V]) -> dict[K, V]:
     """
     Merge two mappings objects together, combining overlapping Mappings, and
     favoring right-values.
@@ -64,17 +74,17 @@ def merge(left, right):
         left_value = left[key]
         right_value = right[key]
 
-        if isinstance(left_value, Mapping) and isinstance(
-            right_value, Mapping
-        ):  # recursive merge
-            merged[key] = merge(left_value, right_value)
-        else:  # overwrite with right value
+        # recursive merge
+        if isinstance(left_value, Mapping) and isinstance(right_value, Mapping):
+            merged[key] = merge(left_value, right_value)  # type: ignore
+        # overwrite with right value
+        else:
             merged[key] = right_value
 
     return merged
 
 
-class Attr(Mapping, metaclass=ABCMeta):
+class Attr(Mapping[K, V], ABC):
     """
     A ``mixin`` class for a mapping that allows for attribute-style access of
     values.
@@ -98,12 +108,13 @@ class Attr(Mapping, metaclass=ABCMeta):
     """
 
     @abstractmethod
-    def _configuration(self):
+    def _configuration(self) -> Any:
         """All required state for building a new instance with the same
         settings as the current object."""
 
     @classmethod
-    def _constructor(cls, mapping, configuration):
+    @abstractmethod
+    def _constructor(cls, mapping: Mapping[K, V], configuration: Any) -> Attr[K, V]:
         """
         A standardized constructor used internally by Attr.
 
@@ -112,9 +123,8 @@ class Attr(Mapping, metaclass=ABCMeta):
             that will allow nested assignment (e.g., attr.foo.bar = baz)
         configuration: The return value of Attr._configuration
         """
-        raise NotImplementedError("You need to implement this")
 
-    def __call__(self, key):
+    def __call__(self, key: K) -> Attr[K, V]:
         """
         Dynamically access a key-value pair.
 
@@ -125,25 +135,21 @@ class Attr(Mapping, metaclass=ABCMeta):
         """
         if key not in self:
             raise AttributeError(
-                "'{cls} instance has no attribute '{name}'".format(
-                    cls=self.__class__.__name__, name=key
-                )
+                f"'{self.__class__.__name__} instance has no attribute '{key}'"
             )
 
         return self._build(self[key])
 
-    def __getattr__(self, key):
+    def __getattr__(self, key: Any) -> Any:
         """Access an item as an attribute."""
         if key not in self or not self._valid_name(key):
             raise AttributeError(
-                "'{cls}' instance has no attribute '{name}'".format(
-                    cls=self.__class__.__name__, name=key
-                )
+                f"'{self.__class__.__name__}' instance has no attribute '{key}'"
             )
 
         return self._build(self[key])
 
-    def __add__(self, other):
+    def __add__(self, other: Mapping[K, V]) -> Attr[K, V]:
         """
         Add a mapping to this Attr, creating a new, merged Attr.
 
@@ -156,7 +162,7 @@ class Attr(Mapping, metaclass=ABCMeta):
 
         return self._constructor(merge(self, other), self._configuration())
 
-    def __radd__(self, other):
+    def __radd__(self, other: Mapping[K, V]) -> Attr[K, V]:
         """
         Add this Attr to a mapping, creating a new, merged Attr.
 
@@ -169,7 +175,7 @@ class Attr(Mapping, metaclass=ABCMeta):
 
         return self._constructor(merge(other, self), self._configuration())
 
-    def _build(self, obj):
+    def _build(self, obj: Any) -> Attr[K, V]:
         """
         Conditionally convert an object to allow for recursive mapping access.
 
@@ -184,14 +190,13 @@ class Attr(Mapping, metaclass=ABCMeta):
             obj = self._constructor(obj, self._configuration())
         elif isinstance(obj, Sequence) and not isinstance(obj, (str, bytes)):
             sequence_type = getattr(self, "_sequence_type", None)
-
             if sequence_type:
                 obj = sequence_type(self._build(element) for element in obj)
 
-        return obj
+        return obj  # type: ignore
 
     @classmethod
-    def _valid_name(cls, key):
+    def _valid_name(cls, key: Any) -> bool:
         """
         Check whether a key is a valid attribute name.
 
@@ -204,21 +209,20 @@ class Attr(Mapping, metaclass=ABCMeta):
         """
         return (
             isinstance(key, str)
-            and re_match("^[A-Za-z][A-Za-z0-9_]*$", key)
             and not hasattr(cls, key)
+            and VALID_KEY_RE.match(key) is not None
         )
 
 
-class MutableAttr(Attr, MutableMapping, metaclass=ABCMeta):
-    """A ``mixin`` class for a mapping that allows for attribute-style access of
-    values."""
+class MutableAttr(Attr[str, V], MutableMapping[str, V], ABC):
+    """A ``mixin`` mapping class that allows for attribute-style access of values."""
 
-    def _setattr(self, key, value):
+    def _setattr(self, key: str, value: Any) -> None:
         """Add an attribute to the object, without attempting to add it as a
         key to the mapping."""
         super().__setattr__(key, value)
 
-    def __setattr__(self, key, value):
+    def __setattr__(self, key: str, value: V) -> None:
         """
         Add an attribute.
 
@@ -231,17 +235,15 @@ class MutableAttr(Attr, MutableMapping, metaclass=ABCMeta):
             super().__setattr__(key, value)
         else:
             raise TypeError(
-                "'{cls}' does not allow attribute creation.".format(
-                    cls=self.__class__.__name__
-                )
+                f"'{self.__class__.__name__}' does not allow attribute creation."
             )
 
-    def _delattr(self, key):
+    def _delattr(self, key: str) -> None:
         """Delete an attribute from the object, without attempting to remove it
         from the mapping."""
         super().__delattr__(key)
 
-    def __delattr__(self, key, force=False):
+    def __delattr__(self, key: str, force: bool = False) -> None:
         """
         Delete an attribute.
 
@@ -253,248 +255,46 @@ class MutableAttr(Attr, MutableMapping, metaclass=ABCMeta):
             super().__delattr__(key)
         else:
             raise TypeError(
-                "'{cls}' does not allow attribute deletion.".format(
-                    cls=self.__class__.__name__
-                )
+                f"'{self.__class__.__name__}' does not allow attribute deletion."
             )
 
 
-class AttrDict(dict, MutableAttr):
+class AttrDict(Dict[str, V], MutableAttr[V]):
     """A dict that implements MutableAttr."""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    _sequence_type: type
+    _allow_invalid_attributes: bool
 
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
         self._setattr("_sequence_type", tuple)
         self._setattr("_allow_invalid_attributes", False)
 
-    def _configuration(self):
+    def _configuration(self) -> type:
         """The configuration for an attrmap instance."""
         return self._sequence_type
 
-    def __getstate__(self):
+    def __getstate__(self) -> tuple[Mapping[str, V], type, bool]:
         """Serialize the object."""
         return self.copy(), self._sequence_type, self._allow_invalid_attributes
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: tuple[Mapping[str, V], type, bool]) -> None:
         """Deserialize the object."""
         mapping, sequence_type, allow_invalid_attributes = state
         self.update(mapping)
         self._setattr("_sequence_type", sequence_type)
         self._setattr("_allow_invalid_attributes", allow_invalid_attributes)
 
-    def __repr__(self):
-        return f"AttrDict({super().__repr__()})"
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({super().__repr__()})"
 
     @classmethod
-    def _constructor(cls, mapping, configuration):
+    def _constructor(
+        cls,
+        mapping: Mapping[str, V],
+        configuration: type,
+    ) -> AttrDict[V]:
         """A standardized constructor."""
         attr = cls(mapping)
         attr._setattr("_sequence_type", configuration)
-
         return attr
-
-
-# class AttrMap(MutableAttr):
-#     """
-#     An implementation of MutableAttr.
-#     """
-#     def __init__(self, items=None, sequence_type=tuple):
-#         if items is None:
-#             items = {}
-#         elif not isinstance(items, Mapping):
-#             items = dict(items)
-#
-#         self._setattr('_sequence_type', sequence_type)
-#         self._setattr('_mapping', items)
-#         self._setattr('_allow_invalid_attributes', False)
-#
-#     def _configuration(self):
-#         """
-#         The configuration for an attrmap instance.
-#         """
-#         return self._sequence_type
-#
-#     def __getitem__(self, key):
-#         """
-#         Access a value associated with a key.
-#         """
-#         return self._mapping[key]
-#
-#     def __setitem__(self, key, value):
-#         """
-#         Add a key-value pair to the instance.
-#         """
-#         self._mapping[key] = value
-#
-#     def __delitem__(self, key):
-#         """
-#         Delete a key-value pair
-#         """
-#         del self._mapping[key]
-#
-#     def __len__(self):
-#         """
-#         Check the length of the mapping.
-#         """
-#         return len(self._mapping)
-#
-#     def __iter__(self):
-#         """
-#         Iterated through the keys.
-#         """
-#         return iter(self._mapping)
-#
-#     def __repr__(self):
-#         """
-#         Return a string representation of the object.
-#         """
-#         # sequence type seems like more trouble than it is worth.
-#         # If people want full serialization, they can pickle, and in
-#         # 99% of cases, sequence_type won't change anyway
-#         return six.u("AttrMap({mapping})").format(mapping=repr(self._mapping))
-#
-#     def __getstate__(self):
-#         """
-#         Serialize the object.
-#         """
-#         return (
-#             self._mapping,
-#             self._sequence_type,
-#             self._allow_invalid_attributes
-#         )
-#
-#     def __setstate__(self, state):
-#         """
-#         Deserialize the object.
-#         """
-#         mapping, sequence_type, allow_invalid_attributes = state
-#         self._setattr('_mapping', mapping)
-#         self._setattr('_sequence_type', sequence_type)
-#         self._setattr('_allow_invalid_attributes', allow_invalid_attributes)
-#
-#     @classmethod
-#     def _constructor(cls, mapping, configuration):
-#         """
-#         A standardized constructor.
-#         """
-#         return cls(mapping, sequence_type=configuration)
-
-
-# class AttrDefault(MutableAttr):
-#     """
-#     An implementation of MutableAttr with defaultdict support
-#     """
-#     def __init__(self, default_factory=None, items=None, sequence_type=tuple,
-#                  pass_key=False):
-#         if items is None:
-#             items = {}
-#         elif not isinstance(items, Mapping):
-#             items = dict(items)
-#
-#         self._setattr('_default_factory', default_factory)
-#         self._setattr('_mapping', items)
-#         self._setattr('_sequence_type', sequence_type)
-#         self._setattr('_pass_key', pass_key)
-#         self._setattr('_allow_invalid_attributes', False)
-#
-#     def _configuration(self):
-#         """
-#         The configuration for a AttrDefault instance
-#         """
-#         return self._sequence_type, self._default_factory, self._pass_key
-#
-#     def __getitem__(self, key):
-#         """
-#         Access a value associated with a key.
-#
-#         Note: values returned will not be wrapped, even if recursive
-#         is True.
-#         """
-#         if key in self._mapping:
-#             return self._mapping[key]
-#         elif self._default_factory is not None:
-#             return self.__missing__(key)
-#
-#         raise KeyError(key)
-#
-#     def __setitem__(self, key, value):
-#         """
-#         Add a key-value pair to the instance.
-#         """
-#         self._mapping[key] = value
-#
-#     def __delitem__(self, key):
-#         """
-#         Delete a key-value pair
-#         """
-#         del self._mapping[key]
-#
-#     def __len__(self):
-#         """
-#         Check the length of the mapping.
-#         """
-#         return len(self._mapping)
-#
-#     def __iter__(self):
-#         """
-#         Iterated through the keys.
-#         """
-#         return iter(self._mapping)
-#
-#     def __missing__(self, key):
-#         """
-#         Add a missing element.
-#         """
-#         if self._pass_key:
-#             self[key] = value = self._default_factory(key)
-#         else:
-#             self[key] = value = self._default_factory()
-#
-#         return value
-#
-#     def __repr__(self):
-#         """
-#         Return a string representation of the object.
-#         """
-#         return six.u(
-#             "AttrDefault({default_factory}, {pass_key}, {mapping})"
-#         ).format(
-#             default_factory=repr(self._default_factory),
-#             pass_key=repr(self._pass_key),
-#             mapping=repr(self._mapping),
-#         )
-#
-#     def __getstate__(self):
-#         """
-#         Serialize the object.
-#         """
-#         return (
-#             self._default_factory,
-#             self._mapping,
-#             self._sequence_type,
-#             self._pass_key,
-#             self._allow_invalid_attributes,
-#         )
-#
-#     def __setstate__(self, state):
-#         """
-#         Deserialize the object.
-#         """
-#         (default_factory, mapping, sequence_type, pass_key,
-#          allow_invalid_attributes) = state
-#
-#         self._setattr('_default_factory', default_factory)
-#         self._setattr('_mapping', mapping)
-#         self._setattr('_sequence_type', sequence_type)
-#         self._setattr('_pass_key', pass_key)
-#         self._setattr('_allow_invalid_attributes', allow_invalid_attributes)
-#
-#     @classmethod
-#     def _constructor(cls, mapping, configuration):
-#         """
-#         A standardized constructor.
-#         """
-#         sequence_type, default_factory, pass_key = configuration
-#         return cls(default_factory, mapping, sequence_type=sequence_type,
-#                    pass_key=pass_key)

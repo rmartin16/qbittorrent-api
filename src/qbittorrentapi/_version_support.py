@@ -1,8 +1,12 @@
+from __future__ import annotations
+
 from functools import lru_cache
+from typing import Final
+from typing import Literal
 
-from packaging.version import Version as _Version
+import packaging.version
 
-APP_VERSION_2_API_VERSION_MAP = {
+APP_VERSION_2_API_VERSION_MAP: dict[str, str] = {
     "v4.1.0": "2.0",
     "v4.1.1": "2.0.1",
     "v4.1.2": "2.0.2",
@@ -51,14 +55,14 @@ APP_VERSION_2_API_VERSION_MAP = {
     "v4.5.5": "2.8.19",
 }
 
-MOST_RECENT_SUPPORTED_APP_VERSION = "v4.5.5"
-MOST_RECENT_SUPPORTED_API_VERSION = "2.8.19"
+MOST_RECENT_SUPPORTED_APP_VERSION: Final[Literal["v4.5.5"]] = "v4.5.5"
+MOST_RECENT_SUPPORTED_API_VERSION: Final[Literal["2.8.19"]] = "2.8.19"
 
 
 @lru_cache(maxsize=None)
-def v(version):
+def v(version: str) -> packaging.version.Version:
     """Caching version parser."""
-    return _Version(version)
+    return packaging.version.Version(version)
 
 
 class Version:
@@ -72,25 +76,25 @@ class Version:
     notable exceptions.
     """
 
-    _supported_app_versions = None
-    _supported_api_versions = None
+    _supported_app_versions: set[str] | None = None
+    _supported_api_versions: set[str] | None = None
 
     @classmethod
-    def supported_app_versions(cls):
+    def supported_app_versions(cls) -> set[str]:
         """Set of all supported qBittorrent application versions."""
         if cls._supported_app_versions is None:
             cls._supported_app_versions = set(APP_VERSION_2_API_VERSION_MAP.keys())
         return cls._supported_app_versions
 
     @classmethod
-    def supported_api_versions(cls):
+    def supported_api_versions(cls) -> set[str]:
         """Set of all supported qBittorrent Web API versions."""
         if cls._supported_api_versions is None:
             cls._supported_api_versions = set(APP_VERSION_2_API_VERSION_MAP.values())
         return cls._supported_api_versions
 
     @classmethod
-    def is_app_version_supported(cls, app_version):
+    def is_app_version_supported(cls, app_version: str) -> bool:
         """
         Returns whether a version of the qBittorrent application is fully supported by
         this API client.
@@ -104,7 +108,7 @@ class Version:
         return app_version in cls.supported_app_versions()
 
     @classmethod
-    def is_api_version_supported(cls, api_version):
+    def is_api_version_supported(cls, api_version: str) -> bool:
         """
         Returns whether a version of the qBittorrent Web API is fully supported by this
         API client.
@@ -118,13 +122,11 @@ class Version:
         return api_version in Version.supported_api_versions()
 
     @classmethod
-    def latest_supported_app_version(cls):
-        """Returns the most recent version of qBittorrent application that is fully
-        supported."""
+    def latest_supported_app_version(cls) -> str:
+        """Returns the most recent version of qBittorrent that is supported."""
         return MOST_RECENT_SUPPORTED_APP_VERSION
 
     @classmethod
-    def latest_supported_api_version(cls):
-        """Returns the most recent version of qBittorrent Web API that is fully
-        supported."""
+    def latest_supported_api_version(cls) -> str:
+        """Returns the most recent version of qBittorrent Web API that is supported."""
         return MOST_RECENT_SUPPORTED_API_VERSION

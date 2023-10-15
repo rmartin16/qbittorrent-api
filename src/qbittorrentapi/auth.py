@@ -1,40 +1,25 @@
+from __future__ import annotations
+
+from functools import wraps
+from logging import Logger
 from logging import getLogger
+from types import TracebackType
+from typing import TYPE_CHECKING
+
+from requests import Response
 
 from qbittorrentapi import Version
-from qbittorrentapi.decorators import login_required
+from qbittorrentapi.definitions import APIKwargsT
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.exceptions import LoginFailed
 from qbittorrentapi.exceptions import UnsupportedQbittorrentVersion
 from qbittorrentapi.request import Request
 
-logger = getLogger(__name__)
+if TYPE_CHECKING:
+    from qbittorrentapi.client import Client
 
-
-class Authorization(ClientCache):
-    """
-    Allows interaction with the ``Authorization`` API endpoints.
-
-    :Usage:
-        >>> from qbittorrentapi import Client
-        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
-        >>> is_logged_in = client.auth.is_logged_in
-        >>> client.auth.log_in(username='admin', password='adminadmin')
-        >>> client.auth.log_out()
-    """
-
-    @property
-    def is_logged_in(self):
-        """Implements :meth:`~AuthAPIMixIn.is_logged_in`"""
-        return self._client.is_logged_in
-
-    def log_in(self, username=None, password=None, **kwargs):
-        """Implements :meth:`~AuthAPIMixIn.auth_log_in`"""
-        return self._client.auth_log_in(username=username, password=password, **kwargs)
-
-    def log_out(self, **kwargs):
-        """Implements :meth:`~AuthAPIMixIn.auth_log_out`"""
-        return self._client.auth_log_out(**kwargs)
+logger: Logger = getLogger(__name__)
 
 
 class AuthAPIMixIn(Request):
@@ -43,19 +28,15 @@ class AuthAPIMixIn(Request):
 
     :Usage:
         >>> from qbittorrentapi import Client
-        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> client = Client(host="localhost:8080", username="admin", password="adminadmin")
         >>> _ = client.is_logged_in
-        >>> client.auth_log_in(username='admin', password='adminadmin')
+        >>> client.auth_log_in(username="admin", password="adminadmin")
         >>> client.auth_log_out()
     """
 
     @property
-    def auth(self):
-        """
-        Allows for transparent interaction with Authorization endpoints.
-
-        :return: Auth object
-        """
+    def auth(self) -> Authorization:
+        """Allows for transparent interaction with Authorization endpoints."""
         if self._authorization is None:
             self._authorization = Authorization(client=self)
         return self._authorization
@@ -63,23 +44,33 @@ class AuthAPIMixIn(Request):
     authorization = auth
 
     @property
-    def is_logged_in(self):
+    def is_logged_in(self) -> bool:
         """
         Returns True if low-overhead API call succeeds; False otherwise.
 
         There isn't a reliable way to know if an existing session is still valid without
         attempting to use it. qBittorrent invalidates cookies when they expire.
 
-        :returns: True/False if current authorization cookie is accepted by qBittorrent
+        :returns: ``True``/``False`` if current authorization cookie is accepted by qBittorrent
         """
         try:
-            self._post(_name=APINames.Application, _method="version")
+            # use _request_manager() directly so log in is not attempted
+            self._request_manager(
+                http_method="post",
+                api_namespace=APINames.Application,
+                api_method="version",
+            )
         except Exception:
             return False
         else:
             return True
 
-    def auth_log_in(self, username=None, password=None, **kwargs):
+    def auth_log_in(
+        self,
+        username: str | None = None,
+        password: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         """
         Log in to qBittorrent host.
 
@@ -88,18 +79,20 @@ class AuthAPIMixIn(Request):
 
         :param username: username for qBittorrent client
         :param password: password for qBittorrent client
-        :return: None
         """
         if username:
             self.username = username
             self._password = password or ""
 
+        # trigger a (re-)initialization in case this is a new instance of qBittorrent
         self._initialize_context()
+
         creds = {"username": self.username, "password": self._password}
-        auth_response = self._post(
+        auth_response = self._post_cast(
             _name=APINames.Authorization,
             _method="login",
             data=creds,
+            response_class=Response,
             **kwargs,
         )
 
@@ -110,8 +103,8 @@ class AuthAPIMixIn(Request):
 
         # check if the connected qBittorrent is fully supported by this Client yet
         if self._RAISE_UNSUPPORTEDVERSIONERROR:
-            app_version = self.app_version()
-            api_version = self.app_web_api_version()
+            app_version = self.app_version()  # type: ignore
+            api_version = self.app_web_api_version()  # type: ignore
             if not (
                 Version.is_api_version_supported(api_version)
                 and Version.is_app_version_supported(app_version)
@@ -122,36 +115,67 @@ class AuthAPIMixIn(Request):
                 )
 
     @property
-    def _SID(self):
+    def _SID(self) -> str | None:
         """
         Authorization session cookie from qBittorrent using default cookie name `SID`.
-        Backwards compatible for :meth:`~AuthAPIMixIn._session_cookie`.
 
-        :return: Auth cookie value from qBittorrent or None if one isn't already
-            acquired
+        Backwards compatible for :meth:`~AuthAPIMixIn._session_cookie`.
         """
         return self._session_cookie()
 
-    def _session_cookie(self, cookie_name="SID"):
+    def _session_cookie(self, cookie_name: str = "SID") -> str | None:
         """
         Authorization session cookie from qBittorrent.
 
         :param cookie_name: Name of the authorization cookie; configurable after v4.5.0.
-        :return: Auth cookie value from qBittorrent or None if one isn't already
-            acquired
         """
         if self._http_session:
-            return self._http_session.cookies.get(cookie_name, None)
+            return self._http_session.cookies.get(cookie_name, None)  # type: ignore
         return None
 
-    @login_required
-    def auth_log_out(self, **kwargs):
+    def auth_log_out(self, **kwargs: APIKwargsT) -> None:
         """End session with qBittorrent."""
         self._post(_name=APINames.Authorization, _method="logout", **kwargs)
 
-    def __enter__(self):
+    def __enter__(self) -> Client:
         self.auth_log_in()
-        return self
+        return self  # type: ignore[return-value]
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exctype: type[BaseException] | None,
+        excinst: BaseException | None,
+        exctb: TracebackType | None,
+    ) -> None:
         self.auth_log_out()
+
+
+class Authorization(ClientCache[AuthAPIMixIn]):
+    """
+    Allows interaction with the ``Authorization`` API endpoints.
+
+    :Usage:
+        >>> from qbittorrentapi import Client
+        >>> client = Client(host="localhost:8080", username="admin", password="adminadmin")
+        >>> is_logged_in = client.auth.is_logged_in
+        >>> client.auth.log_in(username="admin", password="adminadmin")
+        >>> client.auth.log_out()
+    """
+
+    @property
+    @wraps(AuthAPIMixIn.is_logged_in)
+    def is_logged_in(self) -> bool:
+        return self._client.is_logged_in
+
+    @wraps(AuthAPIMixIn.auth_log_in)
+    def log_in(
+        self,
+        username: str | None = None,
+        password: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        return self._client.auth_log_in(username=username, password=password, **kwargs)
+
+    @wraps(AuthAPIMixIn.auth_log_out)
+    def log_out(self, **kwargs: APIKwargsT) -> None:
+        return self._client.auth_log_out(**kwargs)

@@ -32,21 +32,44 @@ version = release = "v" + setup_cfg["metadata"]["version"]
 
 
 # -- General configuration ---------------------------------------------------
-pygments_style = "sphinx"
-
-# warn about everything
-nitpicky = True
-
-# Add any Sphinx extension module names here, as strings. They can be
-# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
-# ones.
+# Add any Sphinx extension module names here, as strings. They can be extensions coming
+# with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     "sphinx.ext.todo",
     "sphinx.ext.githubpages",
     "sphinx.ext.autodoc",
+    "sphinx_autodoc_typehints",
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
 ]
+
+pygments_style = "sphinx"
+
+# warn about everything
+nitpicky = True
+nitpick_ignore = [
+    ("py:class", "JsonValueT"),
+    ("py:class", "ListInputT"),
+    ("py:class", "Response"),
+    ("py:class", "Request"),
+    ("py:class", "qbittorrentapi.request.ResponseT"),
+    ("py:class", "qbittorrentapi.request.T"),
+    ("py:class", "qbittorrentapi.torrents.TorrentFilesT"),
+    ("py:obj", "qbittorrentapi._attrdict.K"),
+    ("py:obj", "qbittorrentapi._attrdict.V"),
+    ("py:obj", "qbittorrentapi.definitions.K"),
+    ("py:obj", "qbittorrentapi.definitions.V"),
+]
+
+autodoc_type_aliases = {"JsonValueT": "qbittorrentapi.definitions.JsonValueT"}
+add_module_names = False
+autodoc_typehints_format = "short"
+python_use_unqualified_type_names = True
+python_use_unqualified_names = True
+typehints_fully_qualified = False
+typehints_use_signature = False
+typehints_use_signature_return = True
+typehints_document_rtype = True
 
 source_suffix = ".rst"
 
@@ -79,13 +102,6 @@ linkcheck_anchors_ignore = ["L73", "L42"]
 # html_static_path = ["_static"]
 
 html_theme = "furo"
-
-# sphinx-autoapi
-# extensions.append('autoapi.extension')
-# autoapi_type = 'python'
-# autoapi_dirs = ['../../qbittorrentapi']
-# autoapi_options = ['show-inheritance-diagram']
-# autoapi_ignore = ['*decorators*', '*exceptions*']
 
 # Add mappings
 intersphinx_mapping = {

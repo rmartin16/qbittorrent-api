@@ -1,40 +1,1650 @@
+from __future__ import annotations
+
 import errno
-from collections.abc import Iterable
-from collections.abc import Mapping
+from functools import wraps
+from logging import Logger
 from logging import getLogger
 from os import path
 from os import strerror as os_strerror
+from typing import IO
+from typing import Any
+from typing import Callable
+from typing import Iterable
+from typing import Literal
+from typing import Mapping
+from typing import MutableMapping
+from typing import TypeVar
+from typing import Union
+from typing import cast
 
 from qbittorrentapi._version_support import v
 from qbittorrentapi.app import AppAPIMixIn
-from qbittorrentapi.decorators import alias
-from qbittorrentapi.decorators import aliased
-from qbittorrentapi.decorators import check_for_raise
-from qbittorrentapi.decorators import endpoint_introduced
-from qbittorrentapi.decorators import handle_hashes
-from qbittorrentapi.decorators import login_required
+from qbittorrentapi.definitions import APIKwargsT
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.definitions import ClientCache
 from qbittorrentapi.definitions import Dictionary
+from qbittorrentapi.definitions import FilesToSendT
+from qbittorrentapi.definitions import JsonValueT
 from qbittorrentapi.definitions import List
 from qbittorrentapi.definitions import ListEntry
+from qbittorrentapi.definitions import ListInputT
 from qbittorrentapi.definitions import TorrentState
 from qbittorrentapi.exceptions import TorrentFileError
 from qbittorrentapi.exceptions import TorrentFileNotFoundError
 from qbittorrentapi.exceptions import TorrentFilePermissionError
 
-logger = getLogger(__name__)
+#: Type for Torrent Status.
+TorrentStatusesT = Literal[
+    "all",
+    "downloading",
+    "seeding",
+    "completed",
+    "paused",
+    "active",
+    "inactive",
+    "resumed",
+    "stalled",
+    "stalled_uploading",
+    "stalled_downloading",
+    "checking",
+    "moving",
+    "errored",
+]
+
+#: Type for input of files to API method.
+TorrentFilesT = TypeVar(
+    "TorrentFilesT",
+    bytes,
+    str,
+    IO[bytes],
+    Mapping[str, Union[bytes, str, IO[bytes]]],
+    Iterable[Union[bytes, str, IO[bytes]]],
+)
+
+logger: Logger = getLogger(__name__)
 
 
-@aliased
-class TorrentDictionary(Dictionary):
+class TorrentPropertiesDictionary(Dictionary[JsonValueT]):
+    """
+    Response to :meth:`~TorrentsAPIMixIn.torrents_properties`
+
+    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-generic-properties>`_
+    """  # noqa: E501
+
+
+class TorrentLimitsDictionary(Dictionary[JsonValueT]):
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_download_limit`"""
+
+
+class TorrentCategoriesDictionary(Dictionary[JsonValueT]):
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_categories`"""
+
+
+class TorrentsAddPeersDictionary(Dictionary[JsonValueT]):
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_add_peers`"""
+
+
+class TorrentFile(ListEntry):
+    """Item in :class:`TorrentFilesList`"""
+
+
+class TorrentFilesList(List[TorrentFile]):
+    """
+    Response to :meth:`~TorrentsAPIMixIn.torrents_files`
+
+    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-contents>`_
+    """  # noqa: E501
+
+    def __init__(
+        self,
+        list_entries: ListInputT,
+        client: TorrentsAPIMixIn | None = None,
+    ):
+        super().__init__(list_entries, entry_class=TorrentFile, client=client)
+        # until v4.3.5, the index key wasn't returned...default it to ID for older versions.
+        # when index is returned, maintain backwards compatibility and populate id with index value.
+        for i, entry in enumerate(self):
+            entry.update({"id": entry.setdefault("index", i)})
+
+
+class WebSeed(ListEntry):
+    """Item in :class:`WebSeedsList`"""
+
+
+class WebSeedsList(List[WebSeed]):
+    """
+    Response to :meth:`~TorrentsAPIMixIn.torrents_webseeds`
+
+    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-web-seeds>`_
+    """  # noqa: E501
+
+    def __init__(
+        self,
+        list_entries: ListInputT,
+        client: TorrentsAPIMixIn | None = None,
+    ):
+        super().__init__(list_entries, entry_class=WebSeed, client=client)
+
+
+class Tracker(ListEntry):
+    """Item in :class:`TrackersList`"""
+
+
+class TrackersList(List[Tracker]):
+    """
+    Response to :meth:`~TorrentsAPIMixIn.torrents_trackers`
+
+    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-trackers>`_
+    """  # noqa: E501
+
+    def __init__(
+        self,
+        list_entries: ListInputT,
+        client: TorrentsAPIMixIn | None = None,
+    ):
+        super().__init__(list_entries, entry_class=Tracker, client=client)
+
+
+class TorrentInfoList(List["TorrentDictionary"]):
+    """
+    Response to :meth:`~TorrentsAPIMixIn.torrents_info`
+
+    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-list>`_
+    """  # noqa: E501
+
+    def __init__(
+        self,
+        list_entries: ListInputT,
+        client: TorrentsAPIMixIn | None = None,
+    ):
+        super().__init__(list_entries, entry_class=TorrentDictionary, client=client)
+
+
+class TorrentPieceData(ListEntry):
+    """Item in :class:`TorrentPieceInfoList`"""
+
+
+class TorrentPieceInfoList(List[TorrentPieceData]):
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_piece_states` and
+    :meth:`~TorrentsAPIMixIn.torrents_piece_hashes`"""
+
+    def __init__(
+        self,
+        list_entries: ListInputT,
+        client: TorrentsAPIMixIn | None = None,
+    ):
+        super().__init__(list_entries, entry_class=TorrentPieceData, client=client)
+
+
+class Tag(ListEntry):
+    """Item in :class:`TagList`"""
+
+
+class TagList(List[Tag]):
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_tags`"""
+
+    def __init__(
+        self,
+        list_entries: ListInputT,
+        client: TorrentsAPIMixIn | None = None,
+    ):
+        super().__init__(list_entries, entry_class=Tag, client=client)
+
+
+class TorrentsAPIMixIn(AppAPIMixIn):
+    """
+    Implementation of all Torrents API methods.
+
+    :Usage:
+        >>> from qbittorrentapi import Client
+        >>> client = Client(host="localhost:8080", username="admin", password="adminadmin")
+        >>> client.torrents_add(urls="...")
+        >>> client.torrents_reannounce()
+    """
+
+    @property
+    def torrents(self) -> Torrents:
+        """
+        Allows for transparent interaction with Torrents endpoints.
+
+        See Torrents and Torrent class for usage.
+        """
+        if self._torrents is None:
+            self._torrents = Torrents(client=self)
+        return self._torrents
+
+    @property
+    def torrent_categories(self) -> TorrentCategories:
+        """
+        Allows for transparent interaction with Torrent Categories endpoints.
+
+        See Torrent_Categories class for usage.
+        """
+        if self._torrent_categories is None:
+            self._torrent_categories = TorrentCategories(client=self)
+        return self._torrent_categories
+
+    @property
+    def torrent_tags(self) -> TorrentTags:
+        """
+        Allows for transparent interaction with Torrent Tags endpoints.
+
+        See Torrent_Tags class for usage.
+        """
+        if self._torrent_tags is None:
+            self._torrent_tags = TorrentTags(client=self)
+        return self._torrent_tags
+
+    def torrents_add(
+        self,
+        urls: Iterable[str] | None = None,
+        torrent_files: TorrentFilesT | None = None,
+        save_path: str | None = None,
+        cookie: str | None = None,
+        category: str | None = None,
+        is_skip_checking: bool | None = None,
+        is_paused: bool | None = None,
+        is_root_folder: bool | None = None,
+        rename: str | None = None,
+        upload_limit: str | int | None = None,
+        download_limit: str | int | None = None,
+        use_auto_torrent_management: bool | None = None,
+        is_sequential_download: bool | None = None,
+        is_first_last_piece_priority: bool | None = None,
+        tags: Iterable[str] | None = None,
+        content_layout: Literal["Original", "Subfolder", "NoSubFolder"] | None = None,
+        ratio_limit: str | float | None = None,
+        seeding_time_limit: str | int | None = None,
+        download_path: str | None = None,
+        use_download_path: bool | None = None,
+        stop_condition: Literal["MetadataReceived", "FilesChecked"] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> str:
+        """
+        Add one or more torrents by URLs and/or torrent files.
+
+        Returns ``Ok.`` for success and ``Fails.`` for failure.
+
+        :raises UnsupportedMediaType415Error: if file is not a valid torrent file
+        :raises TorrentFileNotFoundError: if a torrent file doesn't exist
+        :raises TorrentFilePermissionError: if read permission is denied to torrent file
+
+        :param urls: single instance or an iterable of URLs (``http://``, ``https://``, ``magnet:``, ``bc://bt/``)
+        :param torrent_files: several options are available to send torrent files to qBittorrent:
+
+            * single instance of bytes: useful if torrent file already read from disk or downloaded from internet.
+            * single instance of file handle to torrent file: use ``open(<filepath>, 'rb')`` to open the torrent file.
+            * single instance of a filepath to torrent file: e.g. ``/home/user/torrent_filename.torrent``
+            * an iterable of the single instances above to send more than one torrent file
+            * dictionary with key/value pairs of torrent name and single instance of above object
+
+            Note: The torrent name in a dictionary is useful to identify which torrent file
+            errored. qBittorrent provides back that name in the error text. If a torrent
+            name is not provided, then the name of the file will be used. And in the case of
+            bytes (or if filename cannot be determined), the value 'torrent__n' will be used.
+        :param save_path: location to save the torrent data
+        :param cookie: cookie to retrieve torrents by URL
+        :param category: category to assign to torrent(s)
+        :param is_skip_checking: ``True`` to skip hash checking
+        :param is_paused: ``True`` to add the torrent(s) without starting their downloading
+        :param is_root_folder: ``True`` or ``False`` to create root folder (superseded by content_layout with v4.3.2)
+        :param rename: new name for torrent(s)
+        :param upload_limit: upload limit in bytes/second
+        :param download_limit: download limit in bytes/second
+        :param use_auto_torrent_management: ``True`` or ``False`` to use automatic torrent management
+        :param is_sequential_download: ``True`` or ``False`` for sequential download
+        :param is_first_last_piece_priority: ``True`` or ``False`` for first and last piece download priority
+        :param tags: tag(s) to assign to torrent(s) (added in Web API 2.6.2)
+        :param content_layout: ``Original``, ``Subfolder``, or ``NoSubfolder`` to control filesystem structure for content (added in Web API 2.7)
+        :param ratio_limit: share limit as ratio of upload amt over download amt; e.g. 0.5 or 2.0 (added in Web API 2.8.1)
+        :param seeding_time_limit: number of minutes to seed torrent (added in Web API 2.8.1)
+        :param download_path: location to download torrent content before moving to ``save_path`` (added in Web API 2.8.4)
+        :param use_download_path: ``True`` or ``False`` whether ``download_path`` should be used...defaults to ``True`` if ``download_path`` is specified (added in Web API 2.8.4)
+        :param stop_condition: ``MetadataReceived`` or ``FilesChecked`` to stop the torrent when started automatically (added in Web API 2.8.15)
+        """  # noqa: E501
+
+        # convert pre-v2.7 params to post-v2.7 params...or post-v2.7 to pre-v2.7
+        api_version = self.app_web_api_version()
+        if (
+            content_layout is None
+            and is_root_folder is not None
+            and v(api_version) >= v("2.7")
+        ):
+            content_layout = "Original" if is_root_folder else "NoSubfolder"  # type: ignore[assignment]
+            is_root_folder = None
+        elif (
+            content_layout is not None
+            and is_root_folder is None
+            and v(api_version) < v("2.7")
+        ):
+            is_root_folder = content_layout in {"Subfolder", "Original"}
+            content_layout = None
+
+        # default to actually using the specified download path
+        if use_download_path is None and download_path is not None:
+            use_download_path = True
+
+        data = {
+            "urls": (None, self._list2string(urls, "\n")),
+            "savepath": (None, save_path),
+            "cookie": (None, cookie),
+            "category": (None, category),
+            "tags": (None, self._list2string(tags, ",")),
+            "skip_checking": (None, is_skip_checking),
+            "paused": (None, is_paused),
+            "root_folder": (None, is_root_folder),
+            "contentLayout": (None, content_layout),
+            "rename": (None, rename),
+            "upLimit": (None, upload_limit),
+            "dlLimit": (None, download_limit),
+            "ratioLimit": (None, ratio_limit),
+            "seedingTimeLimit": (None, seeding_time_limit),
+            "autoTMM": (None, use_auto_torrent_management),
+            "sequentialDownload": (None, is_sequential_download),
+            "firstLastPiecePrio": (None, is_first_last_piece_priority),
+            "downloadPath": (None, download_path),
+            "useDownloadPath": (None, use_download_path),
+            "stopCondition": (None, stop_condition),
+        }
+
+        return self._post_cast(
+            _name=APINames.Torrents,
+            _method="add",
+            data=data,
+            files=self._normalize_torrent_files(torrent_files),
+            response_class=str,
+            **kwargs,
+        )
+
+    @staticmethod
+    def _normalize_torrent_files(
+        user_files: TorrentFilesT | None,
+    ) -> FilesToSendT | None:
+        """
+        Normalize the torrent file(s) from the user.
+
+        The file(s) can be the raw bytes, file handle, filepath for a
+        torrent file, or an iterable (e.g. list|set|tuple) of any of
+        these "files". Further, the file(s) can be in a dictionary with
+        the "names" of the torrents as the keys. These "names" can be
+        anything...but are mostly useful as identifiers for each file.
+        """
+        if not user_files:
+            return None
+
+        prefix = "torrent__"
+        # if it's string-like and not a list|set|tuple, then make it a list
+        # checking for 'read' attr since a single file handle is iterable but also needs to be in a list
+        is_string_like = isinstance(user_files, (bytes, str))
+        is_file_like = hasattr(user_files, "read")
+        if is_string_like or is_file_like or not isinstance(user_files, Iterable):
+            user_files = [user_files]  # type: ignore
+
+        # up convert to a dictionary to add fabricated torrent names
+        norm_files = (
+            user_files
+            if isinstance(user_files, Mapping)
+            else {f"{prefix}{i}": f for i, f in enumerate(user_files)}
+        )
+
+        files = {}
+        for name, torrent_file in norm_files.items():
+            try:
+                if isinstance(torrent_file, (bytes, bytearray)):
+                    # if bytes, assume it's a torrent file that was downloaded or read from disk
+                    torrent_bytes = torrent_file
+                elif hasattr(torrent_file, "read"):
+                    # if hasattr('read'), assume this is a file handle from open() or similar
+                    torrent_bytes = torrent_file.read()
+                else:
+                    # otherwise, coerce to a string and try to open it as a file
+                    filepath = path.abspath(
+                        path.realpath(path.expanduser(str(torrent_file)))
+                    )
+                    name = path.basename(filepath)
+                    with open(filepath, "rb") as file:
+                        torrent_bytes = file.read()
+
+                # if using default name, let Requests try to figure out the filename to send
+                # Requests will fall back to "name" as the dict key if fh doesn't provide a file name
+                files[name] = (
+                    torrent_bytes if name.startswith(prefix) else (name, torrent_bytes)
+                )
+            except OSError as io_err:
+                if io_err.errno == errno.ENOENT:
+                    raise TorrentFileNotFoundError(
+                        errno.ENOENT, os_strerror(errno.ENOENT), torrent_file
+                    )
+                if io_err.errno == errno.EACCES:
+                    raise TorrentFilePermissionError(
+                        errno.ENOENT, os_strerror(errno.EACCES), torrent_file
+                    )
+                raise TorrentFileError(io_err)
+        return files
+
+    ##########################################################################
+    # INDIVIDUAL TORRENT ENDPOINTS
+    ##########################################################################
+    def torrents_properties(
+        self,
+        torrent_hash: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentPropertiesDictionary:
+        """
+        Retrieve individual torrent's properties.
+
+        :raises NotFound404Error:
+
+        :param torrent_hash: hash for torrent
+        """
+        data = {"hash": torrent_hash}
+        return self._post_cast(
+            _name=APINames.Torrents,
+            _method="properties",
+            data=data,
+            response_class=TorrentPropertiesDictionary,
+            **kwargs,
+        )
+
+    def torrents_trackers(
+        self,
+        torrent_hash: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TrackersList:
+        """
+        Retrieve individual torrent's trackers. Tracker status is defined in
+        :class:`~qbittorrentapi.definitions.TrackerStatus`.
+
+        :raises NotFound404Error:
+
+        :param torrent_hash: hash for torrent
+        """
+        data = {"hash": torrent_hash}
+        return self._post_cast(
+            _name=APINames.Torrents,
+            _method="trackers",
+            data=data,
+            response_class=TrackersList,
+            **kwargs,
+        )
+
+    def torrents_webseeds(
+        self,
+        torrent_hash: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> WebSeedsList:
+        """
+        Retrieve individual torrent's web seeds.
+
+        :raises NotFound404Error:
+
+        :param torrent_hash: hash for torrent
+        """
+        data = {"hash": torrent_hash}
+        return self._post_cast(
+            _name=APINames.Torrents,
+            _method="webseeds",
+            data=data,
+            response_class=WebSeedsList,
+            **kwargs,
+        )
+
+    def torrents_files(
+        self,
+        torrent_hash: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentFilesList:
+        """
+        Retrieve individual torrent's files.
+
+        :raises NotFound404Error:
+
+        :param torrent_hash: hash for torrent
+        """
+        data = {"hash": torrent_hash}
+        return self._post_cast(
+            _name=APINames.Torrents,
+            _method="files",
+            data=data,
+            response_class=TorrentFilesList,
+            **kwargs,
+        )
+
+    def torrents_piece_states(
+        self,
+        torrent_hash: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentPieceInfoList:
+        """
+        Retrieve individual torrent's pieces' states.
+
+        :raises NotFound404Error:
+
+        :param torrent_hash: hash for torrent
+        """
+        data = {"hash": torrent_hash}
+        return self._post_cast(
+            _name=APINames.Torrents,
+            _method="pieceStates",
+            data=data,
+            response_class=TorrentPieceInfoList,
+            **kwargs,
+        )
+
+    torrents_pieceStates = torrents_piece_states
+
+    def torrents_piece_hashes(
+        self,
+        torrent_hash: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentPieceInfoList:
+        """
+        Retrieve individual torrent's pieces' hashes.
+
+        :raises NotFound404Error:
+
+        :param torrent_hash: hash for torrent
+        """
+        data = {"hash": torrent_hash}
+        return self._post_cast(
+            _name=APINames.Torrents,
+            _method="pieceHashes",
+            data=data,
+            response_class=TorrentPieceInfoList,
+            **kwargs,
+        )
+
+    torrents_pieceHashes = torrents_piece_hashes
+
+    def torrents_add_trackers(
+        self,
+        torrent_hash: str | None = None,
+        urls: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Add trackers to a torrent.
+
+        :raises NotFound404Error:
+        :param torrent_hash: hash for torrent
+        :param urls: tracker URLs to add to torrent
+        """
+        data = {
+            "hash": torrent_hash,
+            "urls": self._list2string(urls, "\n"),
+        }
+        self._post(_name=APINames.Torrents, _method="addTrackers", data=data, **kwargs)
+
+    torrents_addTrackers = torrents_add_trackers
+
+    def torrents_edit_tracker(
+        self,
+        torrent_hash: str | None = None,
+        original_url: str | None = None,
+        new_url: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Replace a torrent's tracker with a different one.
+
+        This method was introduced with qBittorrent v4.1.4 (Web API v2.2.0).
+
+        :raises InvalidRequest400Error:
+        :raises NotFound404Error:
+        :raises Conflict409Error:
+        :param torrent_hash: hash for torrent
+        :param original_url: URL for existing tracker
+        :param new_url: new URL to replace
+        """
+        data = {
+            "hash": torrent_hash,
+            "origUrl": original_url,
+            "newUrl": new_url,
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="editTracker",
+            data=data,
+            version_introduced="2.2.0",
+            **kwargs,
+        )
+
+    torrents_editTracker = torrents_edit_tracker
+
+    def torrents_remove_trackers(
+        self,
+        torrent_hash: str | None = None,
+        urls: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Remove trackers from a torrent.
+
+        This method was introduced with qBittorrent v4.1.4 (Web API v2.2.0).
+
+        :raises NotFound404Error:
+        :raises Conflict409Error:
+        :param torrent_hash: hash for torrent
+        :param urls: tracker URLs to removed from torrent
+        """
+        data = {
+            "hash": torrent_hash,
+            "urls": self._list2string(urls, "|"),
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="removeTrackers",
+            data=data,
+            version_introduced="2.2.0",
+            **kwargs,
+        )
+
+    torrents_removeTrackers = torrents_remove_trackers
+
+    def torrents_file_priority(
+        self,
+        torrent_hash: str | None = None,
+        file_ids: int | Iterable[str | int] | None = None,
+        priority: str | int | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Set priority for one or more files.
+
+        :raises InvalidRequest400Error: if priority is invalid or at least one file ID is not an integer
+        :raises NotFound404Error:
+        :raises Conflict409Error: if torrent metadata has not finished downloading or at least one file was not found
+        :param torrent_hash: hash for torrent
+        :param file_ids: single file ID or a list.
+        :param priority: priority for file(s) - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-set-file-priority>`_
+        """  # noqa: E501
+        data = {
+            "hash": torrent_hash,
+            "id": self._list2string(file_ids, "|"),
+            "priority": priority,
+        }
+        self._post(_name=APINames.Torrents, _method="filePrio", data=data, **kwargs)
+
+    torrents_filePrio = torrents_file_priority
+
+    def torrents_rename(
+        self,
+        torrent_hash: str | None = None,
+        new_torrent_name: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Rename a torrent.
+
+        :raises NotFound404Error:
+        :param torrent_hash: hash for torrent
+        :param new_torrent_name: new name for torrent
+        """
+        data = {"hash": torrent_hash, "name": new_torrent_name}
+        self._post(_name=APINames.Torrents, _method="rename", data=data, **kwargs)
+
+    def torrents_rename_file(
+        self,
+        torrent_hash: str | None = None,
+        file_id: str | int | None = None,
+        new_file_name: str | None = None,
+        old_path: str | None = None,
+        new_path: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Rename a torrent file.
+
+        This method was introduced with qBittorrent v4.2.1 (Web API v2.4.0).
+
+        :raises MissingRequiredParameters400Error:
+        :raises NotFound404Error:
+        :raises Conflict409Error:
+        :param torrent_hash: hash for torrent
+        :param file_id: id for file (removed in Web API 2.7)
+        :param new_file_name: new name for file (removed in Web API 2.7)
+        :param old_path: path of file to rename (added in Web API 2.7)
+        :param new_path: new path of file to rename (added in Web API 2.7)
+        """
+        # convert pre-v2.7 params to post-v2.7...or post-v2.7 to pre-v2.7
+        # HACK: v4.3.2 and v4.3.3 both use Web API 2.7 but old/new_path were introduced in v4.3.3
+        if (
+            old_path is None
+            and new_path is None
+            and file_id is not None
+            and v(self.app_version()) >= v("v4.3.3")
+        ):
+            try:
+                old_path = self.torrents_files(torrent_hash=torrent_hash)[file_id].name  # type: ignore[index]
+            except (IndexError, AttributeError, TypeError):
+                logger.debug(
+                    "ERROR: File ID '%s' isn't valid...'oldPath' cannot be determined.",
+                    file_id,
+                )
+                old_path = ""
+            new_path = new_file_name or ""
+        elif (
+            old_path is not None
+            and new_path is not None
+            and file_id is None
+            and v(self.app_version()) < v("v4.3.3")
+        ):
+            # previous only allowed renaming the file...not also moving it
+            new_file_name = new_path.split("/")[-1]
+            for file in self.torrents_files(torrent_hash=torrent_hash):
+                if file.name == old_path:
+                    file_id = file.id
+                    break
+            else:
+                logger.debug(
+                    "ERROR: old_path '%s' isn't valid...'file_id' cannot be determined.",
+                    old_path,
+                )
+                file_id = ""
+
+        data = {
+            "hash": torrent_hash,
+            "id": file_id,
+            "name": new_file_name,
+            "oldPath": old_path,
+            "newPath": new_path,
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="renameFile",
+            data=data,
+            version_introduced="2.4.0",
+            **kwargs,
+        )
+
+    torrents_renameFile = torrents_rename_file
+
+    def torrents_rename_folder(
+        self,
+        torrent_hash: str | None = None,
+        old_path: str | None = None,
+        new_path: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Rename a torrent folder.
+
+        This method was introduced with qBittorrent v4.3.2 (Web API v2.7).
+
+        :raises MissingRequiredParameters400Error:
+        :raises NotFound404Error:
+        :raises Conflict409Error:
+        :param torrent_hash: hash for torrent
+        :param old_path: path of file to rename (added in Web API 2.7)
+        :param new_path: new path of file to rename (added in Web API 2.7)
+        """
+        # HACK: v4.3.2 and v4.3.3 both use Web API 2.7 but rename_folder was introduced in v4.3.3
+        if v(self.app_version()) >= v("v4.3.3"):
+            data = {
+                "hash": torrent_hash,
+                "oldPath": old_path,
+                "newPath": new_path,
+            }
+            self._post(
+                _name=APINames.Torrents,
+                _method="renameFolder",
+                data=data,
+                version_introduced="2.7",
+                **kwargs,
+            )
+        else:
+            # only get here on v4.3.2...so hack in raising exception
+            if self._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS:
+                raise NotImplementedError(
+                    "ERROR: Endpoint 'torrents/renameFolder' is Not Implemented in this version of qBittorrent. "
+                    "This endpoint is available starting in Web API 2.7."
+                )
+
+    torrents_renameFolder = torrents_rename_folder
+
+    def torrents_export(
+        self,
+        torrent_hash: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> bytes:
+        """
+        Export a .torrent file for the torrent.
+
+        This method was introduced with qBittorrent v4.5.0 (Web API v2.8.14).
+
+        :raises NotFound404Error: torrent not found
+        :raises Conflict409Error: unable to export .torrent file
+        :param torrent_hash: hash for torrent
+        """
+        data = {"hash": torrent_hash}
+        return self._post_cast(
+            _name=APINames.Torrents,
+            _method="export",
+            data=data,
+            response_class=bytes,
+            version_introduced="2.8.14",
+            **kwargs,
+        )
+
+    ##########################################################################
+    # MULTIPLE TORRENT ENDPOINTS
+    ##########################################################################
+    def torrents_info(
+        self,
+        status_filter: TorrentStatusesT | None = None,
+        category: str | None = None,
+        sort: str | None = None,
+        reverse: bool | None = None,
+        limit: str | int | None = None,
+        offset: str | int | None = None,
+        torrent_hashes: Iterable[str] | None = None,
+        tag: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentInfoList:
+        """
+        Retrieves list of info for torrents.
+
+        :param status_filter: Filter list by torrent status.
+            ``all``, ``downloading``, ``seeding``, ``completed``, ``paused``
+            ``active``, ``inactive``, ``resumed``, ``errored``
+            Added in Web API 2.4.1:
+            ``stalled``, ``stalled_uploading``, and ``stalled_downloading``
+            Added in Web API 2.8.4:
+            ``checking``
+            Added in Web API 2.8.18:
+            ``moving``
+        :param category: Filter list by category
+        :param sort: Sort list by any property returned
+        :param reverse: Reverse sorting
+        :param limit: Limit length of list
+        :param offset: Start of list (if < 0, offset from end of list)
+        :param torrent_hashes: Filter list by hash (separate multiple hashes with a '|') (added in Web API 2.0.1)
+        :param tag: Filter list by tag (empty string means "untagged"; no "tag" parameter means "any tag"; added in Web API 2.8.3)
+        """  # noqa: E501
+        data = {
+            "filter": status_filter,
+            "category": category,
+            "sort": sort,
+            "reverse": reverse,
+            "limit": limit,
+            "offset": offset,
+            "hashes": self._list2string(torrent_hashes, "|"),
+            "tag": tag,
+        }
+        return self._post_cast(
+            _name=APINames.Torrents,
+            _method="info",
+            data=data,
+            response_class=TorrentInfoList,
+            **kwargs,
+        )
+
+    def torrents_resume(
+        self,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Resume one or more torrents in qBittorrent.
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        """
+        data = {"hashes": self._list2string(torrent_hashes, "|")}
+        self._post(_name=APINames.Torrents, _method="resume", data=data, **kwargs)
+
+    def torrents_pause(
+        self,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Pause one or more torrents in qBittorrent.
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        """
+        data = {"hashes": self._list2string(torrent_hashes, "|")}
+        self._post(_name=APINames.Torrents, _method="pause", data=data, **kwargs)
+
+    def torrents_delete(
+        self,
+        delete_files: bool | None = False,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Remove a torrent from qBittorrent and optionally delete its files.
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param delete_files: True to delete the torrent's files
+        """
+        data = {
+            "hashes": self._list2string(torrent_hashes, "|"),
+            "deleteFiles": bool(delete_files),
+        }
+        self._post(_name=APINames.Torrents, _method="delete", data=data, **kwargs)
+
+    def torrents_recheck(
+        self,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Recheck a torrent in qBittorrent.
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        """
+        data = {"hashes": self._list2string(torrent_hashes, "|")}
+        self._post(_name=APINames.Torrents, _method="recheck", data=data, **kwargs)
+
+    def torrents_reannounce(
+        self,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Reannounce a torrent.
+
+        This method was introduced with qBittorrent v4.1.2 (Web API v2.0.2).
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        """
+        data = {"hashes": self._list2string(torrent_hashes, "|")}
+        self._post(
+            _name=APINames.Torrents,
+            _method="reannounce",
+            data=data,
+            version_introduced="2.0.2",
+            **kwargs,
+        )
+
+    def torrents_increase_priority(
+        self,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Increase the priority of a torrent. Torrent Queuing must be enabled.
+
+        :raises Conflict409Error:
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        """
+        data = {"hashes": self._list2string(torrent_hashes, "|")}
+        self._post(_name=APINames.Torrents, _method="increasePrio", data=data, **kwargs)
+
+    torrents_increasePrio = torrents_increase_priority
+
+    def torrents_decrease_priority(
+        self,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Decrease the priority of a torrent. Torrent Queuing must be enabled.
+
+        :raises Conflict409Error:
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        """
+        data = {"hashes": self._list2string(torrent_hashes, "|")}
+        self._post(_name=APINames.Torrents, _method="decreasePrio", data=data, **kwargs)
+
+    torrents_decreasePrio = torrents_decrease_priority
+
+    def torrents_top_priority(
+        self,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Set torrent as highest priority. Torrent Queuing must be enabled.
+
+        :raises Conflict409Error:
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        """
+        data = {"hashes": self._list2string(torrent_hashes, "|")}
+        self._post(_name=APINames.Torrents, _method="topPrio", data=data, **kwargs)
+
+    torrents_topPrio = torrents_top_priority
+
+    def torrents_bottom_priority(
+        self,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Set torrent as lowest priority. Torrent Queuing must be enabled.
+
+        :raises Conflict409Error:
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        """
+        data = {"hashes": self._list2string(torrent_hashes, "|")}
+        self._post(_name=APINames.Torrents, _method="bottomPrio", data=data, **kwargs)
+
+    torrents_bottomPrio = torrents_bottom_priority
+
+    def torrents_download_limit(
+        self,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentLimitsDictionary:
+        """Retrieve the download limit for one or more torrents."""
+        data = {"hashes": self._list2string(torrent_hashes, "|")}
+        return self._post_cast(
+            _name=APINames.Torrents,
+            _method="downloadLimit",
+            data=data,
+            response_class=TorrentLimitsDictionary,
+            **kwargs,
+        )
+
+    torrents_downloadLimit = torrents_download_limit
+
+    def torrents_set_download_limit(
+        self,
+        limit: str | int | None = None,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Set the download limit for one or more torrents.
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param limit: bytes/second (-1 sets the limit to infinity)
+        """
+        data = {
+            "hashes": self._list2string(torrent_hashes, "|"),
+            "limit": limit,
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="setDownloadLimit",
+            data=data,
+            **kwargs,
+        )
+
+    torrents_setDownloadLimit = torrents_set_download_limit
+
+    def torrents_set_share_limits(
+        self,
+        ratio_limit: str | int | None = None,
+        seeding_time_limit: str | int | None = None,
+        inactive_seeding_time_limit: str | int | None = None,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Set share limits for one or more torrents.
+
+        This method was introduced with qBittorrent v4.1.1 (Web API v2.0.1).
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param ratio_limit: max ratio to seed a torrent. (-2 means use the global value and -1 is no limit)
+        :param seeding_time_limit: minutes (-2 means use the global value and -1 is no limit)
+        :param inactive_seeding_time_limit: minutes (-2 means use the global value and -1 is no limit)
+            (added in Web API v2.9.2)
+        """
+        data = {
+            "hashes": self._list2string(torrent_hashes, "|"),
+            "ratioLimit": ratio_limit,
+            "seedingTimeLimit": seeding_time_limit,
+            "inactiveSeedingTimeLimit": inactive_seeding_time_limit,
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="setShareLimits",
+            data=data,
+            version_introduced="2.0.1",
+            **kwargs,
+        )
+
+    torrents_setShareLimits = torrents_set_share_limits
+
+    def torrents_upload_limit(
+        self,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentLimitsDictionary:
+        """
+        Retrieve the upload limit for one or more torrents.
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        """
+        data = {"hashes": self._list2string(torrent_hashes, "|")}
+        return self._post_cast(
+            _name=APINames.Torrents,
+            _method="uploadLimit",
+            data=data,
+            response_class=TorrentLimitsDictionary,
+            **kwargs,
+        )
+
+    torrents_uploadLimit = torrents_upload_limit
+
+    def torrents_set_upload_limit(
+        self,
+        limit: str | int | None = None,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Set the upload limit for one or more torrents.
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param limit: bytes/second (-1 sets the limit to infinity)
+        """
+        data = {
+            "hashes": self._list2string(torrent_hashes, "|"),
+            "limit": limit,
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="setUploadLimit",
+            data=data,
+            **kwargs,
+        )
+
+    torrents_setUploadLimit = torrents_set_upload_limit
+
+    def torrents_set_location(
+        self,
+        location: str | None = None,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Set location for torrents' files.
+
+        :raises Forbidden403Error: if the user doesn't have permissions to write to the
+            location (only before v4.5.2 - write check was removed.)
+        :raises Conflict409Error: if the directory cannot be created at the location
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param location: disk location to move torrent's files
+        """
+        data = {
+            "hashes": self._list2string(torrent_hashes, "|"),
+            "location": location,
+        }
+        self._post(_name=APINames.Torrents, _method="setLocation", data=data, **kwargs)
+
+    torrents_setLocation = torrents_set_location
+
+    def torrents_set_save_path(
+        self,
+        save_path: str | None = None,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Set the Save Path for one or more torrents.
+
+        This method was introduced with qBittorrent v4.4.0 (Web API v2.8.4).
+
+        :raises Forbidden403Error: cannot write to directory
+        :raises Conflict409Error: cannot create directory
+
+        :param save_path: file path to save torrent contents
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        """
+        data = {
+            "id": self._list2string(torrent_hashes, "|"),
+            "path": save_path,
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="setSavePath",
+            data=data,
+            version_introduced="2.8.4",
+            **kwargs,
+        )
+
+    torrents_setSavePath = torrents_set_save_path
+
+    def torrents_set_download_path(
+        self,
+        download_path: str | None = None,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Set the Download Path for one or more torrents.
+
+        This method was introduced with qBittorrent v4.4.0 (Web API v2.8.4).
+
+        :raises Forbidden403Error: cannot write to directory
+        :raises Conflict409Error: cannot create directory
+
+        :param download_path: file path to save torrent contents before torrent finishes downloading
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        """
+        data = {
+            "id": self._list2string(torrent_hashes, "|"),
+            "path": download_path,
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="setDownloadPath",
+            data=data,
+            version_introduced="2.8.4",
+            **kwargs,
+        )
+
+    torrents_setDownloadPath = torrents_set_download_path
+
+    def torrents_set_category(
+        self,
+        category: str | None = None,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Set a category for one or more torrents.
+
+        :raises Conflict409Error: for bad category
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param category: category to assign to torrent
+        """
+        data = {
+            "hashes": self._list2string(torrent_hashes, "|"),
+            "category": category,
+        }
+        self._post(_name=APINames.Torrents, _method="setCategory", data=data, **kwargs)
+
+    torrents_setCategory = torrents_set_category
+
+    def torrents_set_auto_management(
+        self,
+        enable: bool | None = None,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Enable or disable automatic torrent management for one or more torrents.
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param enable: Defaults to ``True`` if ``None`` or unset; use ``False`` to disable
+        """
+        data = {
+            "hashes": self._list2string(torrent_hashes, "|"),
+            "enable": True if enable is None else bool(enable),
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="setAutoManagement",
+            data=data,
+            **kwargs,
+        )
+
+    torrents_setAutoManagement = torrents_set_auto_management
+
+    def torrents_toggle_sequential_download(
+        self,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Toggle sequential download for one or more torrents.
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        """
+        data = {"hashes": self._list2string(torrent_hashes)}
+        self._post(
+            _name=APINames.Torrents,
+            _method="toggleSequentialDownload",
+            data=data,
+            **kwargs,
+        )
+
+    torrents_toggleSequentialDownload = torrents_toggle_sequential_download
+
+    def torrents_toggle_first_last_piece_priority(
+        self,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Toggle priority of first/last piece downloading.
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        """
+        data = {"hashes": self._list2string(torrent_hashes, "|")}
+        self._post(
+            _name=APINames.Torrents,
+            _method="toggleFirstLastPiecePrio",
+            data=data,
+            **kwargs,
+        )
+
+    torrents_toggleFirstLastPiecePrio = torrents_toggle_first_last_piece_priority
+
+    def torrents_set_force_start(
+        self,
+        enable: bool | None = None,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Force start one or more torrents.
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param enable: Defaults to ``True`` if ``None`` or unset; ``False`` is equivalent to
+            :meth:`~TorrentsAPIMixIn.torrents_resume()`.
+        """
+        data = {
+            "hashes": self._list2string(torrent_hashes, "|"),
+            "value": True if enable is None else bool(enable),
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="setForceStart",
+            data=data,
+            **kwargs,
+        )
+
+    torrents_setForceStart = torrents_set_force_start
+
+    def torrents_set_super_seeding(
+        self,
+        enable: bool | None = None,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Set one or more torrents as super seeding.
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param enable: Defaults to ``True`` if ``None`` or unset; ``False`` to disable
+        """
+        data = {
+            "hashes": self._list2string(torrent_hashes, "|"),
+            "value": True if enable is None else bool(enable),
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="setSuperSeeding",
+            data=data,
+            **kwargs,
+        )
+
+    torrents_setSuperSeeding = torrents_set_super_seeding
+
+    def torrents_add_peers(
+        self,
+        peers: Iterable[str] | None = None,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentsAddPeersDictionary:
+        """
+        Add one or more peers to one or more torrents.
+
+        This method was introduced with qBittorrent v4.4.0 (Web API v2.3.0).
+
+        :raises InvalidRequest400Error: for invalid peers
+
+        :param peers: one or more peers to add. each peer should take the form 'host:port'
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        """
+        data = {
+            "hashes": self._list2string(torrent_hashes, "|"),
+            "peers": self._list2string(peers, "|"),
+        }
+        return self._post_cast(
+            _name=APINames.Torrents,
+            _method="addPeers",
+            data=data,
+            response_class=TorrentsAddPeersDictionary,
+            version_introduced="2.3.0",
+            **kwargs,
+        )
+
+    torrents_addPeers = torrents_add_peers
+
+    # TORRENT CATEGORIES ENDPOINTS
+    def torrents_categories(self, **kwargs: APIKwargsT) -> TorrentCategoriesDictionary:
+        """
+        Retrieve all category definitions.
+
+        This method was introduced with qBittorrent v4.1.4 (Web API v2.1.1).
+
+        Note: ``torrents/categories`` is not available until v2.1.0
+        """
+        return self._get_cast(
+            _name=APINames.Torrents,
+            _method="categories",
+            response_class=TorrentCategoriesDictionary,
+            version_introduced="2.1.1",
+            **kwargs,
+        )
+
+    def torrents_create_category(
+        self,
+        name: str | None = None,
+        save_path: str | None = None,
+        download_path: str | None = None,
+        enable_download_path: bool | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Create a new torrent category.
+
+        :raises Conflict409Error: if category name is not valid or unable to create
+        :param name: name for new category
+        :param save_path: location to save torrents for this category (added in Web API
+            2.1.0)
+        :param download_path: download location for torrents with this category
+        :param enable_download_path: True or False to enable or disable download path
+        """
+        # default to actually using the specified download path
+        if enable_download_path is None and download_path is not None:
+            enable_download_path = True
+
+        data = {
+            "category": name,
+            "savePath": save_path,
+            "downloadPath": download_path,
+            "downloadPathEnabled": enable_download_path,
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="createCategory",
+            data=data,
+            **kwargs,
+        )
+
+    torrents_createCategory = torrents_create_category
+
+    def torrents_edit_category(
+        self,
+        name: str | None = None,
+        save_path: str | None = None,
+        download_path: str | None = None,
+        enable_download_path: bool | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Edit an existing category.
+
+        This method was introduced with qBittorrent v4.1.3 (Web API v2.1.0).
+
+        :raises Conflict409Error: if category name is not valid or unable to create
+        :param name: category to edit
+        :param save_path: new location to save files for this category
+        :param download_path: download location for torrents with this category
+        :param enable_download_path: True or False to enable or disable download path
+        """
+
+        # default to actually using the specified download path
+        if enable_download_path is None and download_path is not None:
+            enable_download_path = True
+
+        data = {
+            "category": name,
+            "savePath": save_path,
+            "downloadPath": download_path,
+            "downloadPathEnabled": enable_download_path,
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="editCategory",
+            data=data,
+            version_introduced="2.1.0",
+            **kwargs,
+        )
+
+    torrents_editCategory = torrents_edit_category
+
+    def torrents_remove_categories(
+        self,
+        categories: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Delete one or more categories.
+
+        :param categories: categories to delete
+        """
+        data = {"categories": self._list2string(categories, "\n")}
+        self._post(
+            _name=APINames.Torrents,
+            _method="removeCategories",
+            data=data,
+            **kwargs,
+        )
+
+    torrents_removeCategories = torrents_remove_categories
+
+    # TORRENT TAGS ENDPOINTS
+    def torrents_tags(self, **kwargs: APIKwargsT) -> TagList:
+        """
+        Retrieve all tag definitions.
+
+        This method was introduced with qBittorrent v4.2.0 (Web API v2.3.0).
+        """
+        return self._get_cast(
+            _name=APINames.Torrents,
+            _method="tags",
+            response_class=TagList,
+            version_introduced="2.3.0",
+            **kwargs,
+        )
+
+    def torrents_add_tags(
+        self,
+        tags: Iterable[str] | None = None,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Add one or more tags to one or more torrents.
+
+        Note: Tags that do not exist will be created on-the-fly.
+
+        This method was introduced with qBittorrent v4.2.0 (Web API v2.3.0).
+
+        :param tags: tag name or list of tags
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        """
+        data = {
+            "hashes": self._list2string(torrent_hashes, "|"),
+            "tags": self._list2string(tags, ","),
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="addTags",
+            data=data,
+            version_introduced="2.3.0",
+            **kwargs,
+        )
+
+    torrents_addTags = torrents_add_tags
+
+    def torrents_remove_tags(
+        self,
+        tags: Iterable[str] | None = None,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Add one or more tags to one or more torrents.
+
+        This method was introduced with qBittorrent v4.2.0 (Web API v2.3.0).
+
+        :param tags: tag name or list of tags
+        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        """
+        data = {
+            "hashes": self._list2string(torrent_hashes, "|"),
+            "tags": self._list2string(tags, ","),
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="removeTags",
+            data=data,
+            version_introduced="2.3.0",
+            **kwargs,
+        )
+
+    torrents_removeTags = torrents_remove_tags
+
+    def torrents_create_tags(
+        self,
+        tags: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Create one or more tags.
+
+        This method was introduced with qBittorrent v4.2.0 (Web API v2.3.0).
+
+        :param tags: tag name or list of tags
+        """
+        data = {"tags": self._list2string(tags, ",")}
+        self._post(
+            _name=APINames.Torrents,
+            _method="createTags",
+            data=data,
+            version_introduced="2.3.0",
+            **kwargs,
+        )
+
+    torrents_createTags = torrents_create_tags
+
+    def torrents_delete_tags(
+        self,
+        tags: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Delete one or more tags.
+
+        This method was introduced with qBittorrent v4.2.0 (Web API v2.3.0).
+
+        :param tags: tag name or list of tags
+        """
+        data = {"tags": self._list2string(tags, ",")}
+        self._post(
+            _name=APINames.Torrents,
+            _method="deleteTags",
+            data=data,
+            version_introduced="2.3.0",
+            **kwargs,
+        )
+
+    torrents_deleteTags = torrents_delete_tags
+
+
+class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
     """
     Item in :class:`TorrentInfoList`. Allows interaction with individual torrents via
     the ``Torrents`` API endpoints.
 
     :Usage:
         >>> from qbittorrentapi import Client
-        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> client = Client(host="localhost:8080", username="admin", password="adminadmin")
         >>> # these are all the same attributes that are available as named in the
         >>> #  endpoints or the more pythonic names in Client (with or without 'transfer_' prepended)
         >>> torrent = client.torrents.info()[0]
@@ -45,111 +1655,124 @@ class TorrentDictionary(Dictionary):
         >>> files = torrent.files
         >>> # Action methods
         >>> torrent.edit_tracker(original_url="...", new_url="...")
-        >>> torrent.remove_trackers(urls='http://127.0.0.2/')
+        >>> torrent.remove_trackers(urls="http://127.0.0.2/")
         >>> torrent.rename(new_torrent_name="...")
         >>> torrent.resume()
         >>> torrent.pause()
         >>> torrent.recheck()
         >>> torrent.torrents_top_priority()
-        >>> torrent.setLocation(location='/home/user/torrents/')
-        >>> torrent.setCategory(category='video')
+        >>> torrent.setLocation(location="/home/user/torrents/")
+        >>> torrent.setCategory(category="video")
     """
 
-    def __init__(self, data, client):
-        self._torrent_hash = data.get("hash", None)
-        # The countdown to the next announce was added in v5.0.0.
+    def __init__(
+        self,
+        data: MutableMapping[str, JsonValueT],
+        client: TorrentsAPIMixIn,
+    ) -> None:
+        self._torrent_hash: str | None = cast(str, data.get("hash", None))
+        # The attribute for "# of secs til the next announce" was added in v5.0.0.
         # To avoid clashing with `reannounce()`, rename to `reannounce_in`.
         if "reannounce" in data:
             data["reannounce_in"] = data.pop("reannounce")
         super().__init__(client=client, data=data)
 
-    def sync_local(self):
+    def sync_local(self) -> None:
         """Update local cache of torrent info."""
         for name, value in self.info.items():
             setattr(self, name, value)
 
     @property
-    def state_enum(self):
-        """Returns the state of a :class:`~qbittorrentapi.definitions.TorrentState`."""
+    def state_enum(self) -> TorrentState:
+        """Torrent state enum."""
         try:
             return TorrentState(self.state)
         except ValueError:
             return TorrentState.UNKNOWN
 
     @property
-    def info(self):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_info`"""
+    def info(self) -> TorrentDictionary:
+        """Returns data from :meth:`~TorrentsAPIMixIn.torrents_info` for the torrent."""
         info = self._client.torrents_info(torrent_hashes=self._torrent_hash)
         if len(info) == 1 and info[0].hash == self._torrent_hash:
             return info[0]
 
         # qBittorrent v4.1.0 didn't support torrent hash parameter
-        info = [t for t in self._client.torrents_info() if t.hash == self._torrent_hash]
+        info = [t for t in self._client.torrents_info() if t.hash == self._torrent_hash]  # type: ignore[assignment]
         if len(info) == 1:
             return info[0]
 
         return TorrentDictionary(data={}, client=self._client)
 
-    def resume(self, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_resume`"""
+    @wraps(TorrentsAPIMixIn.torrents_resume)
+    def resume(self, **kwargs: APIKwargsT) -> None:
         self._client.torrents_resume(torrent_hashes=self._torrent_hash, **kwargs)
 
-    def pause(self, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_pause`"""
+    @wraps(TorrentsAPIMixIn.torrents_pause)
+    def pause(self, **kwargs: APIKwargsT) -> None:
         self._client.torrents_pause(torrent_hashes=self._torrent_hash, **kwargs)
 
-    def delete(self, delete_files=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_delete`"""
+    @wraps(TorrentsAPIMixIn.torrents_delete)
+    def delete(
+        self,
+        delete_files: bool | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_delete(
-            delete_files=delete_files, torrent_hashes=self._torrent_hash, **kwargs
+            delete_files=delete_files,
+            torrent_hashes=self._torrent_hash,
+            **kwargs,
         )
 
-    def recheck(self, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_recheck`"""
+    @wraps(TorrentsAPIMixIn.torrents_recheck)
+    def recheck(self, **kwargs: APIKwargsT) -> None:
         self._client.torrents_recheck(torrent_hashes=self._torrent_hash, **kwargs)
 
-    def reannounce(self, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_reannounce`"""
+    @wraps(TorrentsAPIMixIn.torrents_reannounce)
+    def reannounce(self, **kwargs: APIKwargsT) -> None:
         self._client.torrents_reannounce(torrent_hashes=self._torrent_hash, **kwargs)
 
-    @alias("increasePrio")
-    def increase_priority(self, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_increase_priority`"""
+    @wraps(TorrentsAPIMixIn.torrents_increase_priority)
+    def increase_priority(self, **kwargs: APIKwargsT) -> None:
         self._client.torrents_increase_priority(
             torrent_hashes=self._torrent_hash,
             **kwargs,
         )
 
-    @alias("decreasePrio")
-    def decrease_priority(self, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_decrease_priority`"""
+    increasePrio = increase_priority
+
+    @wraps(TorrentsAPIMixIn.torrents_decrease_priority)
+    def decrease_priority(self, **kwargs: APIKwargsT) -> None:
         self._client.torrents_decrease_priority(
             torrent_hashes=self._torrent_hash,
             **kwargs,
         )
 
-    @alias("topPrio")
-    def top_priority(self, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_top_priority`"""
+    decreasePrio = decrease_priority
+
+    @wraps(TorrentsAPIMixIn.torrents_top_priority)
+    def top_priority(self, **kwargs: APIKwargsT) -> None:
         self._client.torrents_top_priority(torrent_hashes=self._torrent_hash, **kwargs)
 
-    @alias("bottomPrio")
-    def bottom_priority(self, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_bottom_priority`"""
+    topPrio = top_priority
+
+    @wraps(TorrentsAPIMixIn.torrents_bottom_priority)
+    def bottom_priority(self, **kwargs: APIKwargsT) -> None:
         self._client.torrents_bottom_priority(
             torrent_hashes=self._torrent_hash,
             **kwargs,
         )
 
-    @alias("setShareLimits")
+    bottomPrio = bottom_priority
+
+    @wraps(TorrentsAPIMixIn.torrents_set_share_limits)
     def set_share_limits(
         self,
-        ratio_limit=None,
-        seeding_time_limit=None,
-        inactive_seeding_time_limit=None,
-        **kwargs,
-    ):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_share_limits`"""
+        ratio_limit: str | int | None = None,
+        seeding_time_limit: str | int | None = None,
+        inactive_seeding_time_limit: str | int | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_set_share_limits(
             ratio_limit=ratio_limit,
             seeding_time_limit=seeding_time_limit,
@@ -158,176 +1781,246 @@ class TorrentDictionary(Dictionary):
             **kwargs,
         )
 
+    setShareLimits = set_share_limits
+
     @property
-    def download_limit(self):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_download_limit`"""
-        return self._client.torrents_download_limit(
-            torrent_hashes=self._torrent_hash
-        ).get(self._torrent_hash)
+    @wraps(TorrentsAPIMixIn.torrents_download_limit)
+    def download_limit(self) -> int:
+        return cast(
+            int,
+            self._client.torrents_download_limit(torrent_hashes=self._torrent_hash).get(
+                self._torrent_hash or ""
+            ),
+        )
 
     @download_limit.setter
-    def download_limit(self, v):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_download_limit`"""
-        self.set_download_limit(limit=v)
+    @wraps(TorrentsAPIMixIn.torrents_set_download_limit)
+    def download_limit(self, val: str | int) -> None:
+        self.set_download_limit(limit=val)
 
-    downloadLimit = download_limit
+    @property
+    @wraps(TorrentsAPIMixIn.torrents_download_limit)
+    def downloadLimit(self) -> int:
+        return cast(
+            int,
+            self._client.torrents_download_limit(torrent_hashes=self._torrent_hash).get(
+                self._torrent_hash or ""
+            ),
+        )
 
     @downloadLimit.setter
-    def downloadLimit(self, v):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_download_limit`"""
-        self.download_limit = v
+    @wraps(TorrentsAPIMixIn.torrents_set_download_limit)
+    def downloadLimit(self, val: str | int) -> None:
+        self.set_download_limit(limit=val)
 
-    @alias("setDownloadLimit")
-    def set_download_limit(self, limit=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_download_limit`"""
+    @wraps(TorrentsAPIMixIn.torrents_set_download_limit)
+    def set_download_limit(
+        self,
+        limit: str | int | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_set_download_limit(
             limit=limit,
             torrent_hashes=self._torrent_hash,
             **kwargs,
         )
 
+    setDownloadLimit = set_download_limit
+
     @property
-    def upload_limit(self):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_upload_limit`"""
-        return self._client.torrents_upload_limit(
-            torrent_hashes=self._torrent_hash
-        ).get(self._torrent_hash)
+    @wraps(TorrentsAPIMixIn.torrents_upload_limit)
+    def upload_limit(self) -> int:
+        return cast(
+            int,
+            self._client.torrents_upload_limit(torrent_hashes=self._torrent_hash).get(
+                self._torrent_hash or ""
+            ),
+        )
 
     @upload_limit.setter
-    def upload_limit(self, v):
-        """Implements :meth:`~TorrentsAPIMixIn.set_upload_limit`"""
-        self.set_upload_limit(limit=v)
+    @wraps(TorrentsAPIMixIn.torrents_set_upload_limit)
+    def upload_limit(self, val: str | int) -> None:
+        self.set_upload_limit(limit=val)
 
-    uploadLimit = upload_limit
+    @property
+    @wraps(TorrentsAPIMixIn.torrents_upload_limit)
+    def uploadLimit(self) -> int:
+        return cast(
+            int,
+            self._client.torrents_upload_limit(torrent_hashes=self._torrent_hash).get(
+                self._torrent_hash or ""
+            ),
+        )
 
     @uploadLimit.setter
-    def uploadLimit(self, v):
-        """Implements :meth:`~TorrentsAPIMixIn.set_upload_limit`"""
-        self.upload_limit = v
+    @wraps(TorrentsAPIMixIn.torrents_set_upload_limit)
+    def uploadLimit(self, val: str | int) -> None:
+        self.set_upload_limit(limit=val)
 
-    @alias("setUploadLimit")
-    def set_upload_limit(self, limit=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_upload_limit`"""
+    @wraps(TorrentsAPIMixIn.torrents_set_upload_limit)
+    def set_upload_limit(
+        self,
+        limit: str | int | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_set_upload_limit(
             limit=limit,
             torrent_hashes=self._torrent_hash,
             **kwargs,
         )
 
-    @alias("setLocation")
-    def set_location(self, location=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_location`"""
+    setUploadLimit = set_upload_limit
+
+    @wraps(TorrentsAPIMixIn.torrents_set_location)
+    def set_location(
+        self,
+        location: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_set_location(
             location=location,
             torrent_hashes=self._torrent_hash,
             **kwargs,
         )
 
-    @alias("setSavePath")
-    def set_save_path(self, save_path=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_save_path`"""
+    setLocation = set_location
+
+    @wraps(TorrentsAPIMixIn.torrents_set_save_path)
+    def set_save_path(
+        self,
+        save_path: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_set_save_path(
             save_path=save_path,
             torrent_hashes=self._torrent_hash,
             **kwargs,
         )
 
-    @alias("setDownloadPath")
-    def set_download_path(self, download_path=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_download_path`"""
+    setSavePath = set_save_path
+
+    @wraps(TorrentsAPIMixIn.torrents_set_download_path)
+    def set_download_path(
+        self,
+        download_path: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_set_download_path(
             download_path=download_path,
             torrent_hashes=self._torrent_hash,
             **kwargs,
         )
 
-    @alias("setCategory")
-    def set_category(self, category=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_category`"""
+    setDownloadPath = set_download_path
+
+    @wraps(TorrentsAPIMixIn.torrents_set_category)
+    def set_category(
+        self,
+        category: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_set_category(
             category=category,
             torrent_hashes=self._torrent_hash,
             **kwargs,
         )
 
-    @alias("setAutoManagement")
-    def set_auto_management(self, enable=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_auto_management`"""
+    setCategory = set_category
+
+    @wraps(TorrentsAPIMixIn.torrents_set_auto_management)
+    def set_auto_management(
+        self,
+        enable: bool | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_set_auto_management(
             enable=enable,
             torrent_hashes=self._torrent_hash,
             **kwargs,
         )
 
-    @alias("toggleSequentialDownload")
-    def toggle_sequential_download(self, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_toggle_sequential_download`"""
+    setAutoManagement = set_auto_management
+
+    @wraps(TorrentsAPIMixIn.torrents_toggle_sequential_download)
+    def toggle_sequential_download(self, **kwargs: APIKwargsT) -> None:
         self._client.torrents_toggle_sequential_download(
-            torrent_hashes=self._torrent_hash, **kwargs
+            torrent_hashes=self._torrent_hash,
+            **kwargs,
         )
 
-    @alias("toggleFirstLastPiecePrio")
-    def toggle_first_last_piece_priority(self, **kwargs):
-        """Implements
-        :meth:`~TorrentsAPIMixIn.torrents_toggle_first_last_piece_priority`"""
+    toggleSequentialDownload = toggle_sequential_download
+
+    @wraps(TorrentsAPIMixIn.torrents_toggle_first_last_piece_priority)
+    def toggle_first_last_piece_priority(self, **kwargs: APIKwargsT) -> None:
         self._client.torrents_toggle_first_last_piece_priority(
             torrent_hashes=self._torrent_hash,
             **kwargs,
         )
 
-    @alias("setForceStart")
-    def set_force_start(self, enable=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_force_start`"""
+    toggleFirstLastPiecePrio = toggle_first_last_piece_priority
+
+    @wraps(TorrentsAPIMixIn.torrents_set_force_start)
+    def set_force_start(
+        self,
+        enable: bool | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_set_force_start(
             enable=enable,
             torrent_hashes=self._torrent_hash,
             **kwargs,
         )
 
-    @alias("setSuperSeeding")
-    def set_super_seeding(self, enable=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_super_seeding`"""
+    setForceStart = set_force_start
+
+    @wraps(TorrentsAPIMixIn.torrents_set_super_seeding)
+    def set_super_seeding(
+        self,
+        enable: bool | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_set_super_seeding(
             enable=enable,
             torrent_hashes=self._torrent_hash,
             **kwargs,
         )
 
+    setSuperSeeding = set_super_seeding
+
     @property
-    def properties(self):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_properties`"""
+    @wraps(TorrentsAPIMixIn.torrents_properties)
+    def properties(self) -> TorrentPropertiesDictionary:
         return self._client.torrents_properties(torrent_hash=self._torrent_hash)
 
     @property
-    def trackers(self):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_trackers`"""
+    @wraps(TorrentsAPIMixIn.torrents_trackers)
+    def trackers(self) -> TrackersList:
         return self._client.torrents_trackers(torrent_hash=self._torrent_hash)
 
     @trackers.setter
-    def trackers(self, v):
-        """Implements :meth:`~TorrentsAPIMixIn.add_trackers`"""
-        self.add_trackers(urls=v)
+    @wraps(TorrentsAPIMixIn.torrents_add_trackers)
+    def trackers(self, val: Iterable[str]) -> None:
+        self.add_trackers(urls=val)
 
     @property
-    def webseeds(self):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_webseeds`"""
+    @wraps(TorrentsAPIMixIn.torrents_webseeds)
+    def webseeds(self) -> WebSeedsList:
         return self._client.torrents_webseeds(torrent_hash=self._torrent_hash)
 
     @property
-    def files(self):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_files`"""
+    @wraps(TorrentsAPIMixIn.torrents_files)
+    def files(self) -> TorrentFilesList:
         return self._client.torrents_files(torrent_hash=self._torrent_hash)
 
-    @alias("renameFile")
+    @wraps(TorrentsAPIMixIn.torrents_rename_file)
     def rename_file(
         self,
-        file_id=None,
-        new_file_name=None,
-        old_path=None,
-        new_path=None,
-        **kwargs,
-    ):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_rename_file`"""
+        file_id: str | int | None = None,
+        new_file_name: str | None = None,
+        old_path: str | None = None,
+        new_path: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_rename_file(
             torrent_hash=self._torrent_hash,
             file_id=file_id,
@@ -337,9 +2030,15 @@ class TorrentDictionary(Dictionary):
             **kwargs,
         )
 
-    @alias("renameFolder")
-    def rename_folder(self, old_path=None, new_path=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_rename_folder`"""
+    renameFile = rename_file
+
+    @wraps(TorrentsAPIMixIn.torrents_rename_folder)
+    def rename_folder(
+        self,
+        old_path: str | None = None,
+        new_path: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_rename_folder(
             torrent_hash=self._torrent_hash,
             old_path=old_path,
@@ -347,30 +2046,43 @@ class TorrentDictionary(Dictionary):
             **kwargs,
         )
 
+    renameFolder = rename_folder
+
     @property
-    def piece_states(self):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_piece_states`"""
+    @wraps(TorrentsAPIMixIn.torrents_piece_states)
+    def piece_states(self) -> TorrentPieceInfoList:
         return self._client.torrents_piece_states(torrent_hash=self._torrent_hash)
 
     pieceStates = piece_states
 
     @property
-    def piece_hashes(self):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_piece_hashes`"""
+    @wraps(TorrentsAPIMixIn.torrents_piece_hashes)
+    def piece_hashes(self) -> TorrentPieceInfoList:
         return self._client.torrents_piece_hashes(torrent_hash=self._torrent_hash)
 
     pieceHashes = piece_hashes
 
-    @alias("addTrackers")
-    def add_trackers(self, urls=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_add_trackers`"""
+    @wraps(TorrentsAPIMixIn.torrents_add_trackers)
+    def add_trackers(
+        self,
+        urls: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_add_trackers(
-            torrent_hash=self._torrent_hash, urls=urls, **kwargs
+            torrent_hash=self._torrent_hash,
+            urls=urls,
+            **kwargs,
         )
 
-    @alias("editTracker")
-    def edit_tracker(self, orig_url=None, new_url=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_edit_tracker`"""
+    addTrackers = add_trackers
+
+    @wraps(TorrentsAPIMixIn.torrents_edit_tracker)
+    def edit_tracker(
+        self,
+        orig_url: str | None = None,
+        new_url: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_edit_tracker(
             torrent_hash=self._torrent_hash,
             original_url=orig_url,
@@ -378,18 +2090,29 @@ class TorrentDictionary(Dictionary):
             **kwargs,
         )
 
-    @alias("removeTrackers")
-    def remove_trackers(self, urls=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_remove_trackers`"""
+    editTracker = edit_tracker
+
+    @wraps(TorrentsAPIMixIn.torrents_remove_trackers)
+    def remove_trackers(
+        self,
+        urls: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_remove_trackers(
             torrent_hash=self._torrent_hash,
             urls=urls,
             **kwargs,
         )
 
-    @alias("filePriority")
-    def file_priority(self, file_ids=None, priority=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_file_priority`"""
+    removeTrackers = remove_trackers
+
+    @wraps(TorrentsAPIMixIn.torrents_file_priority)
+    def file_priority(
+        self,
+        file_ids: int | Iterable[str | int] | None = None,
+        priority: str | int | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_file_priority(
             torrent_hash=self._torrent_hash,
             file_ids=file_ids,
@@ -397,125 +2120,56 @@ class TorrentDictionary(Dictionary):
             **kwargs,
         )
 
-    def rename(self, new_name=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_rename`"""
-        self._client.torrents_rename(
-            torrent_hash=self._torrent_hash, new_torrent_name=new_name, **kwargs
-        ),
+    filePriority = file_priority
 
-    @alias("addTags")
-    def add_tags(self, tags=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_add_tags`"""
+    @wraps(TorrentsAPIMixIn.torrents_rename)
+    def rename(self, new_name: str | None = None, **kwargs: APIKwargsT) -> None:
+        self._client.torrents_rename(
+            torrent_hash=self._torrent_hash,
+            new_torrent_name=new_name,
+            **kwargs,
+        )
+
+    @wraps(TorrentsAPIMixIn.torrents_add_tags)
+    def add_tags(
+        self,
+        tags: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_add_tags(
             torrent_hashes=self._torrent_hash,
             tags=tags,
             **kwargs,
         )
 
-    @alias("removeTags")
-    def remove_tags(self, tags=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_remove_tags`"""
+    addTags = add_tags
+
+    @wraps(TorrentsAPIMixIn.torrents_remove_tags)
+    def remove_tags(
+        self,
+        tags: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_remove_tags(
             torrent_hashes=self._torrent_hash,
             tags=tags,
             **kwargs,
         )
 
-    def export(self, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_export`"""
+    removeTags = remove_tags
+
+    @wraps(TorrentsAPIMixIn.torrents_export)
+    def export(self, **kwargs: APIKwargsT) -> bytes:
         return self._client.torrents_export(torrent_hash=self._torrent_hash, **kwargs)
 
 
-class TorrentPropertiesDictionary(Dictionary):
-    """Response to :meth:`~TorrentsAPIMixIn.torrents_properties`"""
-
-
-class TorrentLimitsDictionary(Dictionary):
-    """Response to :meth:`~TorrentsAPIMixIn.torrents_download_limit`"""
-
-
-class TorrentCategoriesDictionary(Dictionary):
-    """Response to :meth:`~TorrentsAPIMixIn.torrents_categories`"""
-
-
-class TorrentsAddPeersDictionary(Dictionary):
-    """Response to :meth:`~TorrentsAPIMixIn.torrents_add_peers`"""
-
-
-class TorrentFilesList(List):
-    """Response to :meth:`~TorrentsAPIMixIn.torrents_files`"""
-
-    def __init__(self, list_entries, client=None):
-        super().__init__(list_entries, entry_class=TorrentFile, client=client)
-        # until v4.3.5, the index key wasn't returned...default it to ID for older versions.
-        # when index is returned, maintain backwards compatibility and populate id with index value.
-        for i, entry in enumerate(self):
-            entry.update({"id": entry.setdefault("index", i)})
-
-
-class TorrentFile(ListEntry):
-    """Item in :class:`TorrentFilesList`"""
-
-
-class WebSeedsList(List):
-    """Response to :meth:`~TorrentsAPIMixIn.torrents_webseeds`"""
-
-    def __init__(self, list_entries, client=None):
-        super().__init__(list_entries, entry_class=WebSeed, client=client)
-
-
-class WebSeed(ListEntry):
-    """Item in :class:`WebSeedsList`"""
-
-
-class TrackersList(List):
-    """Response to :meth:`~TorrentsAPIMixIn.torrents_trackers`"""
-
-    def __init__(self, list_entries, client=None):
-        super().__init__(list_entries, entry_class=Tracker, client=client)
-
-
-class Tracker(ListEntry):
-    """Item in :class:`TrackersList`"""
-
-
-class TorrentInfoList(List):
-    """Response to :meth:`~TorrentsAPIMixIn.torrents_info`"""
-
-    def __init__(self, list_entries, client=None):
-        super().__init__(list_entries, entry_class=TorrentDictionary, client=client)
-
-
-class TorrentPieceInfoList(List):
-    """Response to :meth:`~TorrentsAPIMixIn.torrents_piece_states` and
-    :meth:`~TorrentsAPIMixIn.torrents_piece_hashes`"""
-
-    def __init__(self, list_entries, client=None):
-        super().__init__(list_entries, entry_class=TorrentPieceData, client=client)
-
-
-class TorrentPieceData(ListEntry):
-    """Item in :class:`TorrentPieceInfoList`"""
-
-
-class TagList(List):
-    """Response to :meth:`~TorrentsAPIMixIn.torrents_tags`"""
-
-    def __init__(self, list_entries, client=None):
-        super().__init__(list_entries, entry_class=Tag, client=client)
-
-
-class Tag(ListEntry):
-    """Item in :class:`TagList`"""
-
-
-class Torrents(ClientCache):
+class Torrents(ClientCache[TorrentsAPIMixIn]):
     """
     Allows interaction with the ``Torrents`` API endpoints.
 
     :Usage:
         >>> from qbittorrentapi import Client
-        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> client = Client(host="localhost:8080", username="admin", password="adminadmin")
         >>> # these are all the same attributes that are available as named in the
         >>> #  endpoints or the more pythonic names in Client (with or without 'torrents_' prepended)
         >>> torrent_list = client.torrents.info()
@@ -528,10 +2182,10 @@ class Torrents(ClientCache):
         >>> client.torrents.pause.all()
         >>> client.torrents.resume.all()
         >>> # or specify the individual hashes
-        >>> client.torrents.downloadLimit(torrent_hashes=['...', '...'])
+        >>> client.torrents.downloadLimit(torrent_hashes=["...", "..."])
     """
 
-    def __init__(self, client):
+    def __init__(self, client: TorrentsAPIMixIn) -> None:
         super().__init__(client=client)
         self.info = self._Info(client=client)
         self.resume = self._ActionForAllTorrents(
@@ -626,31 +2280,32 @@ class Torrents(ClientCache):
         )
         self.addPeers = self.add_peers
 
+    @wraps(TorrentsAPIMixIn.torrents_add)
     def add(
         self,
-        urls=None,
-        torrent_files=None,
-        save_path=None,
-        cookie=None,
-        category=None,
-        is_skip_checking=None,
-        is_paused=None,
-        is_root_folder=None,
-        rename=None,
-        upload_limit=None,
-        download_limit=None,
-        use_auto_torrent_management=None,
-        is_sequential_download=None,
-        is_first_last_piece_priority=None,
-        tags=None,
-        content_layout=None,
-        ratio_limit=None,
-        seeding_time_limit=None,
-        download_path=None,
-        use_download_path=None,
-        stop_condition=None,
-        **kwargs,
-    ):
+        urls: Iterable[str] | None = None,
+        torrent_files: TorrentFilesT | None = None,
+        save_path: str | None = None,
+        cookie: str | None = None,
+        category: str | None = None,
+        is_skip_checking: bool | None = None,
+        is_paused: bool | None = None,
+        is_root_folder: bool | None = None,
+        rename: str | None = None,
+        upload_limit: str | int | None = None,
+        download_limit: str | int | None = None,
+        use_auto_torrent_management: bool | None = None,
+        is_sequential_download: bool | None = None,
+        is_first_last_piece_priority: bool | None = None,
+        tags: Iterable[str] | None = None,
+        content_layout: None | (Literal["Original", "Subfolder", "NoSubFolder"]) = None,
+        ratio_limit: str | float | None = None,
+        seeding_time_limit: str | int | None = None,
+        download_path: str | None = None,
+        use_download_path: bool | None = None,
+        stop_condition: Literal["MetadataReceived", "FilesChecked"] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> str:
         return self._client.torrents_add(
             urls=urls,
             torrent_files=torrent_files,
@@ -676,30 +2331,38 @@ class Torrents(ClientCache):
             **kwargs,
         )
 
-    class _ActionForAllTorrents(ClientCache):
-        def __init__(self, client, func):
+    class _ActionForAllTorrents(ClientCache["TorrentsAPIMixIn"]):
+        def __init__(
+            self,
+            client: TorrentsAPIMixIn,
+            func: Callable[..., Any],
+        ) -> None:
             super().__init__(client=client)
             self.func = func
 
-        def __call__(self, torrent_hashes=None, **kwargs):
-            return self.func(torrent_hashes=torrent_hashes, **kwargs)
-
-        def all(self, **kwargs):
-            return self.func(torrent_hashes="all", **kwargs)
-
-    class _Info(ClientCache):
         def __call__(
             self,
-            status_filter=None,
-            category=None,
-            sort=None,
-            reverse=None,
-            limit=None,
-            offset=None,
-            torrent_hashes=None,
-            tag=None,
-            **kwargs,
-        ):
+            torrent_hashes: Iterable[str] | None = None,
+            **kwargs: APIKwargsT,
+        ) -> Any | None:
+            return self.func(torrent_hashes=torrent_hashes, **kwargs)
+
+        def all(self, **kwargs: APIKwargsT) -> Any | None:
+            return self.func(torrent_hashes="all", **kwargs)
+
+    class _Info(ClientCache["TorrentsAPIMixIn"]):
+        def __call__(
+            self,
+            status_filter: TorrentStatusesT | None = None,
+            category: str | None = None,
+            sort: str | None = None,
+            reverse: bool | None = None,
+            limit: str | int | None = None,
+            offset: str | int | None = None,
+            torrent_hashes: Iterable[str] | None = None,
+            tag: str | None = None,
+            **kwargs: APIKwargsT,
+        ) -> TorrentInfoList:
             return self._client.torrents_info(
                 status_filter=status_filter,
                 category=category,
@@ -714,15 +2377,15 @@ class Torrents(ClientCache):
 
         def all(
             self,
-            category=None,
-            sort=None,
-            reverse=None,
-            limit=None,
-            offset=None,
-            torrent_hashes=None,
-            tag=None,
-            **kwargs,
-        ):
+            category: str | None = None,
+            sort: str | None = None,
+            reverse: bool | None = None,
+            limit: str | int | None = None,
+            offset: str | int | None = None,
+            torrent_hashes: Iterable[str] | None = None,
+            tag: str | None = None,
+            **kwargs: APIKwargsT,
+        ) -> TorrentInfoList:
             return self._client.torrents_info(
                 status_filter="all",
                 category=category,
@@ -737,15 +2400,15 @@ class Torrents(ClientCache):
 
         def downloading(
             self,
-            category=None,
-            sort=None,
-            reverse=None,
-            limit=None,
-            offset=None,
-            torrent_hashes=None,
-            tag=None,
-            **kwargs,
-        ):
+            category: str | None = None,
+            sort: str | None = None,
+            reverse: bool | None = None,
+            limit: str | int | None = None,
+            offset: str | int | None = None,
+            torrent_hashes: Iterable[str] | None = None,
+            tag: str | None = None,
+            **kwargs: APIKwargsT,
+        ) -> TorrentInfoList:
             return self._client.torrents_info(
                 status_filter="downloading",
                 category=category,
@@ -760,15 +2423,15 @@ class Torrents(ClientCache):
 
         def seeding(
             self,
-            category=None,
-            sort=None,
-            reverse=None,
-            limit=None,
-            offset=None,
-            torrent_hashes=None,
-            tag=None,
-            **kwargs,
-        ):
+            category: str | None = None,
+            sort: str | None = None,
+            reverse: bool | None = None,
+            limit: str | int | None = None,
+            offset: str | int | None = None,
+            torrent_hashes: Iterable[str] | None = None,
+            tag: str | None = None,
+            **kwargs: APIKwargsT,
+        ) -> TorrentInfoList:
             return self._client.torrents_info(
                 status_filter="seeding",
                 category=category,
@@ -783,15 +2446,15 @@ class Torrents(ClientCache):
 
         def completed(
             self,
-            category=None,
-            sort=None,
-            reverse=None,
-            limit=None,
-            offset=None,
-            torrent_hashes=None,
-            tag=None,
-            **kwargs,
-        ):
+            category: str | None = None,
+            sort: str | None = None,
+            reverse: bool | None = None,
+            limit: str | int | None = None,
+            offset: str | int | None = None,
+            torrent_hashes: Iterable[str] | None = None,
+            tag: str | None = None,
+            **kwargs: APIKwargsT,
+        ) -> TorrentInfoList:
             return self._client.torrents_info(
                 status_filter="completed",
                 category=category,
@@ -806,15 +2469,15 @@ class Torrents(ClientCache):
 
         def paused(
             self,
-            category=None,
-            sort=None,
-            reverse=None,
-            limit=None,
-            offset=None,
-            torrent_hashes=None,
-            tag=None,
-            **kwargs,
-        ):
+            category: str | None = None,
+            sort: str | None = None,
+            reverse: bool | None = None,
+            limit: str | int | None = None,
+            offset: str | int | None = None,
+            torrent_hashes: Iterable[str] | None = None,
+            tag: str | None = None,
+            **kwargs: APIKwargsT,
+        ) -> TorrentInfoList:
             return self._client.torrents_info(
                 status_filter="paused",
                 category=category,
@@ -829,15 +2492,15 @@ class Torrents(ClientCache):
 
         def active(
             self,
-            category=None,
-            sort=None,
-            reverse=None,
-            limit=None,
-            offset=None,
-            torrent_hashes=None,
-            tag=None,
-            **kwargs,
-        ):
+            category: str | None = None,
+            sort: str | None = None,
+            reverse: bool | None = None,
+            limit: str | int | None = None,
+            offset: str | int | None = None,
+            torrent_hashes: Iterable[str] | None = None,
+            tag: str | None = None,
+            **kwargs: APIKwargsT,
+        ) -> TorrentInfoList:
             return self._client.torrents_info(
                 status_filter="active",
                 category=category,
@@ -852,15 +2515,15 @@ class Torrents(ClientCache):
 
         def inactive(
             self,
-            category=None,
-            sort=None,
-            reverse=None,
-            limit=None,
-            offset=None,
-            torrent_hashes=None,
-            tag=None,
-            **kwargs,
-        ):
+            category: str | None = None,
+            sort: str | None = None,
+            reverse: bool | None = None,
+            limit: str | int | None = None,
+            offset: str | int | None = None,
+            torrent_hashes: Iterable[str] | None = None,
+            tag: str | None = None,
+            **kwargs: APIKwargsT,
+        ) -> TorrentInfoList:
             return self._client.torrents_info(
                 status_filter="inactive",
                 category=category,
@@ -875,15 +2538,15 @@ class Torrents(ClientCache):
 
         def resumed(
             self,
-            category=None,
-            sort=None,
-            reverse=None,
-            limit=None,
-            offset=None,
-            torrent_hashes=None,
-            tag=None,
-            **kwargs,
-        ):
+            category: str | None = None,
+            sort: str | None = None,
+            reverse: bool | None = None,
+            limit: str | int | None = None,
+            offset: str | int | None = None,
+            torrent_hashes: Iterable[str] | None = None,
+            tag: str | None = None,
+            **kwargs: APIKwargsT,
+        ) -> TorrentInfoList:
             return self._client.torrents_info(
                 status_filter="resumed",
                 category=category,
@@ -898,15 +2561,15 @@ class Torrents(ClientCache):
 
         def stalled(
             self,
-            category=None,
-            sort=None,
-            reverse=None,
-            limit=None,
-            offset=None,
-            torrent_hashes=None,
-            tag=None,
-            **kwargs,
-        ):
+            category: str | None = None,
+            sort: str | None = None,
+            reverse: bool | None = None,
+            limit: str | int | None = None,
+            offset: str | int | None = None,
+            torrent_hashes: Iterable[str] | None = None,
+            tag: str | None = None,
+            **kwargs: APIKwargsT,
+        ) -> TorrentInfoList:
             return self._client.torrents_info(
                 status_filter="stalled",
                 category=category,
@@ -921,15 +2584,15 @@ class Torrents(ClientCache):
 
         def stalled_uploading(
             self,
-            category=None,
-            sort=None,
-            reverse=None,
-            limit=None,
-            offset=None,
-            torrent_hashes=None,
-            tag=None,
-            **kwargs,
-        ):
+            category: str | None = None,
+            sort: str | None = None,
+            reverse: bool | None = None,
+            limit: str | int | None = None,
+            offset: str | int | None = None,
+            torrent_hashes: Iterable[str] | None = None,
+            tag: str | None = None,
+            **kwargs: APIKwargsT,
+        ) -> TorrentInfoList:
             return self._client.torrents_info(
                 status_filter="stalled_uploading",
                 category=category,
@@ -944,15 +2607,15 @@ class Torrents(ClientCache):
 
         def stalled_downloading(
             self,
-            category=None,
-            sort=None,
-            reverse=None,
-            limit=None,
-            offset=None,
-            torrent_hashes=None,
-            tag=None,
-            **kwargs,
-        ):
+            category: str | None = None,
+            sort: str | None = None,
+            reverse: bool | None = None,
+            limit: str | int | None = None,
+            offset: str | int | None = None,
+            torrent_hashes: Iterable[str] | None = None,
+            tag: str | None = None,
+            **kwargs: APIKwargsT,
+        ) -> TorrentInfoList:
             return self._client.torrents_info(
                 status_filter="stalled_downloading",
                 category=category,
@@ -967,15 +2630,15 @@ class Torrents(ClientCache):
 
         def checking(
             self,
-            category=None,
-            sort=None,
-            reverse=None,
-            limit=None,
-            offset=None,
-            torrent_hashes=None,
-            tag=None,
-            **kwargs,
-        ):
+            category: str | None = None,
+            sort: str | None = None,
+            reverse: bool | None = None,
+            limit: str | int | None = None,
+            offset: str | int | None = None,
+            torrent_hashes: Iterable[str] | None = None,
+            tag: str | None = None,
+            **kwargs: APIKwargsT,
+        ) -> TorrentInfoList:
             return self._client.torrents_info(
                 status_filter="checking",
                 category=category,
@@ -990,15 +2653,15 @@ class Torrents(ClientCache):
 
         def moving(
             self,
-            category=None,
-            sort=None,
-            reverse=None,
-            limit=None,
-            offset=None,
-            torrent_hashes=None,
-            tag=None,
-            **kwargs,
-        ):
+            category: str | None = None,
+            sort: str | None = None,
+            reverse: bool | None = None,
+            limit: str | int | None = None,
+            offset: str | int | None = None,
+            torrent_hashes: Iterable[str] | None = None,
+            tag: str | None = None,
+            **kwargs: APIKwargsT,
+        ) -> TorrentInfoList:
             return self._client.torrents_info(
                 status_filter="moving",
                 category=category,
@@ -1013,15 +2676,15 @@ class Torrents(ClientCache):
 
         def errored(
             self,
-            category=None,
-            sort=None,
-            reverse=None,
-            limit=None,
-            offset=None,
-            torrent_hashes=None,
-            tag=None,
-            **kwargs,
-        ):
+            category: str | None = None,
+            sort: str | None = None,
+            reverse: bool | None = None,
+            limit: str | int | None = None,
+            offset: str | int | None = None,
+            torrent_hashes: Iterable[str] | None = None,
+            tag: str | None = None,
+            **kwargs: APIKwargsT,
+        ) -> TorrentInfoList:
             return self._client.torrents_info(
                 status_filter="errored",
                 category=category,
@@ -1035,51 +2698,48 @@ class Torrents(ClientCache):
             )
 
 
-@aliased
-class TorrentCategories(ClientCache):
+class TorrentCategories(ClientCache[TorrentsAPIMixIn]):
     """
     Allows interaction with torrent categories within the ``Torrents`` API endpoints.
 
     :Usage:
         >>> from qbittorrentapi import Client
-        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> client = Client(host="localhost:8080", username="admin", password="adminadmin")
         >>> # these are all the same attributes that are available as named in the
         >>> #  endpoints or the more pythonic names in Client (with or without 'torrents_' prepended)
         >>> categories = client.torrent_categories.categories
         >>> # create or edit categories
-        >>> client.torrent_categories.create_category(name='Video', save_path='/home/user/torrents/Video')
-        >>> client.torrent_categories.edit_category(name='Video', save_path='/data/torrents/Video')
+        >>> client.torrent_categories.create_category(name="Video", save_path="/home/user/torrents/Video")
+        >>> client.torrent_categories.edit_category(name="Video", save_path="/data/torrents/Video")
         >>> # edit or create new by assignment
-        >>> client.torrent_categories.categories = dict(name='Video', save_path='/hone/user/')
+        >>> client.torrent_categories.categories = dict(name="Video", save_path="/hone/user/")
         >>> # delete categories
-        >>> client.torrent_categories.removeCategories(categories='Video')
-        >>> client.torrent_categories.removeCategories(categories=['Audio', "ISOs"])
+        >>> client.torrent_categories.removeCategories(categories="Video")
+        >>> client.torrent_categories.removeCategories(categories=["Audio", "ISOs"])
     """
 
     @property
-    def categories(self):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_categories`"""
+    @wraps(TorrentsAPIMixIn.torrents_categories)
+    def categories(self) -> TorrentCategoriesDictionary:
         return self._client.torrents_categories()
 
     @categories.setter
-    def categories(self, v):
-        """Implements :meth:`~TorrentsAPIMixIn.edit_category` or
-        :meth:`~TorrentsAPIMixIn.create_category`"""
-        if v.get("name", "") in self.categories:
-            self.edit_category(**v)
+    @wraps(TorrentsAPIMixIn.torrents_edit_category)
+    def categories(self, val: Mapping[str, str | bool]) -> None:
+        if val.get("name", "") in self.categories:
+            self.edit_category(**val)  # type: ignore[arg-type]
         else:
-            self.create_category(**v)
+            self.create_category(**val)  # type: ignore[arg-type]
 
-    @alias("createCategory")
+    @wraps(TorrentsAPIMixIn.torrents_create_category)
     def create_category(
         self,
-        name=None,
-        save_path=None,
-        download_path=None,
-        enable_download_path=None,
-        **kwargs,
-    ):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_create_category`"""
+        name: str | None = None,
+        save_path: str | None = None,
+        download_path: str | None = None,
+        enable_download_path: bool | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         return self._client.torrents_create_category(
             name=name,
             save_path=save_path,
@@ -1088,16 +2748,17 @@ class TorrentCategories(ClientCache):
             **kwargs,
         )
 
-    @alias("editCategory")
+    createCategory = create_category
+
+    @wraps(TorrentsAPIMixIn.torrents_edit_category)
     def edit_category(
         self,
-        name=None,
-        save_path=None,
-        download_path=None,
-        enable_download_path=None,
-        **kwargs,
-    ):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_edit_category`"""
+        name: str | None = None,
+        save_path: str | None = None,
+        download_path: str | None = None,
+        enable_download_path: bool | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         return self._client.torrents_edit_category(
             name=name,
             save_path=save_path,
@@ -1106,1365 +2767,88 @@ class TorrentCategories(ClientCache):
             **kwargs,
         )
 
-    @alias("removeCategories")
-    def remove_categories(self, categories=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_remove_categories`"""
+    editCategory = edit_category
+
+    @wraps(TorrentsAPIMixIn.torrents_remove_categories)
+    def remove_categories(
+        self,
+        categories: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         return self._client.torrents_remove_categories(categories=categories, **kwargs)
 
+    removeCategories = remove_categories
 
-@aliased
-class TorrentTags(ClientCache):
+
+class TorrentTags(ClientCache[TorrentsAPIMixIn]):
     """
     Allows interaction with torrent tags within the "Torrent" API endpoints.
 
     Usage:
         >>> from qbittorrentapi import Client
-        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
+        >>> client = Client(host="localhost:8080", username="admin", password="adminadmin")
         >>> tags = client.torrent_tags.tags
-        >>> client.torrent_tags.tags = 'tv show'  # create category
-        >>> client.torrent_tags.create_tags(tags=['tv show', 'linux distro'])
-        >>> client.torrent_tags.delete_tags(tags='tv show')
+        >>> client.torrent_tags.tags = "tv show"  # create category
+        >>> client.torrent_tags.create_tags(tags=["tv show", "linux distro"])
+        >>> client.torrent_tags.delete_tags(tags="tv show")
     """
 
     @property
-    def tags(self):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_tags`"""
+    @wraps(TorrentsAPIMixIn.torrents_tags)
+    def tags(self) -> TagList:
         return self._client.torrents_tags()
 
     @tags.setter
-    def tags(self, v):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_create_tags`"""
-        self._client.torrents_create_tags(tags=v)
+    @wraps(TorrentsAPIMixIn.torrents_create_tags)
+    def tags(self, val: Iterable[str] | None = None) -> None:
+        self._client.torrents_create_tags(tags=val)
 
-    @alias("addTags")
-    def add_tags(self, tags=None, torrent_hashes=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_add_tags`"""
+    @wraps(TorrentsAPIMixIn.torrents_add_tags)
+    def add_tags(
+        self,
+        tags: Iterable[str] | None = None,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_add_tags(
             tags=tags,
             torrent_hashes=torrent_hashes,
             **kwargs,
         )
 
-    @alias("removeTags")
-    def remove_tags(self, tags=None, torrent_hashes=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_remove_tags`"""
+    addTags = add_tags
+
+    @wraps(TorrentsAPIMixIn.torrents_remove_tags)
+    def remove_tags(
+        self,
+        tags: Iterable[str] | None = None,
+        torrent_hashes: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_remove_tags(
             tags=tags,
             torrent_hashes=torrent_hashes,
             **kwargs,
         )
 
-    @alias("createTags")
-    def create_tags(self, tags=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_create_tags`"""
+    removeTags = remove_tags
+
+    @wraps(TorrentsAPIMixIn.torrents_create_tags)
+    def create_tags(
+        self,
+        tags: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_create_tags(tags=tags, **kwargs)
 
-    @alias("deleteTags")
-    def delete_tags(self, tags=None, **kwargs):
-        """Implements :meth:`~TorrentsAPIMixIn.torrents_delete_tags`"""
+    createTags = create_tags
+
+    @wraps(TorrentsAPIMixIn.torrents_delete_tags)
+    def delete_tags(
+        self,
+        tags: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         self._client.torrents_delete_tags(tags=tags, **kwargs)
 
-
-@aliased
-class TorrentsAPIMixIn(AppAPIMixIn):
-    """
-    Implementation of all Torrents API methods.
-
-    :Usage:
-        >>> from qbittorrentapi import Client
-        >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
-        >>> client.torrents_add(urls='...')
-        >>> client.torrents_reannounce()
-    """
-
-    @property
-    def torrents(self):
-        """
-        Allows for transparent interaction with Torrents endpoints.
-
-        See Torrents and Torrent class for usage.
-        :return: Torrents object
-        """
-        if self._torrents is None:
-            self._torrents = Torrents(client=self)
-        return self._torrents
-
-    @property
-    def torrent_categories(self):
-        """
-        Allows for transparent interaction with Torrent Categories endpoints.
-
-        See Torrent_Categories class for usage.
-        :return: Torrent Categories object
-        """
-        if self._torrent_categories is None:
-            self._torrent_categories = TorrentCategories(client=self)
-        return self._torrent_categories
-
-    @property
-    def torrent_tags(self):
-        """
-        Allows for transparent interaction with Torrent Tags endpoints.
-
-        See Torrent_Tags class for usage.
-        :return: Torrent Tags object
-        """
-        if self._torrent_tags is None:
-            self._torrent_tags = TorrentTags(client=self)
-        return self._torrent_tags
-
-    @login_required
-    def torrents_add(
-        self,
-        urls=None,
-        torrent_files=None,
-        save_path=None,
-        cookie=None,
-        category=None,
-        is_skip_checking=None,
-        is_paused=None,
-        is_root_folder=None,
-        rename=None,
-        upload_limit=None,
-        download_limit=None,
-        use_auto_torrent_management=None,
-        is_sequential_download=None,
-        is_first_last_piece_priority=None,
-        tags=None,
-        content_layout=None,
-        ratio_limit=None,
-        seeding_time_limit=None,
-        download_path=None,
-        use_download_path=None,
-        stop_condition=None,
-        **kwargs,
-    ):
-        """
-        Add one or more torrents by URLs and/or torrent files.
-
-        :raises UnsupportedMediaType415Error: if file is not a valid torrent file
-        :raises TorrentFileNotFoundError: if a torrent file doesn't exist
-        :raises TorrentFilePermissionError: if read permission is denied to torrent file
-
-        :param urls: single instance or an iterable of URLs (``http://``, ``https://``, ``magnet:``, ``bc://bt/``)
-        :param torrent_files: several options are available to send torrent files to qBittorrent:
-
-            * single instance of bytes: useful if torrent file already read from disk or downloaded from internet.
-            * single instance of file handle to torrent file: use ``open(<filepath>, 'rb')`` to open the torrent file.
-            * single instance of a filepath to torrent file: e.g. ``/home/user/torrent_filename.torrent``
-            * an iterable of the single instances above to send more than one torrent file
-            * dictionary with key/value pairs of torrent name and single instance of above object
-
-            Note: The torrent name in a dictionary is useful to identify which torrent file
-            errored. qBittorrent provides back that name in the error text. If a torrent
-            name is not provided, then the name of the file will be used. And in the case of
-            bytes (or if filename cannot be determined), the value 'torrent__n' will be used.
-        :param save_path: location to save the torrent data
-        :param cookie: cookie to retrieve torrents by URL
-        :param category: category to assign to torrent(s)
-        :param is_skip_checking: ``True`` to skip hash checking
-        :param is_paused: ``True`` to add the torrent(s) without starting their downloading
-        :param is_root_folder: ``True`` or ``False`` to create root folder (superseded by content_layout with v4.3.2)
-        :param rename: new name for torrent(s)
-        :param upload_limit: upload limit in bytes/second
-        :param download_limit: download limit in bytes/second
-        :param use_auto_torrent_management: ``True`` or ``False`` to use automatic torrent management
-        :param is_sequential_download: ``True`` or ``False`` for sequential download
-        :param is_first_last_piece_priority: ``True`` or ``False`` for first and last piece download priority
-        :param tags: tag(s) to assign to torrent(s) (added in Web API 2.6.2)
-        :param content_layout: ``Original``, ``Subfolder``, or ``NoSubfolder`` to control filesystem structure for content (added in Web API 2.7)
-        :param ratio_limit: share limit as ratio of upload amt over download amt; e.g. 0.5 or 2.0 (added in Web API 2.8.1)
-        :param seeding_time_limit: number of minutes to seed torrent (added in Web API 2.8.1)
-        :param download_path: location to download torrent content before moving to ``save_path`` (added in Web API 2.8.4)
-        :param use_download_path: ``True`` or ``False`` whether ``download_path`` should be used...defaults to ``True`` if ``download_path`` is specified (added in Web API 2.8.4)
-        :param stop_condition: ``MetadataReceived`` or ``FilesChecked`` to stop the torrent when started automatically (added in Web API 2.8.15)
-        :return: ``Ok.`` for success and ``Fails.`` for failure
-        """  # noqa: E501
-
-        # convert pre-v2.7 params to post-v2.7 params...or post-v2.7 to pre-v2.7
-        api_version = self.app_web_api_version()
-        if (
-            content_layout is None
-            and is_root_folder is not None
-            and v(api_version) >= v("2.7")
-        ):
-            content_layout = "Original" if is_root_folder else "NoSubfolder"
-            is_root_folder = None
-        elif (
-            content_layout is not None
-            and is_root_folder is None
-            and v(api_version) < v("2.7")
-        ):
-            is_root_folder = content_layout in {"Subfolder", "Original"}
-            content_layout = None
-
-        # default to actually using the specified download path
-        if use_download_path is None and download_path is not None:
-            use_download_path = True
-
-        data = {
-            "urls": (None, self._list2string(urls, "\n")),
-            "savepath": (None, save_path),
-            "cookie": (None, cookie),
-            "category": (None, category),
-            "tags": (None, self._list2string(tags, ",")),
-            "skip_checking": (None, is_skip_checking),
-            "paused": (None, is_paused),
-            "root_folder": (None, is_root_folder),
-            "contentLayout": (None, content_layout),
-            "rename": (None, rename),
-            "upLimit": (None, upload_limit),
-            "dlLimit": (None, download_limit),
-            "ratioLimit": (None, ratio_limit),
-            "seedingTimeLimit": (None, seeding_time_limit),
-            "autoTMM": (None, use_auto_torrent_management),
-            "sequentialDownload": (None, is_sequential_download),
-            "firstLastPiecePrio": (None, is_first_last_piece_priority),
-            "downloadPath": (None, download_path),
-            "useDownloadPath": (None, use_download_path),
-            "stopCondition": (None, stop_condition),
-        }
-
-        return self._post(
-            _name=APINames.Torrents,
-            _method="add",
-            data=data,
-            files=self._normalize_torrent_files(torrent_files),
-            response_class=str,
-            **kwargs,
-        )
-
-    @staticmethod
-    def _normalize_torrent_files(user_files):
-        """
-        Normalize the torrent file(s) from the user.
-
-        The file(s) can be the raw bytes, file handle, filepath for a
-        torrent file, or an iterable (e.g. list|set|tuple) of any of
-        these "files". Further, the file(s) can be in a dictionary with
-        the "names" of the torrents as the keys. These "names" can be
-        anything...but are mostly useful as identifiers for each file.
-        """
-        if not user_files:
-            return None
-
-        prefix = "torrent__"
-        # if it's string-like and not a list|set|tuple, then make it a list
-        # checking for 'read' attr since a single file handle is iterable but also needs to be in a list
-        is_string_like = isinstance(user_files, (bytes, str))
-        is_file_like = hasattr(user_files, "read")
-        if is_string_like or is_file_like or not isinstance(user_files, Iterable):
-            user_files = [user_files]
-
-        # up convert to a dictionary to add fabricated torrent names
-        norm_files = (
-            user_files
-            if isinstance(user_files, Mapping)
-            else {prefix + str(i): f for i, f in enumerate(user_files)}
-        )
-
-        files = {}
-        for name, torrent_file in norm_files.items():
-            try:
-                if isinstance(torrent_file, (bytes, bytearray)):
-                    # if bytes, assume it's a torrent file that was downloaded or read from disk
-                    torrent_bytes = torrent_file
-                elif hasattr(torrent_file, "read"):
-                    # if hasattr('read'), assume this is a file handle from open() or similar
-                    torrent_bytes = torrent_file.read()
-                else:
-                    # otherwise, coerce to a string and try to open it as a file
-                    filepath = path.abspath(
-                        path.realpath(path.expanduser(str(torrent_file)))
-                    )
-                    name = path.basename(filepath)
-                    with open(filepath, "rb") as file:
-                        torrent_bytes = file.read()
-
-                # if using default name, let Requests try to figure out the filename to send
-                # Requests will fall back to "name" as the dict key if fh doesn't provide a file name
-                files[name] = (
-                    torrent_bytes if name.startswith(prefix) else (name, torrent_bytes)
-                )
-            except OSError as io_err:
-                if io_err.errno == errno.ENOENT:
-                    raise TorrentFileNotFoundError(
-                        errno.ENOENT, os_strerror(errno.ENOENT), torrent_file
-                    )
-                if io_err.errno == errno.EACCES:
-                    raise TorrentFilePermissionError(
-                        errno.ENOENT, os_strerror(errno.EACCES), torrent_file
-                    )
-                raise TorrentFileError(io_err)
-        return files
-
-    ##########################################################################
-    # INDIVIDUAL TORRENT ENDPOINTS
-    ##########################################################################
-    @handle_hashes
-    @login_required
-    def torrents_properties(self, torrent_hash=None, **kwargs):
-        """
-        Retrieve individual torrent's properties.
-
-        :raises NotFound404Error:
-
-        :param torrent_hash: hash for torrent
-        :return: :class:`TorrentPropertiesDictionary` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-generic-properties>`_
-        """  # noqa: E501
-        data = {"hash": torrent_hash}
-        return self._post(
-            _name=APINames.Torrents,
-            _method="properties",
-            data=data,
-            response_class=TorrentPropertiesDictionary,
-            **kwargs,
-        )
-
-    @handle_hashes
-    @login_required
-    def torrents_trackers(self, torrent_hash=None, **kwargs):
-        """
-        Retrieve individual torrent's trackers. Tracker status is defined in
-        :class:`~qbittorrentapi.definitions.TrackerStatus`.
-
-        :raises NotFound404Error:
-
-        :param torrent_hash: hash for torrent
-        :return: :class:`TrackersList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-trackers>`_
-        """  # noqa: E501
-        data = {"hash": torrent_hash}
-        return self._post(
-            _name=APINames.Torrents,
-            _method="trackers",
-            data=data,
-            response_class=TrackersList,
-            **kwargs,
-        )
-
-    @handle_hashes
-    @login_required
-    def torrents_webseeds(self, torrent_hash=None, **kwargs):
-        """
-        Retrieve individual torrent's web seeds.
-
-        :raises NotFound404Error:
-
-        :param torrent_hash: hash for torrent
-        :return: :class:`WebSeedsList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-web-seeds>`_
-        """  # noqa: E501
-        data = {"hash": torrent_hash}
-        return self._post(
-            _name=APINames.Torrents,
-            _method="webseeds",
-            data=data,
-            response_class=WebSeedsList,
-            **kwargs,
-        )
-
-    @handle_hashes
-    @login_required
-    def torrents_files(self, torrent_hash=None, **kwargs):
-        """
-        Retrieve individual torrent's files.
-
-        :raises NotFound404Error:
-
-        :param torrent_hash: hash for torrent
-        :return: :class:`TorrentFilesList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-contents>`_
-        """  # noqa: E501
-        data = {"hash": torrent_hash}
-        return self._post(
-            _name=APINames.Torrents,
-            _method="files",
-            data=data,
-            response_class=TorrentFilesList,
-            **kwargs,
-        )
-
-    @alias("torrents_pieceStates")
-    @handle_hashes
-    @login_required
-    def torrents_piece_states(self, torrent_hash=None, **kwargs):
-        """
-        Retrieve individual torrent's pieces' states.
-
-        :raises NotFound404Error:
-
-        :param torrent_hash: hash for torrent
-        :return: :class:`TorrentPieceInfoList`
-        """
-        data = {"hash": torrent_hash}
-        return self._post(
-            _name=APINames.Torrents,
-            _method="pieceStates",
-            data=data,
-            response_class=TorrentPieceInfoList,
-            **kwargs,
-        )
-
-    @alias("torrents_pieceHashes")
-    @handle_hashes
-    @login_required
-    def torrents_piece_hashes(self, torrent_hash=None, **kwargs):
-        """
-        Retrieve individual torrent's pieces' hashes.
-
-        :raises NotFound404Error:
-
-        :param torrent_hash: hash for torrent
-        :return: :class:`TorrentPieceInfoList`
-        """
-        data = {"hash": torrent_hash}
-        return self._post(
-            _name=APINames.Torrents,
-            _method="pieceHashes",
-            data=data,
-            response_class=TorrentPieceInfoList,
-            **kwargs,
-        )
-
-    @alias("torrents_addTrackers")
-    @handle_hashes
-    @login_required
-    def torrents_add_trackers(self, torrent_hash=None, urls=None, **kwargs):
-        """
-        Add trackers to a torrent.
-
-        :raises NotFound404Error:
-        :param torrent_hash: hash for torrent
-        :param urls: tracker URLs to add to torrent
-        :return: None
-        """
-        data = {
-            "hash": torrent_hash,
-            "urls": self._list2string(urls, "\n"),
-        }
-        self._post(_name=APINames.Torrents, _method="addTrackers", data=data, **kwargs)
-
-    @alias("torrents_editTracker")
-    @endpoint_introduced("2.2.0", "torrents/editTracker")
-    @handle_hashes
-    @login_required
-    def torrents_edit_tracker(
-        self, torrent_hash=None, original_url=None, new_url=None, **kwargs
-    ):
-        """
-        Replace a torrent's tracker with a different one.
-
-        :raises InvalidRequest400Error:
-        :raises NotFound404Error:
-        :raises Conflict409Error:
-        :param torrent_hash: hash for torrent
-        :param original_url: URL for existing tracker
-        :param new_url: new URL to replace
-        :return: None
-        """
-        data = {
-            "hash": torrent_hash,
-            "origUrl": original_url,
-            "newUrl": new_url,
-        }
-        self._post(_name=APINames.Torrents, _method="editTracker", data=data, **kwargs)
-
-    @alias("torrents_removeTrackers")
-    @endpoint_introduced("2.2.0", "torrents/removeTrackers")
-    @handle_hashes
-    @login_required
-    def torrents_remove_trackers(self, torrent_hash=None, urls=None, **kwargs):
-        """
-        Remove trackers from a torrent.
-
-        :raises NotFound404Error:
-        :raises Conflict409Error:
-        :param torrent_hash: hash for torrent
-        :param urls: tracker URLs to removed from torrent
-        :return: None
-        """
-        data = {
-            "hash": torrent_hash,
-            "urls": self._list2string(urls, "|"),
-        }
-        self._post(
-            _name=APINames.Torrents, _method="removeTrackers", data=data, **kwargs
-        )
-
-    @alias("torrents_filePrio")
-    @handle_hashes
-    @login_required
-    def torrents_file_priority(
-        self, torrent_hash=None, file_ids=None, priority=None, **kwargs
-    ):
-        """
-        Set priority for one or more files.
-
-        :raises InvalidRequest400Error: if priority is invalid or at least one file ID is not an integer
-        :raises NotFound404Error:
-        :raises Conflict409Error: if torrent metadata has not finished downloading or at least one file was not found
-        :param torrent_hash: hash for torrent
-        :param file_ids: single file ID or a list.
-        :param priority: priority for file(s) - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-set-file-priority>`_
-        :return: None
-        """  # noqa: E501
-        data = {
-            "hash": torrent_hash,
-            "id": self._list2string(file_ids, "|"),
-            "priority": priority,
-        }
-        self._post(_name=APINames.Torrents, _method="filePrio", data=data, **kwargs)
-
-    @handle_hashes
-    @login_required
-    def torrents_rename(self, torrent_hash=None, new_torrent_name=None, **kwargs):
-        """
-        Rename a torrent.
-
-        :raises NotFound404Error:
-        :param torrent_hash: hash for torrent
-        :param new_torrent_name: new name for torrent
-        :return: None
-        """
-        data = {"hash": torrent_hash, "name": new_torrent_name}
-        self._post(_name=APINames.Torrents, _method="rename", data=data, **kwargs)
-
-    @alias("torrents_renameFile")
-    @handle_hashes
-    @endpoint_introduced("2.4.0", "torrents/renameFile")
-    @login_required
-    def torrents_rename_file(
-        self,
-        torrent_hash=None,
-        file_id=None,
-        new_file_name=None,
-        old_path=None,
-        new_path=None,
-        **kwargs,
-    ):
-        """
-        Rename a torrent file.
-
-        :raises MissingRequiredParameters400Error:
-        :raises NotFound404Error:
-        :raises Conflict409Error:
-        :param torrent_hash: hash for torrent
-        :param file_id: id for file (removed in Web API 2.7)
-        :param new_file_name: new name for file (removed in Web API 2.7)
-        :param old_path: path of file to rename (added in Web API 2.7)
-        :param new_path: new path of file to rename (added in Web API 2.7)
-        :return: None
-        """
-        # convert pre-v2.7 params to post-v2.7...or post-v2.7 to pre-v2.7
-        # HACK: v4.3.2 and v4.3.3 both use Web API 2.7 but old/new_path were introduced in v4.3.3
-        if (
-            old_path is None
-            and new_path is None
-            and file_id is not None
-            and v(self.app_version()) >= v("v4.3.3")
-        ):
-            try:
-                old_path = self.torrents_files(torrent_hash=torrent_hash)[file_id].name
-            except (IndexError, AttributeError, TypeError):
-                logger.debug(
-                    "ERROR: File ID '%s' isn't valid...'oldPath' cannot be determined.",
-                    file_id,
-                )
-                old_path = ""
-            new_path = new_file_name or ""
-        elif (
-            old_path is not None
-            and new_path is not None
-            and file_id is None
-            and v(self.app_version()) < v("v4.3.3")
-        ):
-            # previous only allowed renaming the file...not also moving it
-            new_file_name = new_path.split("/")[-1]
-            for file in self.torrents_files(torrent_hash=torrent_hash):
-                if file.name == old_path:
-                    file_id = file.id
-                    break
-            else:
-                logger.debug(
-                    "ERROR: old_path '%s' isn't valid...'file_id' cannot be determined.",
-                    old_path,
-                )
-                file_id = ""
-
-        data = {
-            "hash": torrent_hash,
-            "id": file_id,
-            "name": new_file_name,
-            "oldPath": old_path,
-            "newPath": new_path,
-        }
-        self._post(_name=APINames.Torrents, _method="renameFile", data=data, **kwargs)
-
-    @alias("torrents_renameFolder")
-    @endpoint_introduced("2.7", "torrents/renameFolder")
-    @handle_hashes
-    @login_required
-    def torrents_rename_folder(
-        self,
-        torrent_hash=None,
-        old_path=None,
-        new_path=None,
-        **kwargs,
-    ):
-        """
-        Rename a torrent folder.
-
-        :raises MissingRequiredParameters400Error:
-        :raises NotFound404Error:
-        :raises Conflict409Error:
-        :param torrent_hash: hash for torrent
-        :param old_path: path of file to rename (added in Web API 2.7)
-        :param new_path: new path of file to rename (added in Web API 2.7)
-        :return: None
-        """
-        # HACK: v4.3.2 and v4.3.3 both use Web API 2.7 but rename_folder was introduced in v4.3.3
-        if v(self.app_version()) >= v("v4.3.3"):
-            data = {
-                "hash": torrent_hash,
-                "oldPath": old_path,
-                "newPath": new_path,
-            }
-            self._post(
-                _name=APINames.Torrents,
-                _method="renameFolder",
-                data=data,
-                **kwargs,
-            )
-        else:
-            # only get here on v4.3.2....so hack in raising exception
-            check_for_raise(
-                client=self,
-                error_message=(
-                    "ERROR: Endpoint 'torrents/renameFolder' is Not Implemented in this version of qBittorrent. "
-                    "This endpoint is available starting in Web API 2.7."
-                ),
-            )
-
-    @endpoint_introduced("2.8.14", "torrents/export")
-    @handle_hashes
-    @login_required
-    def torrents_export(self, torrent_hash=None, **kwargs):
-        """
-        Export a .torrent file for the torrent.
-
-        :raises NotFound404Error: torrent not found
-        :raises Conflict409Error: unable to export .torrent file
-        :param torrent_hash: hash for torrent
-        :return: bytes .torrent file
-        """
-        data = {"hash": torrent_hash}
-        return self._post(
-            _name=APINames.Torrents,
-            _method="export",
-            data=data,
-            response_class=bytes,
-            **kwargs,
-        )
-
-    ##########################################################################
-    # MULTIPLE TORRENT ENDPOINTS
-    ##########################################################################
-    @handle_hashes
-    @login_required
-    def torrents_info(
-        self,
-        status_filter=None,
-        category=None,
-        sort=None,
-        reverse=None,
-        limit=None,
-        offset=None,
-        torrent_hashes=None,
-        tag=None,
-        **kwargs,
-    ):
-        """
-        Retrieves list of info for torrents.
-
-        :param status_filter: Filter list by torrent status.
-            ``all``, ``downloading``, ``seeding``, ``completed``, ``paused``
-            ``active``, ``inactive``, ``resumed``, ``errored``
-            Added in Web API 2.4.1:
-            ``stalled``, ``stalled_uploading``, and ``stalled_downloading``
-            Added in Web API 2.8.4:
-            ``checking``
-            Added in Web API 2.8.18:
-            ``moving``
-        :param category: Filter list by category
-        :param sort: Sort list by any property returned
-        :param reverse: Reverse sorting
-        :param limit: Limit length of list
-        :param offset: Start of list (if < 0, offset from end of list)
-        :param torrent_hashes: Filter list by hash (separate multiple hashes with a '|') (added in Web API 2.0.1)
-        :param tag: Filter list by tag (empty string means "untagged"; no "tag" parameter means "any tag"; added in Web API 2.8.3)
-        :return: :class:`TorrentInfoList` - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-list>`_
-        """  # noqa: E501
-        data = {
-            "filter": status_filter,
-            "category": category,
-            "sort": sort,
-            "reverse": reverse,
-            "limit": limit,
-            "offset": offset,
-            "hashes": self._list2string(torrent_hashes, "|"),
-            "tag": tag,
-        }
-        return self._post(
-            _name=APINames.Torrents,
-            _method="info",
-            data=data,
-            response_class=TorrentInfoList,
-            **kwargs,
-        )
-
-    @handle_hashes
-    @login_required
-    def torrents_resume(self, torrent_hashes=None, **kwargs):
-        """
-        Resume one or more torrents in qBittorrent.
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :return: None
-        """
-        data = {"hashes": self._list2string(torrent_hashes, "|")}
-        self._post(_name=APINames.Torrents, _method="resume", data=data, **kwargs)
-
-    @handle_hashes
-    @login_required
-    def torrents_pause(self, torrent_hashes=None, **kwargs):
-        """
-        Pause one or more torrents in qBittorrent.
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :return: None
-        """
-        data = {"hashes": self._list2string(torrent_hashes, "|")}
-        self._post(_name=APINames.Torrents, _method="pause", data=data, **kwargs)
-
-    @handle_hashes
-    @login_required
-    def torrents_delete(self, delete_files=False, torrent_hashes=None, **kwargs):
-        """
-        Remove a torrent from qBittorrent and optionally delete its files.
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :param delete_files: True to delete the torrent's files
-        :return: None
-        """
-        data = {
-            "hashes": self._list2string(torrent_hashes, "|"),
-            "deleteFiles": bool(delete_files),
-        }
-        self._post(_name=APINames.Torrents, _method="delete", data=data, **kwargs)
-
-    @handle_hashes
-    @login_required
-    def torrents_recheck(self, torrent_hashes=None, **kwargs):
-        """
-        Recheck a torrent in qBittorrent.
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :return: None
-        """
-        data = {"hashes": self._list2string(torrent_hashes, "|")}
-        self._post(_name=APINames.Torrents, _method="recheck", data=data, **kwargs)
-
-    @endpoint_introduced("2.0.2", "torrents/reannounce")
-    @handle_hashes
-    @login_required
-    def torrents_reannounce(self, torrent_hashes=None, **kwargs):
-        """
-        Reannounce a torrent.
-
-        Note: ``torrents/reannounce`` introduced in Web API 2.0.2
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :return: None
-        """
-        data = {"hashes": self._list2string(torrent_hashes, "|")}
-        self._post(_name=APINames.Torrents, _method="reannounce", data=data, **kwargs)
-
-    @alias("torrents_increasePrio")
-    @handle_hashes
-    @login_required
-    def torrents_increase_priority(self, torrent_hashes=None, **kwargs):
-        """
-        Increase the priority of a torrent. Torrent Queuing must be enabled.
-
-        :raises Conflict409Error:
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :return: None
-        """
-        data = {"hashes": self._list2string(torrent_hashes, "|")}
-        self._post(_name=APINames.Torrents, _method="increasePrio", data=data, **kwargs)
-
-    @alias("torrents_decreasePrio")
-    @handle_hashes
-    @login_required
-    def torrents_decrease_priority(self, torrent_hashes=None, **kwargs):
-        """
-        Decrease the priority of a torrent. Torrent Queuing must be enabled.
-
-        :raises Conflict409Error:
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :return: None
-        """
-        data = {"hashes": self._list2string(torrent_hashes, "|")}
-        self._post(_name=APINames.Torrents, _method="decreasePrio", data=data, **kwargs)
-
-    @alias("torrents_topPrio")
-    @handle_hashes
-    @login_required
-    def torrents_top_priority(self, torrent_hashes=None, **kwargs):
-        """
-        Set torrent as highest priority. Torrent Queuing must be enabled.
-
-        :raises Conflict409Error:
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :return: None
-        """
-        data = {"hashes": self._list2string(torrent_hashes, "|")}
-        self._post(_name=APINames.Torrents, _method="topPrio", data=data, **kwargs)
-
-    @alias("torrents_bottomPrio")
-    @handle_hashes
-    @login_required
-    def torrents_bottom_priority(self, torrent_hashes=None, **kwargs):
-        """
-        Set torrent as lowest priority. Torrent Queuing must be enabled.
-
-        :raises Conflict409Error:
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :return: None
-        """
-        data = {"hashes": self._list2string(torrent_hashes, "|")}
-        self._post(_name=APINames.Torrents, _method="bottomPrio", data=data, **kwargs)
-
-    @alias("torrents_downloadLimit")
-    @handle_hashes
-    @login_required
-    def torrents_download_limit(self, torrent_hashes=None, **kwargs):
-        """
-        Retrieve the download limit for one or more torrents.
-
-        :return: :class:`TorrentLimitsDictionary` - ``{hash: limit}`` (-1 represents no limit)
-        """
-        data = {"hashes": self._list2string(torrent_hashes, "|")}
-        return self._post(
-            _name=APINames.Torrents,
-            _method="downloadLimit",
-            data=data,
-            response_class=TorrentLimitsDictionary,
-            **kwargs,
-        )
-
-    @alias("torrents_setDownloadLimit")
-    @handle_hashes
-    @login_required
-    def torrents_set_download_limit(self, limit=None, torrent_hashes=None, **kwargs):
-        """
-        Set the download limit for one or more torrents.
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :param limit: bytes/second (-1 sets the limit to infinity)
-        :return: None
-        """
-        data = {
-            "hashes": self._list2string(torrent_hashes, "|"),
-            "limit": limit,
-        }
-        self._post(
-            _name=APINames.Torrents,
-            _method="setDownloadLimit",
-            data=data,
-            **kwargs,
-        )
-
-    @alias("torrents_setShareLimits")
-    @endpoint_introduced("2.0.1", "torrents/setShareLimits")
-    @handle_hashes
-    @login_required
-    def torrents_set_share_limits(
-        self,
-        ratio_limit=None,
-        seeding_time_limit=None,
-        inactive_seeding_time_limit=None,
-        torrent_hashes=None,
-        **kwargs,
-    ):
-        """
-        Set share limits for one or more torrents.
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :param ratio_limit: max ratio to seed a torrent. (-2 means use the global value and -1 is no limit)
-        :param seeding_time_limit: minutes (-2 means use the global value and -1 is no limit)
-        :param inactive_seeding_time_limit: minutes (-2 means use the global value and -1 is no limit)
-            (added in Web API v2.9.2)
-        :return: None
-        """
-        data = {
-            "hashes": self._list2string(torrent_hashes, "|"),
-            "ratioLimit": ratio_limit,
-            "seedingTimeLimit": seeding_time_limit,
-            "inactiveSeedingTimeLimit": inactive_seeding_time_limit,
-        }
-        self._post(
-            _name=APINames.Torrents,
-            _method="setShareLimits",
-            data=data,
-            **kwargs,
-        )
-
-    @alias("torrents_uploadLimit")
-    @handle_hashes
-    @login_required
-    def torrents_upload_limit(self, torrent_hashes=None, **kwargs):
-        """
-        Retrieve the upload limit for one or more torrents.
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :return: :class:`TorrentLimitsDictionary`
-        """
-        data = {"hashes": self._list2string(torrent_hashes, "|")}
-        return self._post(
-            _name=APINames.Torrents,
-            _method="uploadLimit",
-            data=data,
-            response_class=TorrentLimitsDictionary,
-            **kwargs,
-        )
-
-    @alias("torrents_setUploadLimit")
-    @handle_hashes
-    @login_required
-    def torrents_set_upload_limit(self, limit=None, torrent_hashes=None, **kwargs):
-        """
-        Set the upload limit for one or more torrents.
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :param limit: bytes/second (-1 sets the limit to infinity)
-        :return: None
-        """
-        data = {
-            "hashes": self._list2string(torrent_hashes, "|"),
-            "limit": limit,
-        }
-        self._post(
-            _name=APINames.Torrents,
-            _method="setUploadLimit",
-            data=data,
-            **kwargs,
-        )
-
-    @alias("torrents_setLocation")
-    @handle_hashes
-    @login_required
-    def torrents_set_location(self, location=None, torrent_hashes=None, **kwargs):
-        """
-        Set location for torrents' files.
-
-        :raises Forbidden403Error: if the user doesn't have permissions to write to the
-            location (only before v4.5.2 - write check was removed.)
-        :raises Conflict409Error: if the directory cannot be created at the location
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :param location: disk location to move torrent's files
-        :return: None
-        """
-        data = {
-            "hashes": self._list2string(torrent_hashes, "|"),
-            "location": location,
-        }
-        self._post(_name=APINames.Torrents, _method="setLocation", data=data, **kwargs)
-
-    @alias("torrents_setSavePath")
-    @endpoint_introduced("2.8.4", "torrents/setSavePath")
-    @handle_hashes
-    @login_required
-    def torrents_set_save_path(self, save_path=None, torrent_hashes=None, **kwargs):
-        """
-        Set the Save Path for one or more torrents.
-
-        :raises Forbidden403Error: cannot write to directory
-        :raises Conflict409Error: directory cannot be created
-
-        :param save_path: file path to save torrent contents
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        """
-        data = {
-            "id": self._list2string(torrent_hashes, "|"),
-            "path": save_path,
-        }
-        self._post(_name=APINames.Torrents, _method="setSavePath", data=data, **kwargs)
-
-    @alias("torrents_setDownloadPath")
-    @endpoint_introduced("2.8.4", "torrents/setDownloadPath")
-    @handle_hashes
-    @login_required
-    def torrents_set_download_path(
-        self, download_path=None, torrent_hashes=None, **kwargs
-    ):
-        """
-        Set the Download Path for one or more torrents.
-
-        :raises Forbidden403Error: cannot write to directory
-        :raises Conflict409Error: directory cannot be created
-
-        :param download_path: file path to save torrent contents before torrent finishes downloading
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        """
-        data = {
-            "id": self._list2string(torrent_hashes, "|"),
-            "path": download_path,
-        }
-        self._post(
-            _name=APINames.Torrents,
-            _method="setDownloadPath",
-            data=data,
-            **kwargs,
-        )
-
-    @alias("torrents_setCategory")
-    @handle_hashes
-    @login_required
-    def torrents_set_category(self, category=None, torrent_hashes=None, **kwargs):
-        """
-        Set a category for one or more torrents.
-
-        :raises Conflict409Error: for bad category
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :param category: category to assign to torrent
-        :return: None
-        """
-        data = {
-            "hashes": self._list2string(torrent_hashes, "|"),
-            "category": category,
-        }
-        self._post(_name=APINames.Torrents, _method="setCategory", data=data, **kwargs)
-
-    @alias("torrents_setAutoManagement")
-    @handle_hashes
-    @login_required
-    def torrents_set_auto_management(self, enable=None, torrent_hashes=None, **kwargs):
-        """
-        Enable or disable automatic torrent management for one or more torrents.
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :param enable: Defaults to ``True`` if ``None`` or unset; use ``False`` to disable
-        :return: None
-        """
-        data = {
-            "hashes": self._list2string(torrent_hashes, "|"),
-            "enable": True if enable is None else bool(enable),
-        }
-        self._post(
-            _name=APINames.Torrents,
-            _method="setAutoManagement",
-            data=data,
-            **kwargs,
-        )
-
-    @alias("torrents_toggleSequentialDownload")
-    @handle_hashes
-    @login_required
-    def torrents_toggle_sequential_download(self, torrent_hashes=None, **kwargs):
-        """
-        Toggle sequential download for one or more torrents.
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :return: None
-        """
-        data = {"hashes": self._list2string(torrent_hashes)}
-        self._post(
-            _name=APINames.Torrents,
-            _method="toggleSequentialDownload",
-            data=data,
-            **kwargs,
-        )
-
-    @alias("torrents_toggleFirstLastPiecePrio")
-    @handle_hashes
-    @login_required
-    def torrents_toggle_first_last_piece_priority(self, torrent_hashes=None, **kwargs):
-        """
-        Toggle priority of first/last piece downloading.
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :return: None
-        """
-        data = {"hashes": self._list2string(torrent_hashes, "|")}
-        self._post(
-            _name=APINames.Torrents,
-            _method="toggleFirstLastPiecePrio",
-            data=data,
-            **kwargs,
-        )
-
-    @alias("torrents_setForceStart")
-    @handle_hashes
-    @login_required
-    def torrents_set_force_start(self, enable=None, torrent_hashes=None, **kwargs):
-        """
-        Force start one or more torrents.
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :param enable: Defaults to ``True`` if ``None`` or unset; ``False`` is equivalent to
-            :meth:`~TorrentsAPIMixIn.torrents_resume()`.
-        :return: None
-        """
-        data = {
-            "hashes": self._list2string(torrent_hashes, "|"),
-            "value": True if enable is None else bool(enable),
-        }
-        self._post(
-            _name=APINames.Torrents,
-            _method="setForceStart",
-            data=data,
-            **kwargs,
-        )
-
-    @alias("torrents_setSuperSeeding")
-    @handle_hashes
-    @login_required
-    def torrents_set_super_seeding(self, enable=None, torrent_hashes=None, **kwargs):
-        """
-        Set one or more torrents as super seeding.
-
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :param enable: Defaults to ``True`` if ``None`` or unset; ``False`` to disable
-        :return:
-        """
-        data = {
-            "hashes": self._list2string(torrent_hashes, "|"),
-            "value": True if enable is None else bool(enable),
-        }
-        self._post(
-            _name=APINames.Torrents,
-            _method="setSuperSeeding",
-            data=data,
-            **kwargs,
-        )
-
-    @alias("torrents_addPeers")
-    @endpoint_introduced("2.3.0", "torrents/addPeers")
-    @handle_hashes
-    @login_required
-    def torrents_add_peers(self, peers=None, torrent_hashes=None, **kwargs):
-        """
-        Add one or more peers to one or more torrents.
-
-        :raises InvalidRequest400Error: for invalid peers
-
-        :param peers: one or more peers to add. each peer should take the form 'host:port'
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :return: :class:`TorrentsAddPeersDictionary` - ``{<hash>: {'added': #, 'failed': #}}``
-        """
-        data = {
-            "hashes": self._list2string(torrent_hashes, "|"),
-            "peers": self._list2string(peers, "|"),
-        }
-        return self._post(
-            _name=APINames.Torrents,
-            _method="addPeers",
-            data=data,
-            response_class=TorrentsAddPeersDictionary,
-            **kwargs,
-        )
-
-    # TORRENT CATEGORIES ENDPOINTS
-    @endpoint_introduced("2.1.1", "torrents/categories")
-    @login_required
-    def torrents_categories(self, **kwargs):
-        """
-        Retrieve all category definitions.
-
-        Note: ``torrents/categories`` is not available until v2.1.0
-
-        :return: :class:`TorrentCategoriesDictionary`
-        """
-        return self._get(
-            _name=APINames.Torrents,
-            _method="categories",
-            response_class=TorrentCategoriesDictionary,
-            **kwargs,
-        )
-
-    @alias("torrents_createCategory")
-    @login_required
-    def torrents_create_category(
-        self,
-        name=None,
-        save_path=None,
-        download_path=None,
-        enable_download_path=None,
-        **kwargs,
-    ):
-        """
-        Create a new torrent category.
-
-        :raises Conflict409Error: if category name is not valid or unable to create
-        :param name: name for new category
-        :param save_path: location to save torrents for this category (added in Web API
-            2.1.0)
-        :param download_path: download location for torrents with this category
-        :param enable_download_path: True or False to enable or disable download path
-        :return: None
-        """
-        # default to actually using the specified download path
-        if enable_download_path is None and download_path is not None:
-            enable_download_path = True
-
-        data = {
-            "category": name,
-            "savePath": save_path,
-            "downloadPath": download_path,
-            "downloadPathEnabled": enable_download_path,
-        }
-        self._post(
-            _name=APINames.Torrents,
-            _method="createCategory",
-            data=data,
-            **kwargs,
-        )
-
-    @endpoint_introduced("2.1.0", "torrents/editCategory")
-    @alias("torrents_editCategory")
-    @login_required
-    def torrents_edit_category(
-        self,
-        name=None,
-        save_path=None,
-        download_path=None,
-        enable_download_path=None,
-        **kwargs,
-    ):
-        """
-        Edit an existing category.
-
-        Note: ``torrents/editCategory`` was introduced in Web API 2.1.0
-
-        :raises Conflict409Error: if category name is not valid or unable to create
-
-        :param name: category to edit
-        :param save_path: new location to save files for this category
-        :param download_path: download location for torrents with this category
-        :param enable_download_path: True or False to enable or disable download path
-        :return: None
-        """
-
-        # default to actually using the specified download path
-        if enable_download_path is None and download_path is not None:
-            enable_download_path = True
-
-        data = {
-            "category": name,
-            "savePath": save_path,
-            "downloadPath": download_path,
-            "downloadPathEnabled": enable_download_path,
-        }
-        self._post(_name=APINames.Torrents, _method="editCategory", data=data, **kwargs)
-
-    @alias("torrents_removeCategories")
-    @login_required
-    def torrents_remove_categories(self, categories=None, **kwargs):
-        """
-        Delete one or more categories.
-
-        :param categories: categories to delete
-        :return: None
-        """
-        data = {"categories": self._list2string(categories, "\n")}
-        self._post(
-            _name=APINames.Torrents,
-            _method="removeCategories",
-            data=data,
-            **kwargs,
-        )
-
-    # TORRENT TAGS ENDPOINTS
-    @endpoint_introduced("2.3.0", "torrents/tags")
-    @login_required
-    def torrents_tags(self, **kwargs):
-        """
-        Retrieve all tag definitions.
-
-        :return: :class:`TagList`
-        """
-        return self._get(
-            _name=APINames.Torrents,
-            _method="tags",
-            response_class=TagList,
-            **kwargs,
-        )
-
-    @alias("torrents_addTags")
-    @endpoint_introduced("2.3.0", "torrents/addTags")
-    @handle_hashes
-    @login_required
-    def torrents_add_tags(self, tags=None, torrent_hashes=None, **kwargs):
-        """
-        Add one or more tags to one or more torrents.
-
-        Note: Tags that do not exist will be created on-the-fly.
-
-        :param tags: tag name or list of tags
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :return: None
-        """
-        data = {
-            "hashes": self._list2string(torrent_hashes, "|"),
-            "tags": self._list2string(tags, ","),
-        }
-        self._post(_name=APINames.Torrents, _method="addTags", data=data, **kwargs)
-
-    @alias("torrents_removeTags")
-    @endpoint_introduced("2.3.0", "torrents/removeTags")
-    @handle_hashes
-    @login_required
-    def torrents_remove_tags(self, tags=None, torrent_hashes=None, **kwargs):
-        """
-        Add one or more tags to one or more torrents.
-
-        :param tags: tag name or list of tags
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :return: None
-        """
-        data = {
-            "hashes": self._list2string(torrent_hashes, "|"),
-            "tags": self._list2string(tags, ","),
-        }
-        self._post(_name=APINames.Torrents, _method="removeTags", data=data, **kwargs)
-
-    @alias("torrents_createTags")
-    @endpoint_introduced("2.3.0", "torrents/createTags")
-    @login_required
-    def torrents_create_tags(self, tags=None, **kwargs):
-        """
-        Create one or more tags.
-
-        :param tags: tag name or list of tags
-        :return: None
-        """
-        data = {"tags": self._list2string(tags, ",")}
-        self._post(_name=APINames.Torrents, _method="createTags", data=data, **kwargs)
-
-    @alias("torrents_deleteTags")
-    @endpoint_introduced("2.3.0", "torrents/deleteTags")
-    @login_required
-    def torrents_delete_tags(self, tags=None, **kwargs):
-        """
-        Delete one or more tags.
-
-        :param tags: tag name or list of tags
-        :return: None
-        """
-        data = {"tags": self._list2string(tags, ",")}
-        self._post(_name=APINames.Torrents, _method="deleteTags", data=data, **kwargs)
+    deleteTags = delete_tags
