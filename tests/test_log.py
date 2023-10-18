@@ -1,8 +1,19 @@
+import sys
+
 import pytest
 
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.log import LogMainList
 from qbittorrentapi.log import LogPeersList
+
+
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="removeprefix not in 3.8")
+def test_methods(client):
+    namespace = APINames.Log
+    all_dotted_methods = set(dir(getattr(client, namespace)))
+
+    for meth in [meth for meth in dir(client) if meth.startswith(f"{namespace}_")]:
+        assert meth.removeprefix(f"{namespace}_") in all_dotted_methods
 
 
 @pytest.mark.parametrize("main_func", ["log_main", "log.main"])

@@ -1,10 +1,12 @@
 import errno
 import platform
+import sys
 from time import sleep
 
 import pytest
 import requests
 
+from qbittorrentapi import APINames
 from qbittorrentapi._version_support import v
 from qbittorrentapi.exceptions import Conflict409Error
 from qbittorrentapi.exceptions import Forbidden403Error
@@ -44,6 +46,18 @@ def disable_queueing(client):
 def enable_queueing(client):
     if not client.app.preferences.queueing_enabled:
         client.app.set_preferences(dict(queueing_enabled=True))
+
+
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="removeprefix not in 3.8")
+def test_methods(client):
+    all_dotted_methods = {
+        meth
+        for namespace in [APINames.Torrents, "torrent_tags", "torrent_categories"]
+        for meth in dir(getattr(client, namespace))
+    }
+
+    for meth in [meth for meth in dir(client) if meth.startswith("torrents_")]:
+        assert meth.removeprefix("torrents_") in all_dotted_methods
 
 
 # something was wrong with torrents_add on v2.0.0 (the initial version)
@@ -306,72 +320,117 @@ def test_torrents_add_download_path(client, use_download_path, tmp_path):
             check(lambda: mkpath(torrent.info.download_path), download_path)
 
 
-def test_properties(client, orig_torrent):
-    props = client.torrents_properties(torrent_hash=orig_torrent.hash)
+@pytest.mark.parametrize(
+    "properties_func", ["torrents_properties", "torrents.properties"]
+)
+def test_properties(client, orig_torrent, properties_func):
+    props = client.func(properties_func)(torrent_hash=orig_torrent.hash)
     assert isinstance(props, TorrentPropertiesDictionary)
 
 
-def test_trackers(client, orig_torrent):
-    trackers = client.torrents_trackers(torrent_hash=orig_torrent.hash)
+@pytest.mark.parametrize("trackers_func", ["torrents_trackers", "torrents.trackers"])
+def test_trackers(client, orig_torrent, trackers_func):
+    trackers = client.func(trackers_func)(torrent_hash=orig_torrent.hash)
     assert isinstance(trackers, TrackersList)
 
 
-def test_trackers_slice(client, orig_torrent):
-    trackers = client.torrents_trackers(torrent_hash=orig_torrent.hash)
+@pytest.mark.parametrize("trackers_func", ["torrents_trackers", "torrents.trackers"])
+def test_trackers_slice(client, orig_torrent, trackers_func):
+    trackers = client.func(trackers_func)(torrent_hash=orig_torrent.hash)
     assert isinstance(trackers[1:2], TrackersList)
 
 
-def test_webseeds(client, orig_torrent):
-    web_seeds = client.torrents_webseeds(torrent_hash=orig_torrent.hash)
+@pytest.mark.parametrize("webseeds_func", ["torrents_webseeds", "torrents.webseeds"])
+def test_webseeds(client, orig_torrent, webseeds_func):
+    web_seeds = client.func(webseeds_func)(torrent_hash=orig_torrent.hash)
     assert isinstance(web_seeds, WebSeedsList)
 
 
-def test_webseeds_slice(client, orig_torrent):
-    web_seeds = client.torrents_webseeds(torrent_hash=orig_torrent.hash)
+@pytest.mark.parametrize("webseeds_func", ["torrents_webseeds", "torrents.webseeds"])
+def test_webseeds_slice(client, orig_torrent, webseeds_func):
+    web_seeds = client.func(webseeds_func)(torrent_hash=orig_torrent.hash)
     assert isinstance(web_seeds[1:2], WebSeedsList)
 
 
-def test_files(client, orig_torrent):
-    files = client.torrents_files(torrent_hash=orig_torrent.hash)
+@pytest.mark.parametrize("files_func", ["torrents_files", "torrents.files"])
+def test_files(client, orig_torrent, files_func):
+    files = client.func(files_func)(torrent_hash=orig_torrent.hash)
     assert isinstance(files, TorrentFilesList)
     assert "availability" in files[0]
     assert all(file["id"] == file["index"] for file in files)
 
 
-def test_files_slice(client, orig_torrent):
-    files = client.torrents_files(torrent_hash=orig_torrent.hash)
+@pytest.mark.parametrize("files_func", ["torrents_files", "torrents.files"])
+def test_files_slice(client, orig_torrent, files_func):
+    files = client.func(files_func)(torrent_hash=orig_torrent.hash)
     assert isinstance(files[1:2], TorrentFilesList)
 
 
 @pytest.mark.parametrize(
-    "piece_state_func", ["torrents_piece_states", "torrents_pieceStates"]
+    "piece_state_func",
+    [
+        "torrents_piece_states",
+        "torrents_pieceStates",
+        "torrents.piece_states",
+        "torrents.pieceStates",
+    ],
 )
 def test_piece_states(client, orig_torrent, piece_state_func):
     piece_states = client.func(piece_state_func)(torrent_hash=orig_torrent.hash)
     assert isinstance(piece_states, TorrentPieceInfoList)
 
 
-def test_piece_states_slice(client, orig_torrent):
-    piece_states = client.torrents_piece_states(torrent_hash=orig_torrent.hash)
+@pytest.mark.parametrize(
+    "piece_state_func",
+    [
+        "torrents_piece_states",
+        "torrents_pieceStates",
+        "torrents.piece_states",
+        "torrents.pieceStates",
+    ],
+)
+def test_piece_states_slice(client, orig_torrent, piece_state_func):
+    piece_states = client.func(piece_state_func)(torrent_hash=orig_torrent.hash)
     assert isinstance(piece_states[1:2], TorrentPieceInfoList)
 
 
 @pytest.mark.parametrize(
-    "piece_hashes_func", ["torrents_piece_hashes", "torrents_pieceHashes"]
+    "piece_hashes_func",
+    [
+        "torrents_piece_hashes",
+        "torrents_pieceHashes",
+        "torrents.piece_hashes",
+        "torrents.pieceHashes",
+    ],
 )
 def test_piece_hashes(client, orig_torrent, piece_hashes_func):
     piece_hashes = client.func(piece_hashes_func)(torrent_hash=orig_torrent.hash)
     assert isinstance(piece_hashes, TorrentPieceInfoList)
 
 
-def test_piece_hashes_slice(client, orig_torrent):
-    piece_hashes = client.torrents_piece_hashes(torrent_hash=orig_torrent.hash)
+@pytest.mark.parametrize(
+    "piece_hashes_func",
+    [
+        "torrents_piece_hashes",
+        "torrents_pieceHashes",
+        "torrents.piece_hashes",
+        "torrents.pieceHashes",
+    ],
+)
+def test_piece_hashes_slice(client, orig_torrent, piece_hashes_func):
+    piece_hashes = client.func(piece_hashes_func)(torrent_hash=orig_torrent.hash)
     assert isinstance(piece_hashes[1:2], TorrentPieceInfoList)
 
 
 @pytest.mark.parametrize("trackers", ["127.0.0.1", ["127.0.0.2", "127.0.0.3"]])
 @pytest.mark.parametrize(
-    "add_trackers_func", ["torrents_add_trackers", "torrents_addTrackers"]
+    "add_trackers_func",
+    [
+        "torrents_add_trackers",
+        "torrents_addTrackers",
+        "torrents.add_trackers",
+        "torrents.addTrackers",
+    ],
 )
 def test_add_trackers(client, trackers, new_torrent, add_trackers_func):
     client.func(add_trackers_func)(torrent_hash=new_torrent.hash, urls=trackers)
@@ -380,7 +439,13 @@ def test_add_trackers(client, trackers, new_torrent, add_trackers_func):
 
 @pytest.mark.skipif_before_api_version("2.2.0")
 @pytest.mark.parametrize(
-    "edit_trackers_func", ["torrents_edit_tracker", "torrents_editTracker"]
+    "edit_trackers_func",
+    [
+        "torrents_edit_tracker",
+        "torrents_editTracker",
+        "torrents.edit_tracker",
+        "torrents.editTracker",
+    ],
 )
 def test_edit_tracker(client, orig_torrent, edit_trackers_func):
     orig_torrent.add_trackers("127.1.0.1")
@@ -395,7 +460,13 @@ def test_edit_tracker(client, orig_torrent, edit_trackers_func):
 
 @pytest.mark.skipif_after_api_version("2.2.0")
 @pytest.mark.parametrize(
-    "edit_trackers_func", ["torrents_edit_tracker", "torrents_editTracker"]
+    "edit_trackers_func",
+    [
+        "torrents_edit_tracker",
+        "torrents_editTracker",
+        "torrents.edit_tracker",
+        "torrents.editTracker",
+    ],
 )
 def test_edit_tracker_not_implemented(client, orig_torrent, edit_trackers_func):
     with pytest.raises(NotImplementedError):
@@ -411,7 +482,13 @@ def test_edit_tracker_not_implemented(client, orig_torrent, edit_trackers_func):
     ],
 )
 @pytest.mark.parametrize(
-    "remove_trackers_func", ["torrents_remove_trackers", "torrents_removeTrackers"]
+    "remove_trackers_func",
+    [
+        "torrents_remove_trackers",
+        "torrents_removeTrackers",
+        "torrents.remove_trackers",
+        "torrents.removeTrackers",
+    ],
 )
 def test_remove_trackers(client, trackers, orig_torrent, remove_trackers_func):
     orig_torrent.add_trackers(trackers)
@@ -426,7 +503,13 @@ def test_remove_trackers(client, trackers, orig_torrent, remove_trackers_func):
 
 @pytest.mark.skipif_after_api_version("2.2.0")
 @pytest.mark.parametrize(
-    "remove_trackers_func", ["torrents_remove_trackers", "torrents_removeTrackers"]
+    "remove_trackers_func",
+    [
+        "torrents_remove_trackers",
+        "torrents_removeTrackers",
+        "torrents.remove_trackers",
+        "torrents.removeTrackers",
+    ],
 )
 def test_remove_trackers_not_implemented(client, orig_torrent, remove_trackers_func):
     with pytest.raises(NotImplementedError):
@@ -434,7 +517,13 @@ def test_remove_trackers_not_implemented(client, orig_torrent, remove_trackers_f
 
 
 @pytest.mark.parametrize(
-    "file_prio_func", ["torrents_file_priority", "torrents_filePrio"]
+    "file_prio_func",
+    [
+        "torrents_file_priority",
+        "torrents_filePrio",
+        "torrents.file_priority",
+        "torrents.filePrio",
+    ],
 )
 def test_file_priority(client, orig_torrent, file_prio_func):
     client.func(file_prio_func)(torrent_hash=orig_torrent.hash, file_ids=0, priority=6)
@@ -444,15 +533,22 @@ def test_file_priority(client, orig_torrent, file_prio_func):
 
 
 @pytest.mark.parametrize("new_name", ["new name 2", "new_name_2"])
-def test_rename(client, new_torrent, new_name):
-    client.torrents_rename(torrent_hash=new_torrent.hash, new_torrent_name=new_name)
+@pytest.mark.parametrize("rename_func", ["torrents_rename", "torrents.rename"])
+def test_rename(client, new_torrent, new_name, rename_func):
+    client.func(rename_func)(torrent_hash=new_torrent.hash, new_torrent_name=new_name)
     check(lambda: new_torrent.info.name.replace("+", " "), new_name)
 
 
 @pytest.mark.skipif_before_api_version("2.4.0")
 @pytest.mark.parametrize("new_name", ["new name file 2", "new_name_file_2"])
 @pytest.mark.parametrize(
-    "rename_file_func", ["torrents_rename_file", "torrents_renameFile"]
+    "rename_file_func",
+    [
+        "torrents_rename_file",
+        "torrents_renameFile",
+        "torrents.rename_file",
+        "torrents.renameFile",
+    ],
 )
 def test_rename_file(
     client,
@@ -487,7 +583,13 @@ def test_rename_file(
 
 @pytest.mark.skipif_after_api_version("2.4.0")
 @pytest.mark.parametrize(
-    "rename_file_func", ["torrents_rename_file", "torrents_renameFile"]
+    "rename_file_func",
+    [
+        "torrents_rename_file",
+        "torrents_renameFile",
+        "torrents.rename_file",
+        "torrents.renameFile",
+    ],
 )
 def test_rename_file_not_implemented(
     client,
@@ -501,7 +603,13 @@ def test_rename_file_not_implemented(
 @pytest.mark.skipif_before_api_version("2.7")
 @pytest.mark.parametrize("new_name", ["asdf zxcv", "asdf_zxcv"])
 @pytest.mark.parametrize(
-    "rename_folder_func", ["torrents_rename_folder", "torrents_renameFolder"]
+    "rename_folder_func",
+    [
+        "torrents_rename_folder",
+        "torrents_renameFolder",
+        "torrents.rename_folder",
+        "torrents.renameFolder",
+    ],
 )
 def test_rename_folder(client, app_version, new_torrent, new_name, rename_folder_func):
     if v(app_version) >= v("v4.3.3"):
@@ -538,7 +646,13 @@ def test_rename_folder(client, app_version, new_torrent, new_name, rename_folder
 
 @pytest.mark.skipif_after_api_version("2.7")
 @pytest.mark.parametrize(
-    "rename_folder_func", ["torrents_rename_folder", "torrents_renameFolder"]
+    "rename_folder_func",
+    [
+        "torrents_rename_folder",
+        "torrents_renameFolder",
+        "torrents.rename_folder",
+        "torrents.renameFolder",
+    ],
 )
 def test_rename_folder_not_implemented(client, rename_folder_func):
     with pytest.raises(NotImplementedError):
@@ -546,14 +660,16 @@ def test_rename_folder_not_implemented(client, rename_folder_func):
 
 
 @pytest.mark.skipif_before_api_version("2.8.14")
-def test_export(client, orig_torrent):
-    assert isinstance(client.torrents_export(torrent_hash=orig_torrent.hash), bytes)
+@pytest.mark.parametrize("export_func", ["torrents_export", "torrents.export"])
+def test_export(client, orig_torrent, export_func):
+    assert isinstance(client.func(export_func)(torrent_hash=orig_torrent.hash), bytes)
 
 
 @pytest.mark.skipif_after_api_version("2.8.14")
-def test_export_not_implemented(client):
+@pytest.mark.parametrize("export_func", ["torrents_export", "torrents.export"])
+def test_export_not_implemented(client, export_func):
     with pytest.raises(NotImplementedError):
-        client.torrents_export()
+        client.func(export_func)()
 
 
 @pytest.mark.parametrize("info_func", ["torrents_info", "torrents.info"])
