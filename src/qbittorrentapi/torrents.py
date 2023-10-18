@@ -2697,6 +2697,181 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 **kwargs,
             )
 
+    @wraps(TorrentsAPIMixIn.torrents_properties)
+    def properties(
+        self,
+        torrent_hash: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentPropertiesDictionary:
+        return self._client.torrents_properties(torrent_hash=torrent_hash, **kwargs)
+
+    @wraps(TorrentsAPIMixIn.torrents_trackers)
+    def trackers(
+        self,
+        torrent_hash: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TrackersList:
+        return self._client.torrents_trackers(torrent_hash=torrent_hash, **kwargs)
+
+    @wraps(TorrentsAPIMixIn.torrents_webseeds)
+    def webseeds(
+        self,
+        torrent_hash: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> WebSeedsList:
+        return self._client.torrents_webseeds(torrent_hash=torrent_hash, **kwargs)
+
+    @wraps(TorrentsAPIMixIn.torrents_files)
+    def files(
+        self,
+        torrent_hash: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentFilesList:
+        return self._client.torrents_files(torrent_hash=torrent_hash, **kwargs)
+
+    @wraps(TorrentsAPIMixIn.torrents_piece_states)
+    def piece_states(
+        self,
+        torrent_hash: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentPieceInfoList:
+        return self._client.torrents_piece_states(torrent_hash=torrent_hash, **kwargs)
+
+    pieceStates = piece_states
+
+    @wraps(TorrentsAPIMixIn.torrents_piece_hashes)
+    def piece_hashes(
+        self,
+        torrent_hash: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentPieceInfoList:
+        return self._client.torrents_piece_hashes(torrent_hash=torrent_hash, **kwargs)
+
+    pieceHashes = piece_hashes
+
+    @wraps(TorrentsAPIMixIn.torrents_add_trackers)
+    def add_trackers(
+        self,
+        torrent_hash: str | None = None,
+        urls: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        return self._client.torrents_add_trackers(
+            torrent_hash=torrent_hash,
+            urls=urls,
+            **kwargs,
+        )
+
+    addTrackers = add_trackers
+
+    @wraps(TorrentsAPIMixIn.torrents_edit_tracker)
+    def edit_tracker(
+        self,
+        torrent_hash: str | None = None,
+        original_url: str | None = None,
+        new_url: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        return self._client.torrents_edit_tracker(
+            torrent_hash=torrent_hash,
+            original_url=original_url,
+            new_url=new_url,
+            **kwargs,
+        )
+
+    editTracker = edit_tracker
+
+    @wraps(TorrentsAPIMixIn.torrents_remove_trackers)
+    def remove_trackers(
+        self,
+        torrent_hash: str | None = None,
+        urls: Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        return self._client.torrents_remove_trackers(
+            torrent_hash=torrent_hash,
+            urls=urls,
+            **kwargs,
+        )
+
+    removeTrackers = remove_trackers
+
+    @wraps(TorrentsAPIMixIn.torrents_file_priority)
+    def file_priority(
+        self,
+        torrent_hash: str | None = None,
+        file_ids: int | Iterable[str | int] | None = None,
+        priority: str | int | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        return self._client.torrents_file_priority(
+            torrent_hash=torrent_hash,
+            file_ids=file_ids,
+            priority=priority,
+            **kwargs,
+        )
+
+    filePrio = file_priority
+
+    @wraps(TorrentsAPIMixIn.torrents_rename)
+    def rename(
+        self,
+        torrent_hash: str | None = None,
+        new_torrent_name: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        return self._client.torrents_rename(
+            torrent_hash=torrent_hash,
+            new_torrent_name=new_torrent_name,
+            **kwargs,
+        )
+
+    @wraps(TorrentsAPIMixIn.torrents_rename_file)
+    def rename_file(
+        self,
+        torrent_hash: str | None = None,
+        file_id: str | int | None = None,
+        new_file_name: str | None = None,
+        old_path: str | None = None,
+        new_path: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        return self._client.torrents_rename_file(
+            torrent_hash=torrent_hash,
+            file_id=file_id,
+            new_file_name=new_file_name,
+            old_path=old_path,
+            new_path=new_path,
+            **kwargs,
+        )
+
+    renameFile = rename_file
+
+    @wraps(TorrentsAPIMixIn.torrents_rename_folder)
+    def rename_folder(
+        self,
+        torrent_hash: str | None = None,
+        old_path: str | None = None,
+        new_path: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        return self._client.torrents_rename_folder(
+            torrent_hash=torrent_hash,
+            old_path=old_path,
+            new_path=new_path,
+            **kwargs,
+        )
+
+    renameFolder = rename_folder
+
+    @wraps(TorrentsAPIMixIn.torrents_export)
+    def export(
+        self,
+        torrent_hash: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> bytes:
+        return self._client.torrents_export(torrent_hash=torrent_hash, **kwargs)
+
 
 class TorrentCategories(ClientCache[TorrentsAPIMixIn]):
     """

@@ -1,7 +1,9 @@
+import sys
 from time import sleep
 
 import pytest
 
+from qbittorrentapi import APINames
 from qbittorrentapi._version_support import v
 from qbittorrentapi.exceptions import APIError
 from qbittorrentapi.rss import RSSitemsDictionary
@@ -49,6 +51,15 @@ def rss_feed(client, api_version):
             raise Exception("RSS Feed '%s' did not refresh..." % ITEM_ONE)
     else:
         yield ""
+
+
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="removeprefix not in 3.8")
+def test_methods(client):
+    namespace = APINames.RSS
+    all_dotted_methods = set(dir(getattr(client, namespace)))
+
+    for meth in [meth for meth in dir(client) if meth.startswith(f"{namespace}_")]:
+        assert meth.removeprefix(f"{namespace}_") in all_dotted_methods
 
 
 @pytest.mark.skipif_before_api_version("2.2.1")

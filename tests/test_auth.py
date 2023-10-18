@@ -1,7 +1,19 @@
+import sys
+
 import pytest
 
+from qbittorrentapi import APINames
 from qbittorrentapi import Client
 from qbittorrentapi.exceptions import APIConnectionError
+
+
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="removeprefix not in 3.8")
+def test_methods(client):
+    namespace = APINames.Authorization
+    all_dotted_methods = set(dir(getattr(client, namespace)))
+
+    for meth in [meth for meth in dir(client) if meth.startswith(f"{namespace}_")]:
+        assert meth.removeprefix(f"{namespace}_") in all_dotted_methods
 
 
 def test_is_logged_in():
