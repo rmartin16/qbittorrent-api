@@ -21,17 +21,17 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2.22.3
+        uses: github/codeql-action/init@v2.22.4
         with:
           languages: python
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v2.22.3
+        uses: github/codeql-action/autobuild@v2.22.4
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2.22.3
+        uses: github/codeql-action/analyze@v2.22.4
         with:
           category: /language:python
