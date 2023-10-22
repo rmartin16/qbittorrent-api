@@ -48,15 +48,16 @@ APP_VERSION_2_API_VERSION_MAP: dict[str, str] = {
     "v4.5.2": "2.8.19",
     "v4.6.0alpha1": "2.9.1",
     "v4.5.3": "2.8.19",
+    "v4.5.4": "2.8.19",
+    "v4.5.5": "2.8.19",
     "v4.6.0beta1": "2.9.1",
     "v4.6.0rc1": "2.9.2",
     "v4.6.0rc2": "2.9.2",
-    "v4.5.4": "2.8.19",
-    "v4.5.5": "2.8.19",
+    "v4.6.0": "2.9.2",
 }
 
-MOST_RECENT_SUPPORTED_APP_VERSION: Final[Literal["v4.5.5"]] = "v4.5.5"
-MOST_RECENT_SUPPORTED_API_VERSION: Final[Literal["2.8.19"]] = "2.8.19"
+MOST_RECENT_SUPPORTED_APP_VERSION: Final[Literal["v4.6.0"]] = "v4.6.0"
+MOST_RECENT_SUPPORTED_API_VERSION: Final[Literal["2.9.2"]] = "2.9.2"
 
 
 @lru_cache(maxsize=None)

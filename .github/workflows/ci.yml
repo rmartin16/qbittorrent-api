@@ -15,8 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  LATEST_PYTHON_VER: 3.11
-  LATEST_QBT_VER: v4.5.5
+  LATEST_PYTHON_VER: 3.12
+  LATEST_QBT_VER: v4.6.0
   QBITTORRENTAPI_HOST: localhost:8080
   QBITTORRENTAPI_USERNAME: admin
   QBITTORRENTAPI_PASSWORD: adminadmin

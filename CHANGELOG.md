@@ -1,6 +1,7 @@
 Change log
 ==========
-### vXXXX.X.XX (X xxx XXXX)
+### v2023.10.54 (22 oct 2023)
+- Advertise support for qBittorrent v4.6.0
 - Dropped support for legacy Python versions; Python 3.8+ is supported (#333)
 - Refactored typing from stub files in to source (#345)
 - Dropped support for API method arguments ``hash`` and ``hashes``; use ``torrent_hash`` and ``torrent_hashes``, respectively (#345)
