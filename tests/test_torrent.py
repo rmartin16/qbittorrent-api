@@ -386,13 +386,13 @@ def test_reannounce_not_implemented(orig_torrent):
         orig_torrent.reannounce()
 
 
-@pytest.mark.skipif_before_api_version("2.9.3")
+@pytest.mark.skipif_before_api_version("2.10")
 def test_reannounce_in(orig_torrent):
     assert "reannounce_in" in orig_torrent.info
     assert type(orig_torrent.reannounce) is MethodType
 
 
-@pytest.mark.skipif_after_api_version("2.9.2")
+@pytest.mark.skipif_after_api_version("2.10")
 def test_reannounce_in_not_present(orig_torrent):
     assert "reannounce_in" not in orig_torrent.info
 

@@ -320,6 +320,19 @@ def test_torrents_add_download_path(client, use_download_path, tmp_path):
             check(lambda: mkpath(torrent.info.download_path), download_path)
 
 
+@pytest.mark.skipif_before_api_version("2.9.3")
+@pytest.mark.parametrize("count_func", ["torrents_count", "torrents.count"])
+def test_count(client, count_func):
+    assert client.func(count_func)() == 1
+
+
+@pytest.mark.skipif_after_api_version("2.9.3")
+@pytest.mark.parametrize("count_func", ["torrents_count", "torrents.count"])
+def test_count_not_implemented(client, count_func):
+    with pytest.raises(NotImplementedError):
+        assert client.func(count_func)() == 1
+
+
 @pytest.mark.parametrize(
     "properties_func", ["torrents_properties", "torrents.properties"]
 )

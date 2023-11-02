@@ -1,5 +1,8 @@
 Change Log
 ==========
+### v2023.mm.56 (dd mmm 2023)
+- Add support for ``torrents/count`` (#366)
+
 ### v2023.11.55 (6 nov 2023)
 - Remove Python 2 platform tag from published wheel (#369)
 

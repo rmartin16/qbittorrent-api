@@ -28,7 +28,7 @@ def setup_environ():
         raise Exception("is qBittorrent running???")
 
     qbt_version = environ.get("QBT_VER", "")
-    qbt_version = qbt_version if qbt_version.startswith("v") else "v" + qbt_version
+    qbt_version = qbt_version if qbt_version.startswith("v") else f"v{qbt_version}"
 
     environ.setdefault("IS_QBT_DEV", "" if qbt_version in api_version_map else "1")
     is_qbt_dev = environ.get("IS_QBT_DEV", "false").lower() not in ["", "false"]
