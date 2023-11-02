@@ -422,6 +422,15 @@ class TorrentsAPIMixIn(AppAPIMixIn):
                 raise TorrentFileError(io_err)
         return files
 
+    def torrents_count(self) -> int:
+        """Retrieve count of torrents."""
+        return self._post_cast(
+            _name=APINames.Torrents,
+            _method="count",
+            response_class=int,
+            version_introduced="2.9.3",
+        )
+
     ##########################################################################
     # INDIVIDUAL TORRENT ENDPOINTS
     ##########################################################################
@@ -2280,57 +2289,6 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
         )
         self.addPeers = self.add_peers
 
-    @wraps(TorrentsAPIMixIn.torrents_add)
-    def add(
-        self,
-        urls: Iterable[str] | None = None,
-        torrent_files: TorrentFilesT | None = None,
-        save_path: str | None = None,
-        cookie: str | None = None,
-        category: str | None = None,
-        is_skip_checking: bool | None = None,
-        is_paused: bool | None = None,
-        is_root_folder: bool | None = None,
-        rename: str | None = None,
-        upload_limit: str | int | None = None,
-        download_limit: str | int | None = None,
-        use_auto_torrent_management: bool | None = None,
-        is_sequential_download: bool | None = None,
-        is_first_last_piece_priority: bool | None = None,
-        tags: Iterable[str] | None = None,
-        content_layout: None | (Literal["Original", "Subfolder", "NoSubFolder"]) = None,
-        ratio_limit: str | float | None = None,
-        seeding_time_limit: str | int | None = None,
-        download_path: str | None = None,
-        use_download_path: bool | None = None,
-        stop_condition: Literal["MetadataReceived", "FilesChecked"] | None = None,
-        **kwargs: APIKwargsT,
-    ) -> str:
-        return self._client.torrents_add(
-            urls=urls,
-            torrent_files=torrent_files,
-            save_path=save_path,
-            cookie=cookie,
-            category=category,
-            is_skip_checking=is_skip_checking,
-            is_paused=is_paused,
-            is_root_folder=is_root_folder,
-            rename=rename,
-            upload_limit=upload_limit,
-            download_limit=download_limit,
-            is_sequential_download=is_sequential_download,
-            use_auto_torrent_management=use_auto_torrent_management,
-            is_first_last_piece_priority=is_first_last_piece_priority,
-            tags=tags,
-            content_layout=content_layout,
-            ratio_limit=ratio_limit,
-            seeding_time_limit=seeding_time_limit,
-            download_path=download_path,
-            use_download_path=use_download_path,
-            stop_condition=stop_condition,
-            **kwargs,
-        )
-
     class _ActionForAllTorrents(ClientCache["TorrentsAPIMixIn"]):
         def __init__(
             self,
@@ -2696,6 +2654,61 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 tag=tag,
                 **kwargs,
             )
+
+    @wraps(TorrentsAPIMixIn.torrents_add)
+    def add(
+        self,
+        urls: Iterable[str] | None = None,
+        torrent_files: TorrentFilesT | None = None,
+        save_path: str | None = None,
+        cookie: str | None = None,
+        category: str | None = None,
+        is_skip_checking: bool | None = None,
+        is_paused: bool | None = None,
+        is_root_folder: bool | None = None,
+        rename: str | None = None,
+        upload_limit: str | int | None = None,
+        download_limit: str | int | None = None,
+        use_auto_torrent_management: bool | None = None,
+        is_sequential_download: bool | None = None,
+        is_first_last_piece_priority: bool | None = None,
+        tags: Iterable[str] | None = None,
+        content_layout: None | (Literal["Original", "Subfolder", "NoSubFolder"]) = None,
+        ratio_limit: str | float | None = None,
+        seeding_time_limit: str | int | None = None,
+        download_path: str | None = None,
+        use_download_path: bool | None = None,
+        stop_condition: Literal["MetadataReceived", "FilesChecked"] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> str:
+        return self._client.torrents_add(
+            urls=urls,
+            torrent_files=torrent_files,
+            save_path=save_path,
+            cookie=cookie,
+            category=category,
+            is_skip_checking=is_skip_checking,
+            is_paused=is_paused,
+            is_root_folder=is_root_folder,
+            rename=rename,
+            upload_limit=upload_limit,
+            download_limit=download_limit,
+            is_sequential_download=is_sequential_download,
+            use_auto_torrent_management=use_auto_torrent_management,
+            is_first_last_piece_priority=is_first_last_piece_priority,
+            tags=tags,
+            content_layout=content_layout,
+            ratio_limit=ratio_limit,
+            seeding_time_limit=seeding_time_limit,
+            download_path=download_path,
+            use_download_path=use_download_path,
+            stop_condition=stop_condition,
+            **kwargs,
+        )
+
+    @wraps(TorrentsAPIMixIn.torrents_count)
+    def count(self) -> int:
+        return self._client.torrents_count()
 
     @wraps(TorrentsAPIMixIn.torrents_properties)
     def properties(
