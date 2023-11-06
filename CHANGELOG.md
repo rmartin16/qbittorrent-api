@@ -1,5 +1,8 @@
-Change log
+Change Log
 ==========
+### v2023.11.55 (6 nov 2023)
+- Remove Python 2 platform tag from published wheel (#369)
+
 ### v2023.10.54 (22 oct 2023)
 - Advertise support for qBittorrent v4.6.0
 - Dropped support for legacy Python versions; Python 3.8+ is supported (#333)
