@@ -69,6 +69,8 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4.1.1
+        with:
+          fetch-depth: 0  # Fetch all refs so setuptools_scm can generate the correct version number
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
         uses: actions/setup-python@v4.7.1
