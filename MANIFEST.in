@@ -1,12 +1,13 @@
-exclude *.yaml
-exclude .git-blame-ignore-revs
+include *.yaml
+include .git-blame-ignore-revs
 include tox.ini
 include docs/source/spelling_wordlist
 include docs/Makefile
 include docs/make.bat
 include docs/source/conf.py
+include src/qbittorrentapi/py.typed
+include tests/_resources/server.crt
+include tests/_resources/server.key
 recursive-include docs *.rst
-recursive-include tests *.crt
-recursive-include tests *.key
 recursive-include tests *.py
 recursive-include tests *.torrent

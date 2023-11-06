@@ -1,6 +1,67 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools >=61"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "qbittorrent-api"
+version = "2023.10.54"
+requires-python = ">=3.8"
+description = "Python client for qBittorrent v4.1+ Web API."
+authors = [{name = "Russell Martin"}]
+maintainers = [{name = "Russell Martin"}]
+keywords = ["python", "qbittorrent", "api", "client", "torrent", "torrents", "webui", "web"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Utilities",
+    "Topic :: Communications :: File Sharing",
+]
+dynamic = ["readme"]
+dependencies = [
+    "requests >= 2.16.0",
+    "urllib3 >= 1.24.2",
+    "packaging",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black ==23.10.1",
+    "build ==1.0.3",
+    "coverage[toml] ==7.3.2",
+    "furo ==2023.9.10",
+    "mypy ==1.6.1; platform_python_implementation != 'PyPy'",
+    "pre-commit ==3.5.0",
+    "pytest ==7.4.3",
+    "sphinx ==7.2.6; python_version >= '3.9'",
+    "sphinx-copybutton ==0.5.2",
+    "sphinxcontrib-spelling ==8.0.0",
+    "sphinx-autodoc-typehints ==1.24.1",
+    "tox ==4.11.3",
+    "twine ==4.0.2",
+    "types-requests ==2.31.0.10",
+    "types-six ==1.16.21.9",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/rmartin16/qbittorrent-api"
+"Documentation" = "https://qbittorrent-api.readthedocs.io/"
+"API Reference" = "https://qbittorrent-api.readthedocs.io/en/latest/api.html"
+"Source" = "https://github.com/rmartin16/qbittorrent-api"
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.md", "CHANGELOG.md", "LICENSE"], content-type = "text/markdown"}
 
 [tool.isort]
 profile = "black"
