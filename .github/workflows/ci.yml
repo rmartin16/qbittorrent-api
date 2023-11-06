@@ -69,6 +69,8 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4.1.1
+        with:
+          fetch-depth: 0  # Fetch all refs so setuptools_scm can generate the correct version number
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
         uses: actions/setup-python@v4.7.1
@@ -114,6 +116,8 @@ jobs:
           - IS_QBT_DEV: false
           # test dev versions of qBittorrent
           - QBT_VER: master
+            IS_QBT_DEV: true
+          - QBT_VER: v4_6_x
             IS_QBT_DEV: true
           - QBT_VER: v4_5_x
             IS_QBT_DEV: true
