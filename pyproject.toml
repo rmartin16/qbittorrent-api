@@ -1,10 +1,9 @@
 [build-system]
-requires = ["setuptools >=61"]
+requires = ["setuptools >=67", "setuptools-scm >=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "qbittorrent-api"
-version = "2023.10.54"
 requires-python = ">=3.8"
 description = "Python client for qBittorrent v4.1+ Web API."
 authors = [{name = "Russell Martin"}]
@@ -28,10 +27,10 @@ classifiers = [
     "Topic :: Utilities",
     "Topic :: Communications :: File Sharing",
 ]
-dynamic = ["readme"]
+dynamic = ["readme", "version"]
 dependencies = [
-    "requests >= 2.16.0",
-    "urllib3 >= 1.24.2",
+    "requests >=2.16.0",
+    "urllib3 >=1.24.2",
     "packaging",
 ]
 
@@ -62,6 +61,9 @@ dev = [
 
 [tool.setuptools.dynamic]
 readme = {file = ["README.md", "CHANGELOG.md", "LICENSE"], content-type = "text/markdown"}
+
+[tool.setuptools_scm]
+# section must be present to trigger its use
 
 [tool.isort]
 profile = "black"

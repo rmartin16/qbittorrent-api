@@ -12,24 +12,20 @@
 #
 import os
 import sys
-from configparser import ConfigParser
 from datetime import datetime
+from importlib.metadata import version as metadata_version
 
 base_path = os.path.abspath("../..")
 sys.path.insert(0, os.path.join(base_path, "src"))
 
-setup_cfg = ConfigParser()
-setup_cfg.read(os.path.join(base_path, "setup.cfg"))
-
 
 # -- Project information -----------------------------------------------------
-project = setup_cfg["metadata"]["name"]
-copyright = "{}, {}".format(datetime.today().year, setup_cfg["metadata"]["author"])
-author = setup_cfg["metadata"]["author"]
+project = "qbittorrent-api"
+author = "Russell Martin"
+copyright = f"{datetime.today().year}, {author}"
 
 # The full version, including alpha/beta/rc tags
-version = release = "v" + setup_cfg["metadata"]["version"]
-
+release = version = metadata_version("qbittorrent-api")
 
 # -- General configuration ---------------------------------------------------
 # Add any Sphinx extension module names here, as strings. They can be extensions coming
