@@ -16,7 +16,7 @@ concurrency:
 
 env:
   LATEST_PYTHON_VER: 3.12
-  LATEST_QBT_VER: v4.6.0
+  LATEST_QBT_VER: v4.6.1
   QBITTORRENTAPI_HOST: localhost:8080
   QBITTORRENTAPI_USERNAME: admin
   QBITTORRENTAPI_PASSWORD: adminadmin
@@ -52,7 +52,7 @@ jobs:
           python-version: ${{ env.LATEST_PYTHON_VER }}
           cache: pip
           check-latest: true
-          cache-dependency-path: ${{ github.workspace }}/setup.cfg
+          cache-dependency-path: ${{ github.workspace }}/pyproject.toml
 
       - name: Install
         run: pip install .[dev]
