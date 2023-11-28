@@ -1,5 +1,8 @@
 Change Log
 ==========
+### v2023.11.57 (27 nov 2023)
+- Advertise support for qBittorrent v4.6.2
+
 ### v2023.11.56 (20 nov 2023)
 - Advertise support for qBittorrent v4.6.1
 - Add support for ``torrents/count`` (#366)
