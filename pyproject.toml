@@ -47,7 +47,7 @@ dev = [
     "sphinx-copybutton ==0.5.2",
     "sphinxcontrib-spelling ==8.0.0",
     "sphinx-autodoc-typehints ==1.25.2",
-    "tox ==4.11.3",
+    "tox ==4.11.4",
     "twine ==4.0.2",
     "types-requests ==2.31.0.10",
     "types-six ==1.16.21.9",
