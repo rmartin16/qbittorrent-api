@@ -47,7 +47,7 @@ jobs:
         uses: actions/checkout@v4.1.1
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
-        uses: actions/setup-python@v4.7.1
+        uses: actions/setup-python@v5.0.0
         with:
           python-version: ${{ env.LATEST_PYTHON_VER }}
           cache: pip
@@ -73,7 +73,7 @@ jobs:
           fetch-depth: 0  # Fetch all refs so setuptools_scm can generate the correct version number
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
-        uses: actions/setup-python@v4.7.1
+        uses: actions/setup-python@v5.0.0
         with:
           python-version: ${{ env.LATEST_PYTHON_VER }}
           cache: pip
@@ -161,7 +161,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v4.7.1
+        uses: actions/setup-python@v5.0.0
         with:
           python-version: 3.x
 
@@ -213,7 +213,7 @@ jobs:
         uses: actions/checkout@v4.1.1
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
-        uses: actions/setup-python@v4.7.1
+        uses: actions/setup-python@v5.0.0
         with:
           python-version: ${{ env.LATEST_PYTHON_VER }}
           cache: pip
