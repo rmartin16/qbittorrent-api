@@ -119,12 +119,6 @@ jobs:
             IS_QBT_DEV: true
           - QBT_VER: v4_6_x
             IS_QBT_DEV: true
-          - QBT_VER: v4_5_x
-            IS_QBT_DEV: true
-          - QBT_VER: v4_4_x
-            IS_QBT_DEV: true
-          - QBT_VER: v4_3_x
-            IS_QBT_DEV: true
     uses: ./.github/workflows/test.yml
     secrets: inherit
     with:
