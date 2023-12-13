@@ -6,7 +6,7 @@ name: Update pre-commit
 
 on:
   schedule:
-    - cron: "0 4 * * *"
+    - cron: "16 8 1 * *"  # 0816 UTC on the 1st
   workflow_dispatch:
   workflow_call:
 
