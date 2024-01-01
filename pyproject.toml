@@ -36,21 +36,21 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "black ==23.12.0",
+    "black ==23.12.1",
     "build ==1.0.3",
-    "coverage[toml] ==7.3.2",
+    "coverage[toml] ==7.4.0",
     "furo ==2023.9.10",
-    "mypy ==1.7.1; platform_python_implementation != 'PyPy'",
+    "mypy ==1.8.0; platform_python_implementation != 'PyPy'",
     "pre-commit <3.6.0 ; python_version < '3.9'",
     "pre-commit ==3.6.0 ; python_version >= '3.9'",
-    "pytest ==7.4.3",
+    "pytest ==7.4.4",
     "sphinx ==7.2.6; python_version >= '3.9'",
     "sphinx-copybutton ==0.5.2",
     "sphinxcontrib-spelling ==8.0.0",
     "sphinx-autodoc-typehints ==1.25.2",
     "tox ==4.11.4",
     "twine ==4.0.2",
-    "types-requests ==2.31.0.10",
+    "types-requests ==2.31.0.20231231",
     "types-six ==1.16.21.9",
 ]
 
