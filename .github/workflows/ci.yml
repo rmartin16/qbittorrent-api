@@ -167,7 +167,8 @@ jobs:
       - name: Retrieve coverage data
         uses: actions/download-artifact@v4.1.0
         with:
-          name: coverage-data
+          pattern: coverage-data-*
+          merge-multiple: true
 
       - name: Combine coverage
         run: python -m coverage combine
