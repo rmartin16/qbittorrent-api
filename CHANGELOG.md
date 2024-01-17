@@ -1,5 +1,8 @@
 Change Log
 ==========
+### v2024.1.58 (16 jan 2024)
+- Advertise support for qBittorrent v4.6.3
+
 ### v2023.11.57 (27 nov 2023)
 - Advertise support for qBittorrent v4.6.2
 
