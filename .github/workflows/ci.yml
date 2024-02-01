@@ -88,7 +88,7 @@ jobs:
         run: tox -e package
 
       - name: Upload Package
-        uses: actions/upload-artifact@v4.0.0
+        uses: actions/upload-artifact@v4.3.0
         with:
           name: package
           path: ./dist
@@ -181,14 +181,14 @@ jobs:
 
       - name: Upload HTML coverage report
         if: always() && steps.coverage.outcome == 'failure'
-        uses: actions/upload-artifact@v4.0.0
+        uses: actions/upload-artifact@v4.3.0
         with:
           name: html-coverage-report
           path: ./htmlcov
 
       - name: Upload Coverage to Codecov
         if: contains(fromJson('["push", "pull_request"]'), github.event_name)
-        uses: codecov/codecov-action@v3.1.4
+        uses: codecov/codecov-action@v4.0.0
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}

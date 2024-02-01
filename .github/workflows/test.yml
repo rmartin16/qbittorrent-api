@@ -81,14 +81,14 @@ jobs:
 
       - name: Store coverage data
         if: success() || failure()
-        uses: actions/upload-artifact@v4.0.0
+        uses: actions/upload-artifact@v4.3.0
         with:
           name: coverage-data-${{ inputs.python-version }}-${{ inputs.qbittorrent-version }}
           path: ./.coverage.*
 
       - name: Send mail
         if: failure() && github.event_name != 'pull_request'
-        uses: dawidd6/action-send-mail@v3.10.0
+        uses: dawidd6/action-send-mail@v3.11.0
         with:
           server_address: smtp.gmail.com
           server_port: 587
