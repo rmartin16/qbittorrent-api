@@ -53,7 +53,6 @@ class Client(
     RSSAPIMixIn,
     SearchAPIMixIn,
 ):
-
     """
     Initialize API for qBittorrent client.
 

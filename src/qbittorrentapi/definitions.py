@@ -241,9 +241,11 @@ if sys.version_info < (3, 9):
         ):
             super().__init__(
                 [
-                    entry_class(data=entry, **kwargs)
-                    if entry_class is not None and isinstance(entry, Mapping)
-                    else entry
+                    (
+                        entry_class(data=entry, **kwargs)
+                        if entry_class is not None and isinstance(entry, Mapping)
+                        else entry
+                    )
                     for entry in list_entries or []
                 ]
             )
@@ -261,9 +263,11 @@ else:
         ):
             super().__init__(
                 [
-                    entry_class(data=entry, **kwargs)  # type: ignore[misc]
-                    if entry_class is not None and isinstance(entry, Mapping)
-                    else entry
+                    (
+                        entry_class(data=entry, **kwargs)  # type: ignore[misc]
+                        if entry_class is not None and isinstance(entry, Mapping)
+                        else entry
+                    )
                     for entry in list_entries or []
                 ]
             )
