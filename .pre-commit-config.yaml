@@ -36,7 +36,7 @@ repos:
           - --non-cap=qBittorrent
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.1.9
+    rev: v0.1.15
     hooks:
       - id: ruff
         args:
