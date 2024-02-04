@@ -12,8 +12,11 @@ from qbittorrentapi.search import SearchStatusesList
 from tests.utils import check
 from tests.utils import retry
 
-PLUGIN_NAME = "yts"
-PLUGIN_URL = "https://raw.githubusercontent.com/khensolomon/leyts/master/yts.py"
+PLUGIN_NAME = "one337x"
+PLUGIN_URL = (
+    "https://gist.githubusercontent.com/scadams/"
+    "56635407b8dfb8f5f7ede6873922ac8b/raw/f654c10468a0b9945bec9bf31e216993c9b7a961/one337x.py"
+)
 
 
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="removeprefix not in 3.8")
