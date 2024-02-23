@@ -5,11 +5,13 @@ from json import dumps
 from typing import Mapping
 
 from qbittorrentapi.app import AppAPIMixIn
-from qbittorrentapi.definitions import APIKwargsT
-from qbittorrentapi.definitions import APINames
-from qbittorrentapi.definitions import ClientCache
-from qbittorrentapi.definitions import Dictionary
-from qbittorrentapi.definitions import JsonValueT
+from qbittorrentapi.definitions import (
+    APIKwargsT,
+    APINames,
+    ClientCache,
+    Dictionary,
+    JsonValueT,
+)
 
 
 class RSSitemsDictionary(Dictionary[JsonValueT]):
@@ -29,7 +31,7 @@ class RSSAPIMixIn(AppAPIMixIn):
         >>> client = Client(host="localhost:8080", username="admin", password="adminadmin")
         >>> rss_rules = client.rss_rules()
         >>> client.rss_set_rule(rule_name="...", rule_def={...})
-    """
+    """  # noqa: E501
 
     @property
     def rss(self) -> RSS:
@@ -72,7 +74,7 @@ class RSSAPIMixIn(AppAPIMixIn):
 
         :param url: URL of RSS feed (e.g. https://distrowatch.com/news/torrents.xml)
         :param item_path: Name and/or path for new feed (e.g. ``Folder\\Subfolder\\FeedName``)
-        """
+        """  # noqa: E501
         data = {"path": item_path, "url": url}
         self._post(_name=APINames.RSS, _method="addFeed", data=data, **kwargs)
 
@@ -93,7 +95,7 @@ class RSSAPIMixIn(AppAPIMixIn):
 
         :param url: URL of RSS feed (e.g. https://distrowatch.com/news/torrents.xml)
         :param item_path: Name and/or path for feed (e.g. ``Folder\\Subfolder\\FeedName``)
-        """
+        """  # noqa: E501
         data = {"path": item_path, "url": url}
         self._post(
             _name=APINames.RSS,
@@ -111,13 +113,14 @@ class RSSAPIMixIn(AppAPIMixIn):
         **kwargs: APIKwargsT,
     ) -> None:
         """
-        Remove an RSS item (folder, feed, etc).
+        Remove an RSS item (folder, feed, etc.).
 
         NOTE: Removing a folder also removes everything in it.
 
         :raises Conflict409Error:
 
-        :param item_path: path to item to be removed (e.g. ``Folder\\Subfolder\\ItemName``)
+        :param item_path: path to item to be removed
+            (e.g. ``Folder\\Subfolder\\ItemName``)
         """
         data = {"path": item_path}
         self._post(_name=APINames.RSS, _method="removeItem", data=data, **kwargs)
@@ -135,8 +138,10 @@ class RSSAPIMixIn(AppAPIMixIn):
 
         :raises Conflict409Error:
 
-        :param orig_item_path: path to item to be removed (e.g. ``Folder\\Subfolder\\ItemName``)
-        :param new_item_path: path to item to be removed (e.g. ``Folder\\Subfolder\\ItemName``)
+        :param orig_item_path: path to item to be removed
+            (e.g. ``Folder\\Subfolder\\ItemName``)
+        :param new_item_path: path to item to be removed
+            (e.g. ``Folder\\Subfolder\\ItemName``)
         """
         data = {"itemPath": orig_item_path, "destPath": new_item_path}
         self._post(_name=APINames.RSS, _method="moveItem", data=data, **kwargs)
@@ -175,7 +180,8 @@ class RSSAPIMixIn(AppAPIMixIn):
         Note: qBittorrent v4.1.5 through v4.1.8 all use Web API 2.2 but this endpoint
         was introduced with v4.1.8; so, behavior may be undefined for these versions.
 
-        :param item_path: path to item to be refreshed (e.g. ``Folder\\Subfolder\\ItemName``)
+        :param item_path: path to item to be refreshed
+            (e.g. ``Folder\\Subfolder\\ItemName``)
         """
         data = {"itemPath": item_path}
         self._post(
@@ -202,7 +208,8 @@ class RSSAPIMixIn(AppAPIMixIn):
 
         :raises NotFound404Error:
 
-        :param item_path: path to item to be refreshed (e.g. ``Folder\\Subfolder\\ItemName``)
+        :param item_path: path to item to be refreshed
+            (e.g. ``Folder\\Subfolder\\ItemName``)
         :param article_id: article ID from :meth:`~RSSAPIMixIn.rss_items`
         """
         data = {"itemPath": item_path, "articleId": article_id}
@@ -317,7 +324,7 @@ class RSS(ClientCache[RSSAPIMixIn]):
         >>> client.rss.set_rule(rule_name="...", rule_def={...})
         >>> items = client.rss.items.with_data
         >>> items_no_data = client.rss.items.without_data
-    """
+    """  # noqa: E501
 
     def __init__(self, client: RSSAPIMixIn):
         super().__init__(client=client)

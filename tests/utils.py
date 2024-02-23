@@ -1,12 +1,8 @@
-from os import environ
-from os import path
+from os import environ, path
 from time import sleep
 
 import pytest
-
-from qbittorrentapi import APIConnectionError
-from qbittorrentapi import Client
-from qbittorrentapi import TorrentDictionary
+from qbittorrentapi import APIConnectionError, Client, TorrentDictionary
 from qbittorrentapi._version_support import (
     APP_VERSION_2_API_VERSION_MAP as api_version_map,
 )

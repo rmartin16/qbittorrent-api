@@ -2,36 +2,41 @@ from __future__ import annotations
 
 import errno
 from functools import wraps
-from logging import Logger
-from logging import getLogger
+from logging import Logger, getLogger
 from os import path
 from os import strerror as os_strerror
-from typing import IO
-from typing import Any
-from typing import Callable
-from typing import Iterable
-from typing import Literal
-from typing import Mapping
-from typing import MutableMapping
-from typing import TypeVar
-from typing import Union
-from typing import cast
+from typing import (
+    IO,
+    Any,
+    Callable,
+    Iterable,
+    Literal,
+    Mapping,
+    MutableMapping,
+    TypeVar,
+    Union,
+    cast,
+)
 
 from qbittorrentapi._version_support import v
 from qbittorrentapi.app import AppAPIMixIn
-from qbittorrentapi.definitions import APIKwargsT
-from qbittorrentapi.definitions import APINames
-from qbittorrentapi.definitions import ClientCache
-from qbittorrentapi.definitions import Dictionary
-from qbittorrentapi.definitions import FilesToSendT
-from qbittorrentapi.definitions import JsonValueT
-from qbittorrentapi.definitions import List
-from qbittorrentapi.definitions import ListEntry
-from qbittorrentapi.definitions import ListInputT
-from qbittorrentapi.definitions import TorrentState
-from qbittorrentapi.exceptions import TorrentFileError
-from qbittorrentapi.exceptions import TorrentFileNotFoundError
-from qbittorrentapi.exceptions import TorrentFilePermissionError
+from qbittorrentapi.definitions import (
+    APIKwargsT,
+    APINames,
+    ClientCache,
+    Dictionary,
+    FilesToSendT,
+    JsonValueT,
+    List,
+    ListEntry,
+    ListInputT,
+    TorrentState,
+)
+from qbittorrentapi.exceptions import (
+    TorrentFileError,
+    TorrentFileNotFoundError,
+    TorrentFilePermissionError,
+)
 
 #: Type for Torrent Status.
 TorrentStatusesT = Literal[
@@ -101,8 +106,9 @@ class TorrentFilesList(List[TorrentFile]):
         client: TorrentsAPIMixIn | None = None,
     ):
         super().__init__(list_entries, entry_class=TorrentFile, client=client)
-        # until v4.3.5, the index key wasn't returned...default it to ID for older versions.
-        # when index is returned, maintain backwards compatibility and populate id with index value.
+        # until v4.3.5, the index key wasn't returned...default it to ID for older
+        # versions. when index is returned, maintain backwards compatibility and
+        # populate id with index value.
         for i, entry in enumerate(self):
             entry.update({"id": entry.setdefault("index", i)})
 
@@ -200,7 +206,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         >>> client = Client(host="localhost:8080", username="admin", password="adminadmin")
         >>> client.torrents_add(urls="...")
         >>> client.torrents_reannounce()
-    """
+    """  # noqa: E501
 
     @property
     def torrents(self) -> Torrents:
@@ -373,8 +379,9 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             return None
 
         prefix = "torrent__"
-        # if it's string-like and not a list|set|tuple, then make it a list
-        # checking for 'read' attr since a single file handle is iterable but also needs to be in a list
+        # if it's string-like and not a list|set|tuple, then make it a list.
+        # checking for 'read' attribute since a single file handle is iterable
+        # but also needs to be in a list
         is_string_like = isinstance(user_files, (bytes, str))
         is_file_like = hasattr(user_files, "read")
         if is_string_like or is_file_like or not isinstance(user_files, Iterable):
@@ -391,10 +398,10 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         for name, torrent_file in norm_files.items():
             try:
                 if isinstance(torrent_file, (bytes, bytearray)):
-                    # if bytes, assume it's a torrent file that was downloaded or read from disk
+                    # if bytes, assume it's a downloaded file or read from disk
                     torrent_bytes = torrent_file
                 elif hasattr(torrent_file, "read"):
-                    # if hasattr('read'), assume this is a file handle from open() or similar
+                    # assume this is a file handle from open() or similar
                     torrent_bytes = torrent_file.read()
                 else:
                     # otherwise, coerce to a string and try to open it as a file
@@ -405,8 +412,9 @@ class TorrentsAPIMixIn(AppAPIMixIn):
                     with open(filepath, "rb") as file:
                         torrent_bytes = file.read()
 
-                # if using default name, let Requests try to figure out the filename to send
-                # Requests will fall back to "name" as the dict key if fh doesn't provide a file name
+                # if using default name, let Requests try to figure out the filename
+                # to send. Requests will fall back to "name" as the dict key if fh
+                # doesn't provide a file name.
                 files[name] = (
                     torrent_bytes if name.startswith(prefix) else (name, torrent_bytes)
                 )
@@ -716,7 +724,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :param new_path: new path of file to rename (added in Web API 2.7)
         """
         # convert pre-v2.7 params to post-v2.7...or post-v2.7 to pre-v2.7
-        # HACK: v4.3.2 and v4.3.3 both use Web API 2.7 but old/new_path were introduced in v4.3.3
+        # HACK: v4.3.2 and v4.3.3 both use Web API 2.7 but old/new_path
+        #       were introduced in v4.3.3
         if (
             old_path is None
             and new_path is None
@@ -746,7 +755,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
                     break
             else:
                 logger.debug(
-                    "ERROR: old_path '%s' isn't valid...'file_id' cannot be determined.",
+                    "ERROR: old_path '%s' isn't valid..."
+                    "'file_id' cannot be determined.",
                     old_path,
                 )
                 file_id = ""
@@ -787,7 +797,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :param old_path: path of file to rename (added in Web API 2.7)
         :param new_path: new path of file to rename (added in Web API 2.7)
         """
-        # HACK: v4.3.2 and v4.3.3 both use Web API 2.7 but rename_folder was introduced in v4.3.3
+        # HACK: v4.3.2 and v4.3.3 both use Web API 2.7 but rename_folder
+        #       was introduced in v4.3.3
         if v(self.app_version()) >= v("v4.3.3"):
             data = {
                 "hash": torrent_hash,
@@ -805,7 +816,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             # only get here on v4.3.2...so hack in raising exception
             if self._RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS:
                 raise NotImplementedError(
-                    "ERROR: Endpoint 'torrents/renameFolder' is Not Implemented in this version of qBittorrent. "
+                    "ERROR: Endpoint 'torrents/renameFolder' is Not Implemented in "
+                    "this version of qBittorrent. "
                     "This endpoint is available starting in Web API 2.7."
                 )
 
@@ -896,7 +908,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         """
         Resume one or more torrents in qBittorrent.
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         """
         data = {"hashes": self._list2string(torrent_hashes, "|")}
         self._post(_name=APINames.Torrents, _method="resume", data=data, **kwargs)
@@ -909,7 +922,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         """
         Pause one or more torrents in qBittorrent.
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         """
         data = {"hashes": self._list2string(torrent_hashes, "|")}
         self._post(_name=APINames.Torrents, _method="pause", data=data, **kwargs)
@@ -923,7 +937,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         """
         Remove a torrent from qBittorrent and optionally delete its files.
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         :param delete_files: True to delete the torrent's files
         """
         data = {
@@ -940,7 +955,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         """
         Recheck a torrent in qBittorrent.
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         """
         data = {"hashes": self._list2string(torrent_hashes, "|")}
         self._post(_name=APINames.Torrents, _method="recheck", data=data, **kwargs)
@@ -955,7 +971,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
         This method was introduced with qBittorrent v4.1.2 (Web API v2.0.2).
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         """
         data = {"hashes": self._list2string(torrent_hashes, "|")}
         self._post(
@@ -976,7 +993,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
         :raises Conflict409Error:
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         """
         data = {"hashes": self._list2string(torrent_hashes, "|")}
         self._post(_name=APINames.Torrents, _method="increasePrio", data=data, **kwargs)
@@ -993,7 +1011,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
         :raises Conflict409Error:
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         """
         data = {"hashes": self._list2string(torrent_hashes, "|")}
         self._post(_name=APINames.Torrents, _method="decreasePrio", data=data, **kwargs)
@@ -1010,7 +1029,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
         :raises Conflict409Error:
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         """
         data = {"hashes": self._list2string(torrent_hashes, "|")}
         self._post(_name=APINames.Torrents, _method="topPrio", data=data, **kwargs)
@@ -1027,7 +1047,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
         :raises Conflict409Error:
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         """
         data = {"hashes": self._list2string(torrent_hashes, "|")}
         self._post(_name=APINames.Torrents, _method="bottomPrio", data=data, **kwargs)
@@ -1060,7 +1081,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         """
         Set the download limit for one or more torrents.
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         :param limit: bytes/second (-1 sets the limit to infinity)
         """
         data = {
@@ -1089,10 +1111,14 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
         This method was introduced with qBittorrent v4.1.1 (Web API v2.0.1).
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :param ratio_limit: max ratio to seed a torrent. (-2 means use the global value and -1 is no limit)
-        :param seeding_time_limit: minutes (-2 means use the global value and -1 is no limit)
-        :param inactive_seeding_time_limit: minutes (-2 means use the global value and -1 is no limit)
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
+        :param ratio_limit: max ratio to seed a torrent.
+            (-2 means use the global value and -1 is no limit)
+        :param seeding_time_limit: minutes
+            (-2 means use the global value and -1 is no limit)
+        :param inactive_seeding_time_limit: minutes
+            (-2 means use the global value and -1 is no limit)
             (added in Web API v2.9.2)
         """
         data = {
@@ -1119,7 +1145,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         """
         Retrieve the upload limit for one or more torrents.
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         """
         data = {"hashes": self._list2string(torrent_hashes, "|")}
         return self._post_cast(
@@ -1141,7 +1168,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         """
         Set the upload limit for one or more torrents.
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         :param limit: bytes/second (-1 sets the limit to infinity)
         """
         data = {
@@ -1170,7 +1198,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             location (only before v4.5.2 - write check was removed.)
         :raises Conflict409Error: if the directory cannot be created at the location
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         :param location: disk location to move torrent's files
         """
         data = {
@@ -1196,7 +1225,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :raises Conflict409Error: cannot create directory
 
         :param save_path: file path to save torrent contents
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         """
         data = {
             "id": self._list2string(torrent_hashes, "|"),
@@ -1226,8 +1256,10 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :raises Forbidden403Error: cannot write to directory
         :raises Conflict409Error: cannot create directory
 
-        :param download_path: file path to save torrent contents before torrent finishes downloading
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param download_path: file path to save torrent contents before torrent
+            finishes downloading
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         """
         data = {
             "id": self._list2string(torrent_hashes, "|"),
@@ -1254,7 +1286,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
         :raises Conflict409Error: for bad category
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         :param category: category to assign to torrent
         """
         data = {
@@ -1274,8 +1307,10 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         """
         Enable or disable automatic torrent management for one or more torrents.
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :param enable: Defaults to ``True`` if ``None`` or unset; use ``False`` to disable
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
+        :param enable: Defaults to ``True`` if ``None`` or unset;
+            use ``False`` to disable
         """
         data = {
             "hashes": self._list2string(torrent_hashes, "|"),
@@ -1298,7 +1333,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         """
         Toggle sequential download for one or more torrents.
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         """
         data = {"hashes": self._list2string(torrent_hashes)}
         self._post(
@@ -1318,7 +1354,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         """
         Toggle priority of first/last piece downloading.
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         """
         data = {"hashes": self._list2string(torrent_hashes, "|")}
         self._post(
@@ -1339,9 +1376,10 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         """
         Force start one or more torrents.
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
-        :param enable: Defaults to ``True`` if ``None`` or unset; ``False`` is equivalent to
-            :meth:`~TorrentsAPIMixIn.torrents_resume()`.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
+        :param enable: Defaults to ``True`` if ``None`` or unset; ``False`` is
+            equivalent to :meth:`~TorrentsAPIMixIn.torrents_resume()`.
         """
         data = {
             "hashes": self._list2string(torrent_hashes, "|"),
@@ -1365,7 +1403,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         """
         Set one or more torrents as super seeding.
 
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         :param enable: Defaults to ``True`` if ``None`` or unset; ``False`` to disable
         """
         data = {
@@ -1394,8 +1433,10 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
         :raises InvalidRequest400Error: for invalid peers
 
-        :param peers: one or more peers to add. each peer should take the form 'host:port'
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param peers: one or more peers to add. each peer should take the form
+            'host:port'
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         """
         data = {
             "hashes": self._list2string(torrent_hashes, "|"),
@@ -1555,7 +1596,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         This method was introduced with qBittorrent v4.2.0 (Web API v2.3.0).
 
         :param tags: tag name or list of tags
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         """
         data = {
             "hashes": self._list2string(torrent_hashes, "|"),
@@ -1583,7 +1625,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         This method was introduced with qBittorrent v4.2.0 (Web API v2.3.0).
 
         :param tags: tag name or list of tags
-        :param torrent_hashes: single torrent hash or list of torrent hashes. Or ``all`` for all torrents.
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
         """
         data = {
             "hashes": self._list2string(torrent_hashes, "|"),
@@ -1672,7 +1715,7 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
         >>> torrent.torrents_top_priority()
         >>> torrent.setLocation(location="/home/user/torrents/")
         >>> torrent.setCategory(category="video")
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -2192,7 +2235,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
         >>> client.torrents.resume.all()
         >>> # or specify the individual hashes
         >>> client.torrents.downloadLimit(torrent_hashes=["...", "..."])
-    """
+    """  # noqa: E501
 
     def __init__(self, client: TorrentsAPIMixIn) -> None:
         super().__init__(client=client)
@@ -2904,7 +2947,7 @@ class TorrentCategories(ClientCache[TorrentsAPIMixIn]):
         >>> # delete categories
         >>> client.torrent_categories.removeCategories(categories="Video")
         >>> client.torrent_categories.removeCategories(categories=["Audio", "ISOs"])
-    """
+    """  # noqa: E501
 
     @property
     @wraps(TorrentsAPIMixIn.torrents_categories)
@@ -2979,7 +3022,7 @@ class TorrentTags(ClientCache[TorrentsAPIMixIn]):
         >>> client.torrent_tags.tags = "tv show"  # create category
         >>> client.torrent_tags.create_tags(tags=["tv show", "linux distro"])
         >>> client.torrent_tags.delete_tags(tags="tv show")
-    """
+    """  # noqa: E501
 
     @property
     @wraps(TorrentsAPIMixIn.torrents_tags)

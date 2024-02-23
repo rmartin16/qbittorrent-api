@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
-from typing import Mapping
+from typing import Any, Mapping
 
 from qbittorrentapi.log import LogAPIMixIn
 from qbittorrentapi.rss import RSSAPIMixIn
@@ -31,11 +30,11 @@ from qbittorrentapi.transfer import TransferAPIMixIn
 #           JSON dump as a key/value pair for "json" via x-www-form-urlencoded.
 #         - Sending an empty string for 'banned_ips' drops the useless message
 #           below in to the log file (same for WebUI):
-#             ' is not a valid IP address and was rejected while applying the list of banned addresses.'
+#             ' is not a valid IP address and was rejected while applying the list of banned addresses.'  # noqa: E501
 #             - [Resolved] https://github.com/qbittorrent/qBittorrent/issues/10745
 #
 #     torrents/downloadLimit and uploadLimit
-#         - Hashes handling is non-standard. 404 is not returned for bad hashes and 'all' doesn't work.
+#         - Hashes handling is non-standard. 404 is not returned for bad hashes and 'all' doesn't work.  # noqa: E501
 #         - https://github.com/qbittorrent/qBittorrent/blob/6de02b0f2a79eeb4d7fb624c39a9f65ffe181d68/src/webui/api/torrentscontroller.cpp#L754  # noqa: E501
 #         - https://github.com/qbittorrent/qBittorrent/issues/10744
 #
@@ -99,7 +98,7 @@ class Client(
         qBittorrent is not fully supported by this client. Defaults ``False``.
     :param DISABLE_LOGGING_DEBUG_OUTPUT: Turn off debug output from logging for
         this package as well as Requests & urllib3.
-    """
+    """  # noqa: E501
 
     def __init__(
         self,

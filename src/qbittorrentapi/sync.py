@@ -3,11 +3,13 @@ from __future__ import annotations
 from typing import cast
 
 from qbittorrentapi.app import AppAPIMixIn
-from qbittorrentapi.definitions import APIKwargsT
-from qbittorrentapi.definitions import APINames
-from qbittorrentapi.definitions import ClientCache
-from qbittorrentapi.definitions import Dictionary
-from qbittorrentapi.definitions import JsonValueT
+from qbittorrentapi.definitions import (
+    APIKwargsT,
+    APINames,
+    ClientCache,
+    Dictionary,
+    JsonValueT,
+)
 
 
 class SyncMainDataDictionary(Dictionary[JsonValueT]):
@@ -35,7 +37,7 @@ class SyncAPIMixIn(AppAPIMixIn):
         >>> client = Client(host="localhost:8080", username="admin", password="adminadmin")
         >>> maindata = client.sync_maindata(rid="...")
         >>> torrent_peers = client.sync_torrent_peers(torrent_hash="...", rid="...")
-    """
+    """  # noqa: E501
 
     @property
     def sync(self) -> Sync:
@@ -109,7 +111,7 @@ class Sync(ClientCache[SyncAPIMixIn]):
         >>> #
         >>> torrentPeers = client.sync.torrentPeers(torrent_hash="...", rid="...")
         >>> torrent_peers = client.sync.torrent_peers(torrent_hash="...", rid="...")
-    """
+    """  # noqa: E501
 
     def __init__(self, client: SyncAPIMixIn) -> None:
         super().__init__(client=client)

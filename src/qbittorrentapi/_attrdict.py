@@ -29,15 +29,9 @@ AttrMap and AttrDefault were removed altogether.
 """
 from __future__ import annotations
 
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from re import compile as re_compile
-from typing import Any
-from typing import Dict
-from typing import Mapping
-from typing import MutableMapping
-from typing import Sequence
-from typing import TypeVar
+from typing import Any, Dict, Mapping, MutableMapping, Sequence, TypeVar
 
 K = TypeVar("K")
 V = TypeVar("V")

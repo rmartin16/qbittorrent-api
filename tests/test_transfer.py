@@ -1,7 +1,6 @@
 import sys
 
 import pytest
-
 from qbittorrentapi import APINames
 from qbittorrentapi.transfer import TransferInfoDictionary
 

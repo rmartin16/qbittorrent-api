@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Final
-from typing import Literal
+from typing import Final, Literal
 
 import packaging.version
 

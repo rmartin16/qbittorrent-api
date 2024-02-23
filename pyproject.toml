@@ -67,26 +67,18 @@ readme = {file = ["README.md", "CHANGELOG.md", "LICENSE"], content-type = "text/
 [tool.setuptools_scm]
 # section must be present to trigger its use
 
-[tool.isort]
-profile = "black"
-skip_glob = ["venv*"]
-force_single_line = true
-multi_line_output = 3
-
-[tool.black]
-target-version = ["py38"]
-include = '\.pyi?$'
-
 [tool.ruff]
-select = ["C40", "C9", "E", "F", "PLE", "S", "W", "YTT"]
-line-length = 121
 target-version = "py38"
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint]
+select = ["C40", "C9", "E", "F", "PLE", "S", "W", "YTT", "I", "UP", "SIM"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.ruff.lint.per-file-ignores]
 "tests/*" = ["C408", "S101", "S108", "S110", "S106", "S105", "C901"]
 
-[tool.ruff.mccabe]
-max-complexity = 15
 
 [tool.pytest.ini_options]
 addopts = """

@@ -1,9 +1,7 @@
 import sys
 
 import pytest
-
-from qbittorrentapi import APINames
-from qbittorrentapi import Client
+from qbittorrentapi import APINames, Client
 from qbittorrentapi.exceptions import APIConnectionError
 
 
@@ -59,7 +57,7 @@ def test_session_cookie(app_version):
 
     # should test other cookie names but it's difficult to change
     curr_sess_cookie = client._http_session.cookies["SID"]
-    assert client._SID == curr_sess_cookie
+    assert curr_sess_cookie == client._SID
     assert client._session_cookie() == curr_sess_cookie
 
 

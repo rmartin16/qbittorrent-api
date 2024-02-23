@@ -1,21 +1,16 @@
 import logging
 import re
 from os import environ
-from unittest.mock import MagicMock
-from unittest.mock import PropertyMock
+from unittest.mock import MagicMock, PropertyMock
 
 import pytest
+from qbittorrentapi import APINames, Client, exceptions
+from qbittorrentapi._version_support import v
+from qbittorrentapi.definitions import Dictionary, List
+from qbittorrentapi.request import Request
+from qbittorrentapi.torrents import TorrentDictionary, TorrentInfoList
 from requests import Response
 
-from qbittorrentapi import APINames
-from qbittorrentapi import Client
-from qbittorrentapi import exceptions
-from qbittorrentapi._version_support import v
-from qbittorrentapi.definitions import Dictionary
-from qbittorrentapi.definitions import List
-from qbittorrentapi.request import Request
-from qbittorrentapi.torrents import TorrentDictionary
-from qbittorrentapi.torrents import TorrentInfoList
 from tests.conftest import IS_QBT_DEV
 from tests.utils import mkpath
 
@@ -641,26 +636,29 @@ def test_request_retry_success(monkeypatch, caplog):
     client.auth_log_in()
     with monkeypatch.context() as m:
         m.setattr(client, "_request", request500)
-        with caplog.at_level(logging.DEBUG, logger="qbittorrentapi"):
-            with pytest.raises(exceptions.HTTP500Error):
-                client.app_version()
+        with caplog.at_level(logging.DEBUG, logger="qbittorrentapi"), pytest.raises(
+            exceptions.HTTP500Error
+        ):
+            client.app_version()
         assert "Retry attempt" in caplog.text
 
 
 def test_request_retry_skip(caplog):
     client = Client(VERIFY_WEBUI_CERTIFICATE=False)
     client.auth_log_in()
-    with caplog.at_level(logging.DEBUG, logger="qbittorrentapi"):
-        with pytest.raises(exceptions.MissingRequiredParameters400Error):
-            client.torrents_rename()
+    with caplog.at_level(logging.DEBUG, logger="qbittorrentapi"), pytest.raises(
+        exceptions.MissingRequiredParameters400Error
+    ):
+        client.torrents_rename()
     assert "Retry attempt" not in caplog.text
 
 
 def test_verbose_logging(caplog):
     client = Client(VERBOSE_RESPONSE_LOGGING=True, VERIFY_WEBUI_CERTIFICATE=False)
-    with caplog.at_level(logging.DEBUG, logger="qbittorrentapi"):
-        with pytest.raises(exceptions.NotFound404Error):
-            client.torrents_rename(torrent_hash="asdf", new_torrent_name="erty")
+    with caplog.at_level(logging.DEBUG, logger="qbittorrentapi"), pytest.raises(
+        exceptions.NotFound404Error
+    ):
+        client.torrents_rename(torrent_hash="asdf", new_torrent_name="erty")
     assert "Response status" in caplog.text
 
 

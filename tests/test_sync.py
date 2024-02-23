@@ -1,10 +1,8 @@
 import sys
 
 import pytest
-
 from qbittorrentapi import APINames
-from qbittorrentapi.sync import SyncMainDataDictionary
-from qbittorrentapi.sync import SyncTorrentPeersDictionary
+from qbittorrentapi.sync import SyncMainDataDictionary, SyncTorrentPeersDictionary
 
 
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="removeprefix not in 3.8")

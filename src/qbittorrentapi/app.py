@@ -2,22 +2,20 @@ from __future__ import annotations
 
 from functools import wraps
 from json import dumps
-from logging import Logger
-from logging import getLogger
-from typing import Any
-from typing import Iterable
-from typing import Mapping
-from typing import Union
+from logging import Logger, getLogger
+from typing import Any, Iterable, Mapping, Union
 
 from qbittorrentapi.auth import AuthAPIMixIn
-from qbittorrentapi.definitions import APIKwargsT
-from qbittorrentapi.definitions import APINames
-from qbittorrentapi.definitions import ClientCache
-from qbittorrentapi.definitions import Dictionary
-from qbittorrentapi.definitions import JsonValueT
-from qbittorrentapi.definitions import List
-from qbittorrentapi.definitions import ListEntry
-from qbittorrentapi.definitions import ListInputT
+from qbittorrentapi.definitions import (
+    APIKwargsT,
+    APINames,
+    ClientCache,
+    Dictionary,
+    JsonValueT,
+    List,
+    ListEntry,
+    ListInputT,
+)
 
 logger: Logger = getLogger(__name__)
 
@@ -66,7 +64,7 @@ class AppAPIMixIn(AuthAPIMixIn):
         >>> client = Client(host="localhost:8080", username="admin", password="adminadmin")
         >>> client.app_version()
         >>> client.app_preferences()
-    """
+    """  # noqa: E501
 
     @property
     def app(self) -> Application:
@@ -223,7 +221,7 @@ class Application(ClientCache[AppAPIMixIn]):
         >>> client.app.preferences = prefs
         >>>
         >>> client.application.shutdown()
-    """
+    """  # noqa: E501
 
     @property
     @wraps(AppAPIMixIn.app_version)

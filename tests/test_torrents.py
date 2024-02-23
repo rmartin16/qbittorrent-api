@@ -5,37 +5,41 @@ from time import sleep
 
 import pytest
 import requests
-
 from qbittorrentapi import APINames
 from qbittorrentapi._version_support import v
-from qbittorrentapi.exceptions import Conflict409Error
-from qbittorrentapi.exceptions import Forbidden403Error
-from qbittorrentapi.exceptions import InvalidRequest400Error
-from qbittorrentapi.exceptions import TorrentFileError
-from qbittorrentapi.exceptions import TorrentFileNotFoundError
-from qbittorrentapi.exceptions import TorrentFilePermissionError
-from qbittorrentapi.torrents import TagList
-from qbittorrentapi.torrents import TorrentCategoriesDictionary
-from qbittorrentapi.torrents import TorrentFilesList
-from qbittorrentapi.torrents import TorrentInfoList
-from qbittorrentapi.torrents import TorrentLimitsDictionary
-from qbittorrentapi.torrents import TorrentPieceInfoList
-from qbittorrentapi.torrents import TorrentPropertiesDictionary
-from qbittorrentapi.torrents import TorrentsAddPeersDictionary
-from qbittorrentapi.torrents import TrackersList
-from qbittorrentapi.torrents import WebSeedsList
-from tests.conftest import ROOT_FOLDER_TORRENT_FILE
-from tests.conftest import ROOT_FOLDER_TORRENT_HASH
-from tests.conftest import TORRENT1_FILENAME
-from tests.conftest import TORRENT1_HASH
-from tests.conftest import TORRENT1_URL
-from tests.conftest import TORRENT2_FILENAME
-from tests.conftest import TORRENT2_HASH
-from tests.conftest import TORRENT2_URL
-from tests.conftest import new_torrent_standalone
-from tests.utils import check
-from tests.utils import mkpath
-from tests.utils import retry
+from qbittorrentapi.exceptions import (
+    Conflict409Error,
+    Forbidden403Error,
+    InvalidRequest400Error,
+    TorrentFileError,
+    TorrentFileNotFoundError,
+    TorrentFilePermissionError,
+)
+from qbittorrentapi.torrents import (
+    TagList,
+    TorrentCategoriesDictionary,
+    TorrentFilesList,
+    TorrentInfoList,
+    TorrentLimitsDictionary,
+    TorrentPieceInfoList,
+    TorrentPropertiesDictionary,
+    TorrentsAddPeersDictionary,
+    TrackersList,
+    WebSeedsList,
+)
+
+from tests.conftest import (
+    ROOT_FOLDER_TORRENT_FILE,
+    ROOT_FOLDER_TORRENT_HASH,
+    TORRENT1_FILENAME,
+    TORRENT1_HASH,
+    TORRENT1_URL,
+    TORRENT2_FILENAME,
+    TORRENT2_HASH,
+    TORRENT2_URL,
+    new_torrent_standalone,
+)
+from tests.utils import check, mkpath, retry
 
 
 def disable_queueing(client):
@@ -157,8 +161,8 @@ def test_add_delete(client, add_func, delete_func, tmp_path):
         download_file(url=TORRENT1_URL, filename=TORRENT1_FILENAME)
         download_file(url=TORRENT2_URL, filename=TORRENT2_FILENAME)
         files = (
-            open(mkpath(tmp_path, TORRENT1_FILENAME), "rb"),
-            open(mkpath(tmp_path, TORRENT2_FILENAME), "rb"),
+            open(mkpath(tmp_path, TORRENT1_FILENAME), "rb"),  # noqa: SIM115
+            open(mkpath(tmp_path, TORRENT2_FILENAME), "rb"),  # noqa: SIM115
         )
 
         if single:
