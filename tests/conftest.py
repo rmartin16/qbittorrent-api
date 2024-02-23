@@ -44,19 +44,20 @@ RESOURCES_PATH = path.join(BASE_PATH, "tests", "_resources")
 assert BASE_PATH.split("/")[-1] == "qbittorrent-api"
 
 # fmt: off
-ORIG_TORRENT_URL = "https://releases.ubuntu.com/22.04.1/ubuntu-22.04.1-desktop-amd64.iso.torrent"
+ORIG_TORRENT_FILENAME = "ubuntu-22.04.1-desktop-amd64.iso.torrent"
+ORIG_TORRENT_URL = f"https://github.com/rmartin16/qbittorrent-api/raw/main/tests/_resources/{ORIG_TORRENT_FILENAME}"
 ORIG_TORRENT_HASH = "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0"
 ORIG_TORRENT = None
 
-TORRENT1_FILENAME = "kubuntu-22.04.3-desktop-amd64.iso.torrent"
-TORRENT1_URL = "https://cdimage.ubuntu.com/kubuntu/releases/22.04/release/" + TORRENT1_FILENAME
-TORRENT1_HASH = "c137639fa69a2c44d689e753887cbb78390fff8f"
+TORRENT1_FILENAME = "kubuntu-22.04.4-desktop-amd64.iso.torrent"
+TORRENT1_URL = f"https://github.com/rmartin16/qbittorrent-api/raw/main/tests/_resources/{TORRENT1_FILENAME}"
+TORRENT1_HASH = "27a92b32757893ac9eb898e32c952636a3cc7b24"
 TORRENT1_FILE_HANDLE = open(path.join(RESOURCES_PATH, TORRENT1_FILENAME), mode="rb")
 TORRENT1_FILE = TORRENT1_FILE_HANDLE.read()
 
-TORRENT2_FILENAME = "xubuntu-22.04.3-desktop-amd64.iso.torrent"
-TORRENT2_URL = "https://cdimage.ubuntu.com/xubuntu/releases/22.04/release/" + TORRENT2_FILENAME
-TORRENT2_HASH = "3f872de52db27c9d5a033e3435a0fb3d311822a6"
+TORRENT2_FILENAME = "xubuntu-22.04.4-desktop-amd64.iso.torrent"
+TORRENT2_URL = f"https://github.com/rmartin16/qbittorrent-api/raw/main/tests/_resources//{TORRENT2_FILENAME}"
+TORRENT2_HASH = "c7d77fc3ecb68344b59ada11a0508dd6d08f2dfd"
 
 ROOT_FOLDER_TORRENT_FILENAME = "root_folder.torrent"
 ROOT_FOLDER_TORRENT_HASH = "a14553bd936a6d496402082454a70ea7a9521adc"
