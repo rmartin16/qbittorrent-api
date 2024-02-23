@@ -3,6 +3,9 @@ name: Test qBittorrent
 on:
   workflow_call:
     inputs:
+      runner-os:
+        required: true
+        type: string
       python-version:
         required: true
         type: string
@@ -22,6 +25,10 @@ on:
         required: true
         type: boolean
 
+defaults:
+  run:
+    shell: bash
+
 env:
   FORCE_COLOR: 1
 
@@ -29,7 +36,7 @@ jobs:
 
   test:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner-os }}
     timeout-minutes: 30
     continue-on-error: true
     env:

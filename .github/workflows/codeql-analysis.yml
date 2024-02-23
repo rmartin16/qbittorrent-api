@@ -9,6 +9,11 @@ on:
   schedule:
     - cron: '44 5 * * 5'
 
+# cancels running CI if new commit is pushed to branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analyse:
     name: Analyse

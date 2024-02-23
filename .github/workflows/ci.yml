@@ -11,7 +11,7 @@ on:
 
 # cancels running CI if new commit is pushed to branch
 concurrency:
-  group: ${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -21,6 +21,10 @@ env:
   QBITTORRENTAPI_USERNAME: admin
   QBITTORRENTAPI_PASSWORD: adminadmin
   FORCE_COLOR: 1
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   verify:
@@ -113,15 +117,26 @@ jobs:
           - v4.1.6
           - v4.1.0
         include:
-          - IS_QBT_DEV: false
+          - runner-os: ubuntu-latest
+            IS_QBT_DEV: false
           # test dev versions of qBittorrent
           - QBT_VER: master
             IS_QBT_DEV: true
+            runner-os: ubuntu-latest
           - QBT_VER: v4_6_x
             IS_QBT_DEV: true
+            runner-os: ubuntu-latest
+          # test on windows/macOS
+          - QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
+            IS_QBT_DEV: false
+            runner-os: windows-latest
+          - QBT_VER: ${{ needs.verify.outputs.qbittorrent-latest-version }}
+            IS_QBT_DEV: false
+            runner-os: macos-latest
     uses: ./.github/workflows/test.yml
     secrets: inherit
     with:
+      runner-os: ${{ matrix.runner-os }}
       python-version: ${{ needs.verify.outputs.python-latest-version }}
       qbittorrent-version: ${{ matrix.QBT_VER }}
       qbittorrent-host: ${{ needs.verify.outputs.qbittorrent-host }}
@@ -138,6 +153,7 @@ jobs:
     uses: ./.github/workflows/test.yml
     secrets: inherit
     with:
+      runner-os: ubuntu-latest
       python-version: ${{ matrix.PYTHON_VER }}
       qbittorrent-version: ${{ needs.verify.outputs.qbittorrent-latest-version }}
       qbittorrent-host: ${{ needs.verify.outputs.qbittorrent-host }}
