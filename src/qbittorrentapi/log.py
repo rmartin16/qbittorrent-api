@@ -3,12 +3,14 @@ from __future__ import annotations
 from functools import wraps
 
 from qbittorrentapi.app import AppAPIMixIn
-from qbittorrentapi.definitions import APIKwargsT
-from qbittorrentapi.definitions import APINames
-from qbittorrentapi.definitions import ClientCache
-from qbittorrentapi.definitions import List
-from qbittorrentapi.definitions import ListEntry
-from qbittorrentapi.definitions import ListInputT
+from qbittorrentapi.definitions import (
+    APIKwargsT,
+    APINames,
+    ClientCache,
+    List,
+    ListEntry,
+    ListInputT,
+)
 
 
 class LogPeer(ListEntry):
@@ -42,7 +44,7 @@ class LogAPIMixIn(AppAPIMixIn):
         >>> client = Client(host="localhost:8080", username="admin", password="adminadmin")
         >>> client.log_main(info=False)
         >>> client.log_peers()
-    """
+    """  # noqa: E501
 
     @property
     def log(self) -> Log:
@@ -71,7 +73,8 @@ class LogAPIMixIn(AppAPIMixIn):
         :param info: False to exclude ``info`` entries
         :param warning: False to exclude ``warning`` entries
         :param critical: False to exclude ``critical`` entries
-        :param last_known_id: only entries with an ID greater than this value will be returned
+        :param last_known_id: only entries with an ID greater than this value will be
+            returned
         """
         params = {
             "normal": None if normal is None else bool(normal),
@@ -123,7 +126,7 @@ class Log(ClientCache[LogAPIMixIn]):
         >>> # can also filter log down with additional attributes
         >>> log_info = client.log.main.info(last_known_id=1)
         >>> log_warning = client.log.main.warning(last_known_id=1)
-    """
+    """  # noqa: E501
 
     def __init__(self, client: LogAPIMixIn):
         super().__init__(client=client)

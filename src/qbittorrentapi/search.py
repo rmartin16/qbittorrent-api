@@ -1,19 +1,19 @@
 from __future__ import annotations
 
 from functools import wraps
-from typing import Iterable
-from typing import Mapping
-from typing import cast
+from typing import Iterable, Mapping, cast
 
 from qbittorrentapi.app import AppAPIMixIn
-from qbittorrentapi.definitions import APIKwargsT
-from qbittorrentapi.definitions import APINames
-from qbittorrentapi.definitions import ClientCache
-from qbittorrentapi.definitions import Dictionary
-from qbittorrentapi.definitions import JsonValueT
-from qbittorrentapi.definitions import List
-from qbittorrentapi.definitions import ListEntry
-from qbittorrentapi.definitions import ListInputT
+from qbittorrentapi.definitions import (
+    APIKwargsT,
+    APINames,
+    ClientCache,
+    Dictionary,
+    JsonValueT,
+    List,
+    ListEntry,
+    ListInputT,
+)
 
 
 class SearchResultsDictionary(Dictionary[JsonValueT]):
@@ -76,7 +76,7 @@ class SearchAPIMixIn(AppAPIMixIn):
         >>> client.search_stop(search_id=search_job.id)
         >>> # or
         >>> search_job.stop()
-    """
+    """  # noqa: E501
 
     @property
     def search(self) -> Search:
@@ -232,7 +232,8 @@ class SearchAPIMixIn(AppAPIMixIn):
         This method was introduced with qBittorrent v4.1.4 (Web API v2.1.1) and removed
         with qBittorrent v4.3.0 (Web API v2.6).
 
-        :param plugin_name: Limit categories returned by plugin(s) (supports ``all`` and ``enabled``)
+        :param plugin_name: Limit categories returned by plugin(s)
+            (supports ``all`` and ``enabled``)
         """
         data = {"pluginName": plugin_name}
         return self._post_cast(
@@ -317,7 +318,8 @@ class SearchAPIMixIn(AppAPIMixIn):
         This method was introduced with qBittorrent v4.1.4 (Web API v2.1.1).
 
         :param plugins: list of plugin names
-        :param enable: Defaults to ``True`` if ``None`` or unset; use ``False`` to disable
+        :param enable: Defaults to ``True`` if ``None`` or unset;
+            use ``False`` to disable
         """
         data = {
             "names": self._list2string(plugins, "|"),
@@ -402,7 +404,7 @@ class Search(ClientCache[SearchAPIMixIn]):
         >>> cats = client.search.categories(plugin_name="...")
         >>> client.search.install_plugin(sources="...")
         >>> client.search.update_plugins()
-    """
+    """  # noqa: E501
 
     @wraps(SearchAPIMixIn.search_start)
     def start(

@@ -3,15 +3,17 @@ from __future__ import annotations
 import sys
 from collections import UserList
 from enum import Enum
-from typing import TYPE_CHECKING
-from typing import Any
-from typing import Generic
-from typing import Iterable
-from typing import Mapping
-from typing import Sequence
-from typing import Tuple
-from typing import TypeVar
-from typing import Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Generic,
+    Iterable,
+    Mapping,
+    Sequence,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 from qbittorrentapi._attrdict import AttrDict
 
@@ -179,7 +181,7 @@ class TrackerStatus(int, Enum):
         >>>     for tracker in torrent.trackers:
         >>>         # display status for each tracker
         >>>         print(f"{torrent.hash[-6:]}: {TrackerStatus(tracker.status).display:>13} :{tracker.url}")
-    """
+    """  # noqa: E501
 
     DISABLED = 0
     NOT_CONTACTED = 1

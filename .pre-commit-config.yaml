@@ -10,20 +10,6 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        additional_dependencies:
-          - toml
-
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.15.1
-    hooks:
-      - id: pyupgrade
-        args:
-          - --py38-plus
-
   - repo: https://github.com/PyCQA/docformatter
     rev: v1.7.5
     hooks:
@@ -41,12 +27,7 @@ repos:
       - id: ruff
         args:
           - --fix
-
-  - repo: https://github.com/psf/black
-    rev: 24.2.0
-    hooks:
-      - id: black
-        language_version: python3
+      - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.8.0

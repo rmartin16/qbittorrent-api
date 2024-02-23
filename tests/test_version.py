@@ -1,8 +1,7 @@
 import pytest
-
 from qbittorrentapi import Version
-from tests.conftest import IS_QBT_DEV
-from tests.conftest import api_version_map
+
+from tests.conftest import IS_QBT_DEV, api_version_map
 
 
 @pytest.mark.skipif(IS_QBT_DEV, reason="testing devel version of qBittorrent")

@@ -4,22 +4,21 @@ from types import MethodType
 from unittest.mock import MagicMock
 
 import pytest
-
-from qbittorrentapi import APINames
-from qbittorrentapi import Conflict409Error
-from qbittorrentapi import TorrentDictionary
-from qbittorrentapi import TorrentFilesList
-from qbittorrentapi import TorrentPieceInfoList
-from qbittorrentapi import TorrentPropertiesDictionary
-from qbittorrentapi import TorrentStates
-from qbittorrentapi import TrackersList
-from qbittorrentapi import WebSeedsList
+from qbittorrentapi import (
+    APINames,
+    Conflict409Error,
+    TorrentDictionary,
+    TorrentFilesList,
+    TorrentPieceInfoList,
+    TorrentPropertiesDictionary,
+    TorrentStates,
+    TrackersList,
+    WebSeedsList,
+)
 from qbittorrentapi._version_support import v
-from tests.test_torrents import disable_queueing
-from tests.test_torrents import enable_queueing
-from tests.utils import check
-from tests.utils import mkpath
-from tests.utils import retry
+
+from tests.test_torrents import disable_queueing, enable_queueing
+from tests.utils import check, mkpath, retry
 
 
 def test_info(orig_torrent, monkeypatch):

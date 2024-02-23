@@ -1,30 +1,29 @@
 import glob
 import os
-from contextlib import contextmanager
-from contextlib import suppress
+from contextlib import contextmanager, suppress
 from functools import partial
-from os import environ
-from os import path
+from os import environ, path
 from sys import path as sys_path
 from time import sleep
 from unittest.mock import MagicMock
 
 import pytest
-
-from qbittorrentapi import APIConnectionError
-from qbittorrentapi import Client
+from qbittorrentapi import APIConnectionError, Client
 from qbittorrentapi._version_support import (
     APP_VERSION_2_API_VERSION_MAP as api_version_map,
 )
 from qbittorrentapi._version_support import v
-from tests.utils import CHECK_SLEEP
-from tests.utils import add_torrent
-from tests.utils import check
-from tests.utils import get_func
-from tests.utils import get_torrent
-from tests.utils import mkpath
-from tests.utils import retry
-from tests.utils import setup_environ
+
+from tests.utils import (
+    CHECK_SLEEP,
+    add_torrent,
+    check,
+    get_func,
+    get_torrent,
+    mkpath,
+    retry,
+    setup_environ,
+)
 
 
 class staticmethod:
@@ -52,7 +51,7 @@ ORIG_TORRENT = None
 TORRENT1_FILENAME = "kubuntu-22.04.4-desktop-amd64.iso.torrent"
 TORRENT1_URL = f"https://github.com/rmartin16/qbittorrent-api/raw/main/tests/_resources/{TORRENT1_FILENAME}"
 TORRENT1_HASH = "27a92b32757893ac9eb898e32c952636a3cc7b24"
-TORRENT1_FILE_HANDLE = open(path.join(RESOURCES_PATH, TORRENT1_FILENAME), mode="rb")
+TORRENT1_FILE_HANDLE = open(path.join(RESOURCES_PATH, TORRENT1_FILENAME), mode="rb")  # noqa: SIM115
 TORRENT1_FILE = TORRENT1_FILE_HANDLE.read()
 
 TORRENT2_FILENAME = "xubuntu-22.04.4-desktop-amd64.iso.torrent"
@@ -61,7 +60,7 @@ TORRENT2_HASH = "c7d77fc3ecb68344b59ada11a0508dd6d08f2dfd"
 
 ROOT_FOLDER_TORRENT_FILENAME = "root_folder.torrent"
 ROOT_FOLDER_TORRENT_HASH = "a14553bd936a6d496402082454a70ea7a9521adc"
-ROOT_FOLDER_TORRENT_FILE_HANDLE = open(path.join(RESOURCES_PATH, ROOT_FOLDER_TORRENT_FILENAME), mode="rb")
+ROOT_FOLDER_TORRENT_FILE_HANDLE = open(path.join(RESOURCES_PATH, ROOT_FOLDER_TORRENT_FILENAME), mode="rb")  # noqa: E501, SIM115
 ROOT_FOLDER_TORRENT_FILE = ROOT_FOLDER_TORRENT_FILE_HANDLE.read()
 # fmt: on
 

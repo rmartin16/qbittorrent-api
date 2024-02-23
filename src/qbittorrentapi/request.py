@@ -3,23 +3,13 @@ from __future__ import annotations
 from collections.abc import Iterable
 from functools import wraps
 from json import loads
-from logging import Logger
-from logging import NullHandler
-from logging import getLogger
+from logging import Logger, NullHandler, getLogger
 from os import environ
 from time import sleep
-from typing import TYPE_CHECKING
-from typing import Any
-from typing import Literal
-from typing import Mapping
-from typing import TypeVar
-from typing import cast
-from urllib.parse import ParseResult
-from urllib.parse import urljoin
-from urllib.parse import urlparse
+from typing import TYPE_CHECKING, Any, Literal, Mapping, TypeVar, cast
+from urllib.parse import ParseResult, urljoin, urlparse
 
-from requests import Response
-from requests import Session
+from requests import Response, Session
 from requests import exceptions as requests_exceptions
 from requests.adapters import HTTPAdapter
 from urllib3 import disable_warnings
@@ -27,25 +17,29 @@ from urllib3.exceptions import InsecureRequestWarning
 from urllib3.util.retry import Retry
 
 from qbittorrentapi._version_support import v
-from qbittorrentapi.definitions import APIKwargsT
-from qbittorrentapi.definitions import APINames
-from qbittorrentapi.definitions import Dictionary
-from qbittorrentapi.definitions import FilesToSendT
-from qbittorrentapi.definitions import List
-from qbittorrentapi.exceptions import APIConnectionError
-from qbittorrentapi.exceptions import APIError
-from qbittorrentapi.exceptions import Conflict409Error
-from qbittorrentapi.exceptions import Forbidden403Error
-from qbittorrentapi.exceptions import HTTP5XXError
-from qbittorrentapi.exceptions import HTTP403Error
-from qbittorrentapi.exceptions import HTTPError
-from qbittorrentapi.exceptions import InternalServerError500Error
-from qbittorrentapi.exceptions import InvalidRequest400Error
-from qbittorrentapi.exceptions import MethodNotAllowed405Error
-from qbittorrentapi.exceptions import MissingRequiredParameters400Error
-from qbittorrentapi.exceptions import NotFound404Error
-from qbittorrentapi.exceptions import Unauthorized401Error
-from qbittorrentapi.exceptions import UnsupportedMediaType415Error
+from qbittorrentapi.definitions import (
+    APIKwargsT,
+    APINames,
+    Dictionary,
+    FilesToSendT,
+    List,
+)
+from qbittorrentapi.exceptions import (
+    APIConnectionError,
+    APIError,
+    Conflict409Error,
+    Forbidden403Error,
+    HTTP5XXError,
+    HTTP403Error,
+    HTTPError,
+    InternalServerError500Error,
+    InvalidRequest400Error,
+    MethodNotAllowed405Error,
+    MissingRequiredParameters400Error,
+    NotFound404Error,
+    Unauthorized401Error,
+    UnsupportedMediaType415Error,
+)
 
 if TYPE_CHECKING:
     from qbittorrentapi.app import Application
@@ -54,9 +48,7 @@ if TYPE_CHECKING:
     from qbittorrentapi.rss import RSS
     from qbittorrentapi.search import Search
     from qbittorrentapi.sync import Sync
-    from qbittorrentapi.torrents import TorrentCategories
-    from qbittorrentapi.torrents import Torrents
-    from qbittorrentapi.torrents import TorrentTags
+    from qbittorrentapi.torrents import TorrentCategories, Torrents, TorrentTags
     from qbittorrentapi.transfer import Transfer
 
 T = TypeVar("T")
@@ -127,7 +119,7 @@ class QbittorrentURL:
         if self._base_url is not None:
             return self._base_url
 
-        # Parse user host - urlparse requires some sort of scheme for parsing to work at all
+        # Parse user host - urlparse requires some sort of scheme for parsing to work
         host = self.client.host
         if not host.lower().startswith(("http:", "https:", "//")):
             host = "//" + self.client.host
@@ -152,7 +144,8 @@ class QbittorrentURL:
             base_url = base_url._replace(scheme=scheme)
             if user_scheme and user_scheme != base_url.scheme:
                 logger.warning(
-                    "Using '%s' instead of requested '%s' to communicate with qBittorrent",
+                    "Using '%s' instead of requested '%s'"
+                    "to communicate with qBittorrent",
                     base_url.scheme,
                     user_scheme,
                 )
@@ -225,8 +218,8 @@ class QbittorrentSession(Session):
         kwargs.setdefault("timeout", 15.1)
         kwargs.setdefault("allow_redirects", True)
 
-        # send Content-Length as 0 for empty POSTs...Requests will not send Content-Length
-        # if data is empty but qBittorrent will complain otherwise
+        # send Content-Length as 0 for empty POSTs...Requests will not send
+        # Content-Length if data is empty but qBittorrent will complain otherwise
         data = kwargs.get("data") or {}
         is_data = any(x is not None for x in data.values())
         if method.lower() == "post" and not is_data:
@@ -682,19 +675,22 @@ class Request:
             except Exception as exc:
                 if retry >= max_retries:
                     err_msg = "Failed to connect to qBittorrent. " + {
-                        requests_exceptions.SSLError: "This is likely due to using an untrusted certificate "
-                        "(likely self-signed) for HTTPS qBittorrent WebUI. To suppress this error (and skip "
-                        "certificate verification consequently exposing the HTTPS connection to man-in-the-middle "
-                        "attacks), set VERIFY_WEBUI_CERTIFICATE=False when instantiating Client or set "
-                        "environment variable QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE to a non-null value. "
+                        requests_exceptions.SSLError: """\
+This is likely due to using an untrusted certificate (likely self-signed) for HTTPS "
+qBittorrent WebUI. To suppress this error (and skip certificate verification
+consequently exposing the HTTPS connection to man-in-the-middle attacks), set
+VERIFY_WEBUI_CERTIFICATE=False when instantiating Client or set environment variable
+QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE to a non-null value.
+"""
                         f"SSL Error: {repr(exc)}",
-                        requests_exceptions.HTTPError: f"Invalid HTTP Response: {repr(exc)}",
-                        requests_exceptions.TooManyRedirects: f"Too many redirects: {repr(exc)}",
-                        requests_exceptions.ConnectionError: f"Connection Error: {repr(exc)}",
+                        requests_exceptions.HTTPError: f"Invalid HTTP Response: {repr(exc)}",  # noqa: E501
+                        requests_exceptions.TooManyRedirects: f"Too many redirects: {repr(exc)}",  # noqa: E501
+                        requests_exceptions.ConnectionError: f"Connection Error: {repr(exc)}",  # noqa: E501
                         requests_exceptions.Timeout: f"Timeout Error: {repr(exc)}",
-                        requests_exceptions.RequestException: f"Requests Error: {repr(exc)}",
+                        requests_exceptions.RequestException: f"Requests Error: {repr(exc)}",  # noqa: E501
                     }.get(
-                        type(exc), f"Unknown Error: {repr(exc)}"  # type: ignore[arg-type]
+                        type(exc),  # type: ignore[arg-type]
+                        f"Unknown Error: {repr(exc)}",
                     )
                     logger.debug(err_msg)
                     response: Response | None = getattr(exc, "response", None)
@@ -723,14 +719,15 @@ class Request:
 
         if version_introduced and v(self.app.web_api_version) < v(version_introduced):  # type: ignore[attr-defined]
             error_message = (
-                f"ERROR: Endpoint '{endpoint}' is Not Implemented in this version of qBittorrent. "
-                f"This endpoint is available starting in Web API v{version_introduced}."
+                f"ERROR: Endpoint '{endpoint}' is Not Implemented in this version of "
+                f"qBittorrent. This endpoint is available starting in Web API "
+                f"v{version_introduced}."
             )
 
         if version_removed and v(self.app.web_api_version) >= v(version_removed):  # type: ignore[attr-defined]
             error_message = (
-                f"ERROR: Endpoint '{endpoint}' is Not Implemented in this version of qBittorrent. "
-                f"This endpoint was removed in Web API v{version_removed}."
+                f"ERROR: Endpoint '{endpoint}' is Not Implemented in this version of "
+                f"qBittorrent. This endpoint was removed in Web API v{version_removed}."
             )
 
         if error_message:
@@ -832,8 +829,8 @@ class Request:
         files = dict(files) if files is not None else {}
 
         # any other keyword arguments are sent to qBittorrent as part of the request.
-        # These are user-defined since this Client will put everything in data/params/files
-        # that needs to be sent to qBittorrent.
+        # These are user-defined since this Client will put everything in
+        # data/params/files that needs to be sent to qBittorrent.
         if kwargs:
             if http_method == "get":
                 params.update(kwargs)
@@ -854,7 +851,7 @@ class Request:
         :param response: requests ``Response`` from API
         :param response_class: class to return response as; if none, response is returned
         :param response_kwargs: request-specific configuration for response
-        """
+        """  # noqa: E501
         try:
             if response_class is Response:
                 return response
@@ -868,7 +865,7 @@ class Request:
                 try:
                     json_response = response.json()
                 except AttributeError:
-                    # just in case the requests package is old and doesn't contain json()
+                    # just in case the requests package doesn't contain json()
                     json_response = loads(response.text)
                 if self._SIMPLE_RESPONSES or response_kwargs.get("SIMPLE_RESPONSES"):
                     return json_response
@@ -957,9 +954,9 @@ class Request:
 
         if response.status_code == 400:
             # Returned for malformed requests such as missing or invalid parameters.
-            # If an error_message isn't returned, qBittorrent didn't receive all required parameters.
+            # If an error_message isn't returned, qbt didn't get all required params.
             # APIErrorType::BadParams
-            # the name of the HTTP error (i.e. Bad Request) started being returned in v4.3.0
+            # name of the error (i.e. Bad Request) started being returned in v4.3.0
             if response.text in ("", "Bad Request"):
                 raise MissingRequiredParameters400Error(
                     request=request, response=response
@@ -992,7 +989,7 @@ class Request:
 
         if response.status_code == 405:
             # HTTP method not allowed for the API endpoint.
-            # This should only be raised if qBittorrent changes the requirement for an endpoint...
+            # This should only be raised if qbt changes the requirement for endpoint...
             raise MethodNotAllowed405Error(
                 response.text, request=request, response=response
             )

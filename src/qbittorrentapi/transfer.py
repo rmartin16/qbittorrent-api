@@ -5,11 +5,13 @@ from typing import Iterable
 
 from qbittorrentapi._version_support import v
 from qbittorrentapi.app import AppAPIMixIn
-from qbittorrentapi.definitions import APIKwargsT
-from qbittorrentapi.definitions import APINames
-from qbittorrentapi.definitions import ClientCache
-from qbittorrentapi.definitions import Dictionary
-from qbittorrentapi.definitions import JsonValueT
+from qbittorrentapi.definitions import (
+    APIKwargsT,
+    APINames,
+    ClientCache,
+    Dictionary,
+    JsonValueT,
+)
 
 
 class TransferInfoDictionary(Dictionary[JsonValueT]):
@@ -29,7 +31,7 @@ class TransferAPIMixIn(AppAPIMixIn):
         >>> client = Client(host="localhost:8080", username="admin", password="adminadmin")
         >>> transfer_info = client.transfer_info()
         >>> client.transfer_set_download_limit(limit=1024000)
-    """
+    """  # noqa: E501
 
     @property
     def transfer(self) -> Transfer:
@@ -74,14 +76,10 @@ class TransferAPIMixIn(AppAPIMixIn):
         :param intended_state: True to enable alt speed and False to disable. Leaving
             None will toggle the current state.
         """
-        if intended_state is None:
-            self._post(
-                _name=APINames.Transfer,
-                _method="toggleSpeedLimitsMode",
-                **kwargs,
-            )
-        elif v(self.app_web_api_version()) < v("2.8.14") and (
-            (self.transfer.speed_limits_mode == "1") is not bool(intended_state)
+        if (
+            intended_state is None
+            or v(self.app_web_api_version()) < v("2.8.14")
+            and ((self.transfer.speed_limits_mode == "1") is not bool(intended_state))
         ):
             self._post(
                 _name=APINames.Transfer,
@@ -204,7 +202,7 @@ class Transfer(ClientCache[TransferAPIMixIn]):
         >>> client.transfer.download_limit = 1024000
         >>> # update speed limits mode to alternate or not
         >>> client.transfer.speedLimitsMode = True
-    """
+    """  # noqa: E501
 
     @property
     @wraps(TransferAPIMixIn.transfer_info)

@@ -1,12 +1,13 @@
 import sys
+from contextlib import suppress
 from time import sleep
 
 import pytest
-
 from qbittorrentapi import APINames
 from qbittorrentapi._version_support import v
 from qbittorrentapi.exceptions import APIError
 from qbittorrentapi.rss import RSSitemsDictionary
+
 from tests.utils import check
 
 FOLDER_ONE = "testFolderOne"
@@ -184,10 +185,8 @@ def test_rss_move(client, rss_feed, move_func):
         client.func(move_func)(orig_item_path=rss_feed, new_item_path=new_name)
         check(lambda: client.rss_items(), new_name, reverse=True)
     finally:
-        try:
+        with suppress(APIError):
             client.rss_remove_item(item_path=new_name)
-        except APIError:
-            pass
 
 
 @pytest.mark.skipif_before_api_version("2.5.1")
@@ -217,7 +216,8 @@ def test_rss_mark_as_read_not_implemented(client, mark_read_func):
 
 @pytest.mark.skipif_before_api_version("2.2")
 @pytest.mark.parametrize(
-    "add_feed_func, set_rule_func, rules_func, rename_rule_func, matching_func, remove_rule_func, remove_item_func",
+    "add_feed_func, set_rule_func, rules_func, rename_rule_func, "
+    "matching_func, remove_rule_func, remove_item_func",
     (
         (
             "rss_add_feed",

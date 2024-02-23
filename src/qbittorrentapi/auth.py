@@ -1,19 +1,15 @@
 from __future__ import annotations
 
 from functools import wraps
-from logging import Logger
-from logging import getLogger
+from logging import Logger, getLogger
 from types import TracebackType
 from typing import TYPE_CHECKING
 
 from requests import Response
 
 from qbittorrentapi import Version
-from qbittorrentapi.definitions import APIKwargsT
-from qbittorrentapi.definitions import APINames
-from qbittorrentapi.definitions import ClientCache
-from qbittorrentapi.exceptions import LoginFailed
-from qbittorrentapi.exceptions import UnsupportedQbittorrentVersion
+from qbittorrentapi.definitions import APIKwargsT, APINames, ClientCache
+from qbittorrentapi.exceptions import LoginFailed, UnsupportedQbittorrentVersion
 from qbittorrentapi.request import Request
 
 if TYPE_CHECKING:
@@ -32,7 +28,7 @@ class AuthAPIMixIn(Request):
         >>> _ = client.is_logged_in
         >>> client.auth_log_in(username="admin", password="adminadmin")
         >>> client.auth_log_out()
-    """
+    """  # noqa: E501
 
     @property
     def auth(self) -> Authorization:
@@ -52,7 +48,7 @@ class AuthAPIMixIn(Request):
         attempting to use it. qBittorrent invalidates cookies when they expire.
 
         :returns: ``True``/``False`` if current authorization cookie is accepted by qBittorrent
-        """
+        """  # noqa: E501
         try:
             # use _request_manager() directly so log in is not attempted
             self._request_manager(
@@ -160,7 +156,7 @@ class Authorization(ClientCache[AuthAPIMixIn]):
         >>> is_logged_in = client.auth.is_logged_in
         >>> client.auth.log_in(username="admin", password="adminadmin")
         >>> client.auth.log_out()
-    """
+    """  # noqa: E501
 
     @property
     @wraps(AuthAPIMixIn.is_logged_in)

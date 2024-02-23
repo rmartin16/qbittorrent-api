@@ -1,16 +1,16 @@
 import sys
 
 import pytest
+from qbittorrentapi import APINames, NotFound404Error
+from qbittorrentapi.search import (
+    SearchCategoriesList,
+    SearchJobDictionary,
+    SearchPluginsList,
+    SearchResultsDictionary,
+    SearchStatusesList,
+)
 
-from qbittorrentapi import APINames
-from qbittorrentapi import NotFound404Error
-from qbittorrentapi.search import SearchCategoriesList
-from qbittorrentapi.search import SearchJobDictionary
-from qbittorrentapi.search import SearchPluginsList
-from qbittorrentapi.search import SearchResultsDictionary
-from qbittorrentapi.search import SearchStatusesList
-from tests.utils import check
-from tests.utils import retry
+from tests.utils import check, retry
 
 PLUGIN_NAME = "one337x"
 PLUGIN_URL = (

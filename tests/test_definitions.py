@@ -1,13 +1,14 @@
 from enum import Enum
 
 import pytest
-
 from qbittorrentapi._attrdict import AttrDict
-from qbittorrentapi.definitions import Dictionary
-from qbittorrentapi.definitions import List
-from qbittorrentapi.definitions import ListEntry
-from qbittorrentapi.definitions import TorrentState
-from qbittorrentapi.definitions import TrackerStatus
+from qbittorrentapi.definitions import (
+    Dictionary,
+    List,
+    ListEntry,
+    TorrentState,
+    TrackerStatus,
+)
 
 torrent_all_states = [
     "error",
