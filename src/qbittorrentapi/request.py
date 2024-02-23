@@ -675,14 +675,15 @@ class Request:
             except Exception as exc:
                 if retry >= max_retries:
                     err_msg = "Failed to connect to qBittorrent. " + {
-                        requests_exceptions.SSLError: """\
-This is likely due to using an untrusted certificate (likely self-signed) for HTTPS "
-qBittorrent WebUI. To suppress this error (and skip certificate verification
-consequently exposing the HTTPS connection to man-in-the-middle attacks), set
-VERIFY_WEBUI_CERTIFICATE=False when instantiating Client or set environment variable
-QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE to a non-null value.
-"""
-                        f"SSL Error: {repr(exc)}",
+                        requests_exceptions.SSLError: "This is likely due to using an "
+                        "untrusted certificate (likely self-signed) for HTTPS "
+                        "qBittorrent WebUI. To suppress this error (and skip "
+                        "certificate verification consequently exposing the HTTPS "
+                        "connection to man-in-the-middle attacks), set "
+                        "VERIFY_WEBUI_CERTIFICATE=False when instantiating Client or "
+                        "set environment variable "
+                        "QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE to a "
+                        f"non-null value. SSL Error: {repr(exc)}",
                         requests_exceptions.HTTPError: f"Invalid HTTP Response: {repr(exc)}",  # noqa: E501
                         requests_exceptions.TooManyRedirects: f"Too many redirects: {repr(exc)}",  # noqa: E501
                         requests_exceptions.ConnectionError: f"Connection Error: {repr(exc)}",  # noqa: E501
