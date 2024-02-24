@@ -5,51 +5,56 @@ from time import sleep
 import pytest
 from qbittorrentapi import APINames
 from qbittorrentapi._version_support import v
-from qbittorrentapi.exceptions import APIError
+from qbittorrentapi.exceptions import APIError, Conflict409Error
 from qbittorrentapi.rss import RSSitemsDictionary
 
-from tests.utils import check
+from tests.utils import check, retry
 
 FOLDER_ONE = "testFolderOne"
 FOLDER_TWO = "testFolderTwo"
 
 ITEM_ONE = "RSSOne"
 ITEM_TWO = "RSSTwo"
+RSS_NAME = "DistroWatch - Torrents"
 RSS_URL = (
     "https://gist.githubusercontent.com/rmartin16/"
     "d615e1066f54186b44e8018d31af18f1/raw/b59cdc878fedfaf08efe6fc4321d18e8ded01e09/rss.xml"
 )
 
 
+@retry(3)
+def delete_feed(client, name):
+    with suppress(Conflict409Error):
+        client.rss_remove_item(item_path=name)
+        check(lambda: client.rss_items(), name, reverse=True, negate=True)
+
+
 @pytest.fixture(scope="function", autouse=True)
 def rss_feed(client, api_version):
-    def delete_feed(name):
-        try:
-            client.rss_remove_item(item_path=name)
-            check(lambda: client.rss_items(), name, reverse=True, negate=True)
-        except Exception:
-            pass
-
     if v(api_version) >= v("2.2"):
-        client.app.preferences = dict(rss_auto_downloading_enabled=False)
-        # refreshing the feed is finicky...so try several times if necessary
-        done = False
-        for i in range(5):
-            delete_feed(ITEM_ONE)
-            client.rss.add_feed(url=RSS_URL, item_path=ITEM_ONE)
-            check(lambda: client.rss_items(), ITEM_ONE, reverse=True)
-            # wait until feed is refreshed
-            for j in range(20):
-                if client.rss.items.with_data[ITEM_ONE]["articles"]:
-                    done = True
-                    yield ITEM_ONE
-                    delete_feed(ITEM_ONE)
+        try:
+            client.app.preferences = dict(rss_auto_downloading_enabled=False)
+            # refreshing the feed is finicky...so try several times if necessary
+            done = False
+            for i in range(5):
+                delete_feed(client, ITEM_ONE)
+                delete_feed(client, RSS_NAME)
+                client.rss.add_feed(url=RSS_URL, item_path=ITEM_ONE)
+                check(lambda: client.rss_items(), ITEM_ONE, reverse=True)
+                # wait until feed is refreshed
+                for j in range(20):
+                    if client.rss.items.with_data[ITEM_ONE]["articles"]:
+                        done = True
+                        yield ITEM_ONE
+                        break
+                    sleep(0.25)
+                if done:
                     break
-                sleep(0.25)
-            if done:
-                break
-        else:
-            raise Exception("RSS Feed '%s' did not refresh..." % ITEM_ONE)
+            else:
+                raise Exception("RSS Feed '%s' did not refresh..." % ITEM_ONE)
+        finally:
+            delete_feed(client, ITEM_ONE)
+            delete_feed(client, RSS_NAME)
     else:
         yield ""
 
@@ -120,9 +125,23 @@ def test_rss_items(client, rss_feed, items_func):
 
 
 @pytest.mark.skipif_before_api_version("2.2")
-@pytest.mark.parametrize("items_func", ["rss_items", "rss.items"])
-def test_rss_add_feed(client, rss_feed, items_func):
-    assert rss_feed in client.func(items_func)()
+@pytest.mark.parametrize(
+    "add_feed_func", ["rss_add_feed", "rss_addFeed", "rss.add_feed", "rss.addFeed"]
+)
+@pytest.mark.parametrize("feed_url, path", [(RSS_URL, "/path/my-feed"), (RSS_URL, "")])
+def test_rss_add_feed(client, add_feed_func, feed_url, path):
+    @retry(3)
+    def run_test():
+        delete_feed(client, ITEM_ONE)
+        delete_feed(client, RSS_NAME)
+
+        client.func(add_feed_func)(url=feed_url, item_path=path)
+        check(lambda: client.rss_items(), path or feed_url, reverse=True)
+
+        delete_feed(client, path or feed_url)
+        delete_feed(client, RSS_NAME)
+
+    run_test()
 
 
 @pytest.mark.skipif_before_api_version("2.9.1")
@@ -216,11 +235,10 @@ def test_rss_mark_as_read_not_implemented(client, mark_read_func):
 
 @pytest.mark.skipif_before_api_version("2.2")
 @pytest.mark.parametrize(
-    "add_feed_func, set_rule_func, rules_func, rename_rule_func, "
+    "set_rule_func, rules_func, rename_rule_func, "
     "matching_func, remove_rule_func, remove_item_func",
     (
         (
-            "rss_add_feed",
             "rss_set_rule",
             "rss_rules",
             "rss_rename_rule",
@@ -229,7 +247,6 @@ def test_rss_mark_as_read_not_implemented(client, mark_read_func):
             "rss_remove_item",
         ),
         (
-            "rss_addFeed",
             "rss_setRule",
             "rss_rules",
             "rss_renameRule",
@@ -238,7 +255,6 @@ def test_rss_mark_as_read_not_implemented(client, mark_read_func):
             "rss_removeItem",
         ),
         (
-            "rss.add_feed",
             "rss.set_rule",
             "rss.rules",
             "rss.rename_rule",
@@ -247,7 +263,6 @@ def test_rss_mark_as_read_not_implemented(client, mark_read_func):
             "rss.remove_item",
         ),
         (
-            "rss.addFeed",
             "rss.setRule",
             "rss.rules",
             "rss.renameRule",
@@ -260,7 +275,6 @@ def test_rss_mark_as_read_not_implemented(client, mark_read_func):
 def test_rss_rules(
     client,
     api_version,
-    add_feed_func,
     set_rule_func,
     rules_func,
     rename_rule_func,
