@@ -64,7 +64,7 @@ class RSSAPIMixIn(AppAPIMixIn):
     def rss_add_feed(
         self,
         url: str | None = None,
-        item_path: str | None = None,
+        item_path: str = "",
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -73,7 +73,8 @@ class RSSAPIMixIn(AppAPIMixIn):
         :raises Conflict409Error:
 
         :param url: URL of RSS feed (e.g. https://distrowatch.com/news/torrents.xml)
-        :param item_path: Name and/or path for new feed (e.g. ``Folder\\Subfolder\\FeedName``)
+        :param item_path: Name and/or path for new feed; defaults to the URL.
+            (e.g. ``Folder\\Subfolder\\FeedName``)
         """  # noqa: E501
         data = {"path": item_path, "url": url}
         self._post(_name=APINames.RSS, _method="addFeed", data=data, **kwargs)
@@ -344,7 +345,7 @@ class RSS(ClientCache[RSSAPIMixIn]):
     def add_feed(
         self,
         url: str | None = None,
-        item_path: str | None = None,
+        item_path: str = "",
         **kwargs: APIKwargsT,
     ) -> None:
         return self._client.rss_add_feed(url=url, item_path=item_path, **kwargs)
