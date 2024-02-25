@@ -186,12 +186,12 @@ jobs:
           name: html-coverage-report
           path: ./htmlcov
 
-      - name: Upload Coverage to Codecov
-        if: contains(fromJson('["push", "pull_request"]'), github.event_name)
-        uses: codecov/codecov-action@v4.0.0
-        with:
-          fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }}
+      #- name: Upload Coverage to Codecov
+      #  if: contains(fromJson('["push", "pull_request"]'), github.event_name)
+      #  uses: codecov/codecov-action@v4.0.0
+      #  with:
+      #    fail_ci_if_error: true
+      #    token: ${{ secrets.CODECOV_TOKEN }}
 
   install-dev:
     #######

@@ -1,5 +1,9 @@
 Change Log
 ==========
+### v2024.2.59 (25 feb 2024)
+- Allow added RSS feeds without a name/path to default to the name in the feed (#423)
+- Advertise support for Python 3.13 (#349)
+
 ### v2024.1.58 (16 jan 2024)
 - Advertise support for qBittorrent v4.6.3
 
