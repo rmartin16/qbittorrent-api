@@ -6,6 +6,7 @@ from qbittorrentapi.log import LogAPIMixIn
 from qbittorrentapi.rss import RSSAPIMixIn
 from qbittorrentapi.search import SearchAPIMixIn
 from qbittorrentapi.sync import SyncAPIMixIn
+from qbittorrentapi.torrentcreator import TorrentCreatorAPIMixIn
 from qbittorrentapi.torrents import TorrentsAPIMixIn
 from qbittorrentapi.transfer import TransferAPIMixIn
 
@@ -49,6 +50,7 @@ class Client(
     SyncAPIMixIn,
     TransferAPIMixIn,
     TorrentsAPIMixIn,
+    TorrentCreatorAPIMixIn,
     RSSAPIMixIn,
     SearchAPIMixIn,
 ):

@@ -5,10 +5,6 @@ Introduction
    :target: https://github.com/rmartin16/qbittorrent-api/actions?query=branch%3Amain
 .. |codecov| image:: https://img.shields.io/codecov/c/gh/rmartin16/qbittorrent-api/main?style=flat-square
    :target: https://app.codecov.io/gh/rmartin16/qbittorrent-api
-.. |coverity| image:: https://img.shields.io/coverity/scan/21227?style=flat-square
-   :target: https://scan.coverity.com/projects/rmartin16-qbittorrent-api
-.. |codacy| image:: https://img.shields.io/codacy/grade/ef2975376e834af1910632cb76d05832?style=flat-square
-   :target: https://app.codacy.com/gh/rmartin16/qbittorrent-api/dashboard
 
 .. |pypi| image:: https://img.shields.io/pypi/v/qbittorrent-api?style=flat-square
    :target: https://pypi.org/project/qbittorrent-api/
@@ -17,7 +13,7 @@ Introduction
 .. |pypi downloads| image:: https://img.shields.io/pypi/dw/qbittorrent-api?color=blue&style=flat-square
    :target: https://pypi.org/project/qbittorrent-api/
 
-|github ci| |codecov| |coverity| |codacy|
+|github ci| |codecov|
 
 |pypi| |pypi versions| |pypi downloads|
 

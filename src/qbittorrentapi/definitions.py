@@ -58,6 +58,7 @@ class APINames(str, Enum):
     Sync = "sync"
     Transfer = "transfer"
     Torrents = "torrents"
+    TorrentCreator = "torrentcreator"
     RSS = "rss"
     Search = "search"
     EMPTY = ""
