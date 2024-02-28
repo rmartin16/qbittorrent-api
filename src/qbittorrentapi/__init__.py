@@ -62,6 +62,14 @@ from qbittorrentapi.sync import (
     SyncMainDataDictionary,
     SyncTorrentPeersDictionary,
 )
+from qbittorrentapi.torrentcreator import (
+    TaskStatus,
+    TorrentCreator,
+    TorrentCreatorAPIMixIn,
+    TorrentCreatorTaskDictionary,
+    TorrentCreatorTaskStatus,
+    TorrentCreatorTaskStatusList,
+)
 from qbittorrentapi.torrents import (
     Tag,
     TagList,
@@ -137,6 +145,12 @@ __all__ = (
     "SyncTorrentPeersDictionary",
     "Tag",
     "TagList",
+    "TaskStatus",
+    "TorrentCreator",
+    "TorrentCreatorAPIMixIn",
+    "TorrentCreatorTaskDictionary",
+    "TorrentCreatorTaskStatus",
+    "TorrentCreatorTaskStatusList",
     "TorrentCategoriesDictionary",
     "TorrentDictionary",
     "TorrentFile",

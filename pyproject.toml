@@ -46,6 +46,7 @@ dev = [
     "pre-commit ==3.6.0 ; python_version >= '3.9'",
     "pytest ==8.0.0",
     "sphinx ==7.2.6; python_version >= '3.9'",
+    "sphinx-autobuild ==2024.2.4 ; python_version >= '3.9'",
     "sphinx-copybutton ==0.5.2",
     "sphinxcontrib-spelling ==8.0.0",
     "sphinx-autodoc-typehints ==1.25.3",

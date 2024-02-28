@@ -48,6 +48,7 @@ if TYPE_CHECKING:
     from qbittorrentapi.rss import RSS
     from qbittorrentapi.search import Search
     from qbittorrentapi.sync import Sync
+    from qbittorrentapi.torrentcreator import TorrentCreator
     from qbittorrentapi.torrents import TorrentCategories, Torrents, TorrentTags
     from qbittorrentapi.transfer import Transfer
 
@@ -280,6 +281,7 @@ class Request:
         self._torrents: Torrents | None = None
         self._torrent_categories: TorrentCategories | None = None
         self._torrent_tags: TorrentTags | None = None
+        self._torrentcreator: TorrentCreator | None = None
         self._transfer: Transfer | None = None
 
         # turn off console-printed warnings about SSL certificate issues.
@@ -313,6 +315,7 @@ class Request:
         self._torrents = None
         self._torrent_categories = None
         self._torrent_tags = None
+        self._torrentcreator = None
         self._log = None
         self._sync = None
         self._rss = None
