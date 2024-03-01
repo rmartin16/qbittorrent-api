@@ -27,6 +27,7 @@ longer be imported from collections but should use collections.abc instead.
 Since AttrDict is abandoned, I've consolidated the code here for future use.
 AttrMap and AttrDefault were removed altogether.
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
