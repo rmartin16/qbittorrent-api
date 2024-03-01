@@ -29,13 +29,13 @@ jobs:
           python-version: "3.x"
 
       - name: Get packages
-        uses: actions/download-artifact@v4.1.1
+        uses: actions/download-artifact@v4.1.3
         with:
           name: "package"
           path: dist
 
       - name: Create release
-        uses: ncipollo/release-action@v1.13.0
+        uses: ncipollo/release-action@v1.14.0
         with:
           name: release-${{ steps.build-vars.outputs.version }}
           draft: true
