@@ -264,6 +264,15 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         download_path: str | None = None,
         use_download_path: bool | None = None,
         stop_condition: Literal["MetadataReceived", "FilesChecked"] | None = None,
+        add_to_top_of_queue: bool | None = None,
+        inactive_seeding_time_limit: str | int | None = None,
+        share_limit_action: Literal[
+            "Stop", "Remove", "RemoveWithContent", "EnableSuperSeeding"
+        ]
+        | None = None,
+        ssl_certificate: str | None = None,
+        ssl_private_key: str | None = None,
+        ssl_dh_params: str | None = None,
         **kwargs: APIKwargsT,
     ) -> str:
         """
@@ -289,7 +298,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             name is not provided, then the name of the file will be used. And in the case of
             bytes (or if filename cannot be determined), the value 'torrent__n' will be used.
         :param save_path: location to save the torrent data
-        :param cookie: cookie to retrieve torrents by URL
+        :param cookie: cookie(s) to retrieve torrents by URL
         :param category: category to assign to torrent(s)
         :param is_skip_checking: ``True`` to skip hash checking
         :param is_paused: ``True`` to add the torrent(s) without starting their downloading
@@ -307,6 +316,12 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :param download_path: location to download torrent content before moving to ``save_path`` (added in Web API 2.8.4)
         :param use_download_path: ``True`` or ``False`` whether ``download_path`` should be used...defaults to ``True`` if ``download_path`` is specified (added in Web API 2.8.4)
         :param stop_condition: ``MetadataReceived`` or ``FilesChecked`` to stop the torrent when started automatically (added in Web API 2.8.15)
+        :param add_to_top_of_queue: puts torrent at top to the queue (added in Web API 2.8.19)
+        :param inactive_seeding_time_limit: limit for seeding while inactive (added in Web API 2.9.2)
+        :param share_limit_action: override default action when share limit is reached (added in Web API 2.10.4)
+        :param ssl_certificate: peer certificate (in PEM format) (added in Web API 2.10.4)
+        :param ssl_private_key: peer private key (added in Web API 2.10.4)
+        :param ssl_dh_params: Diffie-Hellman parameters (added in Web API 2.10.4)
         """  # noqa: E501
 
         # convert pre-v2.7 params to post-v2.7 params...or post-v2.7 to pre-v2.7
@@ -332,25 +347,31 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
         data = {
             "urls": (None, self._list2string(urls, "\n")),
-            "savepath": (None, save_path),
             "cookie": (None, cookie),
+            "rename": (None, rename),
             "category": (None, category),
             "tags": (None, self._list2string(tags, ",")),
-            "skip_checking": (None, is_skip_checking),
-            "paused": (None, is_paused),
-            "root_folder": (None, is_root_folder),
-            "contentLayout": (None, content_layout),
-            "rename": (None, rename),
-            "upLimit": (None, upload_limit),
-            "dlLimit": (None, download_limit),
-            "ratioLimit": (None, ratio_limit),
-            "seedingTimeLimit": (None, seeding_time_limit),
-            "autoTMM": (None, use_auto_torrent_management),
+            "savepath": (None, save_path),
+            "useDownloadPath": (None, use_download_path),
+            "downloadPath": (None, download_path),
             "sequentialDownload": (None, is_sequential_download),
             "firstLastPiecePrio": (None, is_first_last_piece_priority),
-            "downloadPath": (None, download_path),
-            "useDownloadPath": (None, use_download_path),
+            "addToTopOfQueue": (None, add_to_top_of_queue),
+            "paused": (None, is_paused),
             "stopCondition": (None, stop_condition),
+            "skip_checking": (None, is_skip_checking),
+            "root_folder": (None, is_root_folder),
+            "contentLayout": (None, content_layout),
+            "autoTMM": (None, use_auto_torrent_management),
+            "upLimit": (None, upload_limit),
+            "dlLimit": (None, download_limit),
+            "seedingTimeLimit": (None, seeding_time_limit),
+            "inactiveSeedingTimeLimit": (None, inactive_seeding_time_limit),
+            "ratioLimit": (None, ratio_limit),
+            "shareLimitAction": (None, share_limit_action),
+            "ssl_certificate": (None, ssl_certificate),
+            "ssl_private_key": (None, ssl_private_key),
+            "ssl_dh_params": (None, ssl_dh_params),
         }
 
         return self._post_cast(
