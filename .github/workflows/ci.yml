@@ -100,6 +100,7 @@ jobs:
     strategy:
       matrix:
         QBT_VER:
+          - v5.0.0beta1
           - v4.4.4
           - v4.3.9
           - v4.3.5
