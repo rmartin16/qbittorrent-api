@@ -105,3 +105,23 @@ def test_network_interface_address_list_not_implemented(client):
         client.app_network_interface_address_list()
     with pytest.raises(NotImplementedError):
         client.app.network_interface_address_list()
+
+
+@pytest.mark.skipif_before_api_version("2.10.4")
+@pytest.mark.parametrize(
+    "send_test_email_func",
+    [
+        "app_send_test_email",
+        "app.send_test_email",
+        "app_sendTestEmail",
+        "app.sendTestEmail",
+    ],
+)
+def test_send_test_email(client_mock, send_test_email_func):
+    client_mock.func(send_test_email_func)()
+
+    client_mock._post.assert_called_with(
+        _name=APINames.Application,
+        _method="sendTestEmail",
+        version_introduced="2.10.4",
+    )

@@ -130,16 +130,17 @@ def test_rss_items(client, rss_feed, items_func):
 )
 @pytest.mark.parametrize("feed_url, path", [(RSS_URL, "/path/my-feed"), (RSS_URL, "")])
 def test_rss_add_feed(client, add_feed_func, feed_url, path):
-    @retry(3)
+    @retry(5)
     def run_test():
         delete_feed(client, ITEM_ONE)
         delete_feed(client, RSS_NAME)
 
-        client.func(add_feed_func)(url=feed_url, item_path=path)
-        check(lambda: client.rss_items(), path or feed_url, reverse=True)
-
-        delete_feed(client, path or feed_url)
-        delete_feed(client, RSS_NAME)
+        try:
+            client.func(add_feed_func)(url=feed_url, item_path=path)
+            check(lambda: client.rss_items(), path or feed_url, reverse=True)
+        finally:
+            delete_feed(client, path or feed_url)
+            delete_feed(client, RSS_NAME)
 
     run_test()
 

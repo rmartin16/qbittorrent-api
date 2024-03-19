@@ -199,6 +199,16 @@ class AppAPIMixIn(AuthAPIMixIn):
 
     app_networkInterfaceAddressList = app_network_interface_address_list
 
+    def app_send_test_email(self) -> None:
+        """Sends a test email using the configured email address."""
+        self._post(
+            _name=APINames.Application,
+            _method="sendTestEmail",
+            version_introduced="2.10.4",
+        )
+
+    app_sendTestEmail = app_send_test_email
+
 
 class Application(ClientCache[AppAPIMixIn]):
     """
@@ -292,3 +302,9 @@ class Application(ClientCache[AppAPIMixIn]):
         )
 
     networkInterfaceAddressList = network_interface_address_list
+
+    @wraps(AppAPIMixIn.app_send_test_email)
+    def send_test_email(self) -> None:
+        self._client.app_send_test_email()
+
+    sendTestEmail = send_test_email
