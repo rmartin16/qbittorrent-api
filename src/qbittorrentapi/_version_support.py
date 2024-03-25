@@ -55,11 +55,12 @@ APP_VERSION_2_API_VERSION_MAP: dict[str, str] = {
     "v4.6.0": "2.9.2",
     "v4.6.1": "2.9.3",
     "v4.6.2": "2.9.3",
-    "v5.0.0beta1": "2.10.4",
     "v4.6.3": "2.9.3",
+    "v5.0.0beta1": "2.10.4",
+    "v4.6.4": "2.9.3",
 }
 
-MOST_RECENT_SUPPORTED_APP_VERSION: Final[Literal["v4.6.3"]] = "v4.6.3"
+MOST_RECENT_SUPPORTED_APP_VERSION: Final[Literal["v4.6.4"]] = "v4.6.4"
 MOST_RECENT_SUPPORTED_API_VERSION: Final[Literal["2.9.3"]] = "2.9.3"
 
 
