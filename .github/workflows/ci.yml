@@ -4,19 +4,20 @@ on:
   schedule:
     - cron: 16 6 * * *
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
   workflow_dispatch:
   workflow_call:
 
 # cancels running CI if new commit is pushed to branch
 concurrency:
-  group: ${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
   LATEST_PYTHON_VER: 3.12
-  LATEST_QBT_VER: v4.6.3
+  LATEST_QBT_VER: v4.6.4
   QBITTORRENTAPI_HOST: localhost:8080
   QBITTORRENTAPI_USERNAME: admin
   QBITTORRENTAPI_PASSWORD: adminadmin
@@ -37,11 +38,11 @@ jobs:
       - name: Declare Outputs
         id: set-outputs
         run: |
-          echo "python-latest-version=${{ env.LATEST_PYTHON_VER }}" >> ${GITHUB_OUTPUT}
-          echo "qbittorrent-latest-version=${{ env.LATEST_QBT_VER }}" >> ${GITHUB_OUTPUT}
-          echo "qbittorrent-host=${{ env.QBITTORRENTAPI_HOST }}" >> ${GITHUB_OUTPUT}
-          echo "qbittorrent-username=${{ env.QBITTORRENTAPI_USERNAME }}" >> ${GITHUB_OUTPUT}
-          echo "qbittorrent-password=${{ env.QBITTORRENTAPI_PASSWORD }}" >> ${GITHUB_OUTPUT}
+          echo "python-latest-version=${{ env.LATEST_PYTHON_VER }}" | tee -a ${GITHUB_OUTPUT}
+          echo "qbittorrent-latest-version=${{ env.LATEST_QBT_VER }}" | tee -a ${GITHUB_OUTPUT}
+          echo "qbittorrent-host=${{ env.QBITTORRENTAPI_HOST }}" | tee -a ${GITHUB_OUTPUT}
+          echo "qbittorrent-username=${{ env.QBITTORRENTAPI_USERNAME }}" | tee -a ${GITHUB_OUTPUT}
+          echo "qbittorrent-password=${{ env.QBITTORRENTAPI_PASSWORD }}" | tee -a ${GITHUB_OUTPUT}
 
       - name: Checkout Repo
         uses: actions/checkout@v4.1.1
