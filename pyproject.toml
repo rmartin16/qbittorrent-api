@@ -30,9 +30,9 @@ classifiers = [
 ]
 dynamic = ["readme", "version"]
 dependencies = [
+    "packaging",
     "requests >=2.16.0",
     "urllib3 >=1.24.2",
-    "packaging",
 ]
 
 [project.optional-dependencies]

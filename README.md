@@ -67,6 +67,6 @@ for k, v in qbt_client.app.build_info.items():
 for torrent in qbt_client.torrents_info():
     print(f"{torrent.hash[-6:]}: {torrent.name} ({torrent.state})")
 
-# pause all torrents
-qbt_client.torrents.pause.all()
+# stop all torrents
+qbt_client.torrents.stop.all()
 ```

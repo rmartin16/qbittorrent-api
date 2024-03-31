@@ -178,7 +178,7 @@ class RSSAPIMixIn(AppAPIMixIn):
         """
         Trigger a refresh for an RSS item.
 
-        Note: qBittorrent v4.1.5 through v4.1.8 all use Web API 2.2 but this endpoint
+        Note: qBittorrent v4.1.5 through v4.1.8 all use Web API v2.2 but this endpoint
         was introduced with v4.1.8; so, behavior may be undefined for these versions.
 
         :param item_path: path to item to be refreshed

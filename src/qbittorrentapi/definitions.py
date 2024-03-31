@@ -68,9 +68,13 @@ class TorrentState(str, Enum):
     """
     Torrent States as defined by qBittorrent.
 
+    Note: In qBittorrent v5.0.0:
+     - ``PAUSED_UPLOAD`` was renamed to ``STOPPED_UPLOAD``
+     - ``PAUSED_DOWNLOAD`` was renamed to ``STOPPED_DOWNLOAD``
+
     Definitions:
         - wiki: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-list>`_
-        - code: `<https://github.com/qbittorrent/qBittorrent/blob/5dcc14153f046209f1067299494a82e5294d883a/src/base/bittorrent/torrent.h#L73>`_
+        - code: `<https://github.com/qbittorrent/qBittorrent/blob/8e6515be2c8cc2b335002ab8913e9dcdd7873204/src/base/bittorrent/torrent.h#L79>`_
 
     :Usage:
         >>> from qbittorrentapi import Client, TorrentState
@@ -88,7 +92,9 @@ class TorrentState(str, Enum):
     ERROR = "error"
     MISSING_FILES = "missingFiles"
     UPLOADING = "uploading"
+    #: ``pausedUP`` was renamed to ``stoppedUP`` in Web API v2.11.0
     PAUSED_UPLOAD = "pausedUP"
+    STOPPED_UPLOAD = "stoppedUP"
     QUEUED_UPLOAD = "queuedUP"
     STALLED_UPLOAD = "stalledUP"
     CHECKING_UPLOAD = "checkingUP"
@@ -97,7 +103,9 @@ class TorrentState(str, Enum):
     DOWNLOADING = "downloading"
     METADATA_DOWNLOAD = "metaDL"
     FORCED_METADATA_DOWNLOAD = "forcedMetaDL"
+    #: ``pausedDL`` was renamed to ``stoppedDL`` in Web API v2.11.0
     PAUSED_DOWNLOAD = "pausedDL"
+    STOPPED_DOWNLOAD = "stoppedDL"
     QUEUED_DOWNLOAD = "queuedDL"
     FORCED_DOWNLOAD = "forcedDL"
     STALLED_DOWNLOAD = "stalledDL"
@@ -116,6 +124,7 @@ class TorrentState(str, Enum):
             TorrentState.STALLED_DOWNLOAD,
             TorrentState.CHECKING_DOWNLOAD,
             TorrentState.PAUSED_DOWNLOAD,
+            TorrentState.STOPPED_DOWNLOAD,
             TorrentState.QUEUED_DOWNLOAD,
             TorrentState.FORCED_DOWNLOAD,
         }
@@ -139,6 +148,7 @@ class TorrentState(str, Enum):
             TorrentState.STALLED_UPLOAD,
             TorrentState.CHECKING_UPLOAD,
             TorrentState.PAUSED_UPLOAD,
+            TorrentState.STOPPED_UPLOAD,
             TorrentState.QUEUED_UPLOAD,
             TorrentState.FORCED_UPLOAD,
         }
@@ -158,9 +168,17 @@ class TorrentState(str, Enum):
         return self in {TorrentState.MISSING_FILES, TorrentState.ERROR}
 
     @property
-    def is_paused(self) -> bool:
-        """Returns ``True`` if the State is categorized as Paused."""
-        return self in {TorrentState.PAUSED_UPLOAD, TorrentState.PAUSED_DOWNLOAD}
+    def is_stopped(self) -> bool:
+        """Returns ``True`` if the State is categorized as Stopped."""
+        return self in {
+            TorrentState.PAUSED_UPLOAD,
+            TorrentState.STOPPED_UPLOAD,
+            TorrentState.PAUSED_DOWNLOAD,
+            TorrentState.STOPPED_DOWNLOAD,
+        }
+
+    #: Alias of :any:`TorrentState.is_stopped`
+    is_paused = is_stopped
 
 
 TorrentStates = TorrentState

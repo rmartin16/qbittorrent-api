@@ -85,6 +85,26 @@ def test_pause_resume(client, new_torrent):
     )
 
 
+# test fails on 4.1.0 release
+@pytest.mark.skipif_before_api_version("2.0.1")
+def test_stop_start(client, new_torrent):
+    new_torrent.stop()
+    check(
+        lambda: client.torrents_info(torrent_hashes=new_torrent.hash)[
+            0
+        ].state_enum.is_paused,
+        True,
+    )
+
+    new_torrent.resume()
+    check(
+        lambda: client.torrents_info(torrent_hashes=new_torrent.hash)[
+            0
+        ].state_enum.is_paused,
+        False,
+    )
+
+
 @pytest.mark.parametrize("delete", [True, False, None, 0, 1])
 def test_delete(client_mock, new_torrent, delete):
     new_torrent.delete(delete_files=delete)

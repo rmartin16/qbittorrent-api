@@ -15,6 +15,7 @@ torrent_all_states = [
     "missingFiles",
     "uploading",
     "pausedUP",
+    "stoppedUP",
     "queuedUP",
     "stalledUP",
     "checkingUP",
@@ -24,6 +25,7 @@ torrent_all_states = [
     "metaDL",
     "forcedMetaDL",
     "pausedDL",
+    "stoppedDL",
     "queuedDL",
     "forcedDL",
     "stalledDL",
@@ -40,6 +42,7 @@ torrent_downloading_states = [
     "stalledDL",
     "checkingDL",
     "pausedDL",
+    "stoppedDL",
     "queuedDL",
     "forcedDL",
 ]
@@ -57,6 +60,7 @@ torrent_complete_states = [
     "stalledUP",
     "checkingUP",
     "pausedUP",
+    "stoppedUP",
     "queuedUP",
     "forcedUP",
 ]
@@ -65,7 +69,7 @@ torrent_checking_states = ["checkingUP", "checkingDL", "checkingResumeData"]
 
 torrent_errored_states = ["missingFiles", "error"]
 
-torrent_paused_states = ["pausedUP", "pausedDL"]
+torrent_paused_states = ["stoppedUP", "pausedUP", "stoppedDL", "pausedDL"]
 
 
 def test_torrent_states_exists():

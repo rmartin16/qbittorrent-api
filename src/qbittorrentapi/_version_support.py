@@ -5,6 +5,7 @@ from typing import Final, Literal
 
 import packaging.version
 
+#: Mapping from qBittorrent version to Web API version
 APP_VERSION_2_API_VERSION_MAP: dict[str, str] = {
     "v4.1.0": "2.0",
     "v4.1.1": "2.0.1",
