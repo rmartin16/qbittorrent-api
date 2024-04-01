@@ -44,16 +44,16 @@ jobs:
 
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4.1.2
 
       - name: Get packages
-        uses: actions/download-artifact@v4.1.3
+        uses: actions/download-artifact@v4.1.4
         with:
           name: package
           path: ./dist
 
       - name: Set up Python ${{ inputs.python-version }}
-        uses: actions/setup-python@v5.0.0
+        uses: actions/setup-python@v5.1.0
         with:
           python-version: ${{ inputs.python-version }}
           cache: pip
@@ -88,7 +88,7 @@ jobs:
 
       - name: Send mail
         if: failure() && github.event_name != 'pull_request'
-        uses: dawidd6/action-send-mail@v3.11.0
+        uses: dawidd6/action-send-mail@v3.12.0
         with:
           server_address: smtp.gmail.com
           server_port: 587
