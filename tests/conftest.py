@@ -55,7 +55,7 @@ TORRENT1_FILE_HANDLE = open(path.join(RESOURCES_PATH, TORRENT1_FILENAME), mode="
 TORRENT1_FILE = TORRENT1_FILE_HANDLE.read()
 
 TORRENT2_FILENAME = "xubuntu-22.04.4-desktop-amd64.iso.torrent"
-TORRENT2_URL = f"https://github.com/rmartin16/qbittorrent-api/raw/main/tests/_resources//{TORRENT2_FILENAME}"
+TORRENT2_URL = f"https://github.com/rmartin16/qbittorrent-api/raw/main/tests/_resources/{TORRENT2_FILENAME}"
 TORRENT2_HASH = "c7d77fc3ecb68344b59ada11a0508dd6d08f2dfd"
 
 ROOT_FOLDER_TORRENT_FILENAME = "root_folder.torrent"

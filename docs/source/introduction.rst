@@ -92,8 +92,8 @@ Getting Started
     for torrent in qbt_client.torrents_info():
         print(f"{torrent.hash[-6:]}: {torrent.name} ({torrent.state})")
 
-    # pause all torrents
-    qbt_client.torrents.pause.all()
+    # stop all torrents
+    qbt_client.torrents.stop.all()
 
 Usage
 -----
@@ -132,7 +132,7 @@ However, a more robust interface to the endpoints is available via each namespac
     is_dht_enabled = qbt_client.app.preferences.dht
     qbt_client.app.preferences = dict(dht=not is_dht_enabled)
     # stopping all torrents
-    qbt_client.torrents.pause.all()
+    qbt_client.torrents.stop.all()
     # retrieve different views of the log
     qbt_client.log.main.warning()
     qbt_client.log.main.normal()

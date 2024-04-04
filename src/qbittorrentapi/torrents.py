@@ -45,9 +45,11 @@ TorrentStatusesT = Literal[
     "seeding",
     "completed",
     "paused",
+    "stopped",  # replaced paused in v5.0.0
     "active",
     "inactive",
     "resumed",
+    "running",  # replaced resumed in v5.0.0
     "stalled",
     "stalled_uploading",
     "stalled_downloading",
@@ -273,6 +275,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         ssl_certificate: str | None = None,
         ssl_private_key: str | None = None,
         ssl_dh_params: str | None = None,
+        is_stopped: bool | None = None,
         **kwargs: APIKwargsT,
     ) -> str:
         """
@@ -301,7 +304,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :param cookie: cookie(s) to retrieve torrents by URL
         :param category: category to assign to torrent(s)
         :param is_skip_checking: ``True`` to skip hash checking
-        :param is_paused: ``True`` to add the torrent(s) without starting their downloading
+        :param is_paused: Adds torrent in stopped state; alias for ``is_stopped``
         :param is_root_folder: ``True`` or ``False`` to create root folder (superseded by content_layout with v4.3.2)
         :param rename: new name for torrent(s)
         :param upload_limit: upload limit in bytes/second
@@ -309,34 +312,35 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :param use_auto_torrent_management: ``True`` or ``False`` to use automatic torrent management
         :param is_sequential_download: ``True`` or ``False`` for sequential download
         :param is_first_last_piece_priority: ``True`` or ``False`` for first and last piece download priority
-        :param tags: tag(s) to assign to torrent(s) (added in Web API 2.6.2)
-        :param content_layout: ``Original``, ``Subfolder``, or ``NoSubfolder`` to control filesystem structure for content (added in Web API 2.7)
-        :param ratio_limit: share limit as ratio of upload amt over download amt; e.g. 0.5 or 2.0 (added in Web API 2.8.1)
-        :param seeding_time_limit: number of minutes to seed torrent (added in Web API 2.8.1)
-        :param download_path: location to download torrent content before moving to ``save_path`` (added in Web API 2.8.4)
-        :param use_download_path: ``True`` or ``False`` whether ``download_path`` should be used...defaults to ``True`` if ``download_path`` is specified (added in Web API 2.8.4)
-        :param stop_condition: ``MetadataReceived`` or ``FilesChecked`` to stop the torrent when started automatically (added in Web API 2.8.15)
-        :param add_to_top_of_queue: puts torrent at top to the queue (added in Web API 2.8.19)
-        :param inactive_seeding_time_limit: limit for seeding while inactive (added in Web API 2.9.2)
-        :param share_limit_action: override default action when share limit is reached (added in Web API 2.10.4)
-        :param ssl_certificate: peer certificate (in PEM format) (added in Web API 2.10.4)
-        :param ssl_private_key: peer private key (added in Web API 2.10.4)
-        :param ssl_dh_params: Diffie-Hellman parameters (added in Web API 2.10.4)
+        :param tags: tag(s) to assign to torrent(s) (added in Web API v2.6.2)
+        :param content_layout: ``Original``, ``Subfolder``, or ``NoSubfolder`` to control filesystem structure for content (added in Web API v2.7)
+        :param ratio_limit: share limit as ratio of upload amt over download amt; e.g. 0.5 or 2.0 (added in Web API v2.8.1)
+        :param seeding_time_limit: number of minutes to seed torrent (added in Web API v2.8.1)
+        :param download_path: location to download torrent content before moving to ``save_path`` (added in Web API v2.8.4)
+        :param use_download_path: ``True`` or ``False`` whether ``download_path`` should be used...defaults to ``True`` if ``download_path`` is specified (added in Web API v2.8.4)
+        :param stop_condition: ``MetadataReceived`` or ``FilesChecked`` to stop the torrent when started automatically (added in Web API v2.8.15)
+        :param add_to_top_of_queue: puts torrent at top to the queue (added in Web API v2.8.19)
+        :param inactive_seeding_time_limit: limit for seeding while inactive (added in Web API v2.9.2)
+        :param share_limit_action: override default action when share limit is reached (added in Web API v2.10.4)
+        :param ssl_certificate: peer certificate (in PEM format) (added in Web API v2.10.4)
+        :param ssl_private_key: peer private key (added in Web API v2.10.4)
+        :param ssl_dh_params: Diffie-Hellman parameters (added in Web API v2.10.4)
+        :param is_stopped: Adds torrent in stopped state; alias for ``is_paused`` (added in Web API v2.11.0)
         """  # noqa: E501
 
         # convert pre-v2.7 params to post-v2.7 params...or post-v2.7 to pre-v2.7
-        api_version = self.app_web_api_version()
+        api_version = v(self.app_web_api_version())
         if (
             content_layout is None
             and is_root_folder is not None
-            and v(api_version) >= v("2.7")
+            and api_version >= v("2.7")
         ):
             content_layout = "Original" if is_root_folder else "NoSubfolder"  # type: ignore[assignment]
             is_root_folder = None
         elif (
             content_layout is not None
             and is_root_folder is None
-            and v(api_version) < v("2.7")
+            and api_version < v("2.7")
         ):
             is_root_folder = content_layout in {"Subfolder", "Original"}
             content_layout = None
@@ -344,6 +348,10 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         # default to actually using the specified download path
         if use_download_path is None and download_path is not None:
             use_download_path = True
+
+        is_stopped = (
+            is_paused or is_stopped if (is_paused, is_stopped) != (None, None) else None
+        )
 
         data = {
             "urls": (None, self._list2string(urls, "\n")),
@@ -357,7 +365,9 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             "sequentialDownload": (None, is_sequential_download),
             "firstLastPiecePrio": (None, is_first_last_piece_priority),
             "addToTopOfQueue": (None, add_to_top_of_queue),
-            "paused": (None, is_paused),
+            # paused renamed to stopped in v5.0.0
+            "paused": (None, is_stopped),
+            "stopped": (None, is_stopped),
             "stopCondition": (None, stop_condition),
             "skip_checking": (None, is_skip_checking),
             "root_folder": (None, is_root_folder),
@@ -739,13 +749,13 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :raises NotFound404Error:
         :raises Conflict409Error:
         :param torrent_hash: hash for torrent
-        :param file_id: id for file (removed in Web API 2.7)
-        :param new_file_name: new name for file (removed in Web API 2.7)
-        :param old_path: path of file to rename (added in Web API 2.7)
-        :param new_path: new path of file to rename (added in Web API 2.7)
+        :param file_id: id for file (removed in Web API v2.7)
+        :param new_file_name: new name for file (removed in Web API v2.7)
+        :param old_path: path of file to rename (added in Web API v2.7)
+        :param new_path: new path of file to rename (added in Web API v2.7)
         """
         # convert pre-v2.7 params to post-v2.7...or post-v2.7 to pre-v2.7
-        # HACK: v4.3.2 and v4.3.3 both use Web API 2.7 but old/new_path
+        # HACK: v4.3.2 and v4.3.3 both use Web API v2.7 but old/new_path
         #       were introduced in v4.3.3
         if (
             old_path is None
@@ -815,10 +825,10 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :raises NotFound404Error:
         :raises Conflict409Error:
         :param torrent_hash: hash for torrent
-        :param old_path: path of file to rename (added in Web API 2.7)
-        :param new_path: new path of file to rename (added in Web API 2.7)
+        :param old_path: path of file to rename (added in Web API v2.7)
+        :param new_path: new path of file to rename (added in Web API v2.7)
         """
-        # HACK: v4.3.2 and v4.3.3 both use Web API 2.7 but rename_folder
+        # HACK: v4.3.2 and v4.3.3 both use Web API v2.7 but rename_folder
         #       was introduced in v4.3.3
         if v(self.app_version()) >= v("v4.3.3"):
             data = {
@@ -839,7 +849,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
                 raise NotImplementedError(
                     "ERROR: Endpoint 'torrents/renameFolder' is Not Implemented in "
                     "this version of qBittorrent. "
-                    "This endpoint is available starting in Web API 2.7."
+                    "This endpoint is available starting in Web API v2.7."
                 )
 
     torrents_renameFolder = torrents_rename_folder
@@ -886,23 +896,31 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         """
         Retrieves list of info for torrents.
 
-        :param status_filter: Filter list by torrent status.
-            ``all``, ``downloading``, ``seeding``, ``completed``, ``paused``
-            ``active``, ``inactive``, ``resumed``, ``errored``
-            Added in Web API 2.4.1:
-            ``stalled``, ``stalled_uploading``, and ``stalled_downloading``
-            Added in Web API 2.8.4:
-            ``checking``
-            Added in Web API 2.8.18:
-            ``moving``
+        :param status_filter: Filter list by torrent status:
+
+            * Original options: ``all``, ``downloading``, ``seeding``, ``completed``, ``paused``, ``active``, ``inactive``, ``resumed``, ``errored``
+            * Added in Web API v2.4.1: ``stalled``, ``stalled_uploading``, and ``stalled_downloading``
+            * Added in Web API v2.8.4: ``checking``
+            * Added in Web API v2.8.18: ``moving``
+            * Added in Web API v2.11.0: ``stopped`` (replaced ``paused``), ``running`` (replaced ``resumed``)
         :param category: Filter list by category
         :param sort: Sort list by any property returned
         :param reverse: Reverse sorting
         :param limit: Limit length of list
         :param offset: Start of list (if < 0, offset from end of list)
-        :param torrent_hashes: Filter list by hash (separate multiple hashes with a '|') (added in Web API 2.0.1)
-        :param tag: Filter list by tag (empty string means "untagged"; no "tag" parameter means "any tag"; added in Web API 2.8.3)
+        :param torrent_hashes: Filter list by hash (separate multiple hashes with a '|') (added in Web API v2.0.1)
+        :param tag: Filter list by tag (empty string means "untagged"; no "tag" parameter means "any tag"; added in Web API v2.8.3)
         """  # noqa: E501
+        # convert filter for pre- and post-v2.11.0
+        if status_filter in {"stopped", "paused", "running", "resumed"}:
+            is_post_2_11 = v(self.app_web_api_version()) >= v("2.11.0")
+            status_filter = {
+                ("stopped", False): "paused",
+                ("paused", True): "stopped",
+                ("running", False): "resumed",
+                ("resumed", True): "running",
+            }.get((status_filter, is_post_2_11), status_filter)  # type:ignore[assignment]
+
         data = {
             "filter": status_filter,
             "category": category,
@@ -921,33 +939,41 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             **kwargs,
         )
 
-    def torrents_resume(
+    def torrents_start(
         self,
         torrent_hashes: Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
-        Resume one or more torrents in qBittorrent.
+        Start one or more torrents in qBittorrent.
 
         :param torrent_hashes: single torrent hash or list of torrent hashes.
             Or ``all`` for all torrents.
         """
+        # resume renamed to start in v5.0.0
+        method = "start" if v(self.app_web_api_version()) >= v("2.11.0") else "resume"
         data = {"hashes": self._list2string(torrent_hashes, "|")}
-        self._post(_name=APINames.Torrents, _method="resume", data=data, **kwargs)
+        self._post(_name=APINames.Torrents, _method=method, data=data, **kwargs)
 
-    def torrents_pause(
+    torrents_resume = torrents_start
+
+    def torrents_stop(
         self,
         torrent_hashes: Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
-        Pause one or more torrents in qBittorrent.
+        Stop one or more torrents in qBittorrent.
 
         :param torrent_hashes: single torrent hash or list of torrent hashes.
             Or ``all`` for all torrents.
         """
+        # pause renamed to stop in v5.0.0
+        method = "stop" if v(self.app_web_api_version()) >= v("2.11.0") else "pause"
         data = {"hashes": self._list2string(torrent_hashes, "|")}
-        self._post(_name=APINames.Torrents, _method="pause", data=data, **kwargs)
+        self._post(_name=APINames.Torrents, _method=method, data=data, **kwargs)
+
+    torrents_pause = torrents_stop
 
     def torrents_delete(
         self,
@@ -1730,8 +1756,8 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
         >>> torrent.edit_tracker(original_url="...", new_url="...")
         >>> torrent.remove_trackers(urls="http://127.0.0.2/")
         >>> torrent.rename(new_torrent_name="...")
-        >>> torrent.resume()
-        >>> torrent.pause()
+        >>> torrent.start()
+        >>> torrent.stop()
         >>> torrent.recheck()
         >>> torrent.torrents_top_priority()
         >>> torrent.setLocation(location="/home/user/torrents/")
@@ -1777,13 +1803,17 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
         return TorrentDictionary(data={}, client=self._client)
 
-    @wraps(TorrentsAPIMixIn.torrents_resume)
-    def resume(self, **kwargs: APIKwargsT) -> None:
-        self._client.torrents_resume(torrent_hashes=self._torrent_hash, **kwargs)
+    @wraps(TorrentsAPIMixIn.torrents_start)
+    def start(self, **kwargs: APIKwargsT) -> None:
+        self._client.torrents_start(torrent_hashes=self._torrent_hash, **kwargs)
 
-    @wraps(TorrentsAPIMixIn.torrents_pause)
-    def pause(self, **kwargs: APIKwargsT) -> None:
-        self._client.torrents_pause(torrent_hashes=self._torrent_hash, **kwargs)
+    resume = start
+
+    @wraps(TorrentsAPIMixIn.torrents_stop)
+    def stop(self, **kwargs: APIKwargsT) -> None:
+        self._client.torrents_stop(torrent_hashes=self._torrent_hash, **kwargs)
+
+    pause = stop
 
     @wraps(TorrentsAPIMixIn.torrents_delete)
     def delete(
@@ -2252,8 +2282,8 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
         >>> # torrent looping
         >>> for torrent in client.torrents.info.completed()
         >>> # all torrents endpoints with a 'hashes' parameters support all method to apply action to all torrents
-        >>> client.torrents.pause.all()
-        >>> client.torrents.resume.all()
+        >>> client.torrents.stop.all()
+        >>> client.torrents.start.all()
         >>> # or specify the individual hashes
         >>> client.torrents.downloadLimit(torrent_hashes=["...", "..."])
     """  # noqa: E501
@@ -2261,12 +2291,12 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
     def __init__(self, client: TorrentsAPIMixIn) -> None:
         super().__init__(client=client)
         self.info = self._Info(client=client)
-        self.resume = self._ActionForAllTorrents(
-            client=client, func=client.torrents_resume
+        self.start = self._ActionForAllTorrents(
+            client=client, func=client.torrents_start
         )
-        self.pause = self._ActionForAllTorrents(
-            client=client, func=client.torrents_pause
-        )
+        self.resume = self.start
+        self.stop = self._ActionForAllTorrents(client=client, func=client.torrents_stop)
+        self.pause = self.stop
         self.delete = self._ActionForAllTorrents(
             client=client, func=client.torrents_delete
         )
@@ -2489,7 +2519,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 **kwargs,
             )
 
-        def paused(
+        def stopped(
             self,
             category: str | None = None,
             sort: str | None = None,
@@ -2501,7 +2531,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             **kwargs: APIKwargsT,
         ) -> TorrentInfoList:
             return self._client.torrents_info(
-                status_filter="paused",
+                status_filter="stopped",
                 category=category,
                 sort=sort,
                 reverse=reverse,
@@ -2511,6 +2541,8 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 tag=tag,
                 **kwargs,
             )
+
+        paused = stopped
 
         def active(
             self,
@@ -2737,12 +2769,22 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
         is_sequential_download: bool | None = None,
         is_first_last_piece_priority: bool | None = None,
         tags: Iterable[str] | None = None,
-        content_layout: None | (Literal["Original", "Subfolder", "NoSubFolder"]) = None,
+        content_layout: Literal["Original", "Subfolder", "NoSubFolder"] | None = None,
         ratio_limit: str | float | None = None,
         seeding_time_limit: str | int | None = None,
         download_path: str | None = None,
         use_download_path: bool | None = None,
         stop_condition: Literal["MetadataReceived", "FilesChecked"] | None = None,
+        add_to_top_of_queue: bool | None = None,
+        inactive_seeding_time_limit: str | int | None = None,
+        share_limit_action: Literal[
+            "Stop", "Remove", "RemoveWithContent", "EnableSuperSeeding"
+        ]
+        | None = None,
+        ssl_certificate: str | None = None,
+        ssl_private_key: str | None = None,
+        ssl_dh_params: str | None = None,
+        is_stopped: bool | None = None,
         **kwargs: APIKwargsT,
     ) -> str:
         return self._client.torrents_add(
@@ -2767,6 +2809,13 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             download_path=download_path,
             use_download_path=use_download_path,
             stop_condition=stop_condition,
+            add_to_top_of_queue=add_to_top_of_queue,
+            inactive_seeding_time_limit=inactive_seeding_time_limit,
+            share_limit_action=share_limit_action,
+            ssl_certificate=ssl_certificate,
+            ssl_private_key=ssl_private_key,
+            ssl_dh_params=ssl_dh_params,
+            is_stopped=is_stopped,
             **kwargs,
         )
 

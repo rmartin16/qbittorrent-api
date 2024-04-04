@@ -15,7 +15,7 @@ Torrents
 .. autoclass:: qbittorrentapi.torrents.TorrentDictionary
     :members:
     :undoc-members:
-    :exclude-members: pieceStates, pieceHashes, addTrackers, editTracker, removeTrackers, filePrio, renameFile, renameFolder, increasePrio, decreasePrio, topPrio, bottomPrio, downloadLimit, setDownloadLimit, setShareLimits, uploadLimit, setUploadLimit, setLocation, setCategory, setAutoManagement, toggleSequentialDownload, toggleFirstLastPiecePrio, setForceStart, setSuperSeeding, addPeers, createCategory, editCategory, removeCategories, addTags, removeTags, createTags, deleteTags, filePriority
+    :exclude-members: pieceStates, pieceHashes, addTrackers, editTracker, removeTrackers, filePrio, renameFile, renameFolder, increasePrio, decreasePrio, topPrio, bottomPrio, downloadLimit, setDownloadLimit, setShareLimits, uploadLimit, setUploadLimit, setLocation, setCategory, setAutoManagement, toggleSequentialDownload, toggleFirstLastPiecePrio, setForceStart, setSuperSeeding, addPeers, createCategory, editCategory, removeCategories, addTags, removeTags, createTags, deleteTags, filePriority, setDownloadPath, setSavePath
     :show-inheritance:
 
 .. autoclass:: qbittorrentapi.torrents.TorrentCategories

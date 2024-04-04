@@ -725,11 +725,16 @@ def test_torrents_info_tag(client, new_torrent, info_func):
 # test fails on 4.1.0 release
 @pytest.mark.skipif_before_api_version("2.0.1")
 @pytest.mark.parametrize(
-    "pause_func, resume_func",
-    [("torrents_pause", "torrents_resume"), ("torrents.pause", "torrents.resume")],
+    "stop_func, start_func",
+    [
+        ("torrents_stop", "torrents_start"),
+        ("torrents_pause", "torrents_resume"),
+        ("torrents.stop", "torrents.start"),
+        ("torrents.pause", "torrents.resume"),
+    ],
 )
-def test_pause_resume(client, new_torrent, pause_func, resume_func):
-    client.func(pause_func)(torrent_hashes=new_torrent.hash)
+def test_stop_start(client, new_torrent, stop_func, start_func):
+    client.func(stop_func)(torrent_hashes=new_torrent.hash)
     check(
         lambda: client.torrents_info(torrent_hashes=new_torrent.hash)[
             0
@@ -737,7 +742,7 @@ def test_pause_resume(client, new_torrent, pause_func, resume_func):
         True,
     )
 
-    client.func(resume_func)(torrent_hashes=new_torrent.hash)
+    client.func(start_func)(torrent_hashes=new_torrent.hash)
     check(
         lambda: client.torrents_info(torrent_hashes=new_torrent.hash)[
             0
@@ -751,14 +756,14 @@ def test_action_for_all_torrents(client):
     for torrent in client.torrents.info():
         check(
             lambda: client.torrents_info(torrent_hashes=torrent.hash)[0].state,
-            {"pausedDL"},
+            {"pausedDL", "stoppedDL"},
             negate=True,
         )
     client.torrents.pause.all()
     for torrent in client.torrents.info():
         check(
             lambda: client.torrents_info(torrent_hashes=torrent.hash)[0].state,
-            {"stalledDL", "pausedDL"},
+            {"stalledDL", "pausedDL", "stoppedDL"},
             any=True,
         )
 
