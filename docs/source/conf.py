@@ -13,13 +13,7 @@
 import os
 import sys
 from datetime import datetime
-from importlib import import_module
 from importlib.metadata import version as metadata_version
-from pprint import pformat
-
-from docutils import nodes
-from docutils.parsers.rst import Directive
-from sphinx import addnodes
 
 base_path = os.path.abspath("../..")
 sys.path.insert(0, os.path.join(base_path, "src"))
@@ -130,37 +124,3 @@ spelling_lang = "en_US"
 spelling_word_list_filename = "spelling_wordlist"
 
 spelling_ignore_pypi_package_names = False
-
-
-class PrettyPrintIterable(Directive):
-    """
-    Definition of a custom directive to pretty-print an iterable object.
-
-    This is used in place of the automatic API documentation only for module variables
-    which would just print a long signature.
-    """
-
-    required_arguments = 1
-
-    def run(self):  # noqa D102
-        module_path, member_name = self.arguments[0].rsplit(".", 1)
-        module = import_module(module_path)
-        member = getattr(module, member_name)
-
-        code = pformat(
-            member,
-            indent=2,
-            width=80,
-            depth=3,
-            compact=False,
-            sort_dicts=False,
-        )
-
-        literal = nodes.literal_block(code, code)
-        literal["language"] = "python"
-
-        return [addnodes.desc_content("", literal)]
-
-
-def setup(app):
-    app.add_directive("pprint", PrettyPrintIterable)
