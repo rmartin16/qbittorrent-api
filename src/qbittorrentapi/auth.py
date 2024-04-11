@@ -126,7 +126,7 @@ class AuthAPIMixIn(Request):
         :param cookie_name: Name of the authorization cookie; configurable after v4.5.0.
         """
         if self._http_session:
-            return self._http_session.cookies.get(cookie_name, None)  # type: ignore
+            return self._http_session.cookies.get(cookie_name, None)
         return None
 
     def auth_log_out(self, **kwargs: APIKwargsT) -> None:
