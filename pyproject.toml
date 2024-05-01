@@ -37,23 +37,23 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "black ==24.3.0",
+    "black ==24.4.2",
     "build ==1.2.1",
-    "coverage[toml] ==7.4.4",
-    "furo ==2024.1.29",
-    "mypy ==1.9.0; platform_python_implementation != 'PyPy'",
+    "coverage[toml] ==7.5.0",
+    "furo ==2024.4.27",
+    "mypy ==1.10.0; platform_python_implementation != 'PyPy'",
     "pre-commit <3.6.0 ; python_version < '3.9'",
     "pre-commit ==3.7.0 ; python_version >= '3.9'",
-    "pytest ==8.1.1",
-    "sphinx ==7.2.6; python_version >= '3.9'",
-    "sphinx-autobuild ==2024.2.4 ; python_version >= '3.9'",
+    "pytest ==8.2.0",
+    "sphinx ==7.3.7; python_version >= '3.9'",
+    "sphinx-autobuild ==2024.4.16 ; python_version >= '3.9'",
     "sphinx-copybutton ==0.5.2",
     "sphinxcontrib-spelling ==8.0.0",
-    "sphinx-autodoc-typehints ==2.0.0",
-    "tox ==4.14.2",
+    "sphinx-autodoc-typehints ==2.1.0",
+    "tox ==4.15.0",
     "twine ==5.0.0",
-    "types-requests ==2.31.0.20240311",
-    "types-six ==1.16.21.20240311",
+    "types-requests ==2.31.0.20240406",
+    "types-six ==1.16.21.20240425",
 ]
 
 [project.urls]
