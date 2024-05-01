@@ -45,7 +45,7 @@ jobs:
           echo "qbittorrent-password=${{ env.QBITTORRENTAPI_PASSWORD }}" | tee -a ${GITHUB_OUTPUT}
 
       - name: Checkout Repo
-        uses: actions/checkout@v4.1.2
+        uses: actions/checkout@v4.1.4
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
         uses: actions/setup-python@v5.1.0
@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4.1.2
+        uses: actions/checkout@v4.1.4
         with:
           fetch-depth: 0  # Fetch all refs so setuptools_scm can generate the correct version number
 
@@ -89,7 +89,7 @@ jobs:
         run: tox -e package
 
       - name: Upload Package
-        uses: actions/upload-artifact@v4.3.1
+        uses: actions/upload-artifact@v4.3.3
         with:
           name: package
           path: ./dist
@@ -152,7 +152,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ Tests-qBittorrent, Tests-Python ]
     steps:
-      - uses: actions/checkout@v4.1.2
+      - uses: actions/checkout@v4.1.4
         with:
           fetch-depth: 0
 
@@ -167,7 +167,7 @@ jobs:
           python -m pip install -e .[dev]
 
       - name: Retrieve coverage data
-        uses: actions/download-artifact@v4.1.4
+        uses: actions/download-artifact@v4.1.7
         with:
           pattern: coverage-data-*
           merge-multiple: true
@@ -183,14 +183,14 @@ jobs:
 
       - name: Upload HTML coverage report
         if: always() && steps.coverage.outcome == 'failure'
-        uses: actions/upload-artifact@v4.3.1
+        uses: actions/upload-artifact@v4.3.3
         with:
           name: html-coverage-report
           path: ./htmlcov
 
       - name: Upload Coverage to Codecov
         if: contains(fromJson('["push", "pull_request"]'), github.event_name)
-        uses: codecov/codecov-action@v4.1.1
+        uses: codecov/codecov-action@v4.3.1
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -207,7 +207,7 @@ jobs:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4.1.2
+        uses: actions/checkout@v4.1.4
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
         uses: actions/setup-python@v5.1.0
