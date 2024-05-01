@@ -988,7 +988,7 @@ class Request:
                 hash_source = data or params or {}
                 error_hash = hash_source.get("hashes", hash_source.get("hash", ""))
                 if error_hash:
-                    error_message = "Torrent hash(es): %s" % error_hash
+                    error_message = f"Torrent hash(es): {error_hash}"
             raise NotFound404Error(error_message, request=request, response=response)
 
         if response.status_code == 405:
