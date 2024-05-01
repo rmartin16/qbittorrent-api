@@ -75,7 +75,7 @@ def get_torrent(client, torrent_hash) -> TorrentDictionary:
         # not all versions of torrents_info() support passing a hash
         return [t for t in client.torrents_info() if t.hash == torrent_hash][0]
     except Exception:
-        pytest.exit("Failed to find torrent for %s" % torrent_hash)
+        pytest.exit(f"Failed to find torrent for {torrent_hash}")
 
 
 @retry(200)

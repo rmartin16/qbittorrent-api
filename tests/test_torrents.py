@@ -86,7 +86,7 @@ def test_add_delete(client, add_func, delete_func, tmp_path):
                 pass  # throw away errors until we hit the retry limit
             else:
                 return
-        raise Exception("Download failed: %s" % url)
+        raise Exception(f"Download failed: {url}")
 
     def delete():
         client.func(delete_func)(delete_files=True, torrent_hashes=TORRENT1_HASH)

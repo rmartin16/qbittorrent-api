@@ -51,7 +51,7 @@ def rss_feed(client, api_version):
                 if done:
                     break
             else:
-                raise Exception("RSS Feed '%s' did not refresh..." % ITEM_ONE)
+                raise Exception(f"RSS Feed '{ITEM_ONE}' did not refresh...")
         finally:
             delete_feed(client, ITEM_ONE)
             delete_feed(client, RSS_NAME)
@@ -80,7 +80,7 @@ def test_rss_refresh_item(client, rss_feed, refresh_item_func):
 
     check(
         lambda: [e.message for e in client.log.main(last_known_id=last_log_id)],
-        "RSS feed at '%s' updated. Added 0 new articles." % RSS_URL,
+        f"RSS feed at '{RSS_URL}' updated. Added 0 new articles.",
         reverse=True,
     )
 
