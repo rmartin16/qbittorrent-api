@@ -4,6 +4,7 @@ import pytest
 from qbittorrentapi import APINames
 from qbittorrentapi._attrdict import AttrDict
 from qbittorrentapi.app import (
+    DirectoryContentList,
     NetworkInterface,
     NetworkInterfaceAddressList,
     NetworkInterfaceList,
@@ -125,3 +126,34 @@ def test_send_test_email(client_mock, send_test_email_func):
         _method="sendTestEmail",
         version_introduced="2.10.4",
     )
+
+
+@pytest.mark.skipif_before_api_version("2.11")
+@pytest.mark.parametrize(
+    "get_directory_content_func",
+    [
+        "app_get_directory_content",
+        "app.get_directory_content",
+        "app_getDirectoryContent",
+        "app.getDirectoryContent",
+    ],
+)
+def test_get_directory_content(client, get_directory_content_func):
+    dir_contents = client.func(get_directory_content_func)("/")
+    assert isinstance(dir_contents, DirectoryContentList)
+    assert all(isinstance(f, str) for f in dir_contents)
+
+
+@pytest.mark.skipif_after_api_version("2.11")
+@pytest.mark.parametrize(
+    "get_directory_content_func",
+    [
+        "app_get_directory_content",
+        "app.get_directory_content",
+        "app_getDirectoryContent",
+        "app.getDirectoryContent",
+    ],
+)
+def test_get_directory_content_not_implemented(client, get_directory_content_func):
+    with pytest.raises(NotImplementedError):
+        client.func(get_directory_content_func)("/")

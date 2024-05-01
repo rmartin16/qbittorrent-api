@@ -4,13 +4,13 @@ Application
 .. autoclass:: qbittorrentapi.app.AppAPIMixIn
     :members:
     :undoc-members:
-    :exclude-members: app, application, app_webapiVersion, app_buildInfo, app_setPreferences, app_defaultSavePath, app_networkInterfaceAddressList, app_networkInterfaceList, app_sendTestEmail
+    :exclude-members: app, application, app_webapiVersion, app_buildInfo, app_setPreferences, app_defaultSavePath, app_networkInterfaceAddressList, app_networkInterfaceList, app_sendTestEmail, app_getDirectoryContent
     :show-inheritance:
 
 .. autoclass:: qbittorrentapi.app.Application
     :members:
     :undoc-members:
-    :exclude-members: app, application, webapiVersion, buildInfo, setPreferences, defaultSavePath, networkInterfaceAddressList, networkInterfaceList, sendTestEmail
+    :exclude-members: app, application, webapiVersion, buildInfo, setPreferences, defaultSavePath, networkInterfaceAddressList, networkInterfaceList, sendTestEmail, getDirectoryContent
 
 .. autoclass:: qbittorrentapi.app.ApplicationPreferencesDictionary
     :members:
@@ -18,6 +18,11 @@ Application
     :show-inheritance:
 
 .. autoclass:: qbittorrentapi.app.BuildInfoDictionary
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: qbittorrentapi.app.DirectoryContentList
     :members:
     :undoc-members:
     :show-inheritance:
