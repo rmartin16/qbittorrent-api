@@ -207,12 +207,9 @@ def app_version(client):
 @pytest.fixture
 def api_version(client):
     """qBittorrent Web API Version being used for testing."""
-    try:
-        return api_version_map[QBT_VERSION]
-    except KeyError as exp:
-        if IS_QBT_DEV:
-            return client.app.web_api_version
-        raise exp
+    if IS_QBT_DEV:
+        return client.app.web_api_version
+    return api_version_map[QBT_VERSION]
 
 
 def pytest_sessionfinish(session, exitstatus):

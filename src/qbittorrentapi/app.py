@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import os
 from functools import wraps
 from json import dumps
 from logging import Logger, getLogger
-from typing import Any, Iterable, Mapping, Union
+from typing import Any, AnyStr, Iterable, Mapping, Union
 
 from qbittorrentapi.auth import AuthAPIMixIn
 from qbittorrentapi.definitions import (
@@ -50,6 +51,13 @@ class NetworkInterfaceList(List[NetworkInterface]):
 # only API response that's a list of strings...so just ignore the typing for now
 class NetworkInterfaceAddressList(List[str]):  # type: ignore
     """Response for :meth:`~AppAPIMixIn.app_network_interface_address_list`"""
+
+    def __init__(self, list_entries: Iterable[str], client: AppAPIMixIn | None = None):
+        super().__init__(list_entries)  # type: ignore
+
+
+class DirectoryContentList(List[str]):  # type: ignore
+    """Response for :meth:`~AppAPIMixIn.app_get_directory_content`"""
 
     def __init__(self, list_entries: Iterable[str], client: AppAPIMixIn | None = None):
         super().__init__(list_entries)  # type: ignore
@@ -209,6 +217,31 @@ class AppAPIMixIn(AuthAPIMixIn):
 
     app_sendTestEmail = app_send_test_email
 
+    def app_get_directory_content(
+        self,
+        directory_path: str | os.PathLike[AnyStr] | None = None,
+    ) -> DirectoryContentList:
+        """
+        The contents of a directory file path.
+
+        :raises NotFound404Error: file path not found or not a directory
+        :param directory_path: file system path to directory
+        """
+        data = {
+            "dirPath": (
+                os.fsdecode(directory_path) if directory_path is not None else None
+            )
+        }
+        return self._post_cast(
+            _name=APINames.Application,
+            _method="getDirectoryContent",
+            data=data,
+            response_class=DirectoryContentList,
+            version_introduced="2.11",
+        )
+
+    app_getDirectoryContent = app_get_directory_content
+
 
 class Application(ClientCache[AppAPIMixIn]):
     """
@@ -308,3 +341,12 @@ class Application(ClientCache[AppAPIMixIn]):
         self._client.app_send_test_email()
 
     sendTestEmail = send_test_email
+
+    @wraps(AppAPIMixIn.app_get_directory_content)
+    def get_directory_content(
+        self,
+        directory_path: str | os.PathLike[AnyStr] | None = None,
+    ) -> DirectoryContentList:
+        return self._client.app_get_directory_content(directory_path=directory_path)
+
+    getDirectoryContent = get_directory_content
