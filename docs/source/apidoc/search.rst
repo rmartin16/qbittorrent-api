@@ -4,13 +4,13 @@ Search
 .. autoclass:: qbittorrentapi.search.SearchAPIMixIn
     :members:
     :undoc-members:
-    :exclude-members: search, search_installPlugin, search_uninstallPlugin, search_enablePlugin, search_updatePlugins
+    :exclude-members: search, search_installPlugin, search_uninstallPlugin, search_enablePlugin, search_updatePlugins, search_downloadTorrent
     :show-inheritance:
 
 .. autoclass:: qbittorrentapi.search.Search
     :members:
     :undoc-members:
-    :exclude-members: installPlugin, uninstallPlugin, enablePlugin, updatePlugins
+    :exclude-members: installPlugin, uninstallPlugin, enablePlugin, updatePlugins, downloadTorrent
 
 .. autoclass:: qbittorrentapi.search.SearchJobDictionary
     :members:

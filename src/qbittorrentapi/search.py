@@ -350,6 +350,34 @@ class SearchAPIMixIn(AppAPIMixIn):
 
     search_updatePlugins = search_update_plugins
 
+    def search_download_torrent(
+        self,
+        url: str | None = None,
+        plugin: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Download a .torrent file or magnet for a search plugin.
+
+        This method was introduced with qBittorrent v5.0.0 (Web API v2.11).
+
+        :param url: URL for .torrent file or magnet
+        :param plugin: Name of the plugin
+        """
+        data = {
+            "torrentUrl": url,
+            "pluginName": plugin,
+        }
+        self._post(
+            _name=APINames.Search,
+            _method="downloadTorrent",
+            data=data,
+            version_introduced="2.11",
+            **kwargs,
+        )
+
+    search_downloadTorrent = search_download_torrent
+
 
 class SearchJobDictionary(ClientCache[SearchAPIMixIn], Dictionary[JsonValueT]):
     """Response for :meth:`~SearchAPIMixIn.search_start`"""
@@ -513,3 +541,14 @@ class Search(ClientCache[SearchAPIMixIn]):
         return self._client.search_update_plugins(**kwargs)
 
     updatePlugins = update_plugins
+
+    @wraps(SearchAPIMixIn.search_download_torrent)
+    def download_torrent(
+        self,
+        url: str | None = None,
+        plugin: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        return self._client.search_download_torrent(url=url, plugin=plugin)
+
+    downloadTorrent = download_torrent
