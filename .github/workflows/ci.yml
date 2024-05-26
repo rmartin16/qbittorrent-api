@@ -9,6 +9,11 @@ on:
   pull_request:
   workflow_dispatch:
   workflow_call:
+    inputs:
+      attest:
+        description: "Attest the created package using GitHub attestations."
+        default: "false"
+        type: string
 
 # cancels running CI if new commit is pushed to branch
 concurrency:
@@ -67,6 +72,10 @@ jobs:
     #######
     name: Build & Verify Package
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4.1.4
@@ -75,6 +84,8 @@ jobs:
 
       - name: Build & Upload Package
         uses: hynek/build-and-inspect-python-package@v2.5.0
+        with:
+          attest-build-provenance-github: ${{ inputs.attest }}
 
   Tests-qBittorrent:
     name: Release Test ${{ needs.verify.outputs.python-latest-version }} - ${{ matrix.QBT_VER }}
