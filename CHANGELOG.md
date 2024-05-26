@@ -1,5 +1,15 @@
 Change Log
 ==========
+### v2024.5.61 (26 may 2024)
+- Advertise support for qBittorrent v4.6.5
+- Packages published to PyPI are now attested by GitHub (#453)
+- Included changes for upcoming qBittorrent v5.0.0 release:
+  -  Rename resume/pause actions for torrents to start/stop (#434)
+    - For instance, ``client.torrents_pause()`` is now ``client.torrents_stop()``
+    - All existing method and argument names are still supported and are aliased to the new names
+  - Add support for ``app/getDirectoryContent`` (#449)
+  - Add support for ``search/downloadTorrent`` (#451)
+
 ### v2024.3.60 (25 mar 2024)
 - Advertise support for qBittorrent v4.6.4
 
