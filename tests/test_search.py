@@ -10,6 +10,7 @@ from qbittorrentapi.search import (
     SearchStatusesList,
 )
 
+from tests.conftest import TORRENT2_HASH, TORRENT2_URL
 from tests.utils import check, retry
 
 PLUGIN_NAME = "one337x"
@@ -278,3 +279,44 @@ def test_delete(client):
 def test_delete_not_implemented(client):
     with pytest.raises(NotImplementedError):
         client.search_stop(search_id=100)
+
+
+@pytest.mark.skipif_before_api_version("2.11")
+@pytest.mark.parametrize(
+    "client_func",
+    [
+        "search_download_torrent",
+        "search_downloadTorrent",
+        "search.download_torrent",
+        "search.downloadTorrent",
+    ],
+)
+def test_download_torrent(client, client_func):
+    # run update to ensure plugins are loaded
+    client.search.update_plugins()
+    check(
+        lambda: [p.name for p in client.search.plugins],
+        "eztv",
+        reverse=True,
+    )
+    try:
+        client.func(client_func)(url=TORRENT2_URL, plugin="eztv")
+        check(
+            lambda: [t.hash for t in client.torrents_info()],
+            TORRENT2_HASH,
+            reverse=True,
+        )
+    finally:
+        client.torrents.delete(torrent_hashes=TORRENT2_HASH)
+        check(
+            lambda: [t.hash for t in client.torrents_info()],
+            TORRENT2_HASH,
+            reverse=True,
+            negate=True,
+        )
+
+
+@pytest.mark.skipif_after_api_version("2.11")
+def test_download_torrent_not_implemented(client):
+    with pytest.raises(NotImplementedError):
+        client.search_download_torrent(search_id=100)
