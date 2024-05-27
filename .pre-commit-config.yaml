@@ -36,7 +36,6 @@ repos:
         files: ^src/
         additional_dependencies:
           - types-requests
-          - types-six
           - packaging
         args:
           - --strict

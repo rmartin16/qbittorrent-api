@@ -54,7 +54,6 @@ dev = [
     "tox ==4.15.0",
     "twine ==5.0.0",
     "types-requests ==2.31.0.20240406",
-    "types-six ==1.16.21.20240425",
 ]
 
 [project.urls]
