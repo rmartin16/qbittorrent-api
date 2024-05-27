@@ -70,7 +70,8 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip setuptools
-          python -m pip install $(ls dist/qbittorrent_api-*.whl)[dev]
+          # force installing py03 packages not explicitly compatible with the version of python
+          PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1 python -m pip install $(ls dist/qbittorrent_api-*.whl)[dev]
 
       - name: Test
         run: tox -e py-ci --installpkg dist/qbittorrent_api-*.whl
