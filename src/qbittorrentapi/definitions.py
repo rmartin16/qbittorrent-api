@@ -177,9 +177,9 @@ class TorrentState(str, Enum):
             TorrentState.STOPPED_DOWNLOAD,
         }
 
-    #: Alias of :any:`TorrentState.is_stopped`
     @property
-    def is_paused(self):
+    def is_paused(self) -> bool:
+        """Alias of :any:`TorrentState.is_stopped`"""
         return self.is_stopped
 
 
