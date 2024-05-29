@@ -1,5 +1,8 @@
 Change Log
 ==========
+### v2024.5.62 (29 may 2024)
+- Minor typing fixes (#456, #457)
+
 ### v2024.5.61 (26 may 2024)
 - Advertise support for qBittorrent v4.6.5
 - Packages published to PyPI are now attested by GitHub (#453)
