@@ -37,7 +37,9 @@ class AuthAPIMixIn(Request):
             self._authorization = Authorization(client=self)
         return self._authorization
 
-    authorization = auth
+    @property
+    def authorization(self) -> Authorization:
+        return self.auth
 
     @property
     def is_logged_in(self) -> bool:
