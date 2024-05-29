@@ -27,6 +27,18 @@ def test_is_logged_in():
     client.auth_log_out()
     assert client.is_logged_in is False
 
+    client.auth.log_in()
+    assert client.is_logged_in is True
+
+    client.auth.log_out()
+    assert client.is_logged_in is False
+
+    client.authorization.log_in()
+    assert client.is_logged_in is True
+
+    client.authorization.log_out()
+    assert client.is_logged_in is False
+
 
 def test_is_logged_in_bad_client():
     client = Client(
