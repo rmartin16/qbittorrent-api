@@ -85,7 +85,9 @@ class AppAPIMixIn(AuthAPIMixIn):
             self._application = Application(client=self)
         return self._application
 
-    application = app
+    @property
+    def application(self) -> Application:
+        return self.app
 
     def app_version(self, **kwargs: APIKwargsT) -> str:
         """qBittorrent application version."""
