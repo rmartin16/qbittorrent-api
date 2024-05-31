@@ -1,5 +1,8 @@
 Change Log
 ==========
+### v2024.5.63 (31 may 2024)
+- Added support to configure ``HTTPAdapter`` (#459)
+
 ### v2024.5.62 (29 may 2024)
 - Minor typing fixes (#456, #457)
 
