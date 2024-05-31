@@ -10,6 +10,7 @@ from qbittorrentapi.definitions import Dictionary, List
 from qbittorrentapi.request import Request
 from qbittorrentapi.torrents import TorrentDictionary, TorrentInfoList
 from requests import Response
+from requests.adapters import DEFAULT_POOLBLOCK, DEFAULT_POOLSIZE
 
 from tests.conftest import IS_QBT_DEV
 from tests.utils import mkpath
@@ -708,3 +709,33 @@ def test_not_implemented_error(monkeypatch, client):
     monkeypatch.setattr(client, "app_web_api_version", MagicMock(return_value="10.0.0"))
     with pytest.raises(NotImplementedError, match=r"This endpoint was removed"):
         client.search_categories()
+
+
+def test_http_adapter_defaults():
+    client = Client(
+        RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True,
+        VERIFY_WEBUI_CERTIFICATE=False,
+    )
+    assert client._session.adapters["http://"] is client._session.adapters["https://"]
+    assert client._session.adapters["http://"].max_retries.total == 1
+    assert client._session.adapters["http://"]._pool_connections == DEFAULT_POOLSIZE
+    assert client._session.adapters["http://"]._pool_maxsize == DEFAULT_POOLSIZE
+    assert client._session.adapters["http://"]._pool_block is DEFAULT_POOLBLOCK
+
+
+def test_http_adapter_overrides():
+    client = Client(
+        RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True,
+        VERIFY_WEBUI_CERTIFICATE=False,
+        HTTPADAPTER_ARGS=dict(
+            pool_connections=100,
+            pool_maxsize=50,
+            max_retries=10,
+            pool_block=True,
+        ),
+    )
+    assert client._session.adapters["http://"] is client._session.adapters["https://"]
+    assert client._session.adapters["http://"].max_retries.total == 10
+    assert client._session.adapters["http://"]._pool_connections == 100
+    assert client._session.adapters["http://"]._pool_maxsize == 50
+    assert client._session.adapters["http://"]._pool_block is True
