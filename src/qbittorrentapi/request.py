@@ -240,6 +240,7 @@ class Request:
         password: str | None = None,
         EXTRA_HEADERS: Mapping[str, str] | None = None,
         REQUESTS_ARGS: Mapping[str, Any] | None = None,
+        HTTPADAPTER_ARGS: Mapping[str, Any] | None = None,
         VERIFY_WEBUI_CERTIFICATE: bool = True,
         FORCE_SCHEME_FROM_HOST: bool = False,
         RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS: bool = False,
@@ -256,6 +257,7 @@ class Request:
         self._initialize_settings(
             EXTRA_HEADERS=EXTRA_HEADERS,
             REQUESTS_ARGS=REQUESTS_ARGS,
+            HTTPADAPTER_ARGS=HTTPADAPTER_ARGS,
             VERIFY_WEBUI_CERTIFICATE=VERIFY_WEBUI_CERTIFICATE,
             FORCE_SCHEME_FROM_HOST=FORCE_SCHEME_FROM_HOST,
             RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=(
@@ -325,6 +327,7 @@ class Request:
         self,
         EXTRA_HEADERS: Mapping[str, str] | None = None,
         REQUESTS_ARGS: Mapping[str, Any] | None = None,
+        HTTPADAPTER_ARGS: Mapping[str, Any] | None = None,
         VERIFY_WEBUI_CERTIFICATE: bool = True,
         FORCE_SCHEME_FROM_HOST: bool = False,
         RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS: bool = False,
@@ -338,6 +341,9 @@ class Request:
         # Configuration parameters
         self._EXTRA_HEADERS = dict(EXTRA_HEADERS) if EXTRA_HEADERS is not None else {}
         self._REQUESTS_ARGS = dict(REQUESTS_ARGS) if REQUESTS_ARGS is not None else {}
+        self._HTTPADAPTER_ARGS = (
+            dict(HTTPADAPTER_ARGS) if HTTPADAPTER_ARGS is not None else {}
+        )
         self._VERIFY_WEBUI_CERTIFICATE = bool(VERIFY_WEBUI_CERTIFICATE)
         self._VERBOSE_RESPONSE_LOGGING = bool(VERBOSE_RESPONSE_LOGGING)
         self._SIMPLE_RESPONSES = bool(SIMPLE_RESPONSES)
@@ -909,14 +915,20 @@ class Request:
         # at any rate, the retries count in request_manager should always be
         # at least 2 to accommodate significant settings changes in qBittorrent
         # such as enabling HTTPs in Web UI settings.
-        adapter = HTTPAdapter(
-            max_retries=Retry(
+        default_adapter_config = {
+            "max_retries": Retry(
                 total=1,
                 read=1,
                 connect=1,
                 status_forcelist={500, 502, 504},
                 raise_on_status=False,
             )
+        }
+        adapter = HTTPAdapter(
+            **{
+                **default_adapter_config,
+                **self._HTTPADAPTER_ARGS,
+            }
         )
         self._http_session.mount("http://", adapter)
         self._http_session.mount("https://", adapter)

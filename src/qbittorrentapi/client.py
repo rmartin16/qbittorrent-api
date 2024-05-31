@@ -66,7 +66,7 @@ class Client(
         >>> client = Client(host='localhost:8080', username='admin', password='adminadmin')
         >>> torrents = client.torrents_info()
 
-    :param host: hostname for qBittorrent Web API, ``[http[s]://]localhost[:8080][/path]``
+    :param host: hostname for qBittorrent Web API, ``[http[s]://]hostname[:port][/path]``
     :param port: port number for qBittorrent Web API (ignored if host contains a port)
     :param username: username for qBittorrent Web API
     :param password: password for qBittorrent Web API
@@ -79,27 +79,30 @@ class Client(
         back. Alternatively, set this to True only for an individual method call.
         For instance, when requesting the files for a torrent:
         ``client.torrents_files(torrent_hash='...', SIMPLE_RESPONSES=True)``
-    :param VERIFY_WEBUI_CERTIFICATE: Set to False to skip verify certificate for
+    :param VERIFY_WEBUI_CERTIFICATE: Set to ``False`` to skip verify certificate for
         HTTPS connections; for instance, if the connection is using a self-signed
-        certificate. Not setting this to False for self-signed certs will cause a
+        certificate. Not setting this to ``False`` for self-signed certs will cause a
         :class:`~qbittorrentapi.exceptions.APIConnectionError` exception to be raised.
     :param EXTRA_HEADERS: Dictionary of HTTP Headers to include in all requests
         made to qBittorrent.
-    :param REQUESTS_ARGS: Dictionary of configuration for Requests package:
-        `<https://requests.readthedocs.io/en/latest/api/#requests.request>`_
+    :param REQUESTS_ARGS: Dictionary of configuration for each HTTP request made by
+        :any:`requests.request`.
+    :param HTTPADAPTER_ARGS: Dictionary of configuration for
+        :class:`~requests.adapters.HTTPAdapter`.
     :param FORCE_SCHEME_FROM_HOST: If a scheme (i.e. ``http`` or ``https``) is
         specified in host, it will be used regardless of whether qBittorrent is
         configured for HTTP or HTTPS communication. Normally, this client will
         attempt to determine which scheme qBittorrent is actually listening on...
         but this can cause problems in rare cases. Defaults ``False``.
-    :param RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS: Some Endpoints
-        may not be implemented in older versions of qBittorrent. Setting this to True
-        will raise a :class:`NotImplementedError` instead of just returning``None``.
-    :param RAISE_ERROR_FOR_UNSUPPORTED_QBITTORRENT_VERSIONS: raise the
-        UnsupportedQbittorrentVersion exception if the connected version of
-        qBittorrent is not fully supported by this client. Defaults ``False``.
+    :param RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS: Some endpoints
+        may not be implemented in older versions of qBittorrent. Setting this to ``True``
+        will raise a :class:`NotImplementedError` instead of just returning ``None``.
+    :param RAISE_ERROR_FOR_UNSUPPORTED_QBITTORRENT_VERSIONS: Raise
+        :class:`~qbittorrentapi.exceptions.UnsupportedQbittorrentVersion` if the
+        connected version of qBittorrent is not fully supported by this client.
+        Defaults ``False``.
     :param DISABLE_LOGGING_DEBUG_OUTPUT: Turn off debug output from logging for
-        this package as well as Requests & urllib3.
+        this package as well as ``requests`` & ``urllib3``.
     """  # noqa: E501
 
     def __init__(
@@ -108,8 +111,10 @@ class Client(
         port: str | int | None = None,
         username: str | None = None,
         password: str | None = None,
+        *,
         EXTRA_HEADERS: Mapping[str, str] | None = None,
         REQUESTS_ARGS: Mapping[str, Any] | None = None,
+        HTTPADAPTER_ARGS: Mapping[str, Any] | None = None,
         VERIFY_WEBUI_CERTIFICATE: bool = True,
         FORCE_SCHEME_FROM_HOST: bool = False,
         RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS: bool = False,
@@ -125,6 +130,7 @@ class Client(
             password=password,
             EXTRA_HEADERS=EXTRA_HEADERS,
             REQUESTS_ARGS=REQUESTS_ARGS,
+            HTTPADAPTER_ARGS=HTTPADAPTER_ARGS,
             VERIFY_WEBUI_CERTIFICATE=VERIFY_WEBUI_CERTIFICATE,
             FORCE_SCHEME_FROM_HOST=FORCE_SCHEME_FROM_HOST,
             RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS,  # noqa: E501
