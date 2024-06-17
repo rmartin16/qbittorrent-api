@@ -1,5 +1,8 @@
 Change Log
 ==========
+### v2024.x.64 (dd mmm 2024)
+- Added support for ``private`` argument for ``torrents/info`` (#464)
+
 ### v2024.5.63 (31 may 2024)
 - Added support to configure ``HTTPAdapter`` (#459)
 

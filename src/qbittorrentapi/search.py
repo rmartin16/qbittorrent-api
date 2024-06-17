@@ -92,7 +92,7 @@ class SearchAPIMixIn(AppAPIMixIn):
     def search_start(
         self,
         pattern: str | None = None,
-        plugins: Iterable[str] | None = None,
+        plugins: str | Iterable[str] | None = None,
         category: str | None = None,
         **kwargs: APIKwargsT,
     ) -> SearchJobDictionary:
@@ -262,7 +262,7 @@ class SearchAPIMixIn(AppAPIMixIn):
 
     def search_install_plugin(
         self,
-        sources: Iterable[str] | None = None,
+        sources: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -285,7 +285,7 @@ class SearchAPIMixIn(AppAPIMixIn):
 
     def search_uninstall_plugin(
         self,
-        names: Iterable[str] | None = None,
+        names: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -308,7 +308,7 @@ class SearchAPIMixIn(AppAPIMixIn):
 
     def search_enable_plugin(
         self,
-        plugins: Iterable[str] | None = None,
+        plugins: str | Iterable[str] | None = None,
         enable: bool | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
@@ -438,7 +438,7 @@ class Search(ClientCache[SearchAPIMixIn]):
     def start(
         self,
         pattern: str | None = None,
-        plugins: Iterable[str] | None = None,
+        plugins: str | Iterable[str] | None = None,
         category: str | None = None,
         **kwargs: APIKwargsT,
     ) -> SearchJobDictionary:
@@ -504,7 +504,7 @@ class Search(ClientCache[SearchAPIMixIn]):
     @wraps(SearchAPIMixIn.search_install_plugin)
     def install_plugin(
         self,
-        sources: Iterable[str] | None = None,
+        sources: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         return self._client.search_install_plugin(sources=sources, **kwargs)
@@ -514,7 +514,7 @@ class Search(ClientCache[SearchAPIMixIn]):
     @wraps(SearchAPIMixIn.search_uninstall_plugin)
     def uninstall_plugin(
         self,
-        sources: Iterable[str] | None = None,
+        sources: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         return self._client.search_uninstall_plugin(sources=sources, **kwargs)
@@ -524,7 +524,7 @@ class Search(ClientCache[SearchAPIMixIn]):
     @wraps(SearchAPIMixIn.search_enable_plugin)
     def enable_plugin(
         self,
-        plugins: Iterable[str] | None = None,
+        plugins: str | Iterable[str] | None = None,
         enable: bool | None = None,
         **kwargs: APIKwargsT,
     ) -> None:

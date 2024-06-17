@@ -245,7 +245,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_add(
         self,
-        urls: Iterable[str] | None = None,
+        urls: str | Iterable[str] | None = None,
         torrent_files: TorrentFilesT | None = None,
         save_path: str | None = None,
         cookie: str | None = None,
@@ -259,7 +259,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         use_auto_torrent_management: bool | None = None,
         is_sequential_download: bool | None = None,
         is_first_last_piece_priority: bool | None = None,
-        tags: Iterable[str] | None = None,
+        tags: str | Iterable[str] | None = None,
         content_layout: Literal["Original", "Subfolder", "NoSubFolder"] | None = None,
         ratio_limit: str | float | None = None,
         seeding_time_limit: str | int | None = None,
@@ -287,14 +287,20 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :raises TorrentFileNotFoundError: if a torrent file doesn't exist
         :raises TorrentFilePermissionError: if read permission is denied to torrent file
 
-        :param urls: single instance or an iterable of URLs (``http://``, ``https://``, ``magnet:``, ``bc://bt/``)
-        :param torrent_files: several options are available to send torrent files to qBittorrent:
+        :param urls: single instance or an iterable of URLs (``http://``, ``https://``,
+            ``magnet:``, ``bc://bt/``)
+        :param torrent_files: several options are available to send torrent files to
+            qBittorrent:
 
-            * single instance of bytes: useful if torrent file already read from disk or downloaded from internet.
-            * single instance of file handle to torrent file: use ``open(<filepath>, 'rb')`` to open the torrent file.
-            * single instance of a filepath to torrent file: e.g. ``/home/user/torrent_filename.torrent``
+            * single instance of bytes: useful if torrent file already read from disk or
+              downloaded from internet.
+            * single instance of file handle to torrent file: use ``open(<filepath>, 'rb')``
+              to open the torrent file.
+            * single instance of a filepath to torrent file: e.g.
+              ``/home/user/torrent_filename.torrent``
             * an iterable of the single instances above to send more than one torrent file
-            * dictionary with key/value pairs of torrent name and single instance of above object
+            * dictionary with key/value pairs of torrent name and single instance of above
+              object
 
             Note: The torrent name in a dictionary is useful to identify which torrent file
             errored. qBittorrent provides back that name in the error text. If a torrent
@@ -305,27 +311,39 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :param category: category to assign to torrent(s)
         :param is_skip_checking: ``True`` to skip hash checking
         :param is_paused: Adds torrent in stopped state; alias for ``is_stopped``
-        :param is_root_folder: ``True`` or ``False`` to create root folder (superseded by content_layout with v4.3.2)
+        :param is_root_folder: ``True`` or ``False`` to create root folder (superseded by
+            content_layout with v4.3.2)
         :param rename: new name for torrent(s)
         :param upload_limit: upload limit in bytes/second
         :param download_limit: download limit in bytes/second
-        :param use_auto_torrent_management: ``True`` or ``False`` to use automatic torrent management
+        :param use_auto_torrent_management: ``True`` or ``False`` to use automatic torrent
+            management
         :param is_sequential_download: ``True`` or ``False`` for sequential download
-        :param is_first_last_piece_priority: ``True`` or ``False`` for first and last piece download priority
+        :param is_first_last_piece_priority: ``True`` or ``False`` for first and last piece
+            download priority
         :param tags: tag(s) to assign to torrent(s) (added in Web API v2.6.2)
-        :param content_layout: ``Original``, ``Subfolder``, or ``NoSubfolder`` to control filesystem structure for content (added in Web API v2.7)
-        :param ratio_limit: share limit as ratio of upload amt over download amt; e.g. 0.5 or 2.0 (added in Web API v2.8.1)
+        :param content_layout: ``Original``, ``Subfolder``, or ``NoSubfolder`` to control
+            filesystem structure for content (added in Web API v2.7)
+        :param ratio_limit: share limit as ratio of upload amt over download amt; e.g. 0.5
+            or 2.0 (added in Web API v2.8.1)
         :param seeding_time_limit: number of minutes to seed torrent (added in Web API v2.8.1)
-        :param download_path: location to download torrent content before moving to ``save_path`` (added in Web API v2.8.4)
-        :param use_download_path: ``True`` or ``False`` whether ``download_path`` should be used...defaults to ``True`` if ``download_path`` is specified (added in Web API v2.8.4)
-        :param stop_condition: ``MetadataReceived`` or ``FilesChecked`` to stop the torrent when started automatically (added in Web API v2.8.15)
-        :param add_to_top_of_queue: puts torrent at top to the queue (added in Web API v2.8.19)
-        :param inactive_seeding_time_limit: limit for seeding while inactive (added in Web API v2.9.2)
-        :param share_limit_action: override default action when share limit is reached (added in Web API v2.10.4)
+        :param download_path: location to download torrent content before moving to
+            ``save_path`` (added in Web API v2.8.4)
+        :param use_download_path: ``True`` or ``False`` whether ``download_path`` should
+            be used...defaults to ``True`` if ``download_path`` is specified (added in
+            Web API v2.8.4)
+        :param stop_condition: ``MetadataReceived`` or ``FilesChecked`` to stop the
+            torrent when started automatically (added in Web API v2.8.15)
+        :param add_to_top_of_queue: puts torrent at top to the queue(added in Web API v2.8.19)
+        :param inactive_seeding_time_limit: limit for seeding while inactive (added in
+            Web API v2.9.2)
+        :param share_limit_action: override default action when share limit is reached
+            (added in Web API v2.10.4)
         :param ssl_certificate: peer certificate (in PEM format) (added in Web API v2.10.4)
         :param ssl_private_key: peer private key (added in Web API v2.10.4)
         :param ssl_dh_params: Diffie-Hellman parameters (added in Web API v2.10.4)
-        :param is_stopped: Adds torrent in stopped state; alias for ``is_paused`` (added in Web API v2.11.0)
+        :param is_stopped: Adds torrent in stopped state; alias for ``is_paused`` (added
+            in Web API v2.11.0)
         """  # noqa: E501
 
         # convert pre-v2.7 params to post-v2.7 params...or post-v2.7 to pre-v2.7
@@ -607,7 +625,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     def torrents_add_trackers(
         self,
         torrent_hash: str | None = None,
-        urls: Iterable[str] | None = None,
+        urls: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -662,7 +680,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     def torrents_remove_trackers(
         self,
         torrent_hash: str | None = None,
-        urls: Iterable[str] | None = None,
+        urls: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -692,19 +710,22 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     def torrents_file_priority(
         self,
         torrent_hash: str | None = None,
-        file_ids: int | Iterable[str | int] | None = None,
+        file_ids: str | int | Iterable[str | int] | None = None,
         priority: str | int | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
         Set priority for one or more files.
 
-        :raises InvalidRequest400Error: if priority is invalid or at least one file ID is not an integer
+        :raises InvalidRequest400Error: if priority is invalid or at least one file ID is
+            not an integer
         :raises NotFound404Error:
-        :raises Conflict409Error: if torrent metadata has not finished downloading or at least one file was not found
+        :raises Conflict409Error: if torrent metadata has not finished downloading or at
+            least one file was not found
         :param torrent_hash: hash for torrent
         :param file_ids: single file ID or a list.
-        :param priority: priority for file(s) - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-set-file-priority>`_
+        :param priority: priority for file(s) -
+            `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-set-file-priority>`_
         """  # noqa: E501
         data = {
             "hash": torrent_hash,
@@ -889,8 +910,9 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         reverse: bool | None = None,
         limit: str | int | None = None,
         offset: str | int | None = None,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         tag: str | None = None,
+        private: bool | None = None,
         **kwargs: APIKwargsT,
     ) -> TorrentInfoList:
         """
@@ -898,18 +920,25 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
         :param status_filter: Filter list by torrent status:
 
-            * Original options: ``all``, ``downloading``, ``seeding``, ``completed``, ``paused``, ``active``, ``inactive``, ``resumed``, ``errored``
-            * Added in Web API v2.4.1: ``stalled``, ``stalled_uploading``, and ``stalled_downloading``
+            * Original options: ``all``, ``downloading``, ``seeding``, ``completed``,
+              ``paused``, ``active``, ``inactive``, ``resumed``, ``errored``
+            * Added in Web API v2.4.1: ``stalled``, ``stalled_uploading``, and
+              ``stalled_downloading``
             * Added in Web API v2.8.4: ``checking``
             * Added in Web API v2.8.18: ``moving``
-            * Added in Web API v2.11.0: ``stopped`` (replaced ``paused``), ``running`` (replaced ``resumed``)
+            * Added in Web API v2.11.0: ``stopped`` (replaced ``paused``), ``running``
+              (replaced ``resumed``)
         :param category: Filter list by category
         :param sort: Sort list by any property returned
         :param reverse: Reverse sorting
         :param limit: Limit length of list
         :param offset: Start of list (if < 0, offset from end of list)
-        :param torrent_hashes: Filter list by hash (separate multiple hashes with a '|') (added in Web API v2.0.1)
-        :param tag: Filter list by tag (empty string means "untagged"; no "tag" parameter means "any tag"; added in Web API v2.8.3)
+        :param torrent_hashes: Filter list by hash (separate multiple hashes with a '|')
+            (added in Web API v2.0.1)
+        :param tag: Filter list by tag (empty string means "untagged"; no "tag" parameter
+            means "any tag"; added in Web API v2.8.3)
+        :param private: Filter list by private flag - use None to ignore; (added in
+            Web API v2.11.1)
         """  # noqa: E501
         # convert filter for pre- and post-v2.11.0
         if status_filter in {"stopped", "paused", "running", "resumed"}:
@@ -925,11 +954,12 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             "filter": status_filter,
             "category": category,
             "sort": sort,
-            "reverse": reverse,
+            "reverse": None if reverse is None else bool(reverse),
             "limit": limit,
             "offset": offset,
             "hashes": self._list2string(torrent_hashes, "|"),
             "tag": tag,
+            "private": None if private is None else bool(private),
         }
         return self._post_cast(
             _name=APINames.Torrents,
@@ -941,7 +971,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_start(
         self,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -959,7 +989,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_stop(
         self,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -978,7 +1008,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     def torrents_delete(
         self,
         delete_files: bool | None = False,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -996,7 +1026,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_recheck(
         self,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1010,7 +1040,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_reannounce(
         self,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1032,7 +1062,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_increase_priority(
         self,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1050,7 +1080,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_decrease_priority(
         self,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1068,7 +1098,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_top_priority(
         self,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1086,7 +1116,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_bottom_priority(
         self,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1104,7 +1134,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_download_limit(
         self,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> TorrentLimitsDictionary:
         """Retrieve the download limit for one or more torrents."""
@@ -1122,7 +1152,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     def torrents_set_download_limit(
         self,
         limit: str | int | None = None,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1150,7 +1180,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         ratio_limit: str | int | None = None,
         seeding_time_limit: str | int | None = None,
         inactive_seeding_time_limit: str | int | None = None,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1186,7 +1216,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_upload_limit(
         self,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> TorrentLimitsDictionary:
         """
@@ -1209,7 +1239,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     def torrents_set_upload_limit(
         self,
         limit: str | int | None = None,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1235,7 +1265,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     def torrents_set_location(
         self,
         location: str | None = None,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1260,7 +1290,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     def torrents_set_save_path(
         self,
         save_path: str | None = None,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1292,7 +1322,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     def torrents_set_download_path(
         self,
         download_path: str | None = None,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1325,7 +1355,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     def torrents_set_category(
         self,
         category: str | None = None,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1348,7 +1378,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     def torrents_set_auto_management(
         self,
         enable: bool | None = None,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1374,7 +1404,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_toggle_sequential_download(
         self,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1395,7 +1425,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_toggle_first_last_piece_priority(
         self,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1417,7 +1447,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     def torrents_set_force_start(
         self,
         enable: bool | None = None,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1444,7 +1474,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     def torrents_set_super_seeding(
         self,
         enable: bool | None = None,
-        torrent_hashes: Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1469,8 +1499,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_add_peers(
         self,
-        peers: Iterable[str] | None = None,
-        torrent_hashes: Iterable[str] | None = None,
+        peers: str | Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> TorrentsAddPeersDictionary:
         """
@@ -1596,7 +1626,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_remove_categories(
         self,
-        categories: Iterable[str] | None = None,
+        categories: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1631,8 +1661,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_add_tags(
         self,
-        tags: Iterable[str] | None = None,
-        torrent_hashes: Iterable[str] | None = None,
+        tags: str | Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1662,8 +1692,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_remove_tags(
         self,
-        tags: Iterable[str] | None = None,
-        torrent_hashes: Iterable[str] | None = None,
+        tags: str | Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1691,7 +1721,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_create_tags(
         self,
-        tags: Iterable[str] | None = None,
+        tags: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1714,7 +1744,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_delete_tags(
         self,
-        tags: Iterable[str] | None = None,
+        tags: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -2168,7 +2198,7 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
     @wraps(TorrentsAPIMixIn.torrents_add_trackers)
     def add_trackers(
         self,
-        urls: Iterable[str] | None = None,
+        urls: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         self._client.torrents_add_trackers(
@@ -2198,7 +2228,7 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
     @wraps(TorrentsAPIMixIn.torrents_remove_trackers)
     def remove_trackers(
         self,
-        urls: Iterable[str] | None = None,
+        urls: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         self._client.torrents_remove_trackers(
@@ -2212,7 +2242,7 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
     @wraps(TorrentsAPIMixIn.torrents_file_priority)
     def file_priority(
         self,
-        file_ids: int | Iterable[str | int] | None = None,
+        file_ids: str | int | Iterable[str | int] | None = None,
         priority: str | int | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
@@ -2236,7 +2266,7 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
     @wraps(TorrentsAPIMixIn.torrents_add_tags)
     def add_tags(
         self,
-        tags: Iterable[str] | None = None,
+        tags: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         self._client.torrents_add_tags(
@@ -2250,7 +2280,7 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
     @wraps(TorrentsAPIMixIn.torrents_remove_tags)
     def remove_tags(
         self,
-        tags: Iterable[str] | None = None,
+        tags: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         self._client.torrents_remove_tags(
@@ -2394,7 +2424,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
 
         def __call__(
             self,
-            torrent_hashes: Iterable[str] | None = None,
+            torrent_hashes: str | Iterable[str] | None = None,
             **kwargs: APIKwargsT,
         ) -> Any | None:
             return self.func(torrent_hashes=torrent_hashes, **kwargs)
@@ -2411,8 +2441,9 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             reverse: bool | None = None,
             limit: str | int | None = None,
             offset: str | int | None = None,
-            torrent_hashes: Iterable[str] | None = None,
+            torrent_hashes: str | Iterable[str] | None = None,
             tag: str | None = None,
+            private: bool | None = None,
             **kwargs: APIKwargsT,
         ) -> TorrentInfoList:
             return self._client.torrents_info(
@@ -2424,6 +2455,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 offset=offset,
                 torrent_hashes=torrent_hashes,
                 tag=tag,
+                private=private,
                 **kwargs,
             )
 
@@ -2434,8 +2466,9 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             reverse: bool | None = None,
             limit: str | int | None = None,
             offset: str | int | None = None,
-            torrent_hashes: Iterable[str] | None = None,
+            torrent_hashes: str | Iterable[str] | None = None,
             tag: str | None = None,
+            private: bool | None = None,
             **kwargs: APIKwargsT,
         ) -> TorrentInfoList:
             return self._client.torrents_info(
@@ -2447,6 +2480,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 offset=offset,
                 torrent_hashes=torrent_hashes,
                 tag=tag,
+                private=private,
                 **kwargs,
             )
 
@@ -2457,8 +2491,9 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             reverse: bool | None = None,
             limit: str | int | None = None,
             offset: str | int | None = None,
-            torrent_hashes: Iterable[str] | None = None,
+            torrent_hashes: str | Iterable[str] | None = None,
             tag: str | None = None,
+            private: bool | None = None,
             **kwargs: APIKwargsT,
         ) -> TorrentInfoList:
             return self._client.torrents_info(
@@ -2470,6 +2505,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 offset=offset,
                 torrent_hashes=torrent_hashes,
                 tag=tag,
+                private=private,
                 **kwargs,
             )
 
@@ -2480,8 +2516,9 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             reverse: bool | None = None,
             limit: str | int | None = None,
             offset: str | int | None = None,
-            torrent_hashes: Iterable[str] | None = None,
+            torrent_hashes: str | Iterable[str] | None = None,
             tag: str | None = None,
+            private: bool | None = None,
             **kwargs: APIKwargsT,
         ) -> TorrentInfoList:
             return self._client.torrents_info(
@@ -2493,6 +2530,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 offset=offset,
                 torrent_hashes=torrent_hashes,
                 tag=tag,
+                private=private,
                 **kwargs,
             )
 
@@ -2503,8 +2541,9 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             reverse: bool | None = None,
             limit: str | int | None = None,
             offset: str | int | None = None,
-            torrent_hashes: Iterable[str] | None = None,
+            torrent_hashes: str | Iterable[str] | None = None,
             tag: str | None = None,
+            private: bool | None = None,
             **kwargs: APIKwargsT,
         ) -> TorrentInfoList:
             return self._client.torrents_info(
@@ -2516,6 +2555,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 offset=offset,
                 torrent_hashes=torrent_hashes,
                 tag=tag,
+                private=private,
                 **kwargs,
             )
 
@@ -2526,8 +2566,9 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             reverse: bool | None = None,
             limit: str | int | None = None,
             offset: str | int | None = None,
-            torrent_hashes: Iterable[str] | None = None,
+            torrent_hashes: str | Iterable[str] | None = None,
             tag: str | None = None,
+            private: bool | None = None,
             **kwargs: APIKwargsT,
         ) -> TorrentInfoList:
             return self._client.torrents_info(
@@ -2539,6 +2580,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 offset=offset,
                 torrent_hashes=torrent_hashes,
                 tag=tag,
+                private=private,
                 **kwargs,
             )
 
@@ -2551,8 +2593,9 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             reverse: bool | None = None,
             limit: str | int | None = None,
             offset: str | int | None = None,
-            torrent_hashes: Iterable[str] | None = None,
+            torrent_hashes: str | Iterable[str] | None = None,
             tag: str | None = None,
+            private: bool | None = None,
             **kwargs: APIKwargsT,
         ) -> TorrentInfoList:
             return self._client.torrents_info(
@@ -2564,6 +2607,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 offset=offset,
                 torrent_hashes=torrent_hashes,
                 tag=tag,
+                private=private,
                 **kwargs,
             )
 
@@ -2574,8 +2618,9 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             reverse: bool | None = None,
             limit: str | int | None = None,
             offset: str | int | None = None,
-            torrent_hashes: Iterable[str] | None = None,
+            torrent_hashes: str | Iterable[str] | None = None,
             tag: str | None = None,
+            private: bool | None = None,
             **kwargs: APIKwargsT,
         ) -> TorrentInfoList:
             return self._client.torrents_info(
@@ -2587,6 +2632,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 offset=offset,
                 torrent_hashes=torrent_hashes,
                 tag=tag,
+                private=private,
                 **kwargs,
             )
 
@@ -2597,8 +2643,9 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             reverse: bool | None = None,
             limit: str | int | None = None,
             offset: str | int | None = None,
-            torrent_hashes: Iterable[str] | None = None,
+            torrent_hashes: str | Iterable[str] | None = None,
             tag: str | None = None,
+            private: bool | None = None,
             **kwargs: APIKwargsT,
         ) -> TorrentInfoList:
             return self._client.torrents_info(
@@ -2610,6 +2657,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 offset=offset,
                 torrent_hashes=torrent_hashes,
                 tag=tag,
+                private=private,
                 **kwargs,
             )
 
@@ -2620,8 +2668,9 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             reverse: bool | None = None,
             limit: str | int | None = None,
             offset: str | int | None = None,
-            torrent_hashes: Iterable[str] | None = None,
+            torrent_hashes: str | Iterable[str] | None = None,
             tag: str | None = None,
+            private: bool | None = None,
             **kwargs: APIKwargsT,
         ) -> TorrentInfoList:
             return self._client.torrents_info(
@@ -2633,6 +2682,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 offset=offset,
                 torrent_hashes=torrent_hashes,
                 tag=tag,
+                private=private,
                 **kwargs,
             )
 
@@ -2643,8 +2693,9 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             reverse: bool | None = None,
             limit: str | int | None = None,
             offset: str | int | None = None,
-            torrent_hashes: Iterable[str] | None = None,
+            torrent_hashes: str | Iterable[str] | None = None,
             tag: str | None = None,
+            private: bool | None = None,
             **kwargs: APIKwargsT,
         ) -> TorrentInfoList:
             return self._client.torrents_info(
@@ -2656,6 +2707,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 offset=offset,
                 torrent_hashes=torrent_hashes,
                 tag=tag,
+                private=private,
                 **kwargs,
             )
 
@@ -2666,8 +2718,9 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             reverse: bool | None = None,
             limit: str | int | None = None,
             offset: str | int | None = None,
-            torrent_hashes: Iterable[str] | None = None,
+            torrent_hashes: str | Iterable[str] | None = None,
             tag: str | None = None,
+            private: bool | None = None,
             **kwargs: APIKwargsT,
         ) -> TorrentInfoList:
             return self._client.torrents_info(
@@ -2679,6 +2732,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 offset=offset,
                 torrent_hashes=torrent_hashes,
                 tag=tag,
+                private=private,
                 **kwargs,
             )
 
@@ -2689,8 +2743,9 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             reverse: bool | None = None,
             limit: str | int | None = None,
             offset: str | int | None = None,
-            torrent_hashes: Iterable[str] | None = None,
+            torrent_hashes: str | Iterable[str] | None = None,
             tag: str | None = None,
+            private: bool | None = None,
             **kwargs: APIKwargsT,
         ) -> TorrentInfoList:
             return self._client.torrents_info(
@@ -2702,6 +2757,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 offset=offset,
                 torrent_hashes=torrent_hashes,
                 tag=tag,
+                private=private,
                 **kwargs,
             )
 
@@ -2712,8 +2768,9 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             reverse: bool | None = None,
             limit: str | int | None = None,
             offset: str | int | None = None,
-            torrent_hashes: Iterable[str] | None = None,
+            torrent_hashes: str | Iterable[str] | None = None,
             tag: str | None = None,
+            private: bool | None = None,
             **kwargs: APIKwargsT,
         ) -> TorrentInfoList:
             return self._client.torrents_info(
@@ -2725,6 +2782,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 offset=offset,
                 torrent_hashes=torrent_hashes,
                 tag=tag,
+                private=private,
                 **kwargs,
             )
 
@@ -2735,8 +2793,9 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             reverse: bool | None = None,
             limit: str | int | None = None,
             offset: str | int | None = None,
-            torrent_hashes: Iterable[str] | None = None,
+            torrent_hashes: str | Iterable[str] | None = None,
             tag: str | None = None,
+            private: bool | None = None,
             **kwargs: APIKwargsT,
         ) -> TorrentInfoList:
             return self._client.torrents_info(
@@ -2748,13 +2807,14 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 offset=offset,
                 torrent_hashes=torrent_hashes,
                 tag=tag,
+                private=private,
                 **kwargs,
             )
 
     @wraps(TorrentsAPIMixIn.torrents_add)
     def add(
         self,
-        urls: Iterable[str] | None = None,
+        urls: str | Iterable[str] | None = None,
         torrent_files: TorrentFilesT | None = None,
         save_path: str | None = None,
         cookie: str | None = None,
@@ -2768,7 +2828,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
         use_auto_torrent_management: bool | None = None,
         is_sequential_download: bool | None = None,
         is_first_last_piece_priority: bool | None = None,
-        tags: Iterable[str] | None = None,
+        tags: str | Iterable[str] | None = None,
         content_layout: Literal["Original", "Subfolder", "NoSubFolder"] | None = None,
         ratio_limit: str | float | None = None,
         seeding_time_limit: str | int | None = None,
@@ -2879,7 +2939,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
     def add_trackers(
         self,
         torrent_hash: str | None = None,
-        urls: Iterable[str] | None = None,
+        urls: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         return self._client.torrents_add_trackers(
@@ -2911,7 +2971,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
     def remove_trackers(
         self,
         torrent_hash: str | None = None,
-        urls: Iterable[str] | None = None,
+        urls: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         return self._client.torrents_remove_trackers(
@@ -2926,7 +2986,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
     def file_priority(
         self,
         torrent_hash: str | None = None,
-        file_ids: int | Iterable[str | int] | None = None,
+        file_ids: str | int | Iterable[str | int] | None = None,
         priority: str | int | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
@@ -3073,7 +3133,7 @@ class TorrentCategories(ClientCache[TorrentsAPIMixIn]):
     @wraps(TorrentsAPIMixIn.torrents_remove_categories)
     def remove_categories(
         self,
-        categories: Iterable[str] | None = None,
+        categories: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         return self._client.torrents_remove_categories(categories=categories, **kwargs)
@@ -3107,8 +3167,8 @@ class TorrentTags(ClientCache[TorrentsAPIMixIn]):
     @wraps(TorrentsAPIMixIn.torrents_add_tags)
     def add_tags(
         self,
-        tags: Iterable[str] | None = None,
-        torrent_hashes: Iterable[str] | None = None,
+        tags: str | Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         self._client.torrents_add_tags(
@@ -3122,8 +3182,8 @@ class TorrentTags(ClientCache[TorrentsAPIMixIn]):
     @wraps(TorrentsAPIMixIn.torrents_remove_tags)
     def remove_tags(
         self,
-        tags: Iterable[str] | None = None,
-        torrent_hashes: Iterable[str] | None = None,
+        tags: str | Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         self._client.torrents_remove_tags(
@@ -3137,7 +3197,7 @@ class TorrentTags(ClientCache[TorrentsAPIMixIn]):
     @wraps(TorrentsAPIMixIn.torrents_create_tags)
     def create_tags(
         self,
-        tags: Iterable[str] | None = None,
+        tags: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         self._client.torrents_create_tags(tags=tags, **kwargs)
@@ -3147,7 +3207,7 @@ class TorrentTags(ClientCache[TorrentsAPIMixIn]):
     @wraps(TorrentsAPIMixIn.torrents_delete_tags)
     def delete_tags(
         self,
-        tags: Iterable[str] | None = None,
+        tags: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         self._client.torrents_delete_tags(tags=tags, **kwargs)
