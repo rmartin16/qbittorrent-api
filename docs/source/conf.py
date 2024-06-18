@@ -58,6 +58,7 @@ nitpick_ignore = [
 ]
 
 autodoc_type_aliases = {"JsonValueT": "qbittorrentapi.definitions.JsonValueT"}
+always_use_bars_union = True
 add_module_names = False
 autodoc_typehints_format = "short"
 python_use_unqualified_type_names = True
