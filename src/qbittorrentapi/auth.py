@@ -161,7 +161,11 @@ class Authorization(ClientCache[AuthAPIMixIn]):
     """  # noqa: E501
 
     @property
-    @wraps(AuthAPIMixIn.is_logged_in)
+    # Starting in Python 3.11.9/3.12.4, Sphinx is erroring for wraps and property...
+    #  WARNING: Failed to get a function signature for qbittorrentapi.auth.Authorization.is_logged_in:  # noqa E501
+    #  descriptor '__call__' for 'type' objects doesn't apply to a 'property' object
+    # Removing documentation for now...hoping this is resolved in the future...
+    # @wraps(AuthAPIMixIn.is_logged_in)
     def is_logged_in(self) -> bool:
         return self._client.is_logged_in
 
