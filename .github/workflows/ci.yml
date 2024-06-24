@@ -111,6 +111,8 @@ jobs:
           # test dev versions of qBittorrent
           - QBT_VER: master
             IS_QBT_DEV: true
+          - QBT_VER: v5_0_x
+            IS_QBT_DEV: true
           - QBT_VER: v4_6_x
             IS_QBT_DEV: true
     uses: ./.github/workflows/test.yml
