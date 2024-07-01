@@ -44,7 +44,7 @@ jobs:
 
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4.1.6
+        uses: actions/checkout@v4.1.7
 
       - name: Get packages
         uses: actions/download-artifact@v4.1.7
