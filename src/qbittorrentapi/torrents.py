@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import errno
-from functools import wraps
 from logging import Logger, getLogger
 from os import path
 from os import strerror as os_strerror
@@ -1833,40 +1832,40 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
         return TorrentDictionary(data={}, client=self._client)
 
-    @wraps(TorrentsAPIMixIn.torrents_start)
     def start(self, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_start`."""
         self._client.torrents_start(torrent_hashes=self._torrent_hash, **kwargs)
 
     resume = start
 
-    @wraps(TorrentsAPIMixIn.torrents_stop)
     def stop(self, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_stop`."""
         self._client.torrents_stop(torrent_hashes=self._torrent_hash, **kwargs)
 
     pause = stop
 
-    @wraps(TorrentsAPIMixIn.torrents_delete)
     def delete(
         self,
         delete_files: bool | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_delete`."""
         self._client.torrents_delete(
             delete_files=delete_files,
             torrent_hashes=self._torrent_hash,
             **kwargs,
         )
 
-    @wraps(TorrentsAPIMixIn.torrents_recheck)
     def recheck(self, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_recheck`."""
         self._client.torrents_recheck(torrent_hashes=self._torrent_hash, **kwargs)
 
-    @wraps(TorrentsAPIMixIn.torrents_reannounce)
     def reannounce(self, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_reannounce`."""
         self._client.torrents_reannounce(torrent_hashes=self._torrent_hash, **kwargs)
 
-    @wraps(TorrentsAPIMixIn.torrents_increase_priority)
     def increase_priority(self, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_increase_priority`."""
         self._client.torrents_increase_priority(
             torrent_hashes=self._torrent_hash,
             **kwargs,
@@ -1874,8 +1873,8 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     increasePrio = increase_priority
 
-    @wraps(TorrentsAPIMixIn.torrents_decrease_priority)
     def decrease_priority(self, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_decrease_priority`."""
         self._client.torrents_decrease_priority(
             torrent_hashes=self._torrent_hash,
             **kwargs,
@@ -1883,14 +1882,14 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     decreasePrio = decrease_priority
 
-    @wraps(TorrentsAPIMixIn.torrents_top_priority)
     def top_priority(self, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_top_priority`."""
         self._client.torrents_top_priority(torrent_hashes=self._torrent_hash, **kwargs)
 
     topPrio = top_priority
 
-    @wraps(TorrentsAPIMixIn.torrents_bottom_priority)
     def bottom_priority(self, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_bottom_priority`."""
         self._client.torrents_bottom_priority(
             torrent_hashes=self._torrent_hash,
             **kwargs,
@@ -1898,7 +1897,6 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     bottomPrio = bottom_priority
 
-    @wraps(TorrentsAPIMixIn.torrents_set_share_limits)
     def set_share_limits(
         self,
         ratio_limit: str | int | None = None,
@@ -1906,6 +1904,7 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
         inactive_seeding_time_limit: str | int | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_share_limits`."""
         self._client.torrents_set_share_limits(
             ratio_limit=ratio_limit,
             seeding_time_limit=seeding_time_limit,
@@ -1917,8 +1916,8 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
     setShareLimits = set_share_limits
 
     @property
-    @wraps(TorrentsAPIMixIn.torrents_download_limit)
     def download_limit(self) -> int:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_download_limit`."""
         return cast(
             int,
             self._client.torrents_download_limit(torrent_hashes=self._torrent_hash).get(
@@ -1927,13 +1926,13 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
         )
 
     @download_limit.setter
-    @wraps(TorrentsAPIMixIn.torrents_set_download_limit)
     def download_limit(self, val: str | int) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_download_limit`."""
         self.set_download_limit(limit=val)
 
     @property
-    @wraps(TorrentsAPIMixIn.torrents_download_limit)
     def downloadLimit(self) -> int:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_download_limit`."""
         return cast(
             int,
             self._client.torrents_download_limit(torrent_hashes=self._torrent_hash).get(
@@ -1942,16 +1941,16 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
         )
 
     @downloadLimit.setter
-    @wraps(TorrentsAPIMixIn.torrents_set_download_limit)
     def downloadLimit(self, val: str | int) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_download_limit`."""
         self.set_download_limit(limit=val)
 
-    @wraps(TorrentsAPIMixIn.torrents_set_download_limit)
     def set_download_limit(
         self,
         limit: str | int | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_download_limit`."""
         self._client.torrents_set_download_limit(
             limit=limit,
             torrent_hashes=self._torrent_hash,
@@ -1961,8 +1960,8 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
     setDownloadLimit = set_download_limit
 
     @property
-    @wraps(TorrentsAPIMixIn.torrents_upload_limit)
     def upload_limit(self) -> int:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_upload_limit`."""
         return cast(
             int,
             self._client.torrents_upload_limit(torrent_hashes=self._torrent_hash).get(
@@ -1971,13 +1970,13 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
         )
 
     @upload_limit.setter
-    @wraps(TorrentsAPIMixIn.torrents_set_upload_limit)
     def upload_limit(self, val: str | int) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_upload_limit`."""
         self.set_upload_limit(limit=val)
 
     @property
-    @wraps(TorrentsAPIMixIn.torrents_upload_limit)
     def uploadLimit(self) -> int:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_upload_limit`."""
         return cast(
             int,
             self._client.torrents_upload_limit(torrent_hashes=self._torrent_hash).get(
@@ -1986,16 +1985,16 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
         )
 
     @uploadLimit.setter
-    @wraps(TorrentsAPIMixIn.torrents_set_upload_limit)
     def uploadLimit(self, val: str | int) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_upload_limit`."""
         self.set_upload_limit(limit=val)
 
-    @wraps(TorrentsAPIMixIn.torrents_set_upload_limit)
     def set_upload_limit(
         self,
         limit: str | int | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_upload_limit`."""
         self._client.torrents_set_upload_limit(
             limit=limit,
             torrent_hashes=self._torrent_hash,
@@ -2004,12 +2003,12 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     setUploadLimit = set_upload_limit
 
-    @wraps(TorrentsAPIMixIn.torrents_set_location)
     def set_location(
         self,
         location: str | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_location`."""
         self._client.torrents_set_location(
             location=location,
             torrent_hashes=self._torrent_hash,
@@ -2018,12 +2017,12 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     setLocation = set_location
 
-    @wraps(TorrentsAPIMixIn.torrents_set_save_path)
     def set_save_path(
         self,
         save_path: str | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_save_path`."""
         self._client.torrents_set_save_path(
             save_path=save_path,
             torrent_hashes=self._torrent_hash,
@@ -2032,12 +2031,12 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     setSavePath = set_save_path
 
-    @wraps(TorrentsAPIMixIn.torrents_set_download_path)
     def set_download_path(
         self,
         download_path: str | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_download_path`."""
         self._client.torrents_set_download_path(
             download_path=download_path,
             torrent_hashes=self._torrent_hash,
@@ -2046,12 +2045,12 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     setDownloadPath = set_download_path
 
-    @wraps(TorrentsAPIMixIn.torrents_set_category)
     def set_category(
         self,
         category: str | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_category`."""
         self._client.torrents_set_category(
             category=category,
             torrent_hashes=self._torrent_hash,
@@ -2060,12 +2059,12 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     setCategory = set_category
 
-    @wraps(TorrentsAPIMixIn.torrents_set_auto_management)
     def set_auto_management(
         self,
         enable: bool | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_auto_management`."""
         self._client.torrents_set_auto_management(
             enable=enable,
             torrent_hashes=self._torrent_hash,
@@ -2074,8 +2073,8 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     setAutoManagement = set_auto_management
 
-    @wraps(TorrentsAPIMixIn.torrents_toggle_sequential_download)
     def toggle_sequential_download(self, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_toggle_sequential_download`."""
         self._client.torrents_toggle_sequential_download(
             torrent_hashes=self._torrent_hash,
             **kwargs,
@@ -2083,8 +2082,9 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     toggleSequentialDownload = toggle_sequential_download
 
-    @wraps(TorrentsAPIMixIn.torrents_toggle_first_last_piece_priority)
     def toggle_first_last_piece_priority(self, **kwargs: APIKwargsT) -> None:
+        """Implements
+        :meth:`~TorrentsAPIMixIn.torrents_toggle_first_last_piece_priority`."""
         self._client.torrents_toggle_first_last_piece_priority(
             torrent_hashes=self._torrent_hash,
             **kwargs,
@@ -2092,12 +2092,12 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     toggleFirstLastPiecePrio = toggle_first_last_piece_priority
 
-    @wraps(TorrentsAPIMixIn.torrents_set_force_start)
     def set_force_start(
         self,
         enable: bool | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_force_start`."""
         self._client.torrents_set_force_start(
             enable=enable,
             torrent_hashes=self._torrent_hash,
@@ -2106,12 +2106,12 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     setForceStart = set_force_start
 
-    @wraps(TorrentsAPIMixIn.torrents_set_super_seeding)
     def set_super_seeding(
         self,
         enable: bool | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_super_seeding`."""
         self._client.torrents_set_super_seeding(
             enable=enable,
             torrent_hashes=self._torrent_hash,
@@ -2121,31 +2121,30 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
     setSuperSeeding = set_super_seeding
 
     @property
-    @wraps(TorrentsAPIMixIn.torrents_properties)
     def properties(self) -> TorrentPropertiesDictionary:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_properties`."""
         return self._client.torrents_properties(torrent_hash=self._torrent_hash)
 
     @property
-    @wraps(TorrentsAPIMixIn.torrents_trackers)
     def trackers(self) -> TrackersList:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_trackers`."""
         return self._client.torrents_trackers(torrent_hash=self._torrent_hash)
 
     @trackers.setter
-    @wraps(TorrentsAPIMixIn.torrents_add_trackers)
     def trackers(self, val: Iterable[str]) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_add_trackers`."""
         self.add_trackers(urls=val)
 
     @property
-    @wraps(TorrentsAPIMixIn.torrents_webseeds)
     def webseeds(self) -> WebSeedsList:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_webseeds`."""
         return self._client.torrents_webseeds(torrent_hash=self._torrent_hash)
 
     @property
-    @wraps(TorrentsAPIMixIn.torrents_files)
     def files(self) -> TorrentFilesList:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_files`."""
         return self._client.torrents_files(torrent_hash=self._torrent_hash)
 
-    @wraps(TorrentsAPIMixIn.torrents_rename_file)
     def rename_file(
         self,
         file_id: str | int | None = None,
@@ -2154,6 +2153,7 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
         new_path: str | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_rename_file`."""
         self._client.torrents_rename_file(
             torrent_hash=self._torrent_hash,
             file_id=file_id,
@@ -2165,13 +2165,13 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     renameFile = rename_file
 
-    @wraps(TorrentsAPIMixIn.torrents_rename_folder)
     def rename_folder(
         self,
         old_path: str | None = None,
         new_path: str | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_rename_folder`."""
         self._client.torrents_rename_folder(
             torrent_hash=self._torrent_hash,
             old_path=old_path,
@@ -2182,25 +2182,25 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
     renameFolder = rename_folder
 
     @property
-    @wraps(TorrentsAPIMixIn.torrents_piece_states)
     def piece_states(self) -> TorrentPieceInfoList:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_piece_states`."""
         return self._client.torrents_piece_states(torrent_hash=self._torrent_hash)
 
     pieceStates = piece_states
 
     @property
-    @wraps(TorrentsAPIMixIn.torrents_piece_hashes)
     def piece_hashes(self) -> TorrentPieceInfoList:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_piece_hashes`."""
         return self._client.torrents_piece_hashes(torrent_hash=self._torrent_hash)
 
     pieceHashes = piece_hashes
 
-    @wraps(TorrentsAPIMixIn.torrents_add_trackers)
     def add_trackers(
         self,
         urls: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_add_trackers`."""
         self._client.torrents_add_trackers(
             torrent_hash=self._torrent_hash,
             urls=urls,
@@ -2209,13 +2209,13 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     addTrackers = add_trackers
 
-    @wraps(TorrentsAPIMixIn.torrents_edit_tracker)
     def edit_tracker(
         self,
         orig_url: str | None = None,
         new_url: str | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_edit_tracker`."""
         self._client.torrents_edit_tracker(
             torrent_hash=self._torrent_hash,
             original_url=orig_url,
@@ -2225,12 +2225,12 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     editTracker = edit_tracker
 
-    @wraps(TorrentsAPIMixIn.torrents_remove_trackers)
     def remove_trackers(
         self,
         urls: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_remove_trackers`."""
         self._client.torrents_remove_trackers(
             torrent_hash=self._torrent_hash,
             urls=urls,
@@ -2239,13 +2239,13 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     removeTrackers = remove_trackers
 
-    @wraps(TorrentsAPIMixIn.torrents_file_priority)
     def file_priority(
         self,
         file_ids: str | int | Iterable[str | int] | None = None,
         priority: str | int | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_file_priority`."""
         self._client.torrents_file_priority(
             torrent_hash=self._torrent_hash,
             file_ids=file_ids,
@@ -2255,20 +2255,20 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     filePriority = file_priority
 
-    @wraps(TorrentsAPIMixIn.torrents_rename)
     def rename(self, new_name: str | None = None, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_rename`."""
         self._client.torrents_rename(
             torrent_hash=self._torrent_hash,
             new_torrent_name=new_name,
             **kwargs,
         )
 
-    @wraps(TorrentsAPIMixIn.torrents_add_tags)
     def add_tags(
         self,
         tags: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_add_tags`."""
         self._client.torrents_add_tags(
             torrent_hashes=self._torrent_hash,
             tags=tags,
@@ -2277,12 +2277,12 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     addTags = add_tags
 
-    @wraps(TorrentsAPIMixIn.torrents_remove_tags)
     def remove_tags(
         self,
         tags: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_remove_tags`."""
         self._client.torrents_remove_tags(
             torrent_hashes=self._torrent_hash,
             tags=tags,
@@ -2291,8 +2291,8 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     removeTags = remove_tags
 
-    @wraps(TorrentsAPIMixIn.torrents_export)
     def export(self, **kwargs: APIKwargsT) -> bytes:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_export`."""
         return self._client.torrents_export(torrent_hash=self._torrent_hash, **kwargs)
 
 
@@ -2811,7 +2811,6 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
                 **kwargs,
             )
 
-    @wraps(TorrentsAPIMixIn.torrents_add)
     def add(
         self,
         urls: str | Iterable[str] | None = None,
@@ -2847,6 +2846,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
         is_stopped: bool | None = None,
         **kwargs: APIKwargsT,
     ) -> str:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_add`."""
         return self._client.torrents_add(
             urls=urls,
             torrent_files=torrent_files,
@@ -2879,69 +2879,69 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             **kwargs,
         )
 
-    @wraps(TorrentsAPIMixIn.torrents_count)
     def count(self) -> int:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_count`."""
         return self._client.torrents_count()
 
-    @wraps(TorrentsAPIMixIn.torrents_properties)
     def properties(
         self,
         torrent_hash: str | None = None,
         **kwargs: APIKwargsT,
     ) -> TorrentPropertiesDictionary:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_properties`."""
         return self._client.torrents_properties(torrent_hash=torrent_hash, **kwargs)
 
-    @wraps(TorrentsAPIMixIn.torrents_trackers)
     def trackers(
         self,
         torrent_hash: str | None = None,
         **kwargs: APIKwargsT,
     ) -> TrackersList:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_trackers`."""
         return self._client.torrents_trackers(torrent_hash=torrent_hash, **kwargs)
 
-    @wraps(TorrentsAPIMixIn.torrents_webseeds)
     def webseeds(
         self,
         torrent_hash: str | None = None,
         **kwargs: APIKwargsT,
     ) -> WebSeedsList:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_webseeds`."""
         return self._client.torrents_webseeds(torrent_hash=torrent_hash, **kwargs)
 
-    @wraps(TorrentsAPIMixIn.torrents_files)
     def files(
         self,
         torrent_hash: str | None = None,
         **kwargs: APIKwargsT,
     ) -> TorrentFilesList:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_files`."""
         return self._client.torrents_files(torrent_hash=torrent_hash, **kwargs)
 
-    @wraps(TorrentsAPIMixIn.torrents_piece_states)
     def piece_states(
         self,
         torrent_hash: str | None = None,
         **kwargs: APIKwargsT,
     ) -> TorrentPieceInfoList:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_piece_states`."""
         return self._client.torrents_piece_states(torrent_hash=torrent_hash, **kwargs)
 
     pieceStates = piece_states
 
-    @wraps(TorrentsAPIMixIn.torrents_piece_hashes)
     def piece_hashes(
         self,
         torrent_hash: str | None = None,
         **kwargs: APIKwargsT,
     ) -> TorrentPieceInfoList:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_piece_hashes`."""
         return self._client.torrents_piece_hashes(torrent_hash=torrent_hash, **kwargs)
 
     pieceHashes = piece_hashes
 
-    @wraps(TorrentsAPIMixIn.torrents_add_trackers)
     def add_trackers(
         self,
         torrent_hash: str | None = None,
         urls: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_add_trackers`."""
         return self._client.torrents_add_trackers(
             torrent_hash=torrent_hash,
             urls=urls,
@@ -2950,7 +2950,6 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
 
     addTrackers = add_trackers
 
-    @wraps(TorrentsAPIMixIn.torrents_edit_tracker)
     def edit_tracker(
         self,
         torrent_hash: str | None = None,
@@ -2958,6 +2957,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
         new_url: str | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_edit_tracker`."""
         return self._client.torrents_edit_tracker(
             torrent_hash=torrent_hash,
             original_url=original_url,
@@ -2967,13 +2967,13 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
 
     editTracker = edit_tracker
 
-    @wraps(TorrentsAPIMixIn.torrents_remove_trackers)
     def remove_trackers(
         self,
         torrent_hash: str | None = None,
         urls: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_remove_trackers`."""
         return self._client.torrents_remove_trackers(
             torrent_hash=torrent_hash,
             urls=urls,
@@ -2982,7 +2982,6 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
 
     removeTrackers = remove_trackers
 
-    @wraps(TorrentsAPIMixIn.torrents_file_priority)
     def file_priority(
         self,
         torrent_hash: str | None = None,
@@ -2990,6 +2989,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
         priority: str | int | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_file_priority`."""
         return self._client.torrents_file_priority(
             torrent_hash=torrent_hash,
             file_ids=file_ids,
@@ -2999,20 +2999,19 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
 
     filePrio = file_priority
 
-    @wraps(TorrentsAPIMixIn.torrents_rename)
     def rename(
         self,
         torrent_hash: str | None = None,
         new_torrent_name: str | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_rename`."""
         return self._client.torrents_rename(
             torrent_hash=torrent_hash,
             new_torrent_name=new_torrent_name,
             **kwargs,
         )
 
-    @wraps(TorrentsAPIMixIn.torrents_rename_file)
     def rename_file(
         self,
         torrent_hash: str | None = None,
@@ -3022,6 +3021,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
         new_path: str | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_rename_file`."""
         return self._client.torrents_rename_file(
             torrent_hash=torrent_hash,
             file_id=file_id,
@@ -3033,7 +3033,6 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
 
     renameFile = rename_file
 
-    @wraps(TorrentsAPIMixIn.torrents_rename_folder)
     def rename_folder(
         self,
         torrent_hash: str | None = None,
@@ -3041,6 +3040,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
         new_path: str | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_rename_folder`."""
         return self._client.torrents_rename_folder(
             torrent_hash=torrent_hash,
             old_path=old_path,
@@ -3050,12 +3050,12 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
 
     renameFolder = rename_folder
 
-    @wraps(TorrentsAPIMixIn.torrents_export)
     def export(
         self,
         torrent_hash: str | None = None,
         **kwargs: APIKwargsT,
     ) -> bytes:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_export`."""
         return self._client.torrents_export(torrent_hash=torrent_hash, **kwargs)
 
 
@@ -3080,19 +3080,18 @@ class TorrentCategories(ClientCache[TorrentsAPIMixIn]):
     """  # noqa: E501
 
     @property
-    @wraps(TorrentsAPIMixIn.torrents_categories)
     def categories(self) -> TorrentCategoriesDictionary:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_categories`."""
         return self._client.torrents_categories()
 
     @categories.setter
-    @wraps(TorrentsAPIMixIn.torrents_edit_category)
     def categories(self, val: Mapping[str, str | bool]) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_edit_category`."""
         if val.get("name", "") in self.categories:
             self.edit_category(**val)  # type: ignore[arg-type]
         else:
             self.create_category(**val)  # type: ignore[arg-type]
 
-    @wraps(TorrentsAPIMixIn.torrents_create_category)
     def create_category(
         self,
         name: str | None = None,
@@ -3101,6 +3100,7 @@ class TorrentCategories(ClientCache[TorrentsAPIMixIn]):
         enable_download_path: bool | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_create_category`."""
         return self._client.torrents_create_category(
             name=name,
             save_path=save_path,
@@ -3111,7 +3111,6 @@ class TorrentCategories(ClientCache[TorrentsAPIMixIn]):
 
     createCategory = create_category
 
-    @wraps(TorrentsAPIMixIn.torrents_edit_category)
     def edit_category(
         self,
         name: str | None = None,
@@ -3120,6 +3119,7 @@ class TorrentCategories(ClientCache[TorrentsAPIMixIn]):
         enable_download_path: bool | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_edit_category`."""
         return self._client.torrents_edit_category(
             name=name,
             save_path=save_path,
@@ -3130,12 +3130,12 @@ class TorrentCategories(ClientCache[TorrentsAPIMixIn]):
 
     editCategory = edit_category
 
-    @wraps(TorrentsAPIMixIn.torrents_remove_categories)
     def remove_categories(
         self,
         categories: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_remove_categories`."""
         return self._client.torrents_remove_categories(categories=categories, **kwargs)
 
     removeCategories = remove_categories
@@ -3155,22 +3155,22 @@ class TorrentTags(ClientCache[TorrentsAPIMixIn]):
     """  # noqa: E501
 
     @property
-    @wraps(TorrentsAPIMixIn.torrents_tags)
     def tags(self) -> TagList:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_tags`."""
         return self._client.torrents_tags()
 
     @tags.setter
-    @wraps(TorrentsAPIMixIn.torrents_create_tags)
     def tags(self, val: Iterable[str] | None = None) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_create_tags`."""
         self._client.torrents_create_tags(tags=val)
 
-    @wraps(TorrentsAPIMixIn.torrents_add_tags)
     def add_tags(
         self,
         tags: str | Iterable[str] | None = None,
         torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_add_tags`."""
         self._client.torrents_add_tags(
             tags=tags,
             torrent_hashes=torrent_hashes,
@@ -3179,13 +3179,13 @@ class TorrentTags(ClientCache[TorrentsAPIMixIn]):
 
     addTags = add_tags
 
-    @wraps(TorrentsAPIMixIn.torrents_remove_tags)
     def remove_tags(
         self,
         tags: str | Iterable[str] | None = None,
         torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_remove_tags`."""
         self._client.torrents_remove_tags(
             tags=tags,
             torrent_hashes=torrent_hashes,
@@ -3194,22 +3194,22 @@ class TorrentTags(ClientCache[TorrentsAPIMixIn]):
 
     removeTags = remove_tags
 
-    @wraps(TorrentsAPIMixIn.torrents_create_tags)
     def create_tags(
         self,
         tags: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_create_tags`."""
         self._client.torrents_create_tags(tags=tags, **kwargs)
 
     createTags = create_tags
 
-    @wraps(TorrentsAPIMixIn.torrents_delete_tags)
     def delete_tags(
         self,
         tags: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_delete_tags`."""
         self._client.torrents_delete_tags(tags=tags, **kwargs)
 
     deleteTags = delete_tags

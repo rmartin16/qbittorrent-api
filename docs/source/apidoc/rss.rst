@@ -10,6 +10,7 @@ RSS
 .. autoclass:: qbittorrentapi.rss.RSS
     :members:
     :undoc-members:
+    :special-members: __call__
     :exclude-members: rss, addFolder, addFeed, removeItem, moveItem, refreshItem, markAsRead, setRule, renameRule, removeRule, matchingArticles, setFeedURL
 
 .. autoclass:: qbittorrentapi.rss.RSSitemsDictionary

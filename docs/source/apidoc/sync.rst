@@ -10,6 +10,7 @@ Sync
 .. autoclass:: qbittorrentapi.sync.Sync
     :members:
     :undoc-members:
+    :special-members: __call__
 
 .. autoclass:: qbittorrentapi.sync.SyncMainDataDictionary
     :members:

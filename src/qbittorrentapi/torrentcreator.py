@@ -3,7 +3,6 @@ from __future__ import annotations
 import enum
 import os
 from collections.abc import Mapping
-from functools import wraps
 from typing import Any, Literal, cast
 
 from qbittorrentapi.app import AppAPIMixIn
@@ -109,14 +108,14 @@ class TorrentCreatorAPIMixIn(AppAPIMixIn):
         """
         data = {
             "sourcePath": source_path,
-            "torrentFilePath": os.fsdecode(torrent_file_path)
-            if torrent_file_path
-            else None,
+            "torrentFilePath": (
+                os.fsdecode(torrent_file_path) if torrent_file_path else None
+            ),
             "format": format,
             "private": None if is_private is None else bool(is_private),
-            "optimizeAlignment": None
-            if optimize_alignment is None
-            else bool(optimize_alignment),
+            "optimizeAlignment": (
+                None if optimize_alignment is None else bool(optimize_alignment)
+            ),
             "startSeeding": None if start_seeding is None else bool(start_seeding),
             "paddedFileSizeLimit": padded_file_size_limit,
             "pieceSize": piece_size,
@@ -222,18 +221,18 @@ class TorrentCreatorTaskDictionary(
         self.task_id: str | None = cast(str, data.get("taskID", None))
         super().__init__(data=data, client=client)
 
-    @wraps(TorrentCreatorAPIMixIn.torrentcreator_status)
     def status(self, **kwargs: APIKwargsT) -> TorrentCreatorTaskStatus:
+        """Implements :meth:`~TorrentCreatorAPIMixIn.torrentcreator_status`."""
         return self._client.torrentcreator_status(task_id=self.task_id, **kwargs)[0]
 
-    @wraps(TorrentCreatorAPIMixIn.torrentcreator_torrent_file)
     def torrent_file(self, **kwargs: APIKwargsT) -> bytes:
+        """Implements :meth:`~TorrentCreatorAPIMixIn.torrentcreator_torrent_file`."""
         return self._client.torrentcreator_torrent_file(task_id=self.task_id, **kwargs)
 
     torrentFile = torrent_file
 
-    @wraps(TorrentCreatorAPIMixIn.torrentcreator_delete_task)
     def delete(self, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~TorrentCreatorAPIMixIn.torrentcreator_delete_task`."""
         return self._client.torrentcreator_delete_task(task_id=self.task_id, **kwargs)
 
 
@@ -254,7 +253,6 @@ class TorrentCreator(ClientCache[TorrentCreatorAPIMixIn]):
         >>> client.torrentcreator.delete_task(task_id=task.taskID)
     """  # noqa: E501
 
-    @wraps(TorrentCreatorAPIMixIn.torrentcreator_add_task)
     def add_task(
         self,
         source_path: str | os.PathLike[Any] | None = None,
@@ -270,6 +268,7 @@ class TorrentCreator(ClientCache[TorrentCreatorAPIMixIn]):
         url_seeds: str | list[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> TorrentCreatorTaskDictionary:
+        """Implements :meth:`~TorrentCreatorAPIMixIn.torrentcreator_add_task`."""
         return self._client.torrentcreator_add_task(
             source_path=source_path,
             torrent_file_path=torrent_file_path,
@@ -287,30 +286,30 @@ class TorrentCreator(ClientCache[TorrentCreatorAPIMixIn]):
 
     addTask = add_task
 
-    @wraps(TorrentCreatorAPIMixIn.torrentcreator_status)
     def status(
         self,
         task_id: str | None = None,
         **kwargs: APIKwargsT,
     ) -> TorrentCreatorTaskStatusList:
+        """Implements :meth:`~TorrentCreatorAPIMixIn.torrentcreator_status`."""
         return self._client.torrentcreator_status(task_id=task_id, **kwargs)
 
-    @wraps(TorrentCreatorAPIMixIn.torrentcreator_torrent_file)
     def torrent_file(
         self,
         task_id: str | None = None,
         **kwargs: APIKwargsT,
     ) -> bytes:
+        """Implements :meth:`~TorrentCreatorAPIMixIn.torrentcreator_torrent_file`."""
         return self._client.torrentcreator_torrent_file(task_id=task_id, **kwargs)
 
     torrentFile = torrent_file
 
-    @wraps(TorrentCreatorAPIMixIn.torrentcreator_delete_task)
     def delete_task(
         self,
         task_id: str | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TorrentCreatorAPIMixIn.torrentcreator_delete_task`."""
         self._client.torrentcreator_delete_task(task_id=task_id, **kwargs)
 
     deleteTask = delete_task

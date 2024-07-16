@@ -10,6 +10,7 @@ Log
 .. autoclass:: qbittorrentapi.log.Log
     :members:
     :undoc-members:
+    :special-members: __call__
 
 .. autoclass:: qbittorrentapi.log.LogPeersList
     :members:

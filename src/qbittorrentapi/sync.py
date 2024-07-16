@@ -115,11 +115,10 @@ class Sync(ClientCache[SyncAPIMixIn]):
 
     def __init__(self, client: SyncAPIMixIn) -> None:
         super().__init__(client=client)
-        self.maindata = self._MainData(client=client)
-        self.torrent_peers = self._TorrentPeers(client=client)
-        self.torrentPeers = self.torrent_peers
+        self._maindata = self.MainData(client=client)
+        self._torrent_peers = self.TorrentPeers(client=client)
 
-    class _MainData(ClientCache[SyncAPIMixIn]):
+    class MainData(ClientCache[SyncAPIMixIn]):
         def __init__(self, client: SyncAPIMixIn) -> None:
             super().__init__(client=client)
             self._rid: int = 0
@@ -132,14 +131,17 @@ class Sync(ClientCache[SyncAPIMixIn]):
             return self._client.sync_maindata(rid=rid, **kwargs)
 
         def delta(self, **kwargs: APIKwargsT) -> SyncMainDataDictionary:
+            """Implements :meth:`~SyncAPIMixIn.sync_maindata` to return updates since
+            last call."""
             md = self._client.sync_maindata(rid=self._rid, **kwargs)
             self._rid = cast(int, md.get("rid", 0))
             return md
 
         def reset_rid(self) -> None:
+            """Resets RID so the next request includes everything."""
             self._rid = 0
 
-    class _TorrentPeers(ClientCache["SyncAPIMixIn"]):
+    class TorrentPeers(ClientCache["SyncAPIMixIn"]):
         def __init__(self, client: SyncAPIMixIn) -> None:
             super().__init__(client=client)
             self._rid: int = 0
@@ -150,6 +152,7 @@ class Sync(ClientCache[SyncAPIMixIn]):
             rid: str | int = 0,
             **kwargs: APIKwargsT,
         ) -> SyncTorrentPeersDictionary:
+            """Implements :meth:`~SyncAPIMixIn.sync_torrent_peers`."""
             return self._client.sync_torrent_peers(
                 torrent_hash=torrent_hash,
                 rid=rid,
@@ -161,6 +164,8 @@ class Sync(ClientCache[SyncAPIMixIn]):
             torrent_hash: str | None = None,
             **kwargs: APIKwargsT,
         ) -> SyncTorrentPeersDictionary:
+            """Implements :meth:`~SyncAPIMixIn.sync_torrent_peers` to return updates
+            since last call."""
             torrent_peers = self._client.sync_torrent_peers(
                 torrent_hash=torrent_hash,
                 rid=self._rid,
@@ -170,4 +175,17 @@ class Sync(ClientCache[SyncAPIMixIn]):
             return torrent_peers
 
         def reset_rid(self) -> None:
+            """Resets RID so the next request includes everything."""
             self._rid = 0
+
+    @property
+    def maindata(self) -> Sync.MainData:
+        """Implements :meth:`~SyncAPIMixIn.sync_maindata`."""
+        return self._maindata
+
+    @property
+    def torrent_peers(self) -> Sync.TorrentPeers:
+        """Implements :meth:`~SyncAPIMixIn.sync_torrent_peers`."""
+        return self._torrent_peers
+
+    torrentPeers = torrent_peers

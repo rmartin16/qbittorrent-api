@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from functools import wraps
-
 from qbittorrentapi.app import AppAPIMixIn
 from qbittorrentapi.definitions import (
     APIKwargsT,
@@ -130,17 +128,17 @@ class Log(ClientCache[LogAPIMixIn]):
 
     def __init__(self, client: LogAPIMixIn):
         super().__init__(client=client)
-        self.main = Log._Main(client=client)
+        self._main = Log.Main(client=client)
 
-    @wraps(LogAPIMixIn.log_peers)
     def peers(
         self,
         last_known_id: str | int | None = None,
         **kwargs: APIKwargsT,
     ) -> LogPeersList:
+        """Implements :meth:`~LogAPIMixIn.log_peers`."""
         return self._client.log_peers(last_known_id=last_known_id, **kwargs)
 
-    class _Main(ClientCache["LogAPIMixIn"]):
+    class Main(ClientCache["LogAPIMixIn"]):
         def _api_call(
             self,
             normal: bool | None = None,
@@ -168,6 +166,7 @@ class Log(ClientCache[LogAPIMixIn]):
             last_known_id: str | int | None = None,
             **kwargs: APIKwargsT,
         ) -> LogMainList:
+            """Implements :meth:`~LogAPIMixIn.log_main`."""
             return self._api_call(
                 normal=normal,
                 info=info,
@@ -182,6 +181,7 @@ class Log(ClientCache[LogAPIMixIn]):
             last_known_id: str | int | None = None,
             **kwargs: APIKwargsT,
         ) -> LogMainList:
+            """Implements :meth:`~LogAPIMixIn.log_main`."""
             return self._api_call(last_known_id=last_known_id, **kwargs)
 
         def normal(
@@ -189,6 +189,7 @@ class Log(ClientCache[LogAPIMixIn]):
             last_known_id: str | int | None = None,
             **kwargs: APIKwargsT,
         ) -> LogMainList:
+            """Implements :meth:`~LogAPIMixIn.log_main` with ``info=False``."""
             return self._api_call(info=False, last_known_id=last_known_id, **kwargs)
 
         def warning(
@@ -196,6 +197,8 @@ class Log(ClientCache[LogAPIMixIn]):
             last_known_id: str | int | None = None,
             **kwargs: APIKwargsT,
         ) -> LogMainList:
+            """Implements :meth:`~LogAPIMixIn.log_main` with ``info=False`` and
+            ``normal=False``."""
             return self._api_call(
                 info=False,
                 normal=False,
@@ -208,6 +211,8 @@ class Log(ClientCache[LogAPIMixIn]):
             last_known_id: str | int | None = None,
             **kwargs: APIKwargsT,
         ) -> LogMainList:
+            """Implements :meth:`~LogAPIMixIn.log_main` with ``info=False``,
+            ``normal=False``, and ``warning=False``."""
             return self._api_call(
                 info=False,
                 normal=False,
@@ -215,3 +220,8 @@ class Log(ClientCache[LogAPIMixIn]):
                 last_known_id=last_known_id,
                 **kwargs,
             )
+
+    @property
+    def main(self) -> Log.Main:
+        """Implements :meth:`~LogAPIMixIn.log_main`."""
+        return self._main
