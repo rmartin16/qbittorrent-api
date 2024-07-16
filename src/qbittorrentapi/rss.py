@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from functools import wraps
 from json import dumps
 from typing import Mapping
 
@@ -329,53 +328,53 @@ class RSS(ClientCache[RSSAPIMixIn]):
 
     def __init__(self, client: RSSAPIMixIn):
         super().__init__(client=client)
-        self.items = RSS._Items(client=client)
+        self._items = RSS.Items(client=client)
 
-    @wraps(RSSAPIMixIn.rss_add_folder)
     def add_folder(
         self,
         folder_path: str | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~RSSAPIMixIn.rss_add_folder`."""
         return self._client.rss_add_folder(folder_path=folder_path, **kwargs)
 
     addFolder = add_folder
 
-    @wraps(RSSAPIMixIn.rss_add_feed)
     def add_feed(
         self,
         url: str | None = None,
         item_path: str = "",
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~RSSAPIMixIn.rss_add_feed`."""
         return self._client.rss_add_feed(url=url, item_path=item_path, **kwargs)
 
     addFeed = add_feed
 
-    @wraps(RSSAPIMixIn.rss_set_feed_url)
     def set_feed_url(
         self,
         url: str | None = None,
         item_path: str | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~RSSAPIMixIn.rss_set_feed_url`."""
         return self._client.rss_set_feed_url(url=url, item_path=item_path, **kwargs)
 
     setFeedURL = set_feed_url
 
-    @wraps(RSSAPIMixIn.rss_remove_item)
     def remove_item(self, item_path: str | None = None, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~RSSAPIMixIn.rss_remove_item`."""
         return self._client.rss_remove_item(item_path=item_path, **kwargs)
 
     removeItem = remove_item
 
-    @wraps(RSSAPIMixIn.rss_move_item)
     def move_item(
         self,
         orig_item_path: str | None = None,
         new_item_path: str | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~RSSAPIMixIn.rss_move_item`."""
         return self._client.rss_move_item(
             orig_item_path=orig_item_path,
             new_item_path=new_item_path,
@@ -384,19 +383,19 @@ class RSS(ClientCache[RSSAPIMixIn]):
 
     moveItem = move_item
 
-    @wraps(RSSAPIMixIn.rss_refresh_item)
     def refresh_item(self, item_path: str | None = None) -> None:
+        """Implements :meth:`~RSSAPIMixIn.rss_refresh_item`."""
         return self._client.rss_refresh_item(item_path=item_path)
 
     refreshItem = refresh_item
 
-    @wraps(RSSAPIMixIn.rss_mark_as_read)
     def mark_as_read(
         self,
         item_path: str | None = None,
         article_id: str | int | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~RSSAPIMixIn.rss_mark_as_read`."""
         return self._client.rss_mark_as_read(
             item_path=item_path,
             article_id=article_id,
@@ -405,13 +404,13 @@ class RSS(ClientCache[RSSAPIMixIn]):
 
     markAsRead = mark_as_read
 
-    @wraps(RSSAPIMixIn.rss_set_rule)
     def set_rule(
         self,
         rule_name: str | None = None,
         rule_def: Mapping[str, JsonValueT] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~RSSAPIMixIn.rss_set_rule`."""
         return self._client.rss_set_rule(
             rule_name=rule_name,
             rule_def=rule_def,
@@ -420,13 +419,13 @@ class RSS(ClientCache[RSSAPIMixIn]):
 
     setRule = set_rule
 
-    @wraps(RSSAPIMixIn.rss_rename_rule)
     def rename_rule(
         self,
         orig_rule_name: str | None = None,
         new_rule_name: str | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~RSSAPIMixIn.rss_rename_rule`."""
         return self._client.rss_rename_rule(
             orig_rule_name=orig_rule_name,
             new_rule_name=new_rule_name,
@@ -435,43 +434,53 @@ class RSS(ClientCache[RSSAPIMixIn]):
 
     renameRule = rename_rule
 
-    @wraps(RSSAPIMixIn.rss_remove_rule)
     def remove_rule(
         self,
         rule_name: str | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~RSSAPIMixIn.rss_remove_rule`."""
         return self._client.rss_remove_rule(rule_name=rule_name, **kwargs)
 
     removeRule = remove_rule
 
     @property
-    @wraps(RSSAPIMixIn.rss_rules)
     def rules(self) -> RSSRulesDictionary:
+        """Implements :meth:`~RSSAPIMixIn.rss_rules`."""
         return self._client.rss_rules()
 
-    @wraps(RSSAPIMixIn.rss_matching_articles)
     def matching_articles(
         self,
         rule_name: str | None = None,
         **kwargs: APIKwargsT,
     ) -> RSSitemsDictionary:
+        """Implements :meth:`~RSSAPIMixIn.rss_matching_articles`."""
         return self._client.rss_matching_articles(rule_name=rule_name, **kwargs)
 
     matchingArticles = matching_articles
 
-    class _Items(ClientCache[RSSAPIMixIn]):
+    class Items(ClientCache[RSSAPIMixIn]):
         def __call__(
             self,
             include_feed_data: bool | None = None,
             **kwargs: APIKwargsT,
         ) -> RSSitemsDictionary:
+            """Implements :meth:`~RSSAPIMixIn.rss_items`."""
             return self._client.rss_items(include_feed_data=include_feed_data, **kwargs)
 
         @property
         def without_data(self) -> RSSitemsDictionary:
+            """Implements :meth:`~RSSAPIMixIn.rss_items` with
+            ``include_feed_data=False``."""
             return self._client.rss_items(include_feed_data=False)
 
         @property
         def with_data(self) -> RSSitemsDictionary:
+            """Implements :meth:`~RSSAPIMixIn.rss_items` with
+            ``include_feed_data=True``."""
             return self._client.rss_items(include_feed_data=True)
+
+    @property
+    def items(self) -> RSS.Items:
+        """Implements :meth:`~RSSAPIMixIn.rss_items`."""
+        return self._items

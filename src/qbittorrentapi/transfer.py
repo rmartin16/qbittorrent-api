@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from functools import wraps
 from typing import Iterable
 
 from qbittorrentapi._version_support import v
@@ -205,36 +204,36 @@ class Transfer(ClientCache[TransferAPIMixIn]):
     """  # noqa: E501
 
     @property
-    @wraps(TransferAPIMixIn.transfer_info)
     def info(self) -> TransferInfoDictionary:
+        """Implements :meth:`~TransferAPIMixIn.transfer_info`."""
         return self._client.transfer_info()
 
     @property
-    @wraps(TransferAPIMixIn.transfer_speed_limits_mode)
     def speed_limits_mode(self) -> str:
+        """Implements :meth:`~TransferAPIMixIn.transfer_speed_limits_mode`."""
         return self._client.transfer_speed_limits_mode()
 
     @speed_limits_mode.setter
-    @wraps(TransferAPIMixIn.transfer_set_speed_limits_mode)
     def speed_limits_mode(self, val: bool) -> None:
+        """Implements :meth:`~TransferAPIMixIn.transfer_set_speed_limits_mode`."""
         self.set_speed_limits_mode(intended_state=val)
 
     @property
-    @wraps(TransferAPIMixIn.transfer_speed_limits_mode)
     def speedLimitsMode(self) -> str:
+        """Implements :meth:`~TransferAPIMixIn.transfer_speed_limits_mode`."""
         return self._client.transfer_speed_limits_mode()
 
     @speedLimitsMode.setter
-    @wraps(TransferAPIMixIn.transfer_set_speed_limits_mode)
     def speedLimitsMode(self, val: bool) -> None:
+        """Implements :meth:`~TransferAPIMixIn.transfer_set_speed_limits_mode`."""
         self.set_speed_limits_mode(intended_state=val)
 
-    @wraps(TransferAPIMixIn.transfer_set_speed_limits_mode)
     def set_speed_limits_mode(
         self,
         intended_state: bool | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TransferAPIMixIn.transfer_set_speed_limits_mode`."""
         return self._client.transfer_set_speed_limits_mode(
             intended_state=intended_state,
             **kwargs,
@@ -245,71 +244,71 @@ class Transfer(ClientCache[TransferAPIMixIn]):
     toggle_speed_limits_mode = set_speed_limits_mode
 
     @property
-    @wraps(TransferAPIMixIn.transfer_download_limit)
     def download_limit(self) -> int:
+        """Implements :meth:`~TransferAPIMixIn.transfer_download_limit`."""
         return self._client.transfer_download_limit()
 
     @download_limit.setter
-    @wraps(TransferAPIMixIn.transfer_set_download_limit)
     def download_limit(self, val: int | str) -> None:
+        """Implements :meth:`~TransferAPIMixIn.transfer_set_download_limit`."""
         self.set_download_limit(limit=val)
 
     @property
-    @wraps(TransferAPIMixIn.transfer_download_limit)
     def downloadLimit(self) -> int:
+        """Implements :meth:`~TransferAPIMixIn.transfer_download_limit`."""
         return self._client.transfer_download_limit()
 
     @downloadLimit.setter
-    @wraps(TransferAPIMixIn.transfer_set_download_limit)
     def downloadLimit(self, val: int | str) -> None:
+        """Implements :meth:`~TransferAPIMixIn.transfer_set_download_limit`."""
         self.set_download_limit(limit=val)
 
     @property
-    @wraps(TransferAPIMixIn.transfer_upload_limit)
     def upload_limit(self) -> int:
+        """Implements :meth:`~TransferAPIMixIn.transfer_upload_limit`."""
         return self._client.transfer_upload_limit()
 
     @upload_limit.setter
-    @wraps(TransferAPIMixIn.transfer_set_upload_limit)
     def upload_limit(self, val: int | str) -> None:
+        """Implements :meth:`~TransferAPIMixIn.transfer_set_upload_limit`."""
         self.set_upload_limit(limit=val)
 
     @property
-    @wraps(TransferAPIMixIn.transfer_upload_limit)
     def uploadLimit(self) -> int:
+        """Implements :meth:`~TransferAPIMixIn.transfer_upload_limit`."""
         return self._client.transfer_upload_limit()
 
     @uploadLimit.setter
-    @wraps(TransferAPIMixIn.transfer_set_upload_limit)
     def uploadLimit(self, val: int | str) -> None:
+        """Implements :meth:`~TransferAPIMixIn.transfer_set_upload_limit`."""
         self.set_upload_limit(limit=val)
 
-    @wraps(TransferAPIMixIn.transfer_set_download_limit)
     def set_download_limit(
         self,
         limit: str | int | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TransferAPIMixIn.transfer_set_download_limit`."""
         return self._client.transfer_set_download_limit(limit=limit, **kwargs)
 
     setDownloadLimit = set_download_limit
 
-    @wraps(TransferAPIMixIn.transfer_set_upload_limit)
     def set_upload_limit(
         self,
         limit: str | int | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TransferAPIMixIn.transfer_set_upload_limit`."""
         return self._client.transfer_set_upload_limit(limit=limit, **kwargs)
 
     setUploadLimit = set_upload_limit
 
-    @wraps(TransferAPIMixIn.transfer_ban_peers)
     def ban_peers(
         self,
         peers: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~TransferAPIMixIn.transfer_ban_peers`."""
         self._client.transfer_ban_peers(peers=peers, **kwargs)
 
     banPeers = ban_peers

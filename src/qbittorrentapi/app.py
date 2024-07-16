@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from functools import wraps
 from json import dumps
 from logging import Logger, getLogger
 from typing import Any, AnyStr, Iterable, Mapping, Union
@@ -269,68 +268,68 @@ class Application(ClientCache[AppAPIMixIn]):
     """  # noqa: E501
 
     @property
-    @wraps(AppAPIMixIn.app_version)
     def version(self) -> str:
+        """Implements :meth:`~AppAPIMixIn.app_version`."""
         return self._client.app_version()
 
     @property
-    @wraps(AppAPIMixIn.app_web_api_version)
     def web_api_version(self) -> str:
+        """Implements :meth:`~AppAPIMixIn.app_web_api_version`."""
         return self._client.app_web_api_version()
 
     webapiVersion = web_api_version
 
     @property
-    @wraps(AppAPIMixIn.app_build_info)
     def build_info(self) -> BuildInfoDictionary:
+        """Implements :meth:`~AppAPIMixIn.app_build_info`."""
         return self._client.app_build_info()
 
     buildInfo = build_info
 
-    @wraps(AppAPIMixIn.app_shutdown)
     def shutdown(self, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~AppAPIMixIn.app_shutdown`."""
         self._client.app_shutdown(**kwargs)
 
     @property
-    @wraps(AppAPIMixIn.app_preferences)
     def preferences(self) -> ApplicationPreferencesDictionary:
+        """Implements :meth:`~AppAPIMixIn.app_preferences`."""
         return self._client.app_preferences()
 
     @preferences.setter
-    @wraps(AppAPIMixIn.app_set_preferences)
     def preferences(self, value: Mapping[str, Any]) -> None:
+        """Implements :meth:`~AppAPIMixIn.app_set_preferences`."""
         self.set_preferences(prefs=value)
 
-    @wraps(AppAPIMixIn.app_set_preferences)
     def set_preferences(
         self,
         prefs: Mapping[str, Any] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~AppAPIMixIn.app_set_preferences`."""
         self._client.app_set_preferences(prefs=prefs, **kwargs)
 
     setPreferences = set_preferences
 
     @property
-    @wraps(AppAPIMixIn.app_default_save_path)
     def default_save_path(self) -> str:
+        """Implements :meth:`~AppAPIMixIn.app_default_save_path`."""
         return self._client.app_default_save_path()
 
     defaultSavePath = default_save_path
 
     @property
-    @wraps(AppAPIMixIn.app_network_interface_list)
     def network_interface_list(self) -> NetworkInterfaceList:
+        """Implements :meth:`~AppAPIMixIn.app_network_interface_list`."""
         return self._client.app_network_interface_list()
 
     networkInterfaceList = network_interface_list
 
-    @wraps(AppAPIMixIn.app_network_interface_address_list)
     def network_interface_address_list(
         self,
         interface_name: str = "",
         **kwargs: APIKwargsT,
     ) -> NetworkInterfaceAddressList:
+        """Implements :meth:`~AppAPIMixIn.app_network_interface_address_list`."""
         return self._client.app_network_interface_address_list(
             interface_name=interface_name,
             **kwargs,
@@ -338,17 +337,17 @@ class Application(ClientCache[AppAPIMixIn]):
 
     networkInterfaceAddressList = network_interface_address_list
 
-    @wraps(AppAPIMixIn.app_send_test_email)
     def send_test_email(self) -> None:
+        """Implements :meth:`~AppAPIMixIn.app_send_test_email`."""
         self._client.app_send_test_email()
 
     sendTestEmail = send_test_email
 
-    @wraps(AppAPIMixIn.app_get_directory_content)
     def get_directory_content(
         self,
         directory_path: str | os.PathLike[AnyStr] | None = None,
     ) -> DirectoryContentList:
+        """Implements :meth:`~AppAPIMixIn.app_get_directory_content`."""
         return self._client.app_get_directory_content(directory_path=directory_path)
 
     getDirectoryContent = get_directory_content

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from functools import wraps
 from typing import Iterable, Mapping, cast
 
 from qbittorrentapi.app import AppAPIMixIn
@@ -386,21 +385,21 @@ class SearchJobDictionary(ClientCache[SearchAPIMixIn], Dictionary[JsonValueT]):
         self._search_job_id: int | None = cast(int, data.get("id", None))
         super().__init__(data=data, client=client)
 
-    @wraps(SearchAPIMixIn.search_stop)
     def stop(self, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~SearchAPIMixIn.search_stop`."""
         self._client.search_stop(search_id=self._search_job_id, **kwargs)
 
-    @wraps(SearchAPIMixIn.search_status)
     def status(self, **kwargs: APIKwargsT) -> SearchStatusesList:
+        """Implements :meth:`~SearchAPIMixIn.search_status`."""
         return self._client.search_status(search_id=self._search_job_id, **kwargs)
 
-    @wraps(SearchAPIMixIn.search_results)
     def results(
         self,
         limit: str | int | None = None,
         offset: str | int | None = None,
         **kwargs: APIKwargsT,
     ) -> SearchResultsDictionary:
+        """Implements :meth:`~SearchAPIMixIn.search_results`."""
         return self._client.search_results(
             limit=limit,
             offset=offset,
@@ -408,8 +407,8 @@ class SearchJobDictionary(ClientCache[SearchAPIMixIn], Dictionary[JsonValueT]):
             **kwargs,
         )
 
-    @wraps(SearchAPIMixIn.search_delete)
     def delete(self, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~SearchAPIMixIn.search_delete`."""
         return self._client.search_delete(search_id=self._search_job_id, **kwargs)
 
 
@@ -434,7 +433,6 @@ class Search(ClientCache[SearchAPIMixIn]):
         >>> client.search.update_plugins()
     """  # noqa: E501
 
-    @wraps(SearchAPIMixIn.search_start)
     def start(
         self,
         pattern: str | None = None,
@@ -442,6 +440,7 @@ class Search(ClientCache[SearchAPIMixIn]):
         category: str | None = None,
         **kwargs: APIKwargsT,
     ) -> SearchJobDictionary:
+        """Implements :meth:`~SearchAPIMixIn.search_start`."""
         return self._client.search_start(
             pattern=pattern,
             plugins=plugins,
@@ -449,23 +448,22 @@ class Search(ClientCache[SearchAPIMixIn]):
             **kwargs,
         )
 
-    @wraps(SearchAPIMixIn.search_stop)
     def stop(
         self,
         search_id: str | int | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~SearchAPIMixIn.search_stop`."""
         return self._client.search_stop(search_id=search_id, **kwargs)
 
-    @wraps(SearchAPIMixIn.search_status)
     def status(
         self,
         search_id: str | int | None = None,
         **kwargs: APIKwargsT,
     ) -> SearchStatusesList:
+        """Implements :meth:`~SearchAPIMixIn.search_status`."""
         return self._client.search_status(search_id=search_id, **kwargs)
 
-    @wraps(SearchAPIMixIn.search_results)
     def results(
         self,
         search_id: str | int | None = None,
@@ -473,6 +471,7 @@ class Search(ClientCache[SearchAPIMixIn]):
         offset: str | int | None = None,
         **kwargs: APIKwargsT,
     ) -> SearchResultsDictionary:
+        """Implements :meth:`~SearchAPIMixIn.search_results`."""
         return self._client.search_results(
             search_id=search_id,
             limit=limit,
@@ -480,54 +479,54 @@ class Search(ClientCache[SearchAPIMixIn]):
             **kwargs,
         )
 
-    @wraps(SearchAPIMixIn.search_delete)
     def delete(
         self,
         search_id: str | int | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~SearchAPIMixIn.search_delete`."""
         return self._client.search_delete(search_id=search_id, **kwargs)
 
-    @wraps(SearchAPIMixIn.search_categories)
     def categories(
         self,
         plugin_name: str | None = None,
         **kwargs: APIKwargsT,
     ) -> SearchCategoriesList:
+        """Implements :meth:`~SearchAPIMixIn.search_categories`."""
         return self._client.search_categories(plugin_name=plugin_name, **kwargs)
 
     @property
-    @wraps(SearchAPIMixIn.search_plugins)
     def plugins(self) -> SearchPluginsList:
+        """Implements :meth:`~SearchAPIMixIn.search_plugins`."""
         return self._client.search_plugins()
 
-    @wraps(SearchAPIMixIn.search_install_plugin)
     def install_plugin(
         self,
         sources: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~SearchAPIMixIn.search_install_plugin`."""
         return self._client.search_install_plugin(sources=sources, **kwargs)
 
     installPlugin = install_plugin
 
-    @wraps(SearchAPIMixIn.search_uninstall_plugin)
     def uninstall_plugin(
         self,
         sources: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~SearchAPIMixIn.search_uninstall_plugin`."""
         return self._client.search_uninstall_plugin(sources=sources, **kwargs)
 
     uninstallPlugin = uninstall_plugin
 
-    @wraps(SearchAPIMixIn.search_enable_plugin)
     def enable_plugin(
         self,
         plugins: str | Iterable[str] | None = None,
         enable: bool | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~SearchAPIMixIn.search_enable_plugin`."""
         return self._client.search_enable_plugin(
             plugins=plugins,
             enable=enable,
@@ -536,19 +535,19 @@ class Search(ClientCache[SearchAPIMixIn]):
 
     enablePlugin = enable_plugin
 
-    @wraps(SearchAPIMixIn.search_update_plugins)
     def update_plugins(self, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~SearchAPIMixIn.search_update_plugins`."""
         return self._client.search_update_plugins(**kwargs)
 
     updatePlugins = update_plugins
 
-    @wraps(SearchAPIMixIn.search_download_torrent)
     def download_torrent(
         self,
         url: str | None = None,
         plugin: str | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
+        """Implements :meth:`~SearchAPIMixIn.search_download_torrent`."""
         return self._client.search_download_torrent(url=url, plugin=plugin)
 
     downloadTorrent = download_torrent
