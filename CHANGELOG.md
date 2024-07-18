@@ -1,7 +1,9 @@
 Change Log
 ==========
-### v2024.x.64 (dd mmm 2024)
-- Added support for ``private`` argument for ``torrents/info`` (#464)
+### v2024.7.64 (18 Jul 2024)
+- Resolve errors from type checkers for ``functools.wraps`` usage (#472)
+- Included changes for upcoming qBittorrent v5.0.0 release:
+  - Added support for ``private`` argument for ``torrents/info`` (#464)
 
 ### v2024.5.63 (31 may 2024)
 - Added support to configure ``HTTPAdapter`` (#459)
@@ -13,7 +15,7 @@ Change Log
 - Advertise support for qBittorrent v4.6.5
 - Packages published to PyPI are now attested by GitHub (#453)
 - Included changes for upcoming qBittorrent v5.0.0 release:
-  -  Rename resume/pause actions for torrents to start/stop (#434)
+  - Rename resume/pause actions for torrents to start/stop (#434)
     - For instance, ``client.torrents_pause()`` is now ``client.torrents_stop()``
     - All existing method and argument names are still supported and are aliased to the new names
   - Add support for ``app/getDirectoryContent`` (#449)
