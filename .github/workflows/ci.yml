@@ -53,7 +53,7 @@ jobs:
         uses: actions/checkout@v4.1.7
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
-        uses: actions/setup-python@v5.1.0
+        uses: actions/setup-python@v5.1.1
         with:
           python-version: ${{ env.LATEST_PYTHON_VER }}
           cache: pip
@@ -83,7 +83,7 @@ jobs:
           fetch-depth: 0  # Fetch all refs so setuptools_scm can generate the correct version number
 
       - name: Build & Upload Package
-        uses: hynek/build-and-inspect-python-package@v2.6.0
+        uses: hynek/build-and-inspect-python-package@v2.8.0
         with:
           attest-build-provenance-github: ${{ inputs.attest }}
 
@@ -151,7 +151,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v5.1.0
+        uses: actions/setup-python@v5.1.1
         with:
           python-version: 3.x
 
@@ -161,7 +161,7 @@ jobs:
           python -m pip install -e .[dev]
 
       - name: Retrieve coverage data
-        uses: actions/download-artifact@v4.1.7
+        uses: actions/download-artifact@v4.1.8
         with:
           pattern: coverage-data-*
           merge-multiple: true
@@ -177,7 +177,7 @@ jobs:
 
       - name: Upload HTML coverage report
         if: always() && steps.coverage.outcome == 'failure'
-        uses: actions/upload-artifact@v4.3.3
+        uses: actions/upload-artifact@v4.3.4
         with:
           name: html-coverage-report
           path: ./htmlcov
@@ -204,7 +204,7 @@ jobs:
         uses: actions/checkout@v4.1.7
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
-        uses: actions/setup-python@v5.1.0
+        uses: actions/setup-python@v5.1.1
         with:
           python-version: ${{ env.LATEST_PYTHON_VER }}
           cache: pip
