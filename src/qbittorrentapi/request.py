@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from functools import wraps
 from json import loads
 from logging import Logger, NullHandler, getLogger
 from os import environ
@@ -214,7 +213,6 @@ class QbittorrentSession(Session):
     around that by setting defaults for each request.
     """
 
-    @wraps(Session.request)
     def request(self, method: str, url: str, **kwargs: Any) -> Response:  # type: ignore[override]
         kwargs.setdefault("timeout", 15.1)
         kwargs.setdefault("allow_redirects", True)
