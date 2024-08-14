@@ -385,6 +385,57 @@ def test_webseeds(orig_torrent):
     assert isinstance(orig_torrent.webseeds, WebSeedsList)
 
 
+@pytest.mark.skipif_before_api_version("2.11.3")
+@pytest.mark.parametrize("add_webseeds_func", ["add_webseeds", "addWebSeeds"])
+@pytest.mark.parametrize(
+    "webseeds",
+    [
+        "http://example/webseedone",
+        ["http://example/webseedone", "http://example/webseedtwo"],
+    ],
+)
+def test_add_webseed(new_torrent, add_webseeds_func, webseeds):
+    assert new_torrent.webseeds == WebSeedsList([])
+    new_torrent.func(add_webseeds_func)(urls=webseeds)
+    assert sorted([w.url for w in new_torrent.webseeds]) == (
+        webseeds if isinstance(webseeds, list) else [webseeds]
+    )
+
+
+@pytest.mark.skipif_before_api_version("2.11.3")
+@pytest.mark.parametrize("edit_webseed_func", ["edit_webseed", "editWebSeed"])
+def test_edit_webseeds(new_torrent, edit_webseed_func):
+    assert new_torrent.webseeds == WebSeedsList([])
+    new_torrent.add_webseeds(urls="http://example/asdf")
+    new_torrent.edit_webseed(
+        orig_url="http://example/asdf", new_url="http://example/vbnm"
+    )
+    assert new_torrent.webseeds[0].url == "http://example/vbnm"
+
+
+@pytest.mark.skipif_before_api_version("2.11.3")
+@pytest.mark.parametrize("remove_webseeds_func", ["remove_webseeds", "removeWebSeeds"])
+@pytest.mark.parametrize(
+    "webseeds",
+    [
+        "http://example/webseedone",
+        ["http://example/webseedone", "http://example/webseedtwo"],
+    ],
+)
+def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
+    assert new_torrent.webseeds == WebSeedsList([])
+    new_torrent.add_webseeds(
+        urls=[
+            "http://example/webseedone",
+            "http://example/webseedtwo",
+            "http://example/webseedthree",
+        ]
+    )
+    new_torrent.func(remove_webseeds_func)(urls=webseeds)
+    for webseed in webseeds if isinstance(webseeds, list) else [webseeds]:
+        assert webseed not in {w.url for w in new_torrent.webseeds}
+
+
 def test_files(orig_torrent):
     assert isinstance(orig_torrent.files, TorrentFilesList)
     assert "id" in orig_torrent.files[0]
