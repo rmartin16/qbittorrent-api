@@ -369,6 +369,128 @@ def test_webseeds_slice(client, orig_torrent, webseeds_func):
     assert isinstance(web_seeds[1:2], WebSeedsList)
 
 
+@pytest.mark.skipif_before_api_version("2.11.3")
+@pytest.mark.parametrize(
+    "add_webseeds_func",
+    [
+        "torrents_add_webseeds",
+        "torrents_addWebSeeds",
+        "torrents.add_webseeds",
+        "torrents.addWebSeeds",
+    ],
+)
+@pytest.mark.parametrize(
+    "webseeds",
+    [
+        "http://example/webseedone",
+        ["http://example/webseedone", "http://example/webseedtwo"],
+    ],
+)
+def test_add_webseeds(client, new_torrent, add_webseeds_func, webseeds):
+    assert new_torrent.webseeds == WebSeedsList([])
+    client.func(add_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
+    assert sorted([w.url for w in new_torrent.webseeds]) == (
+        webseeds if isinstance(webseeds, list) else [webseeds]
+    )
+
+
+@pytest.mark.skipif_after_api_version("2.11.3")
+@pytest.mark.parametrize(
+    "add_webseeds_func",
+    [
+        "torrents_add_webseeds",
+        "torrents_addWebSeeds",
+        "torrents.add_webseeds",
+        "torrents.addWebSeeds",
+    ],
+)
+def test_add_webseeds_not_implemented(client, orig_torrent, add_webseeds_func):
+    with pytest.raises(NotImplementedError):
+        client.func(add_webseeds_func)()
+
+
+@pytest.mark.skipif_before_api_version("2.11.3")
+@pytest.mark.parametrize(
+    "edit_webseed_func",
+    [
+        "torrents_edit_webseed",
+        "torrents_editWebSeed",
+        "torrents.edit_webseed",
+        "torrents.editWebSeed",
+    ],
+)
+def test_edit_webseeds(client, new_torrent, edit_webseed_func):
+    assert new_torrent.webseeds == WebSeedsList([])
+    new_torrent.add_webseeds(urls="http://example/asdf")
+    client.func(edit_webseed_func)(
+        torrent_hash=new_torrent.hash,
+        orig_url="http://example/asdf",
+        new_url="http://example/qwer",
+    )
+    assert new_torrent.webseeds[0].url == "http://example/qwer"
+
+
+@pytest.mark.skipif_after_api_version("2.11.3")
+@pytest.mark.parametrize(
+    "edit_webseed_func",
+    [
+        "torrents_edit_webseed",
+        "torrents_editWebSeed",
+        "torrents.edit_webseed",
+        "torrents.editWebSeed",
+    ],
+)
+def test_edit_webseed_not_implemented(client, orig_torrent, edit_webseed_func):
+    with pytest.raises(NotImplementedError):
+        client.func(edit_webseed_func)()
+
+
+@pytest.mark.skipif_before_api_version("2.11.3")
+@pytest.mark.parametrize(
+    "remove_webseeds_func",
+    [
+        "torrents_remove_webseeds",
+        "torrents_removeWebSeeds",
+        "torrents.remove_webseeds",
+        "torrents.removeWebSeeds",
+    ],
+)
+@pytest.mark.parametrize(
+    "webseeds",
+    [
+        "http://example/webseedone",
+        ["http://example/webseedone", "http://example/webseedtwo"],
+    ],
+)
+def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
+    assert new_torrent.webseeds == WebSeedsList([])
+    new_torrent.add_webseeds(
+        urls=[
+            "http://example/webseedone",
+            "http://example/webseedtwo",
+            "http://example/webseedthree",
+        ]
+    )
+    client.func(remove_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
+    for webseed in webseeds if isinstance(webseeds, list) else [webseeds]:
+        assert webseed not in {w.url for w in new_torrent.webseeds}
+
+
+@pytest.mark.skipif_after_api_version("2.11.3")
+@pytest.mark.parametrize(
+    "remove_webseeds_func",
+    [
+        "torrents_remove_webseeds",
+        "torrents_removeWebSeeds",
+        "torrents.remove_webseeds",
+        "torrents.removeWebSeeds",
+    ],
+)
+def test_remove_webseeds_not_implemented(client, orig_torrent, remove_webseeds_func):
+    with pytest.raises(NotImplementedError):
+        client.func(remove_webseeds_func)()
+
+
 @pytest.mark.parametrize("files_func", ["torrents_files", "torrents.files"])
 def test_files(client, orig_torrent, files_func):
     files = client.func(files_func)(torrent_hash=orig_torrent.hash)

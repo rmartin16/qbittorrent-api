@@ -541,8 +541,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         """
         Retrieve individual torrent's web seeds.
 
-        :raises NotFound404Error:
-
+        :raises NotFound404Error: torrent not found
         :param torrent_hash: hash for torrent
         """
         data = {"hash": torrent_hash}
@@ -553,6 +552,94 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             response_class=WebSeedsList,
             **kwargs,
         )
+
+    def torrents_add_webseeds(
+        self,
+        torrent_hash: str | None = None,
+        urls: str | Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Add webseeds to a torrent.
+
+        :raises NotFound404Error: torrent not found
+        :raises InvalidRequest400Error: invalid URL
+        :param torrent_hash: hash for torrent
+        :param urls: list of webseed URLs to add to torrent
+        """
+        data = {
+            "hash": torrent_hash,
+            "urls": self._list2string(urls, "|"),
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="addWebSeeds",
+            data=data,
+            version_introduced="2.11.3",
+            **kwargs,
+        )
+
+    torrents_addWebSeeds = torrents_add_webseeds
+
+    def torrents_edit_webseed(
+        self,
+        torrent_hash: str | None = None,
+        orig_url: str | None = None,
+        new_url: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Edit a webseed for a torrent.
+
+        :raises NotFound404Error: torrent not found
+        :raises Conflict409Error: ``orig_url`` is not a webseed for the torrent
+        :raises InvalidRequest400Error: invalid URL
+        :param torrent_hash: hash for torrent
+        :param orig_url: webseed URL to be replaced
+        :param new_url: webseed URL to replace with
+        """
+        data = {
+            "hash": torrent_hash,
+            "origUrl": orig_url,
+            "newUrl": new_url,
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="editWebSeed",
+            data=data,
+            version_introduced="2.11.3",
+            **kwargs,
+        )
+
+    torrents_editWebSeed = torrents_edit_webseed
+
+    def torrents_remove_webseeds(
+        self,
+        torrent_hash: str | None = None,
+        urls: str | Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Remove webseeds from a torrent.
+
+        :raises NotFound404Error:
+        :raises InvalidRequest400Error: invalid URL
+        :param torrent_hash: hash for torrent
+        :param urls: list of webseed URLs to add to torrent
+        """
+        data = {
+            "hash": torrent_hash,
+            "urls": self._list2string(urls, "|"),
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="removeWebSeeds",
+            data=data,
+            version_introduced="2.11.3",
+            **kwargs,
+        )
+
+    torrents_removeWebSeeds = torrents_remove_webseeds
 
     def torrents_files(
         self,
@@ -2140,6 +2227,50 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
         """Implements :meth:`~TorrentsAPIMixIn.torrents_webseeds`."""
         return self._client.torrents_webseeds(torrent_hash=self._torrent_hash)
 
+    def add_webseeds(
+        self,
+        urls: str | Iterable[str] | None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_add_webseeds`."""
+        self._client.torrents_add_webseeds(
+            torrent_hash=self._torrent_hash,
+            urls=urls,
+            **kwargs,
+        )
+
+    addWebSeeds = add_webseeds
+
+    def edit_webseed(
+        self,
+        orig_url: str | None = None,
+        new_url: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_edit_webseed`."""
+        self._client.torrents_edit_webseed(
+            torrent_hash=self._torrent_hash,
+            orig_url=orig_url,
+            new_url=new_url,
+            **kwargs,
+        )
+
+    editWebSeed = edit_webseed
+
+    def remove_webseeds(
+        self,
+        urls: str | Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_remove_webseeds`."""
+        self._client.torrents_remove_webseeds(
+            torrent_hash=self._torrent_hash,
+            urls=urls,
+            **kwargs,
+        )
+
+    removeWebSeeds = remove_webseeds
+
     @property
     def files(self) -> TorrentFilesList:
         """Implements :meth:`~TorrentsAPIMixIn.torrents_files`."""
@@ -2906,6 +3037,53 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
     ) -> WebSeedsList:
         """Implements :meth:`~TorrentsAPIMixIn.torrents_webseeds`."""
         return self._client.torrents_webseeds(torrent_hash=torrent_hash, **kwargs)
+
+    def add_webseeds(
+        self,
+        torrent_hash: str | None = None,
+        urls: str | Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_add_webseeds`."""
+        return self._client.torrents_add_webseeds(
+            torrent_hash=torrent_hash,
+            urls=urls,
+            **kwargs,
+        )
+
+    addWebSeeds = add_webseeds
+
+    def edit_webseed(
+        self,
+        torrent_hash: str | None = None,
+        orig_url: str | None = None,
+        new_url: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_edit_webseed`."""
+        return self._client.torrents_edit_webseed(
+            torrent_hash=torrent_hash,
+            orig_url=orig_url,
+            new_url=new_url,
+            **kwargs,
+        )
+
+    editWebSeed = edit_webseed
+
+    def remove_webseeds(
+        self,
+        torrent_hash: str | None = None,
+        urls: str | Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_remove_webseeds`."""
+        return self._client.torrents_remove_webseeds(
+            torrent_hash=torrent_hash,
+            urls=urls,
+            **kwargs,
+        )
+
+    removeWebSeeds = remove_webseeds
 
     def files(
         self,
