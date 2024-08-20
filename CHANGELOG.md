@@ -1,5 +1,12 @@
 Change Log
 ==========
+### v2024.8.65 (19 Aug 2024)
+- Advertise support for qBittorrent v4.6.6 and 5.0.0rc1 (#482)
+- Add support for WebSeed modification endpoints (#481)
+  - ``torrents/addWebSeeds``
+  - ``torrents/editWebSeed``
+  - ``torrents/removeWebSeeds``
+
 ### v2024.7.64 (18 Jul 2024)
 - Resolve errors from type checkers for ``functools.wraps`` usage (#472)
 - Included changes for upcoming qBittorrent v5.0.0 release:
