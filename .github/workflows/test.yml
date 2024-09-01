@@ -86,6 +86,7 @@ jobs:
         with:
           name: coverage-data-${{ inputs.python-version }}-${{ inputs.qbittorrent-version }}
           path: ./.coverage.*
+          include-hidden-files: true
 
       - name: Send mail
         if: failure() && github.event_name != 'pull_request'
