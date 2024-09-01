@@ -1,6 +1,7 @@
 import sys
 
 import pytest
+
 from qbittorrentapi import APINames
 from qbittorrentapi._attrdict import AttrDict
 from qbittorrentapi.app import (
@@ -9,7 +10,6 @@ from qbittorrentapi.app import (
     NetworkInterfaceAddressList,
     NetworkInterfaceList,
 )
-
 from tests.conftest import IS_QBT_DEV
 
 

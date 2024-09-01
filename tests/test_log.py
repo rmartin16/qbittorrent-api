@@ -1,6 +1,7 @@
 import sys
 
 import pytest
+
 from qbittorrentapi.definitions import APINames
 from qbittorrentapi.log import LogMainList, LogPeersList
 

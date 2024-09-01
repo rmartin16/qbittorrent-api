@@ -5,6 +5,7 @@ from time import sleep
 
 import pytest
 import requests
+
 from qbittorrentapi import APINames
 from qbittorrentapi._version_support import v
 from qbittorrentapi.exceptions import (
@@ -27,7 +28,6 @@ from qbittorrentapi.torrents import (
     TrackersList,
     WebSeedsList,
 )
-
 from tests.conftest import (
     ROOT_FOLDER_TORRENT_FILE,
     ROOT_FOLDER_TORRENT_HASH,

@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 
 import pytest
+
 from qbittorrentapi import APINames
 from qbittorrentapi.exceptions import NotFound404Error
 from qbittorrentapi.torrentcreator import (
@@ -10,7 +11,6 @@ from qbittorrentapi.torrentcreator import (
     TorrentCreatorTaskStatus,
     TorrentCreatorTaskStatusList,
 )
-
 from tests.utils import check
 
 

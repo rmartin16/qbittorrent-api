@@ -1,6 +1,7 @@
 import sys
 
 import pytest
+
 from qbittorrentapi import APINames, Client
 from qbittorrentapi.exceptions import APIConnectionError
 
