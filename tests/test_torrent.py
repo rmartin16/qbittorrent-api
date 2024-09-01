@@ -4,6 +4,7 @@ from types import MethodType
 from unittest.mock import MagicMock
 
 import pytest
+
 from qbittorrentapi import (
     APINames,
     Conflict409Error,
@@ -16,7 +17,6 @@ from qbittorrentapi import (
     WebSeedsList,
 )
 from qbittorrentapi._version_support import v
-
 from tests.test_torrents import disable_queueing, enable_queueing
 from tests.utils import check, mkpath, retry
 

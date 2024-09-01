@@ -1,6 +1,7 @@
 import sys
 
 import pytest
+
 from qbittorrentapi import APINames
 from qbittorrentapi.sync import SyncMainDataDictionary, SyncTorrentPeersDictionary
 

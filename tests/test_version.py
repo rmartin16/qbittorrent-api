@@ -1,6 +1,6 @@
 import pytest
-from qbittorrentapi import Version
 
+from qbittorrentapi import Version
 from tests.conftest import IS_QBT_DEV, api_version_map
 
 

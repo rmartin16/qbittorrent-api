@@ -1,6 +1,7 @@
 import sys
 
 import pytest
+
 from qbittorrentapi import APINames, NotFound404Error
 from qbittorrentapi.search import (
     SearchCategoriesList,
@@ -9,7 +10,6 @@ from qbittorrentapi.search import (
     SearchResultsDictionary,
     SearchStatusesList,
 )
-
 from tests.conftest import TORRENT2_HASH, TORRENT2_URL
 from tests.utils import check, retry
 

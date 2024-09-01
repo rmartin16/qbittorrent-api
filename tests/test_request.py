@@ -4,14 +4,14 @@ from os import environ
 from unittest.mock import MagicMock, PropertyMock
 
 import pytest
+from requests import Response
+from requests.adapters import DEFAULT_POOLBLOCK, DEFAULT_POOLSIZE
+
 from qbittorrentapi import APINames, Client, exceptions
 from qbittorrentapi._version_support import v
 from qbittorrentapi.definitions import Dictionary, List
 from qbittorrentapi.request import Request
 from qbittorrentapi.torrents import TorrentDictionary, TorrentInfoList
-from requests import Response
-from requests.adapters import DEFAULT_POOLBLOCK, DEFAULT_POOLSIZE
-
 from tests.conftest import IS_QBT_DEV
 from tests.utils import mkpath
 

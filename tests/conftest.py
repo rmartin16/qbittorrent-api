@@ -8,12 +8,12 @@ from time import sleep
 from unittest.mock import MagicMock
 
 import pytest
+
 from qbittorrentapi import APIConnectionError, Client
 from qbittorrentapi._version_support import (
     APP_VERSION_2_API_VERSION_MAP as api_version_map,
 )
 from qbittorrentapi._version_support import v
-
 from tests.utils import (
     CHECK_SLEEP,
     add_torrent,
