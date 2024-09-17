@@ -1,5 +1,8 @@
 Change Log
 ==========
+### v2024.9.66 (16 Sept 2024)
+- Advertise support for qBittorrent v4.6.7
+
 ### v2024.8.65 (19 Aug 2024)
 - Advertise support for qBittorrent v4.6.6 and 5.0.0rc1 (#482)
 - Add support for WebSeed modification endpoints (#481)
