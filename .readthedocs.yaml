@@ -5,31 +5,29 @@
 version: 2
 
 build:
-  os: ubuntu-22.04
+  os: ubuntu-24.04
   tools:
     python: "3.12"
   jobs:
     post_checkout:
-      # RTD defaults to a depth of 50 but Briefcase versioning may require
-      # much more git history to accurately determine the SCM version
+      # RTD defaults to a depth of 50 but qbittorrent-api versioning may require
+      # much more Git history to accurately determine the SCM version
       - git fetch --unshallow
     pre_build:
       - tox -e docs-lint
 
-# Build documentation in the docs/ directory with Sphinx
 sphinx:
   builder: html
   configuration: docs/source/conf.py
   fail_on_warning: true
 
-# Also build the docs in to a PDF
 formats:
   - pdf
 
-# Declare the Python requirements required to build your docs
 python:
   install:
   - method: pip
     path: .
     extra_requirements:
       - dev
+      - docs
