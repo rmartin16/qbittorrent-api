@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from json import dumps
 from logging import Logger, getLogger
-from typing import Any, AnyStr, Iterable, Mapping, Union
+from typing import Any, AnyStr, Iterable, Mapping, Sequence, Union
 
 from qbittorrentapi.auth import AuthAPIMixIn
 from qbittorrentapi.definitions import (
@@ -34,6 +34,17 @@ class BuildInfoDictionary(Dictionary[Union[str, int]]):
 
     Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-build-info>`_
     """  # noqa: E501
+
+
+class Cookie(ListEntry):
+    """Item in :class:`CookieList`"""
+
+
+class CookieList(List[Cookie]):
+    """Response for :meth:`~AppAPIMixIn.app_cookies`"""
+
+    def __init__(self, list_entries: ListInputT, client: AppAPIMixIn | None = None):
+        super().__init__(list_entries, entry_class=Cookie)
 
 
 class NetworkInterface(ListEntry):
@@ -139,7 +150,7 @@ class AppAPIMixIn(AuthAPIMixIn):
 
     def app_set_preferences(
         self,
-        prefs: Mapping[str, Any] | None = None,
+        prefs: ApplicationPreferencesDictionary | Mapping[str, Any] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -167,6 +178,53 @@ class AppAPIMixIn(AuthAPIMixIn):
         )
 
     app_defaultSavePath = app_default_save_path
+
+    def app_cookies(self, **kwargs: APIKwargsT) -> CookieList:
+        """Retrieve current cookies."""
+        return self._get_cast(
+            _name=APINames.Application,
+            _method="cookies",
+            response_class=CookieList,
+            version_introduced="2.11.3",
+            **kwargs,
+        )
+
+    def app_set_cookies(
+        self,
+        cookies: CookieList | Sequence[Mapping[str, str | int]] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Set cookies.
+
+        .. highlight:: python
+        .. code-block:: python
+
+            cookies = [
+                {
+                    'domain': 'example.com',
+                    'path': '/example/path',
+                    'name': 'cookie name',
+                    'value': 'cookie value',
+                    'expirationDate': 1729366667,
+                },
+            ]
+
+        :param cookies: list of cookies to set
+        """
+        data = {
+            # coerce to types that are known to be JSON serializable
+            "cookies": dumps(list(map(dict, cookies or ())), separators=(",", ":")),
+        }
+        self._post(
+            _name=APINames.Application,
+            _method="setCookies",
+            data=data,
+            version_introduced="2.11.3",
+            **kwargs,
+        )
+
+    app_setCookies = app_set_cookies
 
     def app_network_interface_list(self, **kwargs: APIKwargsT) -> NetworkInterfaceList:
         """
@@ -316,6 +374,21 @@ class Application(ClientCache[AppAPIMixIn]):
         return self._client.app_default_save_path()
 
     defaultSavePath = default_save_path
+
+    @property
+    def cookies(self) -> CookieList:
+        """Implements :meth:`~AppAPIMixIn.app_cookies`."""
+        return self._client.app_cookies()
+
+    def set_cookies(
+        self,
+        cookies: CookieList | Sequence[Mapping[str, str | int]] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """Implements :meth:`~AppAPIMixIn.app_set_cookies`."""
+        self._client.app_set_cookies(cookies=cookies, **kwargs)
+
+    setCookies = set_cookies
 
     @property
     def network_interface_list(self) -> NetworkInterfaceList:
