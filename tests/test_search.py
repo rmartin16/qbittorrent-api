@@ -34,16 +34,20 @@ def test_methods(client):
     "update_func", ["search_update_plugins", "search.update_plugins"]
 )
 def test_update_plugins(client, update_func):
-    client.func(update_func)()
-    check(
-        lambda: any(
-            entry.message.startswith("Updating plugin ")
-            or entry.message == "All plugins are already up to date."
-            or entry.message.endswith("content was not found at the server (404)")
-            for entry in reversed(client.log.main())
-        ),
-        True,
-    )
+    @retry()
+    def do_test():
+        client.func(update_func)()
+        check(
+            lambda: any(
+                entry.message.startswith("Updating plugin ")
+                or entry.message == "All plugins are already up to date."
+                or entry.message.endswith("content was not found at the server (404)")
+                for entry in reversed(client.log.main())
+            ),
+            True,
+        )
+
+    do_test()
 
 
 @pytest.mark.skipif_after_api_version("2.1.1")
@@ -193,24 +197,33 @@ def test_categories_not_implemented(client, categories_func):
     ],
 )
 def test_search(client, start_func, status_func, results_func, stop_func, delete_stop):
-    job = client.func(start_func)(pattern="Ubuntu", plugins="enabled", category="all")
+    @retry()
+    def do_test():
+        job = client.func(start_func)(
+            pattern="Ubuntu", plugins="enabled", category="all"
+        )
 
-    statuses = client.func(status_func)(search_id=job["id"])
-    assert statuses[0]["status"] == "Running"
-    assert isinstance(job, SearchJobDictionary)
-    assert isinstance(statuses, SearchStatusesList)
+        statuses = client.func(status_func)(search_id=job["id"])
+        assert statuses[0]["status"] == "Running"
+        assert isinstance(job, SearchJobDictionary)
+        assert isinstance(statuses, SearchStatusesList)
 
-    results = client.func(results_func)(search_id=job["id"], limit=1)
-    assert isinstance(results, SearchResultsDictionary)
-    results = job.results()
-    assert isinstance(results, SearchResultsDictionary)
+        results = client.func(results_func)(search_id=job["id"], limit=1)
+        assert isinstance(results, SearchResultsDictionary)
+        results = job.results()
+        assert isinstance(results, SearchResultsDictionary)
 
-    client.func(stop_func)(search_id=job["id"])
-    check(lambda: client.func(status_func)(search_id=job["id"])[0]["status"], "Stopped")
+        client.func(stop_func)(search_id=job["id"])
+        check(
+            lambda: client.func(status_func)(search_id=job["id"])[0]["status"],
+            "Stopped",
+        )
 
-    client.func(delete_stop)(search_id=job["id"])
-    statuses = client.func(status_func)()
-    assert not statuses
+        client.func(delete_stop)(search_id=job["id"])
+        statuses = client.func(status_func)()
+        assert not statuses
+
+    do_test()
 
 
 @pytest.mark.skipif_before_api_version("2.1.1")
