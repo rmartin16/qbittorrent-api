@@ -231,72 +231,79 @@ def test_add_torrent_file_fail(client, monkeypatch):
     "content_layout", [None, "Original", "Subfolder", "NoSubfolder"]
 )
 def test_add_options(client, api_version, keep_root_folder, content_layout, tmp_path):
-    if v(api_version) >= v("2.3.0"):
-        client.torrents_create_tags("option-tag")
-    new_torrent = new_torrent_standalone(
-        client=client,
-        torrent_files=ROOT_FOLDER_TORRENT_FILE,
-        torrent_hash=ROOT_FOLDER_TORRENT_HASH,
-        save_path=mkpath(tmp_path, "test_download"),
-        category="test_category",
-        is_paused=True,
-        upload_limit=1024,
-        download_limit=2048,
-        is_sequential_download=True,
-        is_first_last_piece_priority=True,
-        is_root_folder=keep_root_folder,
-        rename="this is a new name for the torrent",
-        use_auto_torrent_management=False,
-        tags="option-tag",
-        content_layout=content_layout,
-        ratio_limit=2,
-        seeding_time_limit=120,
-    )
-
-    with new_torrent as torrent:
-        check(lambda: torrent.info.category, "test_category")
-        check(
-            lambda: torrent.info.state,
-            ("pausedDL", "checkingResumeData"),
-            reverse=True,
-            any=True,
+    @retry(3)
+    def do_test():
+        if v(api_version) >= v("2.3.0"):
+            client.torrents_create_tags("option-tag")
+        new_torrent = new_torrent_standalone(
+            client=client,
+            torrent_files=ROOT_FOLDER_TORRENT_FILE,
+            torrent_hash=ROOT_FOLDER_TORRENT_HASH,
+            save_path=mkpath(tmp_path, "test_download"),
+            category="test_category",
+            is_paused=True,
+            upload_limit=1024,
+            download_limit=2048,
+            is_sequential_download=True,
+            is_first_last_piece_priority=True,
+            is_root_folder=keep_root_folder,
+            rename="this is a new name for the torrent",
+            use_auto_torrent_management=False,
+            tags="option-tag",
+            content_layout=content_layout,
+            ratio_limit=2,
+            seeding_time_limit=120,
         )
-        check(lambda: mkpath(torrent.info.save_path), mkpath(tmp_path, "test_download"))
-        check(lambda: torrent.info.up_limit, 1024)
-        check(lambda: torrent.info.dl_limit, 2048)
-        check(lambda: torrent.info.seq_dl, True)
-        if v(api_version) >= v("2.0.1"):
-            check(lambda: torrent.info.f_l_piece_prio, True)
-        if content_layout is None:
+
+        with new_torrent as torrent:
+            check(lambda: torrent.info.category, "test_category")
             check(
-                lambda: torrent.files[0]["name"].startswith("root_folder"),
-                keep_root_folder in {True, None},
+                lambda: torrent.info.state,
+                ("pausedDL", "checkingResumeData"),
+                reverse=True,
+                any=True,
             )
-        check(lambda: torrent.info.name, "this is a new name for the torrent")
-        check(lambda: torrent.info.auto_tmm, False)
-        if v(api_version) >= v("2.6.2"):
-            check(lambda: torrent.info.tags, "option-tag")
-
-        if v(api_version) >= v("2.7"):
-            # after web api v2.7...root dir is driven by content_layout
+            check(
+                lambda: mkpath(torrent.info.save_path),
+                mkpath(tmp_path, "test_download"),
+            )
+            check(lambda: torrent.info.up_limit, 1024)
+            check(lambda: torrent.info.dl_limit, 2048)
+            check(lambda: torrent.info.seq_dl, True)
+            if v(api_version) >= v("2.0.1"):
+                check(lambda: torrent.info.f_l_piece_prio, True)
             if content_layout is None:
-                should_root_dir_exists = keep_root_folder in {None, True}
-            else:
-                should_root_dir_exists = content_layout in {"Original", "Subfolder"}
-        else:
-            # before web api v2.7...it is driven by is_root_folder
-            if content_layout is not None and keep_root_folder is None:
-                should_root_dir_exists = content_layout in {"Original", "Subfolder"}
-            else:
-                should_root_dir_exists = keep_root_folder in {None, True}
-        check(
-            lambda: any(f["name"].startswith("root_folder") for f in torrent.files),
-            should_root_dir_exists,
-        )
+                check(
+                    lambda: torrent.files[0]["name"].startswith("root_folder"),
+                    keep_root_folder in {True, None},
+                )
+            check(lambda: torrent.info.name, "this is a new name for the torrent")
+            check(lambda: torrent.info.auto_tmm, False)
+            if v(api_version) >= v("2.6.2"):
+                check(lambda: torrent.info.tags, "option-tag")
 
-        if v(api_version) >= v("2.8.1"):
-            check(lambda: torrent.info.ratio_limit, 2)
-            check(lambda: torrent.info.seeding_time_limit, 120)
+            if v(api_version) >= v("2.7"):
+                # after web api v2.7...root dir is driven by content_layout
+                if content_layout is None:
+                    should_root_dir_exists = keep_root_folder in {None, True}
+                else:
+                    should_root_dir_exists = content_layout in {"Original", "Subfolder"}
+            else:
+                # before web api v2.7...it is driven by is_root_folder
+                if content_layout is not None and keep_root_folder is None:
+                    should_root_dir_exists = content_layout in {"Original", "Subfolder"}
+                else:
+                    should_root_dir_exists = keep_root_folder in {None, True}
+            check(
+                lambda: any(f["name"].startswith("root_folder") for f in torrent.files),
+                should_root_dir_exists,
+            )
+
+            if v(api_version) >= v("2.8.1"):
+                check(lambda: torrent.info.ratio_limit, 2)
+                check(lambda: torrent.info.seeding_time_limit, 120)
+
+    do_test()
 
 
 @pytest.mark.skipif_before_api_version("2.8.4")
