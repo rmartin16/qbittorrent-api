@@ -1,6 +1,13 @@
 Change Log
 ==========
-### v2024.9.67 (30 Sept 2024)
+### v2024.10.68 (28 oct 2024)
+- Advertise support for qBittorrent v5.0.1
+- Add support for managing cookies (#492)
+  - ``app/cookies``
+  - ``app/setCookies``
+  - Note: these endpoints are scheduled for release in qBittorrent v5.1.0
+
+### v2024.9.67 (30 sept 2024)
 - Advertise support for qBittorrent v5.0.0
 - Features previously added for v5.0.0 release:
   - Rename resume/pause actions for torrents to start/stop (#434)
@@ -11,17 +18,17 @@ Change Log
   - Added support for ``private`` argument for ``torrents/info`` (#464)
   - Add support for WebSeed modification endpoints (#481)
 
-### v2024.9.66 (16 Sept 2024)
+### v2024.9.66 (16 sept 2024)
 - Advertise support for qBittorrent v4.6.7
 
-### v2024.8.65 (19 Aug 2024)
+### v2024.8.65 (19 aug 2024)
 - Advertise support for qBittorrent v4.6.6 and 5.0.0rc1 (#482)
 - Add support for WebSeed modification endpoints (#481)
   - ``torrents/addWebSeeds``
   - ``torrents/editWebSeed``
   - ``torrents/removeWebSeeds``
 
-### v2024.7.64 (18 Jul 2024)
+### v2024.7.64 (18 jul 2024)
 - Resolve errors from type checkers for ``functools.wraps`` usage (#472)
 - Included changes for upcoming qBittorrent v5.0.0 release:
   - Added support for ``private`` argument for ``torrents/info`` (#464)
