@@ -10,16 +10,17 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
-  - repo: https://github.com/PyCQA/docformatter
-    rev: v1.7.5
-    hooks:
-      - id: docformatter
-        exclude: _attrdict.py
-        args:
-          - --in-place
-          - --pre-summary-newline
-          - --black
-          - --non-cap=qBittorrent
+  # need a post v1.7.5 release for latest pre-commit
+  #- repo: https://github.com/PyCQA/docformatter
+  #  rev: v1.7.5
+  #  hooks:
+  #    - id: docformatter
+  #      exclude: _attrdict.py
+  #      args:
+  #        - --in-place
+  #        - --pre-summary-newline
+  #        - --black
+  #        - --non-cap=qBittorrent
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     rev: v0.6.8
