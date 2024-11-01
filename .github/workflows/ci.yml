@@ -56,6 +56,7 @@ jobs:
         uses: actions/setup-python@v5.2.0
         with:
           python-version: ${{ env.LATEST_PYTHON_VER }}
+          allow-prereleases: true
           cache: pip
           check-latest: true
           cache-dependency-path: ${{ github.workspace }}/pyproject.toml
@@ -130,7 +131,7 @@ jobs:
     needs: [ verify, package ]
     strategy:
       matrix:
-        PYTHON_VER: [ 3.13-dev, 3.12, 3.11, "3.10", pypy3.10, 3.9, 3.8 ]
+        PYTHON_VER: [ "3.14", "3.13", "3.12", "3.11", "3.10", "pypy3.10", "3.9" ]
     uses: ./.github/workflows/test.yml
     secrets: inherit
     with:
@@ -207,6 +208,7 @@ jobs:
         uses: actions/setup-python@v5.2.0
         with:
           python-version: ${{ env.LATEST_PYTHON_VER }}
+          allow-prereleases: true
           cache: pip
           cache-dependency-path: ${{ github.workspace }}/setup.cfg
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from functools import lru_cache
+from functools import cache
 from typing import Final, Literal
 
 import packaging.version
@@ -71,7 +71,7 @@ MOST_RECENT_SUPPORTED_APP_VERSION: Final[Literal["v5.0.1"]] = "v5.0.1"
 MOST_RECENT_SUPPORTED_API_VERSION: Final[Literal["2.11.2"]] = "2.11.2"
 
 
-@lru_cache(maxsize=None)
+@cache
 def v(version: str) -> packaging.version.Version:
     """Caching version parser."""
     return packaging.version.Version(version)

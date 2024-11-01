@@ -637,8 +637,9 @@ def test_request_retry_success(monkeypatch, caplog):
     client.auth_log_in()
     with monkeypatch.context() as m:
         m.setattr(client, "_request", request500)
-        with caplog.at_level(logging.DEBUG, logger="qbittorrentapi"), pytest.raises(
-            exceptions.HTTP500Error
+        with (
+            caplog.at_level(logging.DEBUG, logger="qbittorrentapi"),
+            pytest.raises(exceptions.HTTP500Error),
         ):
             client.app_version()
         assert "Retry attempt" in caplog.text
@@ -647,8 +648,9 @@ def test_request_retry_success(monkeypatch, caplog):
 def test_request_retry_skip(caplog):
     client = Client(VERIFY_WEBUI_CERTIFICATE=False)
     client.auth_log_in()
-    with caplog.at_level(logging.DEBUG, logger="qbittorrentapi"), pytest.raises(
-        exceptions.MissingRequiredParameters400Error
+    with (
+        caplog.at_level(logging.DEBUG, logger="qbittorrentapi"),
+        pytest.raises(exceptions.MissingRequiredParameters400Error),
     ):
         client.torrents_rename()
     assert "Retry attempt" not in caplog.text
@@ -656,8 +658,9 @@ def test_request_retry_skip(caplog):
 
 def test_verbose_logging(caplog):
     client = Client(VERBOSE_RESPONSE_LOGGING=True, VERIFY_WEBUI_CERTIFICATE=False)
-    with caplog.at_level(logging.DEBUG, logger="qbittorrentapi"), pytest.raises(
-        exceptions.NotFound404Error
+    with (
+        caplog.at_level(logging.DEBUG, logger="qbittorrentapi"),
+        pytest.raises(exceptions.NotFound404Error),
     ):
         client.torrents_rename(torrent_hash="asdf", new_torrent_name="erty")
     assert "Response status" in caplog.text

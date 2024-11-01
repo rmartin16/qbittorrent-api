@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from json import loads
 from logging import Logger, NullHandler, getLogger
 from os import environ
 from time import sleep
-from typing import TYPE_CHECKING, Any, Literal, Mapping, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
 from urllib.parse import ParseResult, urljoin, urlparse
 
 from requests import Response, Session
