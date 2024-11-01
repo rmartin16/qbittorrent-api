@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import errno
+from collections.abc import Iterable, Mapping, MutableMapping
 from logging import Logger, getLogger
 from os import path
 from os import strerror as os_strerror
@@ -8,10 +9,7 @@ from typing import (
     IO,
     Any,
     Callable,
-    Iterable,
     Literal,
-    Mapping,
-    MutableMapping,
     TypeVar,
     Union,
     cast,

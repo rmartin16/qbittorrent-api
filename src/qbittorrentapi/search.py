@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Iterable, Mapping, cast
+from collections.abc import Iterable, Mapping
+from typing import cast
 
 from qbittorrentapi.app import AppAPIMixIn
 from qbittorrentapi.definitions import (

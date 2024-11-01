@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from json import dumps
-from typing import Mapping
 
 from qbittorrentapi.app import AppAPIMixIn
 from qbittorrentapi.definitions import (

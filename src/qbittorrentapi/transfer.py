@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
 from qbittorrentapi._version_support import v
 from qbittorrentapi.app import AppAPIMixIn

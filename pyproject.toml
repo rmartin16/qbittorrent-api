@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qbittorrent-api"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 description = "Python client for qBittorrent v4.1+ Web API."
 authors = [{name = "Russell Martin"}]
 maintainers = [{name = "Russell Martin"}]
@@ -16,12 +16,12 @@ classifiers = [
     "Operating System :: OS Independent",
     "Environment :: Console",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Utilities",
@@ -40,8 +40,7 @@ dev = [
     "coverage[toml] ==7.6.4",
     "furo ==2024.8.6",
     "mypy ==1.13.0",
-    "pre-commit <3.6.0 ; python_version < '3.9'",
-    "pre-commit ==4.0.1 ; python_version >= '3.9'",
+    "pre-commit ==4.0.1",
     "pytest ==8.3.3",
     "tox ==4.23.2",
     "twine ==5.1.1",
@@ -70,7 +69,7 @@ readme = {file = ["README.md", "CHANGELOG.md", "LICENSE"], content-type = "text/
 # section must be present to trigger its use
 
 [tool.ruff]
-target-version = "py38"
+target-version = "py39"
 
 [tool.ruff.lint]
 select = ["C40", "C9", "E", "F", "PLE", "S", "W", "YTT", "I", "UP", "SIM"]

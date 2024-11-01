@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Iterable, Mapping, Sequence
 from json import dumps
 from logging import Logger, getLogger
-from typing import Any, AnyStr, Iterable, Mapping, Sequence, Union
+from typing import Any, AnyStr, Union
 
 from qbittorrentapi.auth import AuthAPIMixIn
 from qbittorrentapi.definitions import (

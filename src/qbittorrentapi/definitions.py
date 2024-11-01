@@ -1,16 +1,12 @@
 from __future__ import annotations
 
-import sys
 from collections import UserList
+from collections.abc import Iterable, Mapping, Sequence
 from enum import Enum
 from typing import (
     TYPE_CHECKING,
     Any,
     Generic,
-    Iterable,
-    Mapping,
-    Sequence,
-    Tuple,
     TypeVar,
     Union,
 )
@@ -42,7 +38,7 @@ ListEntryT = TypeVar("ListEntryT", bound="ListEntry")
 #: Type for List input to API method.
 ListInputT = Iterable[Mapping[str, JsonValueT]]
 #: Type for Files input to API method.
-FilesToSendT = Mapping[str, Union[bytes, Tuple[str, bytes]]]
+FilesToSendT = Mapping[str, Union[bytes, tuple[str, bytes]]]
 
 
 class APINames(str, Enum):
@@ -250,50 +246,25 @@ class Dictionary(AttrDict[V]):
         return data
 
 
-# Python 3.8 does not support UserList as a proper Generic
-if sys.version_info < (3, 9):
+class List(UserList[ListEntryT]):
+    """Base definition for list-like objects returned from qBittorrent."""
 
-    class List(UserList, Generic[ListEntryT]):
-        """Base definition for list-like objects returned from qBittorrent."""
-
-        def __init__(
-            self,
-            list_entries: ListInputT | None = None,
-            entry_class: type[ListEntryT] | None = None,
-            **kwargs: Any,
-        ):
-            super().__init__(
-                [
-                    (
-                        entry_class(data=entry, **kwargs)
-                        if entry_class is not None and isinstance(entry, Mapping)
-                        else entry
-                    )
-                    for entry in list_entries or []
-                ]
-            )
-
-else:
-
-    class List(UserList[ListEntryT]):
-        """Base definition for list-like objects returned from qBittorrent."""
-
-        def __init__(
-            self,
-            list_entries: ListInputT | None = None,
-            entry_class: type[ListEntryT] | None = None,
-            **kwargs: Any,
-        ):
-            super().__init__(
-                [
-                    (
-                        entry_class(data=entry, **kwargs)  # type: ignore[misc]
-                        if entry_class is not None and isinstance(entry, Mapping)
-                        else entry
-                    )
-                    for entry in list_entries or []
-                ]
-            )
+    def __init__(
+        self,
+        list_entries: ListInputT | None = None,
+        entry_class: type[ListEntryT] | None = None,
+        **kwargs: Any,
+    ):
+        super().__init__(
+            [
+                (
+                    entry_class(data=entry, **kwargs)  # type: ignore[misc]
+                    if entry_class is not None and isinstance(entry, Mapping)
+                    else entry
+                )
+                for entry in list_entries or []
+            ]
+        )
 
 
 class ListEntry(Dictionary[JsonValueT]):

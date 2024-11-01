@@ -31,8 +31,9 @@ AttrMap and AttrDefault were removed altogether.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Mapping, MutableMapping, Sequence
 from re import compile as re_compile
-from typing import Any, Dict, Mapping, MutableMapping, Sequence, TypeVar
+from typing import Any, TypeVar
 
 K = TypeVar("K")
 V = TypeVar("V")
@@ -254,7 +255,7 @@ class MutableAttr(Attr[str, V], MutableMapping[str, V], ABC):
             )
 
 
-class AttrDict(Dict[str, V], MutableAttr[V]):
+class AttrDict(dict[str, V], MutableAttr[V]):
     """A dict that implements MutableAttr."""
 
     _sequence_type: type
