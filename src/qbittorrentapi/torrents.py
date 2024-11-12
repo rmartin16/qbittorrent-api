@@ -350,7 +350,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             and is_root_folder is not None
             and api_version >= v("2.7")
         ):
-            content_layout = "Original" if is_root_folder else "NoSubfolder"  # type: ignore[assignment]
+            content_layout = "Original" if is_root_folder else "NoSubfolder"
             is_root_folder = None
         elif (
             content_layout is not None
