@@ -257,7 +257,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         is_sequential_download: bool | None = None,
         is_first_last_piece_priority: bool | None = None,
         tags: str | Iterable[str] | None = None,
-        content_layout: Literal["Original", "Subfolder", "NoSubFolder"] | None = None,
+        content_layout: Literal["Original", "Subfolder", "NoSubfolder"] | None = None,
         ratio_limit: str | float | None = None,
         seeding_time_limit: str | int | None = None,
         download_path: str | None = None,
@@ -350,7 +350,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             and is_root_folder is not None
             and api_version >= v("2.7")
         ):
-            content_layout = "Original" if is_root_folder else "NoSubfolder"  # type: ignore[assignment]
+            content_layout = "Original" if is_root_folder else "NoSubfolder"
             is_root_folder = None
         elif (
             content_layout is not None
@@ -2957,7 +2957,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
         is_sequential_download: bool | None = None,
         is_first_last_piece_priority: bool | None = None,
         tags: str | Iterable[str] | None = None,
-        content_layout: Literal["Original", "Subfolder", "NoSubFolder"] | None = None,
+        content_layout: Literal["Original", "Subfolder", "NoSubfolder"] | None = None,
         ratio_limit: str | float | None = None,
         seeding_time_limit: str | int | None = None,
         download_path: str | None = None,
