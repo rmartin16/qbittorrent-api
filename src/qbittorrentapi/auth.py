@@ -6,9 +6,12 @@ from typing import TYPE_CHECKING
 
 from requests import Response
 
-from qbittorrentapi import Version
+from qbittorrentapi._version_support import Version
 from qbittorrentapi.definitions import APIKwargsT, APINames, ClientCache
-from qbittorrentapi.exceptions import LoginFailed, UnsupportedQbittorrentVersion
+from qbittorrentapi.exceptions import (
+    LoginFailed,
+    UnsupportedQbittorrentVersion,
+)
 from qbittorrentapi.request import Request
 
 if TYPE_CHECKING:
@@ -132,7 +135,11 @@ class AuthAPIMixIn(Request):
 
     def auth_log_out(self, **kwargs: APIKwargsT) -> None:
         """End session with qBittorrent."""
-        self._post(_name=APINames.Authorization, _method="logout", **kwargs)
+        # Originally, if log out failed authentication, the client would re-authenticate
+        # and then log out of that session. With the change to avoid retrying failed
+        # auth calls, only attempt to log out if the current authentication is valid.
+        if self.is_logged_in:
+            self._post(_name=APINames.Authorization, _method="logout", **kwargs)
 
     def __enter__(self) -> Client:
         self.auth_log_in()

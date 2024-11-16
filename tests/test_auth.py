@@ -53,9 +53,8 @@ def test_is_logged_in_bad_client():
         client.auth_log_in()
     assert client.is_logged_in is False
 
-    with pytest.raises(APIConnectionError):
-        client.auth_log_out()
     assert client.is_logged_in is False
+    client.auth_log_out()  # does nothing if not logged in
 
 
 def test_session_cookie(app_version):
