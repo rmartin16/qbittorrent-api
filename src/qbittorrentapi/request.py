@@ -604,6 +604,11 @@ class Request:
                 **kwargs,
             )
         except HTTP403Error:
+            # Do not retry auth endpoints for 403. If an auth endpoint is returning
+            # 403, then trying again won't work because it is likely the credentials
+            # are no longer valid. Furthermore, it leads to infinite recursion.
+            if api_namespace == APINames.Authorization:
+                raise
             logger.debug("Login may have expired...attempting new login")
             self.auth_log_in(  # type: ignore[attr-defined]
                 requests_args=requests_args,

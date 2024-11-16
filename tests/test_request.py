@@ -10,6 +10,7 @@ from requests.adapters import DEFAULT_POOLBLOCK, DEFAULT_POOLSIZE
 from qbittorrentapi import APINames, Client, exceptions
 from qbittorrentapi._version_support import v
 from qbittorrentapi.definitions import Dictionary, List
+from qbittorrentapi.exceptions import Forbidden403Error
 from qbittorrentapi.request import Request
 from qbittorrentapi.torrents import TorrentDictionary, TorrentInfoList
 from tests.conftest import IS_QBT_DEV
@@ -63,6 +64,23 @@ def test_log_in_via_auth():
     )
     with pytest.raises(exceptions.LoginFailed):
         client_bad.auth_log_in(username="asdf", password="asdfasdf")
+
+
+def test_forbidden_when_banned(client, monkeypatch):
+    monkeypatch.setattr(
+        client,
+        "_request_manager",
+        MagicMock(
+            side_effect=Forbidden403Error,
+            spec=client._request_manager,
+        ),
+    )
+
+    with pytest.raises(Forbidden403Error):
+        client.auth.log_in()
+
+    with pytest.raises(Forbidden403Error):
+        _ = client.app.version
 
 
 @pytest.mark.parametrize(
