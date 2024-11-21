@@ -1,5 +1,8 @@
 Change Log
 ==========
+### v2024.11.70 (20 nov 2024)
+- Advertise support for qBittorrent v5.0.2
+
 ### v2024.11.69 (16 nov 2024)
 - Dropped support for Python 3.8 (#494)
 - Fixed typing for ``content_layout`` for ``torrents.add()`` (#499)
