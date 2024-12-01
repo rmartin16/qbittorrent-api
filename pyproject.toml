@@ -37,13 +37,13 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "build ==1.2.2.post1",
-    "coverage[toml] ==7.6.4",
+    "coverage[toml] ==7.6.8",
     "furo ==2024.8.6",
     "mypy ==1.13.0",
     "pre-commit ==4.0.1",
     "pytest ==8.3.3",
     "tox ==4.23.2",
-    "twine ==5.1.1",
+    "twine ==6.0.1",
     "types-requests ==2.32.0.20241016",
 ]
 
