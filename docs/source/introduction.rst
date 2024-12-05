@@ -148,3 +148,20 @@ Finally, some of the objects returned by the client support methods of their own
         torrent.set_location(location='/home/user/torrents/')
         torrent.reannounce()
         torrent.upload_limit = -1
+
+asyncio support
+---------------
+
+Although there isn't direct support for asyncio, it is easy enough to make it work.  The process is documented `here <https://github.com/rmartin16/qbittorrent-api/issues/404#issuecomment-1889667210>`_.
+
+Here's an example:
+
+.. code:: python
+
+   client = qbittorrentapi.Client()
+   
+   async def main():
+       for t in await asyncio.to_thread(client.torrents_info, category="uploaded"):
+           print(t.name)
+   
+   asyncio.run(main())
