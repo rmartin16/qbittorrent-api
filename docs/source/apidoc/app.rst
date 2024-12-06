@@ -1,5 +1,5 @@
 Application
-================================
+===========
 
 .. autoclass:: qbittorrentapi.app.AppAPIMixIn
     :members:

@@ -1,5 +1,5 @@
 Search
-================================
+======
 
 .. autoclass:: qbittorrentapi.search.SearchAPIMixIn
     :members:

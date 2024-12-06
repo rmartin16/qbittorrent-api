@@ -1,5 +1,5 @@
 Introduction
-======================
+============
 
 .. |github ci| image:: https://img.shields.io/github/checks-status/rmartin16/qbittorrent-api/main?style=flat-square
    :target: https://github.com/rmartin16/qbittorrent-api/actions?query=branch%3Amain
@@ -22,7 +22,7 @@ Python client implementation for qBittorrent Web API.
 Currently supports qBittorrent `v5.0.2 <https://github.com/qbittorrent/qBittorrent/releases/tag/release-5.0.2>`_ (Web API v2.11.2) released on Nov 17, 2024.
 
 Features
-------------
+--------
 - The entire qBittorrent `Web API <https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)>`_ is implemented.
 - qBittorrent version checking for an endpoint's existence/features is automatically handled.
 - If the authentication cookie expires, a new one is automatically requested in line with any API call.
@@ -122,7 +122,8 @@ Each Web API endpoint is implemented one-to-one as a method of the instantiated 
     qbt_client.torrents_resume(torrent_hashes='...')
     # and so on
 
-However, a more robust interface to the endpoints is available via each namespace. This is intended to provide a more seamless and intuitive interface to the Web API.
+However, a more robust interface to the endpoints is available via each namespace. This
+is intended to provide a more seamless and intuitive interface to the Web API.
 
 .. code:: python
 
@@ -137,7 +138,8 @@ However, a more robust interface to the endpoints is available via each namespac
     qbt_client.log.main.warning()
     qbt_client.log.main.normal()
 
-Finally, some of the objects returned by the client support methods of their own. This is most pronounced for torrents themselves.
+Finally, some of the objects returned by the client support methods of their own. This is
+most pronounced for torrents themselves.
 
 .. code:: python
 

@@ -1,5 +1,5 @@
 Client
-================================
+======
 
 .. autoclass:: qbittorrentapi.client.Client
     :members:

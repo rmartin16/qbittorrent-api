@@ -1,5 +1,5 @@
 qBittorrent Web API Client
-================================
+==========================
 
 .. include:: introduction.rst
 
@@ -9,6 +9,7 @@ qBittorrent Web API Client
 
     Introduction <introduction.rst>
     Behavior & Configuration <behavior&configuration.rst>
+    Async Support <async.rst>
     Performance <performance.rst>
     Exceptions <exceptions.rst>
     API Reference <api.rst>

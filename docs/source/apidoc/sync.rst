@@ -1,5 +1,5 @@
 Sync
-================================
+====
 
 .. autoclass:: qbittorrentapi.sync.SyncAPIMixIn
     :members:

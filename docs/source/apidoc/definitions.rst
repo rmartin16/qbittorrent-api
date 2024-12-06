@@ -1,5 +1,5 @@
 Definitions
-================================
+===========
 
 .. automodule:: qbittorrentapi.definitions
     :members:
