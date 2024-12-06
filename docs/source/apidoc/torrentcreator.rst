@@ -1,5 +1,5 @@
 Torrent Creator
-================================
+===============
 
 .. autoclass:: qbittorrentapi.torrentcreator.TorrentCreatorAPIMixIn
     :members:

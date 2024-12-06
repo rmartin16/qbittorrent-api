@@ -1,5 +1,5 @@
 Behavior & Configuration
-================================
+========================
 
 Host, Username and Password
 ***************************
@@ -140,8 +140,8 @@ qBittorrent Version Checking
 
     qbt_client = Client(..., RAISE_ERROR_FOR_UNSUPPORTED_QBITTORRENT_VERSIONS=True)
 
-* Additionally, :class:`~qbittorrentapi._version_support.Version` can be used for manual introspection of
-  the versions.
+* Additionally, :class:`~qbittorrentapi._version_support.Version` can be used for manual
+  introspection of the versions.
 
 .. code:: python
 

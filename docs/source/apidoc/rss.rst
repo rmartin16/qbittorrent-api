@@ -1,5 +1,5 @@
 RSS
-================================
+====
 
 .. autoclass:: qbittorrentapi.rss.RSSAPIMixIn
     :members:

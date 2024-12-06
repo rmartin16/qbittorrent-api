@@ -1,5 +1,5 @@
 Torrents
-================================
+========
 
 .. autoclass:: qbittorrentapi.torrents.TorrentsAPIMixIn
     :members:

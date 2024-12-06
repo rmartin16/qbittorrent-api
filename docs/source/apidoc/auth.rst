@@ -1,5 +1,5 @@
 Authentication
-================================
+==============
 
 .. autoclass:: qbittorrentapi.auth.AuthAPIMixIn
     :members:

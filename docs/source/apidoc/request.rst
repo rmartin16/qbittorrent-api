@@ -1,5 +1,5 @@
 Request (internal)
-================================
+==================
 
 .. automodule:: qbittorrentapi.request
     :members:

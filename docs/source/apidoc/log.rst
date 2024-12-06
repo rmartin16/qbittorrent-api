@@ -1,5 +1,5 @@
 Log
-================================
+===
 
 .. autoclass:: qbittorrentapi.log.LogAPIMixIn
     :members:

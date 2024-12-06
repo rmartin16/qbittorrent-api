@@ -1,5 +1,5 @@
 AttrDict (internal)
-================================
+===================
 
 Copyright (c) 2013 Brendan Curran-Johnson
 

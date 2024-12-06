@@ -1,5 +1,5 @@
 Transfer
-================================
+========
 
 .. autoclass:: qbittorrentapi.transfer.TransferAPIMixIn
     :members:
