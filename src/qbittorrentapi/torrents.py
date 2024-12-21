@@ -273,6 +273,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         ssl_private_key: str | None = None,
         ssl_dh_params: str | None = None,
         is_stopped: bool | None = None,
+        forced: bool | None = None,
         **kwargs: APIKwargsT,
     ) -> str:
         """
@@ -341,6 +342,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :param ssl_dh_params: Diffie-Hellman parameters (added in Web API v2.10.4)
         :param is_stopped: Adds torrent in stopped state; alias for ``is_paused`` (added
             in Web API v2.11.0)
+        :param forced: add torrent in forced state (added in Web API v2.11.0)
         """  # noqa: E501
 
         # convert pre-v2.7 params to post-v2.7 params...or post-v2.7 to pre-v2.7
@@ -397,6 +399,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             "ssl_certificate": (None, ssl_certificate),
             "ssl_private_key": (None, ssl_private_key),
             "ssl_dh_params": (None, ssl_dh_params),
+            "forced": (None, forced),
         }
 
         return self._post_cast(
