@@ -1,5 +1,10 @@
 Change Log
 ==========
+### v2024.12.71 (21 dec 2024)
+- Advertise support for qBittorrent v5.0.3
+- Advertise support for qBittorrent v5.1.0beta1
+- Add support to add torrent as forced (#507)
+
 ### v2024.11.70 (20 nov 2024)
 - Advertise support for qBittorrent v5.0.2
 
