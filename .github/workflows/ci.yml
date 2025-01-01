@@ -84,7 +84,7 @@ jobs:
           fetch-depth: 0  # Fetch all refs so setuptools_scm can generate the correct version number
 
       - name: Build & Upload Package
-        uses: hynek/build-and-inspect-python-package@v2.10.0
+        uses: hynek/build-and-inspect-python-package@v2.11.0
         with:
           attest-build-provenance-github: ${{ inputs.attest }}
 
@@ -179,14 +179,14 @@ jobs:
 
       - name: Upload HTML coverage report
         if: always() && steps.coverage.outcome == 'failure'
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.5.0
         with:
           name: html-coverage-report
           path: ./htmlcov
 
       - name: Upload Coverage to Codecov
         if: contains(fromJson('["push", "pull_request"]'), github.event_name)
-        uses: codecov/codecov-action@v5.0.7
+        uses: codecov/codecov-action@v5.1.2
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
