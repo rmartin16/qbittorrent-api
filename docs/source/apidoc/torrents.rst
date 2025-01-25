@@ -4,18 +4,18 @@ Torrents
 .. autoclass:: qbittorrentapi.torrents.TorrentsAPIMixIn
     :members:
     :undoc-members:
-    :exclude-members: torrents, torrent_categories, torrent_tags, torrents_pieceStates, torrents_pieceHashes, torrents_addTrackers, torrents_editTracker, torrents_removeTrackers, torrents_filePrio, torrents_renameFile, torrents_renameFolder, torrents_increasePrio, torrents_decreasePrio, torrents_topPrio, torrents_bottomPrio, torrents_downloadLimit, torrents_setDownloadLimit, torrents_setShareLimits, torrents_uploadLimit, torrents_setUploadLimit, torrents_setLocation, torrents_setCategory, torrents_setAutoManagement, torrents_toggleSequentialDownload, torrents_toggleFirstLastPiecePrio, torrents_setForceStart, torrents_setSuperSeeding, torrents_addPeers, torrents_createCategory, torrents_editCategory, torrents_removeCategories, torrents_addTags, torrents_removeTags, torrents_createTags, torrents_deleteTags, torrents_setDownloadPath, torrents_setSavePath, torrents_addWebSeeds, torrents_editWebSeed, torrents_removeWebSeeds
+    :exclude-members: torrents, torrent_categories, torrent_tags, torrents_pieceStates, torrents_pieceHashes, torrents_addTrackers, torrents_editTracker, torrents_removeTrackers, torrents_filePrio, torrents_renameFile, torrents_renameFolder, torrents_increasePrio, torrents_decreasePrio, torrents_topPrio, torrents_bottomPrio, torrents_downloadLimit, torrents_setDownloadLimit, torrents_setShareLimits, torrents_uploadLimit, torrents_setUploadLimit, torrents_setLocation, torrents_setCategory, torrents_setAutoManagement, torrents_toggleSequentialDownload, torrents_toggleFirstLastPiecePrio, torrents_setForceStart, torrents_setSuperSeeding, torrents_addPeers, torrents_createCategory, torrents_editCategory, torrents_removeCategories, torrents_addTags, torrents_removeTags, torrents_createTags, torrents_deleteTags, torrents_setDownloadPath, torrents_setSavePath, torrents_addWebSeeds, torrents_editWebSeed, torrents_removeWebSeeds, torrents_setTags
     :show-inheritance:
 
 .. autoclass:: qbittorrentapi.torrents.Torrents
     :members:
     :undoc-members:
-    :exclude-members: pieceStates, pieceHashes, addTrackers, editTracker, removeTrackers, filePrio, renameFile, renameFolder, increasePrio, decreasePrio, topPrio, bottomPrio, downloadLimit, setDownloadLimit, setShareLimits, uploadLimit, setUploadLimit, setLocation, setCategory, setAutoManagement, toggleSequentialDownload, toggleFirstLastPiecePrio, setForceStart, setSuperSeeding, addPeers, createCategory, editCategory, removeCategories, addTags, removeTags, createTags, deleteTags, setDownloadPath, setSavePath, addWebSeeds, editWebSeed, removeWebSeeds
+    :exclude-members: pieceStates, pieceHashes, addTrackers, editTracker, removeTrackers, filePrio, renameFile, renameFolder, increasePrio, decreasePrio, topPrio, bottomPrio, downloadLimit, setDownloadLimit, setShareLimits, uploadLimit, setUploadLimit, setLocation, setCategory, setAutoManagement, toggleSequentialDownload, toggleFirstLastPiecePrio, setForceStart, setSuperSeeding, addPeers, createCategory, editCategory, removeCategories, addTags, removeTags, createTags, deleteTags, setDownloadPath, setSavePath, addWebSeeds, editWebSeed, removeWebSeeds, setTags
 
 .. autoclass:: qbittorrentapi.torrents.TorrentDictionary
     :members:
     :undoc-members:
-    :exclude-members: pieceStates, pieceHashes, addTrackers, editTracker, removeTrackers, filePrio, renameFile, renameFolder, increasePrio, decreasePrio, topPrio, bottomPrio, downloadLimit, setDownloadLimit, setShareLimits, uploadLimit, setUploadLimit, setLocation, setCategory, setAutoManagement, toggleSequentialDownload, toggleFirstLastPiecePrio, setForceStart, setSuperSeeding, addPeers, createCategory, editCategory, removeCategories, addTags, removeTags, createTags, deleteTags, filePriority, setDownloadPath, setSavePath, addWebSeeds, editWebSeed, removeWebSeeds
+    :exclude-members: pieceStates, pieceHashes, addTrackers, editTracker, removeTrackers, filePrio, renameFile, renameFolder, increasePrio, decreasePrio, topPrio, bottomPrio, downloadLimit, setDownloadLimit, setShareLimits, uploadLimit, setUploadLimit, setLocation, setCategory, setAutoManagement, toggleSequentialDownload, toggleFirstLastPiecePrio, setForceStart, setSuperSeeding, addPeers, createCategory, editCategory, removeCategories, addTags, removeTags, createTags, deleteTags, filePriority, setDownloadPath, setSavePath, addWebSeeds, editWebSeed, removeWebSeeds, setTags
     :show-inheritance:
 
 .. autoclass:: qbittorrentapi.torrents.TorrentCategories
@@ -27,7 +27,7 @@ Torrents
 .. autoclass:: qbittorrentapi.torrents.TorrentTags
     :members:
     :undoc-members:
-    :exclude-members: addTags, removeTags, createTags, deleteTags
+    :exclude-members: addTags, removeTags, createTags, deleteTags, setTags
     :show-inheritance:
 
 .. autoclass:: qbittorrentapi.torrents.TorrentPropertiesDictionary

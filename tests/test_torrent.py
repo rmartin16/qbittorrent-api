@@ -577,13 +577,14 @@ def test_rename(new_torrent, name):
 )
 @pytest.mark.parametrize("tags", ["tag 1", ["tag 2", "tag 3"]])
 def test_add_remove_tags(client, orig_torrent, add_tags_func, remove_tags_func, tags):
-    orig_torrent.func(add_tags_func)(tags=tags)
-    check(lambda: orig_torrent.info.tags, tags, reverse=True)
+    try:
+        orig_torrent.func(add_tags_func)(tags=tags)
+        check(lambda: orig_torrent.info.tags, tags, reverse=True)
 
-    orig_torrent.func(remove_tags_func)(tags=tags)
-    check(lambda: orig_torrent.info.tags, tags, reverse=True, negate=True)
-
-    client.torrents_delete_tags(tags=tags)
+        orig_torrent.func(remove_tags_func)(tags=tags)
+        check(lambda: orig_torrent.info.tags, tags, reverse=True, negate=True)
+    finally:
+        client.torrents_delete_tags(tags=tags)
 
 
 @pytest.mark.skipif_after_api_version("2.3.0")
@@ -598,3 +599,22 @@ def test_add_remove_tags_not_implemented(
         orig_torrent.func(add_tags_func)()
     with pytest.raises(NotImplementedError):
         orig_torrent.func(remove_tags_func)()
+
+
+@pytest.mark.skipif_before_api_version("2.11.4")
+@pytest.mark.parametrize("set_tags_func", ["set_tags", "setTags"])
+@pytest.mark.parametrize("tags", ["tag 1", ["tag 2", "tag 3"]])
+def test_set_tags(client, orig_torrent, set_tags_func, tags):
+    try:
+        orig_torrent.add_tags(tags="extra-tag")
+        orig_torrent.func(set_tags_func)(tags=tags)
+        check(lambda: orig_torrent.info.tags, tags, reverse=True)
+    finally:
+        client.torrents_delete_tags(tags=tags)
+
+
+@pytest.mark.skipif_after_api_version("2.11.4")
+@pytest.mark.parametrize("set_tags_func", ["set_tags", "setTags"])
+def test_set_tags_not_implemented(client, orig_torrent, set_tags_func):
+    with pytest.raises(NotImplementedError):
+        orig_torrent.func(set_tags_func)()

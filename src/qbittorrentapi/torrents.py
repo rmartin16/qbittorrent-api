@@ -1777,6 +1777,37 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     torrents_addTags = torrents_add_tags
 
+    def torrents_set_tags(
+        self,
+        tags: str | Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Upsert one or more tags to one or more torrents.
+
+        Note: Tags that do not exist will be created on-the-fly.
+
+        This method was introduced with qBittorrent v5.1.0 (Web API v2.11.4).
+
+        :param tags: tag name or list of tags
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
+        """
+        data = {
+            "hashes": self._list2string(torrent_hashes, "|"),
+            "tags": self._list2string(tags, ","),
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="setTags",
+            data=data,
+            version_introduced="2.11.4",
+            **kwargs,
+        )
+
+    torrents_setTags = torrents_set_tags
+
     def torrents_remove_tags(
         self,
         tags: str | Iterable[str] | None = None,
@@ -2408,6 +2439,20 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
         )
 
     addTags = add_tags
+
+    def set_tags(
+        self,
+        tags: str | Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_tags`."""
+        self._client.torrents_set_tags(
+            torrent_hashes=self._torrent_hash,
+            tags=tags,
+            **kwargs,
+        )
+
+    setTags = set_tags
 
     def remove_tags(
         self,
@@ -3357,6 +3402,21 @@ class TorrentTags(ClientCache[TorrentsAPIMixIn]):
         )
 
     addTags = add_tags
+
+    def set_tags(
+        self,
+        tags: str | Iterable[str] | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_tags`."""
+        self._client.torrents_set_tags(
+            tags=tags,
+            torrent_hashes=torrent_hashes,
+            **kwargs,
+        )
+
+    setTags = set_tags
 
     def remove_tags(
         self,

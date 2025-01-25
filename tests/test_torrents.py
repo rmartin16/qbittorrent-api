@@ -1636,6 +1636,41 @@ def test_add_tags_not_implemented(client, add_tags_func):
         client.func(add_tags_func)()
 
 
+@pytest.mark.skipif_before_api_version("2.11.4")
+@pytest.mark.parametrize(
+    "set_tags_func",
+    [
+        "torrents_set_tags",
+        "torrents_setTags",
+        "torrent_tags.set_tags",
+        "torrent_tags.setTags",
+    ],
+)
+@pytest.mark.parametrize("tags", [["tag1"], ["tag1", "tag 2"]])
+def test_set_tags(client, orig_torrent, set_tags_func, tags):
+    try:
+        client.torrents_add_tags(tags="extra-tag", torrent_hashes=orig_torrent.hash)
+        client.func(set_tags_func)(tags=tags, torrent_hashes=orig_torrent.hash)
+        check(lambda: orig_torrent.info.tags, tags, reverse=True)
+    finally:
+        client.torrents_delete_tags(tags=tags)
+
+
+@pytest.mark.skipif_after_api_version("2.11.4")
+@pytest.mark.parametrize(
+    "set_tags_func",
+    [
+        "torrents_set_tags",
+        "torrents_setTags",
+        "torrent_tags.set_tags",
+        "torrent_tags.setTags",
+    ],
+)
+def test_set_tags_not_implemented(client, set_tags_func):
+    with pytest.raises(NotImplementedError):
+        client.func(set_tags_func)()
+
+
 @pytest.mark.skipif_before_api_version("2.3.0")
 @pytest.mark.parametrize(
     "remove_tags_func",
