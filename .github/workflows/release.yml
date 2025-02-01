@@ -27,7 +27,7 @@ jobs:
         run: echo "version=${GITHUB_REF_NAME#v}" >> ${GITHUB_OUTPUT}
 
       - name: Set up Python
-        uses: actions/setup-python@v5.3.0
+        uses: actions/setup-python@v5.4.0
         with:
           python-version: 3.x
 
@@ -38,7 +38,7 @@ jobs:
           path: dist
 
       - name: Create release
-        uses: ncipollo/release-action@v1.14.0
+        uses: ncipollo/release-action@v1.15.0
         with:
           name: release-${{ steps.build-vars.outputs.version }}
           draft: true
