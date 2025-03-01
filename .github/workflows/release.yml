@@ -32,13 +32,13 @@ jobs:
           python-version: 3.x
 
       - name: Get packages
-        uses: actions/download-artifact@v4.1.8
+        uses: actions/download-artifact@v4.1.9
         with:
           name: Packages
           path: dist
 
       - name: Create release
-        uses: ncipollo/release-action@v1.15.0
+        uses: ncipollo/release-action@v1.16.0
         with:
           name: release-${{ steps.build-vars.outputs.version }}
           draft: true
