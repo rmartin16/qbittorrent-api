@@ -1,5 +1,8 @@
 Change Log
 ==========
+### v2025.4.0 (19 apr 2025)
+- Advertise support for qBittorrent v5.0.5
+
 ### v2025.2.0 (17 feb 2025)
 - Advertise support for qBittorrent v5.0.4
 
