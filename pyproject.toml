@@ -1,16 +1,16 @@
 [build-system]
-requires = ["setuptools >=67", "setuptools-scm >=8"]
+requires = ["setuptools >=77", "setuptools-scm >=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "qbittorrent-api"
+license = "MIT"
 requires-python = ">=3.9"
 description = "Python client for qBittorrent v4.1+ Web API."
 authors = [{name = "Russell Martin"}]
 maintainers = [{name = "Russell Martin"}]
 keywords = ["python", "qbittorrent", "api", "client", "torrent", "torrents", "webui", "web"]
 classifiers = [
-    "License :: OSI Approved :: MIT License",
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
