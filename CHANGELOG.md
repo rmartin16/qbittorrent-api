@@ -1,5 +1,8 @@
 Change Log
 ==========
+### v2024.4.1 (24 apr 2025)
+- Add SPDX license to package (#529)
+
 ### v2025.4.0 (19 apr 2025)
 - Advertise support for qBittorrent v5.0.5
 
