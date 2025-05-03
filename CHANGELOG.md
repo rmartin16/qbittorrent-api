@@ -1,5 +1,17 @@
 Change Log
 ==========
+### v2025.5.0 (02 may 2025)
+- Advertise support for qBittorrent v5.1.0
+- Existing changes that are now supported in qBittorrent:
+  - Add support for managing cookies (#492)
+    - ``app/cookies``
+    - ``app/setCookies``
+  - Add support for WebSeed modification endpoints (#481)
+    - ``torrents/addWebSeeds``
+    - ``torrents/editWebSeed``
+    - ``torrents/removeWebSeeds``
+  - Add support for ``torrents/setTags`` (#512)
+
 ### v2025.4.1 (24 apr 2025)
 - Add SPDX license to package (#529)
 
