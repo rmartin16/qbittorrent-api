@@ -434,7 +434,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         is_string_like = isinstance(user_files, (bytes, str))
         is_file_like = hasattr(user_files, "read")
         if is_string_like or is_file_like or not isinstance(user_files, Iterable):
-            user_files = [user_files]  # type: ignore
+            user_files = [user_files]  # type: ignore[assignment,list-item]
 
         # up convert to a dictionary to add fabricated torrent names
         norm_files = (
@@ -477,7 +477,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
                         errno.ENOENT, os_strerror(errno.EACCES), torrent_file
                     )
                 raise TorrentFileError(io_err)
-        return files
+        return files  # type: ignore[return-value]
 
     def torrents_count(self) -> int:
         """Retrieve count of torrents."""
