@@ -13,11 +13,8 @@ from qbittorrentapi.search import (
 from tests.conftest import TORRENT2_HASH, TORRENT2_URL
 from tests.utils import check, retry
 
-PLUGIN_NAME = "one337x"
-PLUGIN_URL = (
-    "https://gist.githubusercontent.com/scadams/"
-    "56635407b8dfb8f5f7ede6873922ac8b/raw/f654c10468a0b9945bec9bf31e216993c9b7a961/one337x.py"
-)
+PLUGIN_NAME = "therarbg"
+PLUGIN_URL = "https://raw.githubusercontent.com/BurningMop/qBittorrent-Search-Plugins/refs/heads/main/therarbg.py"
 
 
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="removeprefix not in 3.8")
