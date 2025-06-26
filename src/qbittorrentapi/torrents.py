@@ -88,6 +88,16 @@ class TorrentsAddPeersDictionary(Dictionary[JsonValueT]):
     """Response to :meth:`~TorrentsAPIMixIn.torrents_add_peers`"""
 
 
+class TorrentPeersList(Dictionary[JsonValueT]):
+    """Response to :meth:`~TorrentsAPIMixIn.torrent_peers`"""
+    def __init__(
+        self,
+        list_entries: ListInputT,
+        client: TorrentsAPIMixIn | None = None,
+    ):
+        super().__init__(list_entries.get("peers", {}), entry_class=PeersDictionary, client=client)
+
+
 class TorrentFile(ListEntry):
     """Item in :class:`TorrentFilesList`"""
 
@@ -129,6 +139,25 @@ class WebSeedsList(List[WebSeed]):
         client: TorrentsAPIMixIn | None = None,
     ):
         super().__init__(list_entries, entry_class=WebSeed, client=client)
+
+
+class Peer(ListEntry):
+    """Item in :class:`PeersList`"""
+
+
+class PeersDictionary(Dictionary[Peer]):
+    """
+    Response to :meth:`~TorrentsAPIMixIn.torrent_peers`
+
+    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-peers-data>`_
+    """  # noqa: E501
+
+    def __init__(
+        self,
+        list_entries: ListInputT,
+        client: TorrentsAPIMixIn | None = None,
+    ):
+        super().__init__(list_entries, entry_class=Peer, client=client)
 
 
 class Tracker(ListEntry):
@@ -1590,6 +1619,33 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     torrents_setSuperSeeding = torrents_set_super_seeding
 
+    def torrent_peers(
+        self,
+        torrent_hash: str = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentsGetPeersDictionary:
+        """
+        Get peers of a torrent.
+
+        TODO update:
+        This method was introduced with qBittorrent v4.4.0 (Web API v2.3.0).
+
+        :raises NotFound404Error: for invalid hash
+
+        :param torrent_hash: single torrent hash.
+        """
+        params = {
+            "hash": torrent_hash,
+        }
+        return self._get_cast(
+            _name=APINames.Sync,
+            _method="torrentPeers",
+            params=params,
+            response_class=TorrentPeersList,
+            version_introduced="2.3.0",
+            **kwargs,
+        )
+
     def torrents_add_peers(
         self,
         peers: str | Iterable[str] | None = None,
@@ -2308,6 +2364,11 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
         )
 
     removeWebSeeds = remove_webseeds
+
+    @property
+    def peers(self) -> TorrentPeersList:
+        """Implements :meth:`~TorrentsAPIMixIn.torrent_peers`."""
+        return self._client.torrent_peers(torrent_hash=self._torrent_hash)
 
     @property
     def files(self) -> TorrentFilesList:
