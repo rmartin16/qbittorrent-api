@@ -84,7 +84,7 @@ jobs:
           fetch-depth: 0  # Fetch all refs so setuptools_scm can generate the correct version number
 
       - name: Build & Upload Package
-        uses: hynek/build-and-inspect-python-package@v2.12.0
+        uses: hynek/build-and-inspect-python-package@v2.13.0
         with:
           attest-build-provenance-github: ${{ inputs.attest }}
 
