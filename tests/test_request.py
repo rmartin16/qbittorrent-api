@@ -576,7 +576,7 @@ def test_http404(client, params):
     assert "zxcv" in exc_info.value.args[0]
 
     response = MagicMock(spec=Response, status_code=404, text="", request=object())
-    with pytest.raises(exceptions.HTTPError, match="") as exc_info:
+    with pytest.raises(exceptions.HTTPError) as exc_info:
         Request._handle_error_responses(data={}, params=params, response=response)
     assert exc_info.value.http_status_code == 404
     if params:
@@ -591,7 +591,7 @@ def test_http404(client, params):
     assert exc_info.value.args[0] == "unexpected msg"
 
     response = MagicMock(spec=Response, status_code=404, text="", request=object())
-    with pytest.raises(exceptions.HTTPError, match="") as exc_info:
+    with pytest.raises(exceptions.HTTPError) as exc_info:
         Request._handle_error_responses(data=params, params={}, response=response)
     assert exc_info.value.http_status_code == 404
     if params:
