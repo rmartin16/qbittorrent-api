@@ -980,6 +980,10 @@ class Request:
                 raise MissingRequiredParameters400Error(
                     request=request, response=response
                 )
+            elif response.text.startswith("Missing required parameters"):
+                raise MissingRequiredParameters400Error(
+                    response.text, request=request, response=response
+                )
             raise InvalidRequest400Error(
                 response.text, request=request, response=response
             )
