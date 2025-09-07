@@ -170,6 +170,37 @@ def test_rss_set_feed_url_not_implemented(client, set_feed_func):
         client.func(set_feed_func)()
 
 
+@pytest.mark.skipif_before_api_version("2.11.5")
+@pytest.mark.parametrize(
+    "set_refresh_interval_func",
+    [
+        "rss_set_feed_refresh_interval",
+        "rss_setFeedRefreshInterval",
+        "rss.set_feed_refresh_interval",
+        "rss.setFeedRefreshInterval",
+    ],
+)
+def test_rss_set_refresh_interval(client, rss_feed, set_refresh_interval_func):
+    client.func(set_refresh_interval_func)(item_path=rss_feed, refresh_interval=120)
+    # refresh interval doesn't appear to be retrievable right now...
+    # assert refresh_interval == client.rss_items()[rss_feed]...
+
+
+@pytest.mark.skipif_after_api_version("2.11.5")
+@pytest.mark.parametrize(
+    "set_refresh_interval_func",
+    [
+        "rss_set_feed_refresh_interval",
+        "rss_setFeedRefreshInterval",
+        "rss.set_feed_refresh_interval",
+        "rss.setFeedRefreshInterval",
+    ],
+)
+def test_rss_set_refresh_interval_not_implemented(client, set_refresh_interval_func):
+    with pytest.raises(NotImplementedError):
+        client.func(set_refresh_interval_func)()
+
+
 @pytest.mark.skipif_before_api_version("2.2")
 @pytest.mark.parametrize(
     "remove_item_func",
