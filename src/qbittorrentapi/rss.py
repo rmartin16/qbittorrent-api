@@ -64,6 +64,7 @@ class RSSAPIMixIn(AppAPIMixIn):
         self,
         url: str | None = None,
         item_path: str = "",
+        refresh_interval: int | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -74,8 +75,9 @@ class RSSAPIMixIn(AppAPIMixIn):
         :param url: URL of RSS feed (e.g. https://distrowatch.com/news/torrents.xml)
         :param item_path: Name and/or path for new feed; defaults to the URL.
             (e.g. ``Folder\\Subfolder\\FeedName``)
+        :param refresh_interval: RSS feed's refresh interval in minutes
         """  # noqa: E501
-        data = {"path": item_path, "url": url}
+        data = {"path": item_path, "url": url, "refreshInterval": refresh_interval}
         self._post(_name=APINames.RSS, _method="addFeed", data=data, **kwargs)
 
     rss_addFeed = rss_add_feed
@@ -106,6 +108,29 @@ class RSSAPIMixIn(AppAPIMixIn):
         )
 
     rss_setFeedURL = rss_set_feed_url
+
+    def rss_set_feed_refresh_interval(
+        self,
+        item_path: str | None = None,
+        refresh_interval: int | None = None,
+    ) -> None:
+        """
+        Update the refresh interval for the RSS feed.
+
+        The method was introduced with qBittorrent v5.2.0 (Web API v2.11.5).
+
+        :param item_path: Name and/or path for feed
+        :param refresh_interval: refresh interval in minutes
+        """
+        data = {"path": item_path, "refreshInterval": refresh_interval}
+        self._post(
+            _name=APINames.RSS,
+            _method="setFeedRefreshInterval",
+            data=data,
+            version_introduced="2.11.5",
+        )
+
+    rss_setFeedRefreshInterval = rss_set_feed_refresh_interval
 
     def rss_remove_item(
         self,
@@ -344,10 +369,16 @@ class RSS(ClientCache[RSSAPIMixIn]):
         self,
         url: str | None = None,
         item_path: str = "",
+        refresh_interval: int | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """Implements :meth:`~RSSAPIMixIn.rss_add_feed`."""
-        return self._client.rss_add_feed(url=url, item_path=item_path, **kwargs)
+        return self._client.rss_add_feed(
+            url=url,
+            item_path=item_path,
+            refresh_interval=refresh_interval,
+            **kwargs,
+        )
 
     addFeed = add_feed
 
@@ -361,6 +392,19 @@ class RSS(ClientCache[RSSAPIMixIn]):
         return self._client.rss_set_feed_url(url=url, item_path=item_path, **kwargs)
 
     setFeedURL = set_feed_url
+
+    def set_feed_refresh_interval(
+        self,
+        item_path: str | None = None,
+        refresh_interval: int | None = None,
+    ) -> None:
+        """Implements :meth:`~RSSAPIMixIn.rss_set_feed_refresh_interval`."""
+        return self._client.rss_set_feed_refresh_interval(
+            item_path=item_path,
+            refresh_interval=refresh_interval,
+        )
+
+    setFeedRefreshInterval = set_feed_refresh_interval
 
     def remove_item(self, item_path: str | None = None, **kwargs: APIKwargsT) -> None:
         """Implements :meth:`~RSSAPIMixIn.rss_remove_item`."""
