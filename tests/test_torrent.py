@@ -175,7 +175,10 @@ def test_priority(
 )
 def test_set_share_limits(orig_torrent, set_share_limits_func):
     orig_torrent.func(set_share_limits_func)(
-        ratio_limit=5, seeding_time_limit=100, inactive_seeding_time_limit=200
+        ratio_limit=5,
+        seeding_time_limit=100,
+        inactive_seeding_time_limit=200,
+        share_limit_action="STOP",
     )
     check(lambda: orig_torrent.info.max_ratio, 5)
     check(lambda: orig_torrent.info.max_seeding_time, 100)
