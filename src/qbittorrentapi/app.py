@@ -67,7 +67,7 @@ class NetworkInterfaceAddressList(List[str]):  # type: ignore
         super().__init__(list_entries)  # type: ignore
 
 
-class DirectoryContentList(List[str]):  # type: ignore
+class DirectoryContentList(List[Union[str, ListEntry]]):  # type: ignore[type-var]
     """Response for :meth:`~AppAPIMixIn.app_get_directory_content`"""
 
     def __init__(self, list_entries: Iterable[str], client: AppAPIMixIn | None = None):
@@ -280,17 +280,20 @@ class AppAPIMixIn(AuthAPIMixIn):
     def app_get_directory_content(
         self,
         directory_path: str | os.PathLike[AnyStr] | None = None,
+        with_metadata: bool | None = None,
     ) -> DirectoryContentList:
         """
         The contents of a directory file path.
 
         :raises NotFound404Error: file path not found or not a directory
         :param directory_path: file system path to directory
+        :param with_metadata: include file/directory metadata
         """
         data = {
             "dirPath": (
                 os.fsdecode(directory_path) if directory_path is not None else None
-            )
+            ),
+            "withMetadata": with_metadata,
         }
         return self._post_cast(
             _name=APINames.Application,
@@ -420,8 +423,12 @@ class Application(ClientCache[AppAPIMixIn]):
     def get_directory_content(
         self,
         directory_path: str | os.PathLike[AnyStr] | None = None,
+        with_metadata: bool | None = None,
     ) -> DirectoryContentList:
         """Implements :meth:`~AppAPIMixIn.app_get_directory_content`."""
-        return self._client.app_get_directory_content(directory_path=directory_path)
+        return self._client.app_get_directory_content(
+            directory_path=directory_path,
+            with_metadata=with_metadata,
+        )
 
     getDirectoryContent = get_directory_content
