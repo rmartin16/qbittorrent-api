@@ -4,6 +4,7 @@ import pytest
 
 from qbittorrentapi import APINames, CookieList
 from qbittorrentapi._attrdict import AttrDict
+from qbittorrentapi._version_support import v
 from qbittorrentapi.app import (
     DirectoryContentList,
     NetworkInterface,
@@ -202,10 +203,19 @@ def test_send_test_email(client_mock, send_test_email_func):
         "app.getDirectoryContent",
     ],
 )
-def test_get_directory_content(client, get_directory_content_func):
+def test_get_directory_content(client, api_version, get_directory_content_func):
     dir_contents = client.func(get_directory_content_func)("/")
     assert isinstance(dir_contents, DirectoryContentList)
     assert all(isinstance(f, str) for f in dir_contents)
+
+    dir_contents = client.func(get_directory_content_func)("/", with_metadata=False)
+    assert isinstance(dir_contents, DirectoryContentList)
+    assert all(isinstance(f, str) for f in dir_contents)
+
+    if v(api_version) >= v("2.11.8"):
+        dir_contents = client.func(get_directory_content_func)("/", with_metadata=True)
+        assert isinstance(dir_contents, DirectoryContentList)
+        assert all(isinstance(f, dict) for f in dir_contents)
 
 
 @pytest.mark.skipif_after_api_version("2.11")
