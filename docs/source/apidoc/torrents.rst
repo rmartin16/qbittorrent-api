@@ -104,3 +104,8 @@ Torrents
     :members:
     :undoc-members:
     :show-inheritance:
+
+.. autoclass:: qbittorrentapi.torrents.TorrentsAddedMetadata
+    :members:
+    :undoc-members:
+    :show-inheritance:

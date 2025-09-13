@@ -24,6 +24,7 @@ from qbittorrentapi.torrents import (
     TorrentLimitsDictionary,
     TorrentPieceInfoList,
     TorrentPropertiesDictionary,
+    TorrentsAddedMetadata,
     TorrentsAddPeersDictionary,
     TrackersList,
     WebSeedsList,
@@ -70,7 +71,7 @@ def test_methods(client):
     "add_func, delete_func",
     [("torrents_add", "torrents_delete"), ("torrents.add", "torrents.delete")],
 )
-def test_add_delete(client, add_func, delete_func, tmp_path):
+def test_add_delete(client, api_version, add_func, delete_func, tmp_path):
     def download_file(url, filename=None, return_bytes=False):
         max_attempts = 3
         for attempt in range(max_attempts):
@@ -129,9 +130,17 @@ def test_add_delete(client, add_func, delete_func, tmp_path):
         )
 
         if single:
-            assert client.func(add_func)(torrent_files=files[0]) == "Ok."
+            resp = client.func(add_func)(torrent_files=files[0])
+            if v(api_version) >= v("2.14.0"):
+                isinstance(resp, TorrentsAddedMetadata)
+            else:
+                assert resp == "Ok."
         else:
-            assert client.func(add_func)(torrent_files=files) == "Ok."
+            resp = client.func(add_func)(torrent_files=files)
+            if v(api_version) >= v("2.14.0"):
+                isinstance(resp, TorrentsAddedMetadata)
+            else:
+                assert resp == "Ok."
 
     @retry()
     @check_torrents_added
@@ -140,20 +149,23 @@ def test_add_delete(client, add_func, delete_func, tmp_path):
         download_file(url=TORRENT2_URL, filename=TORRENT2_FILENAME)
 
         if single:
-            assert (
-                client.func(add_func)(
-                    torrent_files={
-                        TORRENT1_FILENAME: mkpath(tmp_path, TORRENT1_FILENAME)
-                    }
-                )
-                == "Ok."
+            resp = client.func(add_func)(
+                torrent_files={TORRENT1_FILENAME: mkpath(tmp_path, TORRENT1_FILENAME)}
             )
+            if v(api_version) >= v("2.14.0"):
+                isinstance(resp, TorrentsAddedMetadata)
+            else:
+                assert resp == "Ok."
         else:
             files = {
                 TORRENT1_FILENAME: mkpath(tmp_path, TORRENT1_FILENAME),
                 TORRENT2_FILENAME: mkpath(tmp_path, TORRENT2_FILENAME),
             }
-            assert client.func(add_func)(torrent_files=files) == "Ok."
+            resp = client.func(add_func)(torrent_files=files)
+            if v(api_version) >= v("2.14.0"):
+                isinstance(resp, TorrentsAddedMetadata)
+            else:
+                assert resp == "Ok."
 
     @retry()
     @check_torrents_added
@@ -166,9 +178,17 @@ def test_add_delete(client, add_func, delete_func, tmp_path):
         )
 
         if single:
-            assert client.func(add_func)(torrent_files=files[0]) == "Ok."
+            resp = client.func(add_func)(torrent_files=files[0])
+            if v(api_version) >= v("2.14.0"):
+                isinstance(resp, TorrentsAddedMetadata)
+            else:
+                assert resp == "Ok."
         else:
-            assert client.func(add_func)(torrent_files=files) == "Ok."
+            resp = client.func(add_func)(torrent_files=files)
+            if v(api_version) >= v("2.14.0"):
+                isinstance(resp, TorrentsAddedMetadata)
+            else:
+                assert resp == "Ok."
 
         for file in files:
             file.close()
@@ -182,9 +202,17 @@ def test_add_delete(client, add_func, delete_func, tmp_path):
         )
 
         if single:
-            assert client.func(add_func)(torrent_files=files[0]) == "Ok."
+            resp = client.func(add_func)(torrent_files=files[0])
+            if v(api_version) >= v("2.14.0"):
+                isinstance(resp, TorrentsAddedMetadata)
+            else:
+                assert resp == "Ok."
         else:
-            assert client.func(add_func)(torrent_files=files) == "Ok."
+            resp = client.func(add_func)(torrent_files=files)
+            if v(api_version) >= v("2.14.0"):
+                isinstance(resp, TorrentsAddedMetadata)
+            else:
+                assert resp == "Ok."
 
     @retry()
     @check_torrents_added

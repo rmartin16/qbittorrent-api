@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import errno
 from collections.abc import Iterable, Mapping, MutableMapping
+from json import JSONDecodeError
 from logging import Logger, getLogger
 from os import path
 from os import strerror as os_strerror
@@ -196,6 +197,10 @@ class TagList(List[Tag]):
         super().__init__(list_entries, entry_class=Tag, client=client)
 
 
+class TorrentsAddedMetadata(Dictionary[Any]):
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_add` for API v2.14.0+"""
+
+
 class TorrentsAPIMixIn(AppAPIMixIn):
     """
     Implementation of all Torrents API methods.
@@ -275,7 +280,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         is_stopped: bool | None = None,
         forced: bool | None = None,
         **kwargs: APIKwargsT,
-    ) -> str:
+    ) -> str | TorrentsAddedMetadata:
         """
         Add one or more torrents by URLs and/or torrent files.
 
@@ -284,6 +289,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :raises UnsupportedMediaType415Error: if file is not a valid torrent file
         :raises TorrentFileNotFoundError: if a torrent file doesn't exist
         :raises TorrentFilePermissionError: if read permission is denied to torrent file
+        :raises Conflict409Error: torrent is already added to qBittorrent
 
         :param urls: single instance or an iterable of URLs (``http://``, ``https://``,
             ``magnet:``, ``bc://bt/``)
@@ -402,14 +408,17 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             "forced": (None, forced),
         }
 
-        return self._post_cast(
+        resp = self._post(
             _name=APINames.Torrents,
             _method="add",
             data=data,
             files=self._normalize_torrent_files(torrent_files),
-            response_class=str,
             **kwargs,
         )
+        try:
+            return TorrentsAddedMetadata(resp.json())
+        except JSONDecodeError:
+            return str(resp.text)
 
     @staticmethod
     def _normalize_torrent_files(
@@ -3103,7 +3112,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
         ssl_dh_params: str | None = None,
         is_stopped: bool | None = None,
         **kwargs: APIKwargsT,
-    ) -> str:
+    ) -> str | TorrentsAddedMetadata:
         """Implements :meth:`~TorrentsAPIMixIn.torrents_add`."""
         return self._client.torrents_add(
             urls=urls,
