@@ -10,6 +10,7 @@ from qbittorrentapi._version_support import Version
 from qbittorrentapi.definitions import APIKwargsT, APINames, ClientCache
 from qbittorrentapi.exceptions import (
     LoginFailed,
+    Unauthorized401Error,
     UnsupportedQbittorrentVersion,
 )
 from qbittorrentapi.request import Request
@@ -88,18 +89,26 @@ class AuthAPIMixIn(Request):
         self._initialize_context()
 
         creds = {"username": self.username, "password": self._password}
-        auth_response = self._post_cast(
-            _name=APINames.Authorization,
-            _method="login",
-            data=creds,
-            response_class=Response,
-            **kwargs,
-        )
+        try:
+            auth_response = self._post_cast(
+                _name=APINames.Authorization,
+                _method="login",
+                data=creds,
+                response_class=Response,
+                **kwargs,
+            )
+        except Unauthorized401Error:
+            success = False
+        else:
+            # after v5.1.2, failed auth attempts returned a 401 (or 403 if banned);
+            # previous versions still return Ok./Fails.
+            success = (auth_response.text == "") or (auth_response.text == "Ok.")
 
-        if auth_response.text != "Ok.":
+        if success:
+            logger.debug("Login successful")
+        else:
             logger.debug("Login failed")
             raise LoginFailed()
-        logger.debug("Login successful")
 
         # check if the connected qBittorrent is fully supported by this Client yet
         if self._RAISE_UNSUPPORTEDVERSIONERROR:
