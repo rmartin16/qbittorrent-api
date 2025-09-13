@@ -9,6 +9,7 @@ from requests import Response
 from qbittorrentapi._version_support import Version
 from qbittorrentapi.definitions import APIKwargsT, APINames, ClientCache
 from qbittorrentapi.exceptions import (
+    HTTPError,
     LoginFailed,
     UnsupportedQbittorrentVersion,
 )
@@ -88,18 +89,19 @@ class AuthAPIMixIn(Request):
         self._initialize_context()
 
         creds = {"username": self.username, "password": self._password}
-        auth_response = self._post_cast(
-            _name=APINames.Authorization,
-            _method="login",
-            data=creds,
-            response_class=Response,
-            **kwargs,
-        )
-
-        if auth_response.text != "Ok.":
+        try:
+            self._post_cast(
+                _name=APINames.Authorization,
+                _method="login",
+                data=creds,
+                response_class=Response,
+                **kwargs,
+            )
+        except HTTPError as e:
             logger.debug("Login failed")
-            raise LoginFailed()
-        logger.debug("Login successful")
+            raise LoginFailed() from e
+        else:
+            logger.debug("Login successful")
 
         # check if the connected qBittorrent is fully supported by this Client yet
         if self._RAISE_UNSUPPORTEDVERSIONERROR:
