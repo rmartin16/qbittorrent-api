@@ -37,18 +37,18 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "build ==1.3.0",
-    "coverage[toml] ==7.10.6",
-    "mypy ==1.17.1",
+    "coverage[toml] ==7.10.7",
+    "mypy ==1.18.2",
     "pre-commit ==4.3.0",
-    "pytest ==8.4.1",
-    "tox ==4.29.0",
-    "twine ==6.1.0",
-    "types-requests ==2.32.4.20250809",
+    "pytest ==8.4.2",
+    "tox ==4.30.2",
+    "twine ==6.2.0",
+    "types-requests ==2.32.4.20250913",
 ]
 
 docs = [
     # building docs requires Python >3.10
-    "furo ==2025.7.19",
+    "furo ==2025.9.25",
     "sphinx ==8.2.1",
     "sphinx-autobuild ==2024.10.3",
     "sphinx-copybutton ==0.5.2",
