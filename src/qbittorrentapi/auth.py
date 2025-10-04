@@ -143,12 +143,13 @@ class AuthAPIMixIn(Request):
             try:
                 return self._http_session.cookies[cookie_name]
             except KeyError:
-                try:  # cookie name started included port in v5.2.0
-                    if self._url._base_url is not None:  # pragma: no branch
+                # cookie name started including WebUI port in v5.2.0
+                if self._url._base_url is not None:  # pragma: no branch
+                    try:
                         port = urlparse(self._url._base_url).port
                         return self._http_session.cookies[f"QBT_SID_{port}"]
-                except KeyError:  # pragma: no cover
-                    return None
+                    except KeyError:  # pragma: no cover
+                        return None
         return None
 
     def auth_log_out(self, **kwargs: APIKwargsT) -> None:
