@@ -730,29 +730,33 @@ def test_rename_file(
     new_name,
     rename_file_func,
 ):
-    # pre-v4.3.3 rename_file signature
-    client.func(rename_file_func)(
-        torrent_hash=new_torrent.hash, file_id=0, new_file_name=new_name
-    )
-    check(lambda: new_torrent.files[0].name.replace("+", " "), new_name)
-    # test invalid file ID is rejected
-    with pytest.raises(Conflict409Error):
+    @retry()
+    def test():
+        # pre-v4.3.3 rename_file signature
         client.func(rename_file_func)(
-            torrent_hash=new_torrent.hash, file_id=10, new_file_name=new_name
+            torrent_hash=new_torrent.hash, file_id=0, new_file_name=new_name
         )
-    # post-v4.3.3 rename_file signature
-    new_new_name = new_name + "NEW"
-    client.func(rename_file_func)(
-        torrent_hash=new_torrent.hash,
-        old_path=new_torrent.files[0].name,
-        new_path=new_new_name,
-    )
-    check(lambda: new_torrent.files[0].name.replace("+", " "), new_new_name)
-    # test invalid old_path is rejected
-    with pytest.raises(Conflict409Error):
+        check(lambda: new_torrent.files[0].name.replace("+", " "), new_name)
+        # test invalid file ID is rejected
+        with pytest.raises(Conflict409Error):
+            client.func(rename_file_func)(
+                torrent_hash=new_torrent.hash, file_id=10, new_file_name=new_name
+            )
+        # post-v4.3.3 rename_file signature
+        new_new_name = new_name + "NEW"
         client.func(rename_file_func)(
-            torrent_hash=new_torrent.hash, old_path="asdf", new_path="xcvb"
+            torrent_hash=new_torrent.hash,
+            old_path=new_torrent.files[0].name,
+            new_path=new_new_name,
         )
+        check(lambda: new_torrent.files[0].name.replace("+", " "), new_new_name)
+        # test invalid old_path is rejected
+        with pytest.raises(Conflict409Error):
+            client.func(rename_file_func)(
+                torrent_hash=new_torrent.hash, old_path="asdf", new_path="xcvb"
+            )
+
+    test()
 
 
 @pytest.mark.skipif_after_api_version("2.4.0")
