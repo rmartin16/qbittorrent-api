@@ -144,10 +144,10 @@ class AuthAPIMixIn(Request):
                 return self._http_session.cookies[cookie_name]
             except KeyError:
                 try:  # cookie name started included port in v5.2.0
-                    if self._url._base_url is not None:
+                    if self._url._base_url is not None:  # pragma: no branch
                         port = urlparse(self._url._base_url).port
                         return self._http_session.cookies[f"QBT_SID_{port}"]
-                except KeyError:
+                except KeyError:  # pragma: no cover
                     return None
         return None
 
