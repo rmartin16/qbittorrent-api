@@ -504,33 +504,37 @@ def test_rename_file_not_implemented(new_torrent, rename_file_func):
 @pytest.mark.parametrize("rename_folder_func", ["rename_folder", "renameFolder"])
 @pytest.mark.parametrize("name", ["new_name", "new name"])
 def test_rename_folder(app_version, new_torrent, rename_folder_func, name):
-    # need to ensure we're at least on v4.3.3 to run test since
-    # both v4.3.2 and v4.3.2 both use Web API 2.7
-    if v(app_version) >= v("v4.3.3"):
-        # move the file in to a new folder
-        orig_file_path = new_torrent.files[0].name
-        new_folder = "qwer"
-        new_torrent.rename_file(
-            old_path=orig_file_path,
-            new_path=new_folder + "/" + orig_file_path,
-        )
+    @retry()
+    def test():
+        # need to ensure we're at least on v4.3.3 to run test since
+        # both v4.3.2 and v4.3.2 both use Web API 2.7
+        if v(app_version) >= v("v4.3.3"):
+            # move the file in to a new folder
+            orig_file_path = new_torrent.files[0].name
+            new_folder = "qwer"
+            new_torrent.rename_file(
+                old_path=orig_file_path,
+                new_path=new_folder + "/" + orig_file_path,
+            )
 
-        # wait for the folder to be renamed
-        check(
-            lambda: [f.name.split("/")[0] for f in new_torrent.files],
-            new_folder,
-            reverse=True,
-        )
+            # wait for the folder to be renamed
+            check(
+                lambda: [f.name.split("/")[0] for f in new_torrent.files],
+                new_folder,
+                reverse=True,
+            )
 
-        # test rename that new folder
-        new_torrent.func(rename_folder_func)(
-            old_path=new_folder,
-            new_path=name,
-        )
-        check(
-            lambda: new_torrent.files[0].name.replace("+", " "),
-            name + "/" + orig_file_path,
-        )
+            # test rename that new folder
+            new_torrent.func(rename_folder_func)(
+                old_path=new_folder,
+                new_path=name,
+            )
+            check(
+                lambda: new_torrent.files[0].name.replace("+", " "),
+                name + "/" + orig_file_path,
+            )
+
+    test()
 
 
 @pytest.mark.skipif_after_api_version("2.4.0")
