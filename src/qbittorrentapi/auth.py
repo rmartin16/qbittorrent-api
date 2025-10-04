@@ -3,6 +3,7 @@ from __future__ import annotations
 from logging import Logger, getLogger
 from types import TracebackType
 from typing import TYPE_CHECKING
+from urllib.parse import urlparse
 
 from requests import Response
 
@@ -139,7 +140,15 @@ class AuthAPIMixIn(Request):
         :param cookie_name: Name of the authorization cookie; configurable after v4.5.0.
         """
         if self._http_session:
-            return self._http_session.cookies.get(cookie_name, None)
+            try:
+                return self._http_session.cookies[cookie_name]
+            except KeyError:
+                try:  # cookie name started included port in v5.2.0
+                    if self._url._base_url is not None:
+                        port = urlparse(self._url._base_url).port
+                        return self._http_session.cookies[f"QBT_SID_{port}"]
+                except KeyError:
+                    return None
         return None
 
     def auth_log_out(self, **kwargs: APIKwargsT) -> None:

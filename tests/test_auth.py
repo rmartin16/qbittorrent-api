@@ -68,9 +68,9 @@ def test_session_cookie(app_version):
     assert client.app.version == app_version
 
     # should test other cookie names but it's difficult to change
-    curr_sess_cookie = client._http_session.cookies["SID"]
+    curr_sess_cookie = client._session_cookie()
+    assert curr_sess_cookie is not None
     assert curr_sess_cookie == client._SID
-    assert client._session_cookie() == curr_sess_cookie
 
 
 def test_login_context_manager():
