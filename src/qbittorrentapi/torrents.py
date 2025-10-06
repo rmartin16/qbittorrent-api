@@ -1917,13 +1917,20 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
     Item in :class:`TorrentInfoList`. Allows interaction with individual torrents via
     the ``Torrents`` API endpoints.
 
+    All `torrent` attributes are listed in
+    https://github.com/qbittorrent/qBittorrent/blob/master/src/webui/api/serialize/serialize_torrent.h
+
     :Usage:
         >>> from qbittorrentapi import Client
         >>> client = Client(host="localhost:8080", username="admin", password="adminadmin")
         >>> # these are all the same attributes that are available as named in the
         >>> #  endpoints or the more pythonic names in Client (with or without 'transfer_' prepended)
         >>> torrent = client.torrents.info()[0]
-        >>> torrent_hash = torrent.info.hash
+        >>> torrent_id = torrent.hash # truncated v2 hash or v1 hash
+        >>> torrent_hash_v1 = torrent.infohash_v1
+        >>> torrent_hash_v2 = torrent.infohash_v2
+        >>> torrent_magnet = torrent.magnet_uri
+        >>> torrent_name = torrent.name
         >>> # Attributes without inputs and a return value are properties
         >>> properties = torrent.properties
         >>> trackers = torrent.trackers
