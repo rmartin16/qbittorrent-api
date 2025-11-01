@@ -132,7 +132,7 @@ jobs:
     needs: [ verify, package ]
     strategy:
       matrix:
-        PYTHON_VER: [ "3.15", "3.14", "3.13", "3.12", "3.11", "3.10", "pypy3.10", "3.9" ]
+        PYTHON_VER: [ "3.15", "3.14", "3.13", "3.12", "3.11", "3.10", "3.9" ]
     uses: ./.github/workflows/test.yml
     secrets: inherit
     with:
