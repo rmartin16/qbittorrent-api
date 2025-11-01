@@ -41,7 +41,7 @@ dev = [
     "mypy ==1.18.2",
     "pre-commit ==4.3.0",
     "pytest ==8.4.2",
-    "tox ==4.30.2",
+    "tox ==4.30.3",
     "twine ==6.2.0",
     "types-requests ==2.32.4.20250913",
 ]
