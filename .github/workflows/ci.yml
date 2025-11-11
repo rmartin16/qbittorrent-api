@@ -38,21 +38,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
-      python-latest-version: ${{ steps.set-outputs.outputs.python-latest-version }}
-      qbittorrent-latest-version: ${{ steps.set-outputs.outputs.qbittorrent-latest-version }}
-      qbittorrent-host: ${{ steps.set-outputs.outputs.qbittorrent-host }}
-      qbittorrent-username: ${{ steps.set-outputs.outputs.qbittorrent-username }}
-      qbittorrent-password: ${{ steps.set-outputs.outputs.qbittorrent-password }}
+      python-latest-version: ${{ env.LATEST_PYTHON_VER }}
+      qbittorrent-latest-version: ${{ env.LATEST_QBT_VER }}
+      qbittorrent-host: ${{ env.QBITTORRENTAPI_HOST }}
+      qbittorrent-username: ${{ env.QBITTORRENTAPI_USERNAME }}
+      qbittorrent-password: ${{ env.QBITTORRENTAPI_PASSWORD }}
     steps:
-      - name: Declare Outputs
-        id: set-outputs
-        run: |
-          echo "python-latest-version=${{ env.LATEST_PYTHON_VER }}" | tee -a ${GITHUB_OUTPUT}
-          echo "qbittorrent-latest-version=${{ env.LATEST_QBT_VER }}" | tee -a ${GITHUB_OUTPUT}
-          echo "qbittorrent-host=${{ env.QBITTORRENTAPI_HOST }}" | tee -a ${GITHUB_OUTPUT}
-          echo "qbittorrent-username=${{ env.QBITTORRENTAPI_USERNAME }}" | tee -a ${GITHUB_OUTPUT}
-          echo "qbittorrent-password=${{ env.QBITTORRENTAPI_PASSWORD }}" | tee -a ${GITHUB_OUTPUT}
-
       - name: Checkout Repo
         uses: actions/checkout@v5.0.0
 
