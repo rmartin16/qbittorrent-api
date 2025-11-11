@@ -108,16 +108,6 @@ jobs:
           - v4.2.0
           - v4.1.6
           - v4.1.0
-        include:
-          - IS_QBT_DEV: false
-          # test dev versions of qBittorrent
-          - QBT_VER: master
-            IS_QBT_DEV: true
-          - QBT_VER: v5_0_x
-            IS_QBT_DEV: true
-          - QBT_VER: v4_6_x
-            IS_QBT_DEV: true
-    continue-on-error: ${{ matrix.IS_QBT_DEV == 'true' }}
     uses: ./.github/workflows/test.yml
     secrets: inherit
     with:
@@ -126,7 +116,23 @@ jobs:
       qbittorrent-host: ${{ needs.verify.outputs.qbittorrent-host }}
       qbittorrent-username: ${{ needs.verify.outputs.qbittorrent-username }}
       qbittorrent-password: ${{ needs.verify.outputs.qbittorrent-password }}
-      is-qbt-dev: ${{ matrix.IS_QBT_DEV }}
+      is-qbt-dev: false
+
+  Tests-qBittorrent-dev:
+    name: Release Test ${{ needs.verify.outputs.python-latest-version }} - ${{ matrix.QBT_VER }}
+    needs: [ verify, package ]
+    strategy:
+      matrix:
+        QBT_VER: [ master, v5_0_x, v4_6_x ]
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+    with:
+      python-version: ${{ needs.verify.outputs.python-latest-version }}
+      qbittorrent-version: ${{ matrix.QBT_VER }}
+      qbittorrent-host: ${{ needs.verify.outputs.qbittorrent-host }}
+      qbittorrent-username: ${{ needs.verify.outputs.qbittorrent-username }}
+      qbittorrent-password: ${{ needs.verify.outputs.qbittorrent-password }}
+      is-qbt-dev: true
 
   Tests-Python:
     name: Release Test ${{ matrix.PYTHON_VER }} - ${{ needs.verify.outputs.qbittorrent-latest-version }}
