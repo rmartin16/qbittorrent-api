@@ -119,6 +119,9 @@ jobs:
           - QBT_VER: v4_6_x
             IS_QBT_DEV: true
     steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v5.0.0
+
       - name: Run tests
         uses: ./.github/workflows/test.yml
         continue-on-error: ${{ matrix.IS_QBT_DEV == 'true' }}
