@@ -14,6 +14,10 @@ on:
         description: "Attest the created package using GitHub attestations."
         default: "false"
         type: string
+      run-dev-tests:
+        description: "Whether to run tests for development versions of qBittorrent"
+        default: "true"
+        type: string
 
 # cancels running CI if new commit is pushed to branch
 concurrency:
@@ -34,21 +38,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
-      python-latest-version: ${{ steps.set-outputs.outputs.python-latest-version }}
-      qbittorrent-latest-version: ${{ steps.set-outputs.outputs.qbittorrent-latest-version }}
-      qbittorrent-host: ${{ steps.set-outputs.outputs.qbittorrent-host }}
-      qbittorrent-username: ${{ steps.set-outputs.outputs.qbittorrent-username }}
-      qbittorrent-password: ${{ steps.set-outputs.outputs.qbittorrent-password }}
+      python-latest-version: ${{ env.LATEST_PYTHON_VER }}
+      qbittorrent-latest-version: ${{ env.LATEST_QBT_VER }}
+      qbittorrent-host: ${{ env.QBITTORRENTAPI_HOST }}
+      qbittorrent-username: ${{ env.QBITTORRENTAPI_USERNAME }}
+      qbittorrent-password: ${{ env.QBITTORRENTAPI_PASSWORD }}
     steps:
-      - name: Declare Outputs
-        id: set-outputs
-        run: |
-          echo "python-latest-version=${{ env.LATEST_PYTHON_VER }}" | tee -a ${GITHUB_OUTPUT}
-          echo "qbittorrent-latest-version=${{ env.LATEST_QBT_VER }}" | tee -a ${GITHUB_OUTPUT}
-          echo "qbittorrent-host=${{ env.QBITTORRENTAPI_HOST }}" | tee -a ${GITHUB_OUTPUT}
-          echo "qbittorrent-username=${{ env.QBITTORRENTAPI_USERNAME }}" | tee -a ${GITHUB_OUTPUT}
-          echo "qbittorrent-password=${{ env.QBITTORRENTAPI_PASSWORD }}" | tee -a ${GITHUB_OUTPUT}
-
       - name: Checkout Repo
         uses: actions/checkout@v5.0.0
 
@@ -108,15 +103,6 @@ jobs:
           - v4.2.0
           - v4.1.6
           - v4.1.0
-        include:
-          - IS_QBT_DEV: false
-          # test dev versions of qBittorrent
-          - QBT_VER: master
-            IS_QBT_DEV: true
-          - QBT_VER: v5_0_x
-            IS_QBT_DEV: true
-          - QBT_VER: v4_6_x
-            IS_QBT_DEV: true
     uses: ./.github/workflows/test.yml
     secrets: inherit
     with:
@@ -125,7 +111,24 @@ jobs:
       qbittorrent-host: ${{ needs.verify.outputs.qbittorrent-host }}
       qbittorrent-username: ${{ needs.verify.outputs.qbittorrent-username }}
       qbittorrent-password: ${{ needs.verify.outputs.qbittorrent-password }}
-      is-qbt-dev: ${{ matrix.IS_QBT_DEV }}
+      is-qbt-dev: false
+
+  Tests-qBittorrent-dev:
+    name: Release Test ${{ needs.verify.outputs.python-latest-version }} - ${{ matrix.QBT_VER }}
+    needs: [ verify, package ]
+    if: inputs.run-dev-tests != 'false'
+    strategy:
+      matrix:
+        QBT_VER: [ "master", "v5_0_x", "v4_6_x" ]
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+    with:
+      python-version: ${{ needs.verify.outputs.python-latest-version }}
+      qbittorrent-version: ${{ matrix.QBT_VER }}
+      qbittorrent-host: ${{ needs.verify.outputs.qbittorrent-host }}
+      qbittorrent-username: ${{ needs.verify.outputs.qbittorrent-username }}
+      qbittorrent-password: ${{ needs.verify.outputs.qbittorrent-password }}
+      is-qbt-dev: true
 
   Tests-Python:
     name: Release Test ${{ matrix.PYTHON_VER }} - ${{ needs.verify.outputs.qbittorrent-latest-version }}
