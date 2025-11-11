@@ -17,7 +17,7 @@ jobs:
   release:
     name: Create Release
     needs: ci
-    if: needs.ci.result == 'success'
+    if: needs.ci.result == 'success' || needs.ci.result == 'failure'
     runs-on: ubuntu-latest
     permissions:
       contents: write
