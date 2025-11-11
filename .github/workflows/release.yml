@@ -12,6 +12,7 @@ jobs:
     secrets: inherit
     with:
       attest: "true"
+      run-dev-tests: "false"
 
   release:
     name: Create Release

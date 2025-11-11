@@ -14,6 +14,10 @@ on:
         description: "Attest the created package using GitHub attestations."
         default: "false"
         type: string
+      run-dev-tests:
+        description: "Whether to run tests for development versions of qBittorrent"
+        default: "true"
+        type: string
 
 # cancels running CI if new commit is pushed to branch
 concurrency:
@@ -121,9 +125,10 @@ jobs:
   Tests-qBittorrent-dev:
     name: Release Test ${{ needs.verify.outputs.python-latest-version }} - ${{ matrix.QBT_VER }}
     needs: [ verify, package ]
+    if: inputs.run-dev-tests != 'false'
     strategy:
       matrix:
-        QBT_VER: [ master, v5_0_x, v4_6_x ]
+        QBT_VER: [ "master", "v5_0_x", "v4_6_x" ]
     uses: ./.github/workflows/test.yml
     secrets: inherit
     with:
