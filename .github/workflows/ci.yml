@@ -45,10 +45,10 @@ jobs:
       qbittorrent-password: ${{ env.QBITTORRENTAPI_PASSWORD }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v6.0.0
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
-        uses: actions/setup-python@v6.0.0
+        uses: actions/setup-python@v6.1.0
         with:
           python-version: ${{ env.LATEST_PYTHON_VER }}
           allow-prereleases: true
@@ -74,7 +74,7 @@ jobs:
       attestations: write
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v6.0.0
         with:
           fetch-depth: 0  # Fetch all refs so setuptools_scm can generate the correct version number
 
@@ -151,12 +151,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ Tests-qBittorrent, Tests-Python ]
     steps:
-      - uses: actions/checkout@v5.0.0
+      - uses: actions/checkout@v6.0.0
         with:
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v6.0.0
+        uses: actions/setup-python@v6.1.0
         with:
           python-version: 3.x
 
@@ -206,10 +206,10 @@ jobs:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v6.0.0
 
       - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
-        uses: actions/setup-python@v6.0.0
+        uses: actions/setup-python@v6.1.0
         with:
           python-version: ${{ env.LATEST_PYTHON_VER }}
           allow-prereleases: true
