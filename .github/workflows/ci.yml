@@ -119,7 +119,7 @@ jobs:
     if: inputs.run-dev-tests != 'false'
     strategy:
       matrix:
-        QBT_VER: [ "master", "v5_0_x", "v4_6_x" ]
+        QBT_VER: [ "master", "v5_1_x", "v5_0_x", "v4_6_x" ]
     uses: ./.github/workflows/test.yml
     secrets: inherit
     with:
