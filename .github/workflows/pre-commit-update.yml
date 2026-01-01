@@ -30,7 +30,7 @@ jobs:
       hook-repos: ${{ steps.hooks.outputs.repos }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v6.0.0
+        uses: actions/checkout@v6.0.1
 
       - name: Get Pre-commit Hooks
         id: hooks
@@ -50,7 +50,7 @@ jobs:
         hook-repo: ${{ fromJson(needs.pre-commit-hooks.outputs.hook-repos) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.0
+        uses: actions/checkout@v6.0.1
         with:
           fetch-depth: 1
           token: ${{ secrets.PAT }}
@@ -94,7 +94,7 @@ jobs:
       - name: Create Pull Request
         id: created-pr
         if: steps.pr.outputs.needed == 'true'
-        uses: peter-evans/create-pull-request@v7.0.9
+        uses: peter-evans/create-pull-request@v8.0.0
         with:
           token: ${{ secrets.PAT }}
           title: "Bump pre-commit hook for ${{ steps.pr.outputs.hook-name }} from ${{ steps.update.outputs.vers-bump-str }}"
