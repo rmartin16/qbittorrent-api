@@ -130,7 +130,7 @@ jobs:
       qbittorrent-password: ${{ needs.verify.outputs.qbittorrent-password }}
       is-qbt-dev: true
 
-  Tests-qBittorrent-master-3.15:
+  Tests-qBittorrent-master-3-15:
     name: Release Test 3.15 - ${{ matrix.QBT_VER }}
     needs: [ verify, package ]
     if: inputs.run-dev-tests != 'false'
@@ -147,7 +147,7 @@ jobs:
       qbittorrent-password: ${{ needs.verify.outputs.qbittorrent-password }}
       is-qbt-dev: true
 
-  Tests-qBittorrent-master-3.13:
+  Tests-qBittorrent-master-3-13:
     name: Release Test 3.13 - ${{ matrix.QBT_VER }}
     needs: [ verify, package ]
     if: inputs.run-dev-tests != 'false'
@@ -164,7 +164,7 @@ jobs:
       qbittorrent-password: ${{ needs.verify.outputs.qbittorrent-password }}
       is-qbt-dev: true
 
-  Tests-qBittorrent-master-3.12:
+  Tests-qBittorrent-master-3-12:
     name: Release Test 3.12 - ${{ matrix.QBT_VER }}
     needs: [ verify, package ]
     if: inputs.run-dev-tests != 'false'
@@ -181,7 +181,7 @@ jobs:
       qbittorrent-password: ${{ needs.verify.outputs.qbittorrent-password }}
       is-qbt-dev: true
 
-  Tests-qBittorrent-master-3.11:
+  Tests-qBittorrent-master-3-11:
     name: Release Test 3.11 - ${{ matrix.QBT_VER }}
     needs: [ verify, package ]
     if: inputs.run-dev-tests != 'false'
