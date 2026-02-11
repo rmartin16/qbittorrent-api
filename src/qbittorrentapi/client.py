@@ -16,7 +16,7 @@ from qbittorrentapi.transfer import TransferAPIMixIn
 #     Required API parameters
 #         - To avoid runtime errors, required API parameters are not explicitly
 #           enforced in the code. Instead, I found if qBittorrent returns HTTP400
-#           without am error message, at least one required parameter is missing.
+#           without an error message, at least one required parameter is missing.
 #           This raises a MissingRequiredParameters400 error.
 #         - Alternatively, if a parameter is malformatted, HTTP400 is returned
 #           with an error message.
