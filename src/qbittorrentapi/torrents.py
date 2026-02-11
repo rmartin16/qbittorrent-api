@@ -73,7 +73,7 @@ class TorrentPropertiesDictionary(Dictionary[JsonValueT]):
     """
     Response to :meth:`~TorrentsAPIMixIn.torrents_properties`
 
-    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-generic-properties>`_
+    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)#user-content-get-torrent-generic-properties>`_
     """  # noqa: E501
 
 
@@ -97,7 +97,7 @@ class TorrentFilesList(List[TorrentFile]):
     """
     Response to :meth:`~TorrentsAPIMixIn.torrents_files`
 
-    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-contents>`_
+    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)#user-content-get-torrent-contents>`_
     """  # noqa: E501
 
     def __init__(
@@ -121,7 +121,7 @@ class WebSeedsList(List[WebSeed]):
     """
     Response to :meth:`~TorrentsAPIMixIn.torrents_webseeds`
 
-    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-web-seeds>`_
+    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)#user-content-get-torrent-web-seeds>`_
     """  # noqa: E501
 
     def __init__(
@@ -140,7 +140,7 @@ class TrackersList(List[Tracker]):
     """
     Response to :meth:`~TorrentsAPIMixIn.torrents_trackers`
 
-    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-trackers>`_
+    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)#user-content-get-torrent-trackers>`_
     """  # noqa: E501
 
     def __init__(
@@ -155,7 +155,7 @@ class TorrentInfoList(List["TorrentDictionary"]):
     """
     Response to :meth:`~TorrentsAPIMixIn.torrents_info`
 
-    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-list>`_
+    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)#user-content-get-torrent-list>`_
     """  # noqa: E501
 
     def __init__(
@@ -826,7 +826,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :param torrent_hash: hash for torrent
         :param file_ids: single file ID or a list.
         :param priority: priority for file(s) -
-            `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-set-file-priority>`_
+            `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)#user-content-set-file-priority>`_
         """  # noqa: E501
         data = {
             "hash": torrent_hash,

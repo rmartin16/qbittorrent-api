@@ -25,7 +25,7 @@ class ApplicationPreferencesDictionary(Dictionary[JsonValueT]):
     """
     Response for :meth:`~AppAPIMixIn.app_preferences`
 
-    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-application-preferences>`_
+    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)#user-content-get-application-preferences>`_
     """  # noqa: E501
 
 
@@ -33,7 +33,7 @@ class BuildInfoDictionary(Dictionary[Union[str, int]]):
     """
     Response for :meth:`~AppAPIMixIn.app_build_info`
 
-    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-build-info>`_
+    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)#user-content-get-build-info>`_
     """  # noqa: E501
 
 

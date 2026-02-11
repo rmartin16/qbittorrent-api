@@ -258,7 +258,7 @@ class RSSAPIMixIn(AppAPIMixIn):
         Create a new RSS auto-downloading rule.
 
         :param rule_name: name for new rule
-        :param rule_def: dictionary with rule fields - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-set-auto-downloading-rule>`_
+        :param rule_def: dictionary with rule fields - `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)#user-content-set-auto-downloading-rule>`_
         """  # noqa: E501
         data = {"ruleName": rule_name, "ruleDef": dumps(rule_def)}
         self._post(_name=APINames.RSS, _method="setRule", data=data, **kwargs)

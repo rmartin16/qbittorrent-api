@@ -69,7 +69,7 @@ class TorrentState(str, Enum):
      - ``PAUSED_DOWNLOAD`` was renamed to ``STOPPED_DOWNLOAD``
 
     Definitions:
-        - wiki: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-list>`_
+        - wiki: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)#user-content-get-torrent-list>`_
         - code: `<https://github.com/qbittorrent/qBittorrent/blob/8e6515be2c8cc2b335002ab8913e9dcdd7873204/src/base/bittorrent/torrent.h#L79>`_
 
     :Usage:
@@ -187,7 +187,7 @@ class TrackerStatus(int, Enum):
     Tracker Statuses as defined by qBittorrent.
 
     Definitions:
-        - wiki: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-trackers>`_
+        - wiki: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)#user-content-get-torrent-trackers>`_
         - code: `<https://github.com/qbittorrent/qBittorrent/blob/5dcc14153f046209f1067299494a82e5294d883a/src/base/bittorrent/trackerentry.h#L42>`_
 
     :Usage:
