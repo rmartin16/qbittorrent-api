@@ -23,7 +23,7 @@ Currently supports qBittorrent `v5.1.4 <https://github.com/qbittorrent/qBittorre
 
 Features
 --------
-- The entire qBittorrent `Web API <https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)>`_ is implemented.
+- The entire qBittorrent `Web API <https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)>`_ is implemented.
 - qBittorrent version checking for an endpoint's existence/features is automatically handled.
 - If the authentication cookie expires, a new one is automatically requested in line with any API call.
 

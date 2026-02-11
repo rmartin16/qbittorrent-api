@@ -20,7 +20,7 @@ class SearchResultsDictionary(Dictionary[JsonValueT]):
     """
     Response for :meth:`~SearchAPIMixIn.search_results`
 
-    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-search-results>`_
+    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)#user-content-get-search-results>`_
     """  # noqa: E501
 
 
@@ -32,7 +32,7 @@ class SearchStatusesList(List[SearchStatus]):
     """
     Response for :meth:`~SearchAPIMixIn.search_status`
 
-    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-search-status>`_
+    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)#user-content-get-search-status>`_
     """  # noqa: E501
 
     def __init__(self, list_entries: ListInputT, client: SearchAPIMixIn | None = None):
@@ -58,7 +58,7 @@ class SearchPluginsList(List[SearchPlugin]):
     """
     Response for :meth:`~SearchAPIMixIn.search_plugins`.
 
-    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-search-plugins>`_
+    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)#user-content-get-search-plugins>`_
     """
 
     def __init__(self, list_entries: ListInputT, client: SearchAPIMixIn | None = None):

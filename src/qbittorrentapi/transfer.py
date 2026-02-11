@@ -17,7 +17,7 @@ class TransferInfoDictionary(Dictionary[JsonValueT]):
     """
     Response to :meth:`~TransferAPIMixIn.transfer_info`
 
-    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-global-transfer-info>`_
+    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)#user-content-get-global-transfer-info>`_
     """  # noqa: E501
 
 

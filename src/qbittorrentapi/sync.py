@@ -16,7 +16,7 @@ class SyncMainDataDictionary(Dictionary[JsonValueT]):
     """
     Response for :meth:`~SyncAPIMixIn.sync_maindata`
 
-    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-main-data>`_
+    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)#user-content-get-main-data>`_
     """  # noqa: E501
 
 
@@ -24,7 +24,7 @@ class SyncTorrentPeersDictionary(Dictionary[JsonValueT]):
     """
     Response for :meth:`~SyncAPIMixIn.sync_torrent_peers`
 
-    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#user-content-get-torrent-peers-data>`_
+    Definition: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)#user-content-get-torrent-peers-data>`_
     """  # noqa: E501
 
 
