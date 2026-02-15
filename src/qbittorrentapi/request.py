@@ -137,7 +137,9 @@ class QbittorrentURL:
             base_url = base_url._replace(netloc=host)
 
         # detect whether Web API is configured for HTTP or HTTPS
-        if not (user_scheme and self.client._FORCE_SCHEME_FROM_HOST):
+        if not (  # pragma: no branch
+            user_scheme and self.client._FORCE_SCHEME_FROM_HOST
+        ):
             scheme = self.detect_scheme(
                 base_url, default_scheme, alt_scheme, headers, requests_kwargs
             )
