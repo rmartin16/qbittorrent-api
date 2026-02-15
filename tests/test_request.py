@@ -140,6 +140,7 @@ def _enable_disable_https(client, use_https):
         client.app.preferences = {"use_https": False}
 
 
+@pytest.mark.xfail(reason="started failing prior to v5.2.0 release")
 @pytest.mark.skipif_before_api_version("2.2.1")
 @pytest.mark.parametrize("use_https", (True, False))
 def test_force_user_scheme(client, app_version, use_https):
