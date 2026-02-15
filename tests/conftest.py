@@ -70,7 +70,8 @@ def abort_if_qbittorrent_crashes(client):
     """Abort tests if qbittorrent seemingly disappears during testing."""
     try:
         client.app_version()
-    except APIConnectionError:
+    except APIConnectionError as e:
+        print(f"qbittorrent crashed: {e!r}")
         pytest.exit("qBittorrent crashed :(")
 
 

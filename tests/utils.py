@@ -21,7 +21,8 @@ def setup_environ():
     environ.setdefault("QBITTORRENTAPI_PASSWORD", "adminadmin")
     try:
         environ.setdefault("QBT_VER", Client().app.version)
-    except APIConnectionError:
+    except APIConnectionError as e:
+        print(f"qbittorrent error: {e!r}")
         raise Exception("is qBittorrent running???")
 
     qbt_version = environ.get("QBT_VER", "")
