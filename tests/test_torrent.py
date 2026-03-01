@@ -53,8 +53,9 @@ def test_state_enum(orig_torrent):
     assert orig_torrent.state_enum is not TorrentStates.UNKNOWN
     orig_torrent.resume()
     check(
-        lambda: orig_torrent.sync_local() is None
-        and orig_torrent.state_enum.is_downloading,
+        lambda: (
+            orig_torrent.sync_local() is None and orig_torrent.state_enum.is_downloading
+        ),
         True,
     )
     # simulate an unknown torrent.state
@@ -70,17 +71,21 @@ def test_state_enum(orig_torrent):
 def test_pause_resume(client, new_torrent):
     new_torrent.pause()
     check(
-        lambda: client.torrents_info(torrent_hashes=new_torrent.hash)[
-            0
-        ].state_enum.is_paused,
+        lambda: (
+            client.torrents_info(torrent_hashes=new_torrent.hash)[
+                0
+            ].state_enum.is_paused
+        ),
         True,
     )
 
     new_torrent.resume()
     check(
-        lambda: client.torrents_info(torrent_hashes=new_torrent.hash)[
-            0
-        ].state_enum.is_paused,
+        lambda: (
+            client.torrents_info(torrent_hashes=new_torrent.hash)[
+                0
+            ].state_enum.is_paused
+        ),
         False,
     )
 
@@ -90,17 +95,21 @@ def test_pause_resume(client, new_torrent):
 def test_stop_start(client, new_torrent):
     new_torrent.stop()
     check(
-        lambda: client.torrents_info(torrent_hashes=new_torrent.hash)[
-            0
-        ].state_enum.is_paused,
+        lambda: (
+            client.torrents_info(torrent_hashes=new_torrent.hash)[
+                0
+            ].state_enum.is_paused
+        ),
         True,
     )
 
     new_torrent.resume()
     check(
-        lambda: client.torrents_info(torrent_hashes=new_torrent.hash)[
-            0
-        ].state_enum.is_paused,
+        lambda: (
+            client.torrents_info(torrent_hashes=new_torrent.hash)[
+                0
+            ].state_enum.is_paused
+        ),
         False,
     )
 

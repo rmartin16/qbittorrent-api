@@ -901,17 +901,21 @@ def test_torrents_info_tag(client, new_torrent, info_func):
 def test_stop_start(client, new_torrent, stop_func, start_func):
     client.func(stop_func)(torrent_hashes=new_torrent.hash)
     check(
-        lambda: client.torrents_info(torrent_hashes=new_torrent.hash)[
-            0
-        ].state_enum.is_paused,
+        lambda: (
+            client.torrents_info(torrent_hashes=new_torrent.hash)[
+                0
+            ].state_enum.is_paused
+        ),
         True,
     )
 
     client.func(start_func)(torrent_hashes=new_torrent.hash)
     check(
-        lambda: client.torrents_info(torrent_hashes=new_torrent.hash)[
-            0
-        ].state_enum.is_paused,
+        lambda: (
+            client.torrents_info(torrent_hashes=new_torrent.hash)[
+                0
+            ].state_enum.is_paused
+        ),
         False,
     )
 
