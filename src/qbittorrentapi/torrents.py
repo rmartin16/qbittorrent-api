@@ -91,6 +91,16 @@ class TorrentsAddPeersDictionary(Dictionary[JsonValueT]):
 
 class TorrentFile(ListEntry):
     """Item in :class:`TorrentFilesList`"""
+    
+    name: str
+
+    size: float
+
+    id: str
+
+    progress: float
+
+    priority: int
 
 
 class TorrentFilesList(List[TorrentFile]):
@@ -1946,6 +1956,16 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
         >>> torrent.setLocation(location="/home/user/torrents/")
         >>> torrent.setCategory(category="video")
     """  # noqa: E501
+
+    name: str
+
+    hash: str
+
+    num_complete: int
+    """Seeders"""
+
+    num_incomplete: int
+    """Leechers"""
 
     def __init__(
         self,
