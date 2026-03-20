@@ -3,6 +3,7 @@ import sys
 import pytest
 
 from qbittorrentapi import APINames, NotFound404Error
+from qbittorrentapi._version_support import v
 from qbittorrentapi.search import (
     SearchCategoriesList,
     SearchJobDictionary,
@@ -30,7 +31,10 @@ def test_methods(client):
 @pytest.mark.parametrize(
     "update_func", ["search_update_plugins", "search.update_plugins"]
 )
-def test_update_plugins(client, update_func):
+def test_update_plugins(client, update_func, app_version):
+    if v(app_version) <= v("v5.0.5"):
+        pytest.xfail("older qbittorrent requests are rejected now")
+
     @retry()
     def do_test():
         client.func(update_func)()
@@ -301,7 +305,10 @@ def test_delete_not_implemented(client):
         "search.downloadTorrent",
     ],
 )
-def test_download_torrent(client, client_func):
+def test_download_torrent(client, client_func, app_version):
+    if v(app_version) <= v("v5.0.5"):
+        pytest.xfail("older qbittorrent requests are rejected now")
+
     # run update to ensure plugins are loaded
     client.search.update_plugins()
     check(
