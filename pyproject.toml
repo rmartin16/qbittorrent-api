@@ -87,7 +87,9 @@ addopts = """
   --doctest-modules
   -v
 """
-filterwarnings = ["error"]
+filterwarnings = [
+    "error",
+]
 markers = [
     "skipif_before_api_version(api_version): skips test for current api version",
     "skipif_after_api_version(api_version): skips test for current api version",
