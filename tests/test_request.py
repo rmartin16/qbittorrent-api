@@ -189,7 +189,7 @@ def _enable_disable_https(client, use_https):
 
 @pytest.mark.skipif_before_api_version("2.2.1")
 @pytest.mark.parametrize("scheme", ("http://", "https://"))
-# something keeps changing in the master branch (that will feed v5.2) around using the
+# something keeps changing in the master branch (that will feed v5.3) around using the
 # wrong scheme. it is triggering different paths in unverified request handling but
 # it doesn't actually affect functionality.
 @pytest.mark.filterwarnings("ignore:Unverified HTTPS request")
