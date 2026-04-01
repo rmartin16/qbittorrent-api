@@ -47,7 +47,7 @@ jobs:
         uses: actions/checkout@v6.0.2
 
       - name: Get packages
-        uses: actions/download-artifact@v8.0.0
+        uses: actions/download-artifact@v8.0.1
         with:
           name: Packages
           path: ./dist
@@ -91,7 +91,7 @@ jobs:
 
       - name: Send mail
         if: failure() && github.event_name != 'pull_request'
-        uses: dawidd6/action-send-mail@v11
+        uses: dawidd6/action-send-mail@v16
         with:
           server_address: smtp.gmail.com
           server_port: 587
