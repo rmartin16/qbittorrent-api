@@ -1297,6 +1297,24 @@ def test_torrents_set_auto_management(client, orig_torrent, set_auto_mgmt_func):
 
 
 @pytest.mark.parametrize(
+    "set_comment_func",
+    [
+        "torrents_set_comment",
+        "torrents_setComment",
+        "torrents.set_comment",
+        "torrents.setComment",
+    ],
+)
+def test_torrents_set_comment(client, orig_torrent, set_comment_func):
+    client.func(set_comment_func)(
+        comment="new comment", torrent_hashes=orig_torrent.hash
+    )
+    check(lambda: orig_torrent.info.comment, "new comment")
+    client.func(set_comment_func)(comment="", torrent_hashes=orig_torrent.hash)
+    check(lambda: orig_torrent.info.comment, "")
+
+
+@pytest.mark.parametrize(
     "toggle_seq_down_func",
     [
         "torrents_toggle_sequential_download",

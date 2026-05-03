@@ -279,6 +279,14 @@ def test_set_auto_management(orig_torrent, set_auto_mgmt_func):
     check(lambda: orig_torrent.info.auto_tmm, current_setting)
 
 
+@pytest.mark.parametrize("set_comment_func", ["set_comment", "setComment"])
+def test_set_comment(orig_torrent, set_comment_func):
+    orig_torrent.func(set_comment_func)(comment="new comment")
+    check(lambda: orig_torrent.info.comment, "new comment")
+    orig_torrent.func(set_comment_func)(comment="")
+    check(lambda: orig_torrent.info.comment, "")
+
+
 @pytest.mark.parametrize(
     "toggle_seq_down_func", ["toggle_sequential_download", "toggleSequentialDownload"]
 )

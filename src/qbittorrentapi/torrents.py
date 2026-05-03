@@ -1517,6 +1517,27 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     torrents_setAutoManagement = torrents_set_auto_management
 
+    def torrents_set_comment(
+        self,
+        comment: str | None = None,
+        torrent_hashes: str | Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Set a comment for one or more torrents.
+
+        :param torrent_hashes: single torrent hash or list of torrent hashes.
+            Or ``all`` for all torrents.
+        :param comment: comment to assign to torrent
+        """
+        data = {
+            "hashes": self._list2string(torrent_hashes, "|"),
+            "comment": comment,
+        }
+        self._post(_name=APINames.Torrents, _method="setComment", data=data, **kwargs)
+
+    torrents_setComment = torrents_set_comment
+
     def torrents_toggle_sequential_download(
         self,
         torrent_hashes: str | Iterable[str] | None = None,
@@ -2227,6 +2248,20 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     setAutoManagement = set_auto_management
 
+    def set_comment(
+        self,
+        comment: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_comment`."""
+        self._client.torrents_set_comment(
+            comment=comment,
+            torrent_hashes=self._torrent_hash,
+            **kwargs,
+        )
+
+    setComment = set_comment
+
     def toggle_sequential_download(self, **kwargs: APIKwargsT) -> None:
         """Implements :meth:`~TorrentsAPIMixIn.torrents_toggle_sequential_download`."""
         self._client.torrents_toggle_sequential_download(
@@ -2606,6 +2641,12 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             client=client, func=client.torrents_set_auto_management
         )
         self.setAutoManagement = self.set_auto_management
+
+        self.set_comment = self._ActionForAllTorrents(
+            client=client, func=client.torrents_set_comment
+        )
+        self.setComment = self.set_comment
+
         self.toggle_sequential_download = self._ActionForAllTorrents(
             client=client, func=client.torrents_toggle_sequential_download
         )
