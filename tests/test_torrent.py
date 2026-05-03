@@ -280,6 +280,7 @@ def test_set_auto_management(orig_torrent, set_auto_mgmt_func):
 
 
 @pytest.mark.parametrize("set_comment_func", ["set_comment", "setComment"])
+@pytest.mark.skipif_before_api_version("2.12.1")
 def test_set_comment(orig_torrent, set_comment_func):
     orig_torrent.func(set_comment_func)(comment="new comment")
     check(lambda: orig_torrent.info.comment, "new comment")

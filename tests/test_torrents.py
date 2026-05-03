@@ -1305,6 +1305,7 @@ def test_torrents_set_auto_management(client, orig_torrent, set_auto_mgmt_func):
         "torrents.setComment",
     ],
 )
+@pytest.mark.skipif_before_api_version("2.12.1")
 def test_torrents_set_comment(client, orig_torrent, set_comment_func):
     client.func(set_comment_func)(
         comment="new comment", torrent_hashes=orig_torrent.hash
