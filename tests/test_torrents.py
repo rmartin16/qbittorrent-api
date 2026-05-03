@@ -1315,6 +1315,21 @@ def test_torrents_set_comment(client, orig_torrent, set_comment_func):
     check(lambda: orig_torrent.info.comment, "")
 
 
+@pytest.mark.skipif_after_api_version("2.12.1")
+@pytest.mark.parametrize(
+    "set_comment_func",
+    [
+        "torrents_set_comment",
+        "torrents_setComment",
+        "torrents.set_comment",
+        "torrents.setComment",
+    ],
+)
+def test_torrents_set_comment_not_implemented(client, set_comment_func):
+    with pytest.raises(NotImplementedError):
+        client.func(set_comment_func)()
+
+
 @pytest.mark.parametrize(
     "toggle_seq_down_func",
     [

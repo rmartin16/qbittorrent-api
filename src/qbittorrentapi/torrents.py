@@ -1534,7 +1534,13 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             "hashes": self._list2string(torrent_hashes, "|"),
             "comment": comment,
         }
-        self._post(_name=APINames.Torrents, _method="setComment", data=data, **kwargs)
+        self._post(
+            _name=APINames.Torrents,
+            _method="setComment",
+            data=data,
+            version_introduced="2.12.1",
+            **kwargs,
+        )
 
     torrents_setComment = torrents_set_comment
 
