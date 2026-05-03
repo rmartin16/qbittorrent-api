@@ -288,6 +288,13 @@ def test_set_comment(orig_torrent, set_comment_func):
     check(lambda: orig_torrent.info.comment, "")
 
 
+@pytest.mark.parametrize("set_comment_func", ["set_comment", "setComment"])
+@pytest.mark.skipif_after_api_version("2.12.1")
+def test_set_comment_not_implemented(orig_torrent, set_comment_func):
+    with pytest.raises(NotImplementedError):
+        orig_torrent.func(set_comment_func)(ratio_limit=5, seeding_time_limit=100)
+
+
 @pytest.mark.parametrize(
     "toggle_seq_down_func", ["toggle_sequential_download", "toggleSequentialDownload"]
 )
