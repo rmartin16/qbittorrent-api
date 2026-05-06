@@ -117,12 +117,12 @@ def test_paused_states(state):
     assert TorrentState(state).is_paused
 
 
-@pytest.mark.parametrize("status", [0, 1, 2, 3, 4])
+@pytest.mark.parametrize("status", [0, 1, 2, 3, 4, 5, 6])
 def test_tracker_statuses_exist(status):
     assert isinstance(TrackerStatus(status), Enum)
 
 
-@pytest.mark.parametrize("status", [0, 1, 2, 3, 4])
+@pytest.mark.parametrize("status", [0, 1, 2, 3, 4, 5, 6])
 def test_tracker_statuses_cmp_int(status):
     assert TrackerStatus(status) == TrackerStatus(status).value
 
@@ -135,6 +135,8 @@ def test_tracker_statuses_cmp_int(status):
         (2, "Working"),
         (3, "Updating"),
         (4, "Not working"),
+        (5, "Tracker error"),
+        (6, "Unreachable"),
     ],
 )
 def test_tracker_status_display(status, display_value):
