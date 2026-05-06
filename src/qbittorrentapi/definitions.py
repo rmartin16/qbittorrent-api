@@ -188,7 +188,7 @@ class TrackerStatus(int, Enum):
 
     Definitions:
         - wiki: `<https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)#user-content-get-torrent-trackers>`_
-        - code: `<https://github.com/qbittorrent/qBittorrent/blob/5dcc14153f046209f1067299494a82e5294d883a/src/base/bittorrent/trackerentry.h#L42>`_
+        - code: `<https://github.com/qbittorrent/qBittorrent/blob/master/src/base/bittorrent/trackerentrystatus.h#L45C9-L46C24>`_
 
     :Usage:
         >>> from qbittorrentapi import Client, TrackerStatus
