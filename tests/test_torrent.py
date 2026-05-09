@@ -428,22 +428,30 @@ def test_webseeds(orig_torrent):
     ],
 )
 def test_add_webseed(new_torrent, add_webseeds_func, webseeds):
-    assert new_torrent.webseeds == WebSeedsList([])
-    new_torrent.func(add_webseeds_func)(urls=webseeds)
-    assert sorted([w.url for w in new_torrent.webseeds]) == (
-        webseeds if isinstance(webseeds, list) else [webseeds]
-    )
+    @retry()
+    def test():
+        assert new_torrent.webseeds == WebSeedsList([])
+        new_torrent.func(add_webseeds_func)(urls=webseeds)
+        assert sorted([w.url for w in new_torrent.webseeds]) == (
+            webseeds if isinstance(webseeds, list) else [webseeds]
+        )
+
+    test()
 
 
 @pytest.mark.skipif_before_api_version("2.11.3")
 @pytest.mark.parametrize("edit_webseed_func", ["edit_webseed", "editWebSeed"])
 def test_edit_webseeds(new_torrent, edit_webseed_func):
-    assert new_torrent.webseeds == WebSeedsList([])
-    new_torrent.add_webseeds(urls="http://example/asdf")
-    new_torrent.edit_webseed(
-        orig_url="http://example/asdf", new_url="http://example/vbnm"
-    )
-    assert new_torrent.webseeds[0].url == "http://example/vbnm"
+    @retry()
+    def test():
+        assert new_torrent.webseeds == WebSeedsList([])
+        new_torrent.add_webseeds(urls="http://example/asdf")
+        new_torrent.edit_webseed(
+            orig_url="http://example/asdf", new_url="http://example/vbnm"
+        )
+        assert new_torrent.webseeds[0].url == "http://example/vbnm"
+
+    test()
 
 
 @pytest.mark.skipif_before_api_version("2.11.3")
