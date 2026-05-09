@@ -445,7 +445,8 @@ def test_edit_webseeds(new_torrent, edit_webseed_func):
     new_torrent.edit_webseed(
         orig_url="http://example/asdf", new_url="http://example/vbnm"
     )
-    check(lambda: new_torrent.webseeds, "http://example/qwer")
+    check(lambda: len(new_torrent.webseeds), 1)
+    check(lambda: new_torrent.webseeds[0].url, "http://example/vbnm", reverse=True)
 
 
 @pytest.mark.skipif_before_api_version("2.11.3")
