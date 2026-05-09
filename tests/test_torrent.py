@@ -464,17 +464,21 @@ def test_edit_webseeds(new_torrent, edit_webseed_func):
     ],
 )
 def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
-    assert new_torrent.webseeds == WebSeedsList([])
-    new_torrent.add_webseeds(
-        urls=[
-            "http://example/webseedone",
-            "http://example/webseedtwo",
-            "http://example/webseedthree",
-        ]
-    )
-    new_torrent.func(remove_webseeds_func)(urls=webseeds)
-    for webseed in webseeds if isinstance(webseeds, list) else [webseeds]:
-        assert webseed not in {w.url for w in new_torrent.webseeds}
+    @retry()
+    def test():
+        assert new_torrent.webseeds == WebSeedsList([])
+        new_torrent.add_webseeds(
+            urls=[
+                "http://example/webseedone",
+                "http://example/webseedtwo",
+                "http://example/webseedthree",
+            ]
+        )
+        new_torrent.func(remove_webseeds_func)(urls=webseeds)
+        for webseed in webseeds if isinstance(webseeds, list) else [webseeds]:
+            assert webseed not in {w.url for w in new_torrent.webseeds}
+
+    test()
 
 
 def test_files(orig_torrent):

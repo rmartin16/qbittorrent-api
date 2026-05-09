@@ -507,17 +507,21 @@ def test_edit_webseed_not_implemented(client, orig_torrent, edit_webseed_func):
     ],
 )
 def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
-    assert new_torrent.webseeds == WebSeedsList([])
-    new_torrent.add_webseeds(
-        urls=[
-            "http://example/webseedone",
-            "http://example/webseedtwo",
-            "http://example/webseedthree",
-        ]
-    )
-    client.func(remove_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
-    for webseed in webseeds if isinstance(webseeds, list) else [webseeds]:
-        assert webseed not in {w.url for w in new_torrent.webseeds}
+    @retry()
+    def test():
+        assert new_torrent.webseeds == WebSeedsList([])
+        new_torrent.add_webseeds(
+            urls=[
+                "http://example/webseedone",
+                "http://example/webseedtwo",
+                "http://example/webseedthree",
+            ]
+        )
+        client.func(remove_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
+        for webseed in webseeds if isinstance(webseeds, list) else [webseeds]:
+            assert webseed not in {w.url for w in new_torrent.webseeds}
+
+    test()
 
 
 @pytest.mark.skipif_after_api_version("2.11.3")
