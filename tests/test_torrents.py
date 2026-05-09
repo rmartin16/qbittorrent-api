@@ -422,16 +422,13 @@ def test_webseeds_slice(client, orig_torrent, webseeds_func):
     ],
 )
 def test_add_webseeds(client, new_torrent, add_webseeds_func, webseeds):
-
-    @retry()
-    def test():
-        assert new_torrent.webseeds == WebSeedsList([])
-        client.func(add_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
-        assert sorted([w.url for w in new_torrent.webseeds]) == (
-            webseeds if isinstance(webseeds, list) else [webseeds]
-        )
-
-    test()
+    assert new_torrent.webseeds == WebSeedsList([])
+    client.func(add_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
+    check(
+        lambda: sorted([w.url for w in new_torrent.webseeds]),
+        (webseeds if isinstance(webseeds, list) else [webseeds]),
+        reverse=True,
+    )
 
 
 @pytest.mark.skipif_after_api_version("2.11.3")
@@ -460,18 +457,14 @@ def test_add_webseeds_not_implemented(client, orig_torrent, add_webseeds_func):
     ],
 )
 def test_edit_webseeds(client, new_torrent, edit_webseed_func):
-    @retry()
-    def test():
-        assert new_torrent.webseeds == WebSeedsList([])
-        new_torrent.add_webseeds(urls="http://example/asdf")
-        client.func(edit_webseed_func)(
-            torrent_hash=new_torrent.hash,
-            orig_url="http://example/asdf",
-            new_url="http://example/qwer",
-        )
-        assert new_torrent.webseeds[0].url == "http://example/qwer"
-
-    test()
+    assert new_torrent.webseeds == WebSeedsList([])
+    new_torrent.add_webseeds(urls="http://example/asdf")
+    client.func(edit_webseed_func)(
+        torrent_hash=new_torrent.hash,
+        orig_url="http://example/asdf",
+        new_url="http://example/qwer",
+    )
+    check(lambda: new_torrent.webseeds, "http://example/qwer")
 
 
 @pytest.mark.skipif_after_api_version("2.11.3")
@@ -507,21 +500,17 @@ def test_edit_webseed_not_implemented(client, orig_torrent, edit_webseed_func):
     ],
 )
 def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
-    @retry()
-    def test():
-        assert new_torrent.webseeds == WebSeedsList([])
-        new_torrent.add_webseeds(
-            urls=[
-                "http://example/webseedone",
-                "http://example/webseedtwo",
-                "http://example/webseedthree",
-            ]
-        )
-        client.func(remove_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
-        for webseed in webseeds if isinstance(webseeds, list) else [webseeds]:
-            assert webseed not in {w.url for w in new_torrent.webseeds}
-
-    test()
+    assert new_torrent.webseeds == WebSeedsList([])
+    new_torrent.add_webseeds(
+        urls=[
+            "http://example/webseedone",
+            "http://example/webseedtwo",
+            "http://example/webseedthree",
+        ]
+    )
+    client.func(remove_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
+    for webseed in webseeds if isinstance(webseeds, list) else [webseeds]:
+        check(lambda: webseed not in {w.url for w in new_torrent.webseeds}, True)
 
 
 @pytest.mark.skipif_after_api_version("2.11.3")

@@ -428,30 +428,24 @@ def test_webseeds(orig_torrent):
     ],
 )
 def test_add_webseed(new_torrent, add_webseeds_func, webseeds):
-    @retry()
-    def test():
-        assert new_torrent.webseeds == WebSeedsList([])
-        new_torrent.func(add_webseeds_func)(urls=webseeds)
-        assert sorted([w.url for w in new_torrent.webseeds]) == (
-            webseeds if isinstance(webseeds, list) else [webseeds]
-        )
-
-    test()
+    assert new_torrent.webseeds == WebSeedsList([])
+    new_torrent.func(add_webseeds_func)(urls=webseeds)
+    check(
+        lambda: sorted([w.url for w in new_torrent.webseeds]),
+        (webseeds if isinstance(webseeds, list) else [webseeds]),
+        reverse=True,
+    )
 
 
 @pytest.mark.skipif_before_api_version("2.11.3")
 @pytest.mark.parametrize("edit_webseed_func", ["edit_webseed", "editWebSeed"])
 def test_edit_webseeds(new_torrent, edit_webseed_func):
-    @retry()
-    def test():
-        assert new_torrent.webseeds == WebSeedsList([])
-        new_torrent.add_webseeds(urls="http://example/asdf")
-        new_torrent.edit_webseed(
-            orig_url="http://example/asdf", new_url="http://example/vbnm"
-        )
-        assert new_torrent.webseeds[0].url == "http://example/vbnm"
-
-    test()
+    assert new_torrent.webseeds == WebSeedsList([])
+    new_torrent.add_webseeds(urls="http://example/asdf")
+    new_torrent.edit_webseed(
+        orig_url="http://example/asdf", new_url="http://example/vbnm"
+    )
+    check(lambda: new_torrent.webseeds, "http://example/qwer")
 
 
 @pytest.mark.skipif_before_api_version("2.11.3")
@@ -464,21 +458,17 @@ def test_edit_webseeds(new_torrent, edit_webseed_func):
     ],
 )
 def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
-    @retry()
-    def test():
-        assert new_torrent.webseeds == WebSeedsList([])
-        new_torrent.add_webseeds(
-            urls=[
-                "http://example/webseedone",
-                "http://example/webseedtwo",
-                "http://example/webseedthree",
-            ]
-        )
-        new_torrent.func(remove_webseeds_func)(urls=webseeds)
-        for webseed in webseeds if isinstance(webseeds, list) else [webseeds]:
-            assert webseed not in {w.url for w in new_torrent.webseeds}
-
-    test()
+    assert new_torrent.webseeds == WebSeedsList([])
+    new_torrent.add_webseeds(
+        urls=[
+            "http://example/webseedone",
+            "http://example/webseedtwo",
+            "http://example/webseedthree",
+        ]
+    )
+    new_torrent.func(remove_webseeds_func)(urls=webseeds)
+    for webseed in webseeds if isinstance(webseeds, list) else [webseeds]:
+        check(lambda: webseed not in {w.url for w in new_torrent.webseeds}, True)
 
 
 def test_files(orig_torrent):
