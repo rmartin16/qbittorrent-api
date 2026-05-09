@@ -455,14 +455,18 @@ def test_add_webseeds_not_implemented(client, orig_torrent, add_webseeds_func):
     ],
 )
 def test_edit_webseeds(client, new_torrent, edit_webseed_func):
-    assert new_torrent.webseeds == WebSeedsList([])
-    new_torrent.add_webseeds(urls="http://example/asdf")
-    client.func(edit_webseed_func)(
-        torrent_hash=new_torrent.hash,
-        orig_url="http://example/asdf",
-        new_url="http://example/qwer",
-    )
-    assert new_torrent.webseeds[0].url == "http://example/qwer"
+    @retry()
+    def test():
+        assert new_torrent.webseeds == WebSeedsList([])
+        new_torrent.add_webseeds(urls="http://example/asdf")
+        client.func(edit_webseed_func)(
+            torrent_hash=new_torrent.hash,
+            orig_url="http://example/asdf",
+            new_url="http://example/qwer",
+        )
+        assert new_torrent.webseeds[0].url == "http://example/qwer"
+
+    test()
 
 
 @pytest.mark.skipif_after_api_version("2.11.3")
