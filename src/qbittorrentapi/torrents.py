@@ -1294,6 +1294,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             "Stop", "Remove", "RemoveWithContent", "EnableSuperSeeding"
         ]
         | None = None,
+        share_limits_mode: Literal["Default", "MatchAny", "MatchAll"] | None = None,
         torrent_hashes: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
@@ -1311,6 +1312,10 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :param inactive_seeding_time_limit: minutes
             (-2 means use the global value and -1 is no limit)
             (added in Web API v2.9.2)
+        :param share_limit_action: action once share limit is reached.
+            Options: Stop, Remove, RemoveWithContent, EnableSuperSeeding
+        :param share_limits_mode: mode once share limit is reached.
+            Options: Default, MatchAny, MatchAll
         """
         data = {
             "hashes": self._list2string(torrent_hashes, "|"),
@@ -1318,6 +1323,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             "seedingTimeLimit": seeding_time_limit,
             "inactiveSeedingTimeLimit": inactive_seeding_time_limit,
             "shareLimitAction": share_limit_action,
+            "shareLimitsMode": share_limits_mode,
         }
         self._post(
             _name=APINames.Torrents,
@@ -2083,6 +2089,11 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
         ratio_limit: str | int | None = None,
         seeding_time_limit: str | int | None = None,
         inactive_seeding_time_limit: str | int | None = None,
+        share_limit_action: Literal[
+            "Stop", "Remove", "RemoveWithContent", "EnableSuperSeeding"
+        ]
+        | None = None,
+        share_limits_mode: Literal["Default", "MatchAny", "MatchAll"] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """Implements :meth:`~TorrentsAPIMixIn.torrents_set_share_limits`."""
@@ -2090,6 +2101,8 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
             ratio_limit=ratio_limit,
             seeding_time_limit=seeding_time_limit,
             inactive_seeding_time_limit=inactive_seeding_time_limit,
+            share_limit_action=share_limit_action,
+            share_limits_mode=share_limits_mode,
             torrent_hashes=self._torrent_hash,
             **kwargs,
         )

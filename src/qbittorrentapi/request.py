@@ -982,10 +982,7 @@ class Request:
                 raise MissingRequiredParameters400Error(
                     request=request, response=response
                 )
-            # TODO: remove pragma once v5.2.0 is released
-            elif response.text.startswith(
-                "Missing required parameters"
-            ):  # pragma: no cover
+            elif response.text.startswith("Missing required parameters"):
                 raise MissingRequiredParameters400Error(
                     response.text, request=request, response=response
                 )

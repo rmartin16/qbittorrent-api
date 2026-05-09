@@ -1115,11 +1115,16 @@ def test_set_share_limits(client, orig_torrent, set_share_limits_func):
         ratio_limit=2,
         seeding_time_limit=5,
         inactive_seeding_time_limit=8,
-        share_limit_action="STOP",
+        share_limit_action="Stop",
+        share_limits_mode="MatchAny",
         torrent_hashes=orig_torrent.hash,
     )
     check(lambda: orig_torrent.info.max_ratio, 2)
     check(lambda: orig_torrent.info.max_seeding_time, 5)
+    if "share_limit_action" in orig_torrent.info:
+        check(lambda: orig_torrent.info.share_limit_action, "Stop")
+    if "share_limits_mode" in orig_torrent.info:
+        check(lambda: orig_torrent.info.share_limits_mode, "MatchAny")
     if "max_inactive_seeding_time" in orig_torrent.info:
         check(lambda: orig_torrent.info.max_inactive_seeding_time, 8)
 
@@ -1127,11 +1132,16 @@ def test_set_share_limits(client, orig_torrent, set_share_limits_func):
         ratio_limit=3,
         seeding_time_limit=6,
         inactive_seeding_time_limit=9,
-        share_limit_action="STOP",
+        share_limit_action="Remove",
+        share_limits_mode="MatchAll",
         torrent_hashes=orig_torrent.hash,
     )
     check(lambda: orig_torrent.info.max_ratio, 3)
     check(lambda: orig_torrent.info.max_seeding_time, 6)
+    if "share_limit_action" in orig_torrent.info:
+        check(lambda: orig_torrent.info.share_limit_action, "Remove")
+    if "share_limits_mode" in orig_torrent.info:
+        check(lambda: orig_torrent.info.share_limits_mode, "MatchAll")
     if "max_inactive_seeding_time" in orig_torrent.info:
         check(lambda: orig_torrent.info.max_inactive_seeding_time, 9)
 
