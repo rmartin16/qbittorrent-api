@@ -424,8 +424,10 @@ def test_webseeds_slice(client, orig_torrent, webseeds_func):
 def test_add_webseeds(client, new_torrent, add_webseeds_func, webseeds):
     assert new_torrent.webseeds == WebSeedsList([])
     client.func(add_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
-    assert sorted([w.url for w in new_torrent.webseeds]) == (
-        webseeds if isinstance(webseeds, list) else [webseeds]
+    check(
+        lambda: sorted([w.url for w in new_torrent.webseeds]),
+        (webseeds if isinstance(webseeds, list) else [webseeds]),
+        reverse=True,
     )
 
 
@@ -462,7 +464,8 @@ def test_edit_webseeds(client, new_torrent, edit_webseed_func):
         orig_url="http://example/asdf",
         new_url="http://example/qwer",
     )
-    assert new_torrent.webseeds[0].url == "http://example/qwer"
+    check(lambda: len(new_torrent.webseeds), 1)
+    check(lambda: new_torrent.webseeds[0].url, "http://example/qwer", reverse=True)
 
 
 @pytest.mark.skipif_after_api_version("2.11.3")
@@ -508,7 +511,7 @@ def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
     )
     client.func(remove_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
     for webseed in webseeds if isinstance(webseeds, list) else [webseeds]:
-        assert webseed not in {w.url for w in new_torrent.webseeds}
+        check(lambda: webseed not in {w.url for w in new_torrent.webseeds}, True)
 
 
 @pytest.mark.skipif_after_api_version("2.11.3")
@@ -1111,11 +1114,16 @@ def test_set_share_limits(client, orig_torrent, set_share_limits_func):
         ratio_limit=2,
         seeding_time_limit=5,
         inactive_seeding_time_limit=8,
-        share_limit_action="STOP",
+        share_limit_action="Stop",
+        share_limits_mode="MatchAny",
         torrent_hashes=orig_torrent.hash,
     )
     check(lambda: orig_torrent.info.max_ratio, 2)
     check(lambda: orig_torrent.info.max_seeding_time, 5)
+    if "share_limit_action" in orig_torrent.info:
+        check(lambda: orig_torrent.info.share_limit_action, "Stop")
+    if "share_limits_mode" in orig_torrent.info:
+        check(lambda: orig_torrent.info.share_limits_mode, "MatchAny")
     if "max_inactive_seeding_time" in orig_torrent.info:
         check(lambda: orig_torrent.info.max_inactive_seeding_time, 8)
 
@@ -1123,11 +1131,16 @@ def test_set_share_limits(client, orig_torrent, set_share_limits_func):
         ratio_limit=3,
         seeding_time_limit=6,
         inactive_seeding_time_limit=9,
-        share_limit_action="STOP",
+        share_limit_action="Remove",
+        share_limits_mode="MatchAll",
         torrent_hashes=orig_torrent.hash,
     )
     check(lambda: orig_torrent.info.max_ratio, 3)
     check(lambda: orig_torrent.info.max_seeding_time, 6)
+    if "share_limit_action" in orig_torrent.info:
+        check(lambda: orig_torrent.info.share_limit_action, "Remove")
+    if "share_limits_mode" in orig_torrent.info:
+        check(lambda: orig_torrent.info.share_limits_mode, "MatchAll")
     if "max_inactive_seeding_time" in orig_torrent.info:
         check(lambda: orig_torrent.info.max_inactive_seeding_time, 9)
 

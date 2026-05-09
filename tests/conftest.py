@@ -154,7 +154,7 @@ def new_torrent_standalone(client, torrent_hash=TORRENT1_HASH, tmp_path=None, **
             elif tmp_path:
                 client.torrents.add(
                     torrent_files=TORRENT1_FILE,
-                    save_path=mkpath(tmp_path, "test_download"),
+                    save_path=mkpath(tmp_path, "test_dow2nload"),
                     category="test_category",
                     is_paused=True,
                     upload_limit=1024,
@@ -185,7 +185,12 @@ def new_torrent_standalone(client, torrent_hash=TORRENT1_HASH, tmp_path=None, **
         )
 
     try:
-        yield add_test_torrent(torrent_hash, **kwargs)
+        try:
+            yield add_test_torrent(torrent_hash, **kwargs)
+        except Exception:
+            delete_test_torrent(client, torrent_hash)
+            sleep(1)
+            yield add_test_torrent(torrent_hash, **kwargs)
     finally:
         delete_test_torrent(client, torrent_hash)
 

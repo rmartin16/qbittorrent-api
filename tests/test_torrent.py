@@ -187,10 +187,15 @@ def test_set_share_limits(orig_torrent, set_share_limits_func):
         ratio_limit=5,
         seeding_time_limit=100,
         inactive_seeding_time_limit=200,
-        share_limit_action="STOP",
+        share_limit_action="Stop",
+        share_limits_mode="MatchAny",
     )
     check(lambda: orig_torrent.info.max_ratio, 5)
     check(lambda: orig_torrent.info.max_seeding_time, 100)
+    if "share_limit_action" in orig_torrent.info:
+        check(lambda: orig_torrent.info.share_limit_action, "Stop")
+    if "share_limits_mode" in orig_torrent.info:
+        check(lambda: orig_torrent.info.share_limits_mode, "MatchAny")
     if "max_inactive_seeding_time" in orig_torrent.info:
         check(lambda: orig_torrent.info.max_inactive_seeding_time, 200)
 
@@ -425,8 +430,10 @@ def test_webseeds(orig_torrent):
 def test_add_webseed(new_torrent, add_webseeds_func, webseeds):
     assert new_torrent.webseeds == WebSeedsList([])
     new_torrent.func(add_webseeds_func)(urls=webseeds)
-    assert sorted([w.url for w in new_torrent.webseeds]) == (
-        webseeds if isinstance(webseeds, list) else [webseeds]
+    check(
+        lambda: sorted([w.url for w in new_torrent.webseeds]),
+        (webseeds if isinstance(webseeds, list) else [webseeds]),
+        reverse=True,
     )
 
 
@@ -438,7 +445,8 @@ def test_edit_webseeds(new_torrent, edit_webseed_func):
     new_torrent.edit_webseed(
         orig_url="http://example/asdf", new_url="http://example/vbnm"
     )
-    assert new_torrent.webseeds[0].url == "http://example/vbnm"
+    check(lambda: len(new_torrent.webseeds), 1)
+    check(lambda: new_torrent.webseeds[0].url, "http://example/vbnm", reverse=True)
 
 
 @pytest.mark.skipif_before_api_version("2.11.3")
@@ -461,7 +469,7 @@ def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
     )
     new_torrent.func(remove_webseeds_func)(urls=webseeds)
     for webseed in webseeds if isinstance(webseeds, list) else [webseeds]:
-        assert webseed not in {w.url for w in new_torrent.webseeds}
+        check(lambda: webseed not in {w.url for w in new_torrent.webseeds}, True)
 
 
 def test_files(orig_torrent):
