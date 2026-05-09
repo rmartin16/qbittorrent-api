@@ -422,11 +422,16 @@ def test_webseeds_slice(client, orig_torrent, webseeds_func):
     ],
 )
 def test_add_webseeds(client, new_torrent, add_webseeds_func, webseeds):
-    assert new_torrent.webseeds == WebSeedsList([])
-    client.func(add_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
-    assert sorted([w.url for w in new_torrent.webseeds]) == (
-        webseeds if isinstance(webseeds, list) else [webseeds]
-    )
+
+    @retry
+    def test():
+        assert new_torrent.webseeds == WebSeedsList([])
+        client.func(add_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
+        assert sorted([w.url for w in new_torrent.webseeds]) == (
+            webseeds if isinstance(webseeds, list) else [webseeds]
+        )
+
+    test()
 
 
 @pytest.mark.skipif_after_api_version("2.11.3")
