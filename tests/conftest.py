@@ -185,7 +185,11 @@ def new_torrent_standalone(client, torrent_hash=TORRENT1_HASH, tmp_path=None, **
         )
 
     try:
-        yield add_test_torrent(torrent_hash, **kwargs)
+        try:
+            yield add_test_torrent(torrent_hash, **kwargs)
+        except Exception:
+            sleep(1)
+            yield add_test_torrent(torrent_hash, **kwargs)
     finally:
         delete_test_torrent(client, torrent_hash)
 
