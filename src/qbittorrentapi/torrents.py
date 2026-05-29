@@ -1291,7 +1291,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         seeding_time_limit: str | int | None = None,
         inactive_seeding_time_limit: str | int | None = None,
         share_limit_action: Literal[
-            "Stop", "Remove", "RemoveWithContent", "EnableSuperSeeding"
+            "Default", "Stop", "Remove", "RemoveWithContent", "EnableSuperSeeding"
         ]
         | None = None,
         share_limits_mode: Literal["Default", "MatchAny", "MatchAll"] | None = None,
@@ -2090,7 +2090,7 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
         seeding_time_limit: str | int | None = None,
         inactive_seeding_time_limit: str | int | None = None,
         share_limit_action: Literal[
-            "Stop", "Remove", "RemoveWithContent", "EnableSuperSeeding"
+            "Default", "Stop", "Remove", "RemoveWithContent", "EnableSuperSeeding"
         ]
         | None = None,
         share_limits_mode: Literal["Default", "MatchAny", "MatchAll"] | None = None,
