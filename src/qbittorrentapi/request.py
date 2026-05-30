@@ -232,6 +232,9 @@ class QbittorrentSession(Session):
 class Request:
     """Facilitates HTTP requests to qBittorrent's Web API."""
 
+    #: HTTP headers whose values carry credentials and must be redacted from logging.
+    _SENSITIVE_HEADERS = frozenset({"authorization", "cookie", "set-cookie"})
+
     def __init__(
         self,
         host: str | None = None,
@@ -1055,6 +1058,19 @@ class Request:
         http_error.http_status_code = response.status_code
         raise http_error
 
+    @classmethod
+    def _sanitize_headers(cls, headers: Mapping[str, str]) -> dict[str, str]:
+        """
+        Return a copy of ``headers`` with credential values redacted.
+
+        Prevents secrets such as the API key (``Authorization`` header) or session
+        cookie from being exposed in verbose logging output.
+        """
+        return {
+            key: ("******" if key.lower() in cls._SENSITIVE_HEADERS else value)
+            for key, value in headers.items()
+        }
+
     def _verbose_logging(
         self,
         url: str,
@@ -1072,7 +1088,10 @@ class Request:
                 max_text_length_to_log = 10000
 
             resp_logger("Request URL: (%s) %s", response.request.method, response.url)
-            resp_logger("Request Headers: %s", response.request.headers)
+            resp_logger(
+                "Request Headers: %s",
+                self._sanitize_headers(response.request.headers),
+            )
             if "auth/login" not in url:
                 resp_logger("Request HTTP Data: %s", {"data": data, "params": params})
             resp_logger("Requests Config: %s", requests_kwargs)
