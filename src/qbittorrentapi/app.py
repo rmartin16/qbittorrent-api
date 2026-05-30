@@ -4,7 +4,7 @@ import os
 from collections.abc import Iterable, Mapping, Sequence
 from json import dumps
 from logging import Logger, getLogger
-from typing import Any, AnyStr, Union
+from typing import Any, AnyStr
 
 from qbittorrentapi.auth import AuthAPIMixIn
 from qbittorrentapi.definitions import (
@@ -29,7 +29,7 @@ class ApplicationPreferencesDictionary(Dictionary[JsonValueT]):
     """  # noqa: E501
 
 
-class BuildInfoDictionary(Dictionary[Union[str, int]]):
+class BuildInfoDictionary(Dictionary[str | int]):
     """
     Response for :meth:`~AppAPIMixIn.app_build_info`
 
@@ -67,7 +67,7 @@ class NetworkInterfaceAddressList(List[str]):  # type: ignore
         super().__init__(list_entries)  # type: ignore
 
 
-class DirectoryContentList(List[Union[str, ListEntry]]):  # type: ignore[type-var]
+class DirectoryContentList(List[str | ListEntry]):  # type: ignore[type-var]
     """Response for :meth:`~AppAPIMixIn.app_get_directory_content`"""
 
     def __init__(self, list_entries: Iterable[str], client: AppAPIMixIn | None = None):

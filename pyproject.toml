@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "qbittorrent-api"
 license = "MIT"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 description = "Python client for qBittorrent v4.1+ Web API."
 authors = [{name = "Russell Martin"}]
 maintainers = [{name = "Russell Martin"}]
@@ -16,7 +16,6 @@ classifiers = [
     "Operating System :: OS Independent",
     "Environment :: Console",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -38,7 +37,7 @@ dependencies = [
 dev = [
     "build ==1.4.4",
     # limit for requests/urllib3
-    "chardet <6.0.0",
+    #"chardet <6.0.0",
     "coverage[toml] ==7.10.7",
     "mypy ==1.19.1",
     "pre-commit ==4.3.0",
@@ -71,7 +70,7 @@ readme = {file = ["README.md", "CHANGELOG.md", "LICENSE"], content-type = "text/
 # section must be present to trigger its use
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = ["C40", "C9", "E", "F", "PLE", "S", "W", "YTT", "I", "UP", "SIM"]

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import errno
-from collections.abc import Iterable, Mapping, MutableMapping
+from collections.abc import Callable, Iterable, Mapping, MutableMapping
 from json import JSONDecodeError
 from logging import Logger, getLogger
 from os import path
@@ -9,10 +9,8 @@ from os import strerror as os_strerror
 from typing import (
     IO,
     Any,
-    Callable,
     Literal,
     TypeVar,
-    Union,
     cast,
 )
 
@@ -62,8 +60,8 @@ TorrentFilesT = TypeVar(
     bytes,
     str,
     IO[bytes],
-    Mapping[str, Union[bytes, str, IO[bytes]]],
-    Iterable[Union[bytes, str, IO[bytes]]],
+    Mapping[str, bytes | str | IO[bytes]],
+    Iterable[bytes | str | IO[bytes]],
 )
 
 logger: Logger = getLogger(__name__)
