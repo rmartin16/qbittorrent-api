@@ -1,5 +1,9 @@
 Change Log
 ==========
+### v2026.5.3 (30 may 2026)
+- Add support for API key authentication (#620)
+- Minimum Python is now 3.10 (#618)
+
 ### v2026.5.2 (30 may 2026)
 - Advertise support for qBittorrent v5.2.1
 
