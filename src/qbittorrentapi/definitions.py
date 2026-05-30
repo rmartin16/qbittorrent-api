@@ -8,7 +8,6 @@ from typing import (
     Any,
     Generic,
     TypeVar,
-    Union,
 )
 
 from qbittorrentapi._attrdict import AttrDict
@@ -21,14 +20,9 @@ V = TypeVar("V")
 T = TypeVar("T")
 
 #: Type to define JSON.
-JsonValueT = Union[
-    None,
-    int,
-    str,
-    bool,
-    Sequence["JsonValueT"],
-    Mapping[str, "JsonValueT"],
-]
+JsonValueT = (
+    None | int | str | bool | Sequence["JsonValueT"] | Mapping[str, "JsonValueT"]
+)
 #: Type ``Any`` for ``kwargs`` parameters for API methods.
 APIKwargsT = Any
 #: Type for this API Client.
@@ -38,7 +32,7 @@ ListEntryT = TypeVar("ListEntryT", bound="ListEntry")
 #: Type for List input to API method.
 ListInputT = Iterable[Mapping[str, JsonValueT]]
 #: Type for Files input to API method.
-FilesToSendT = Mapping[str, Union[bytes, tuple[str, bytes]]]
+FilesToSendT = Mapping[str, bytes | tuple[str, bytes]]
 
 
 class APINames(str, Enum):
