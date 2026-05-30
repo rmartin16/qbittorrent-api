@@ -1,5 +1,8 @@
 Change Log
 ==========
+### v2026.5.2 (30 may 2026)
+- Advertise support for qBittorrent v5.2.1
+
 ### v2026.5.1 (05 may 2026)
 - Add new tracker statuses for qBittorrent v5.2.0 (#613)
 
