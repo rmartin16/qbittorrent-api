@@ -1313,7 +1313,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             (-2 means use the global value and -1 is no limit)
             (added in Web API v2.9.2)
         :param share_limit_action: action once share limit is reached.
-            Options: Stop, Remove, RemoveWithContent, EnableSuperSeeding
+            Options: Default, Stop, Remove, RemoveWithContent, EnableSuperSeeding
         :param share_limits_mode: mode once share limit is reached.
             Options: Default, MatchAny, MatchAll
         """
