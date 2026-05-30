@@ -714,9 +714,11 @@ def test_verbose_logging_redacts_api_key(caplog):
         VERBOSE_RESPONSE_LOGGING=True,
         VERIFY_WEBUI_CERTIFICATE=False,
     )
+    # an invalid API key is rejected with a 403 (which is not retried under API key
+    # auth); the request is still logged before the error is raised
     with (
         caplog.at_level(logging.DEBUG, logger="qbittorrentapi"),
-        pytest.raises(exceptions.NotFound404Error),
+        pytest.raises(exceptions.Forbidden403Error),
     ):
         client.torrents_rename(torrent_hash="asdf", new_torrent_name="erty")
     assert "Request Headers" in caplog.text
