@@ -25,6 +25,22 @@ Host, Username and Password
   * ``QBITTORRENTAPI_USERNAME``
   * ``QBITTORRENTAPI_PASSWORD``
 
+API Key
+*******
+* Starting with qBittorrent v5.2.0, an API key can be generated in the WebUI (Web UI
+  settings) and used to authenticate instead of a username and password:
+
+.. code:: python
+
+    qbt_client = Client(host="localhost:8080", api_key="qbt_...")
+
+* When an API key is provided, it takes precedence over any username and password;
+  each request is authenticated via an ``Authorization: Bearer`` header and the
+  cookie-based ``auth_log_in``/``auth_log_out`` flow is skipped (there is no login or
+  logout round-trip).
+* The API key can also be specified in the ``QBITTORRENTAPI_API_KEY`` environment
+  variable.
+
 qBittorrent Session Management
 ******************************
 * Any time a connection is established with qBittorrent, it instantiates a session to

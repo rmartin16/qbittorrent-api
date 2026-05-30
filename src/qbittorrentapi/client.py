@@ -71,6 +71,11 @@ class Client(
     :param port: port number for qBittorrent Web API (ignored if host contains a port)
     :param username: username for qBittorrent Web API
     :param password: password for qBittorrent Web API
+    :param api_key: API key for qBittorrent Web API (qBittorrent v5.2.0+); generated in
+        the qBittorrent WebUI (``qbt_...``). When provided, it is used as an alternative
+        to ``username``/``password`` (and takes precedence over them): requests are
+        authenticated via an ``Authorization: Bearer`` header and the cookie-based
+        login/logout flow is skipped.
     :param SIMPLE_RESPONSES: By default, complex objects are returned from some
         endpoints. These objects will allow for accessing responses' items as
         attributes and include methods for contextually relevant actions. This
@@ -113,6 +118,7 @@ class Client(
         username: str | None = None,
         password: str | None = None,
         *,
+        api_key: str | None = None,
         EXTRA_HEADERS: Mapping[str, str] | None = None,
         REQUESTS_ARGS: Mapping[str, Any] | None = None,
         HTTPADAPTER_ARGS: Mapping[str, Any] | None = None,
@@ -129,6 +135,7 @@ class Client(
             port=port,
             username=username,
             password=password,
+            api_key=api_key,
             EXTRA_HEADERS=EXTRA_HEADERS,
             REQUESTS_ARGS=REQUESTS_ARGS,
             HTTPADAPTER_ARGS=HTTPADAPTER_ARGS,

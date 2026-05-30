@@ -689,6 +689,42 @@ def test_verbose_logging(caplog):
     assert "Response status" in caplog.text
 
 
+def test_sanitize_headers():
+    sanitized = Request._sanitize_headers(
+        {
+            "Authorization": "Bearer qbt_secret_api_key",
+            "Cookie": "SID=secret_session_id",
+            "Set-Cookie": "SID=secret_session_id",
+            "Content-Length": "0",
+            "X-Custom": "not a secret",
+        }
+    )
+    # credential-bearing headers are redacted...
+    assert sanitized["Authorization"] == "******"
+    assert sanitized["Cookie"] == "******"
+    assert sanitized["Set-Cookie"] == "******"
+    # ...while other headers are preserved
+    assert sanitized["Content-Length"] == "0"
+    assert sanitized["X-Custom"] == "not a secret"
+
+
+def test_verbose_logging_redacts_api_key(caplog):
+    client = Client(
+        api_key="qbt_secret_api_key",
+        VERBOSE_RESPONSE_LOGGING=True,
+        VERIFY_WEBUI_CERTIFICATE=False,
+    )
+    # an invalid API key is rejected with a 403 (which is not retried under API key
+    # auth); the request is still logged before the error is raised
+    with (
+        caplog.at_level(logging.DEBUG, logger="qbittorrentapi"),
+        pytest.raises(exceptions.Forbidden403Error),
+    ):
+        client.torrents_rename(torrent_hash="asdf", new_torrent_name="erty")
+    assert "Request Headers" in caplog.text
+    assert "qbt_secret_api_key" not in caplog.text
+
+
 @pytest.mark.xfail(reason="failing on 3.15 alpha")
 def test_stack_printing(capsys):
     client = Client(VERIFY_WEBUI_CERTIFICATE=False)

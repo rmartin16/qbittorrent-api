@@ -232,12 +232,16 @@ class QbittorrentSession(Session):
 class Request:
     """Facilitates HTTP requests to qBittorrent's Web API."""
 
+    #: HTTP headers whose values carry credentials and must be redacted from logging.
+    _SENSITIVE_HEADERS = frozenset({"authorization", "cookie", "set-cookie"})
+
     def __init__(
         self,
         host: str | None = None,
         port: str | int | None = None,
         username: str | None = None,
         password: str | None = None,
+        api_key: str | None = None,
         EXTRA_HEADERS: Mapping[str, str] | None = None,
         REQUESTS_ARGS: Mapping[str, Any] | None = None,
         HTTPADAPTER_ARGS: Mapping[str, Any] | None = None,
@@ -253,6 +257,7 @@ class Request:
         self.port = port
         self.username = username or ""
         self._password = password or ""
+        self._api_key = api_key or ""
 
         self._initialize_settings(
             EXTRA_HEADERS=EXTRA_HEADERS,
@@ -386,6 +391,11 @@ class Request:
             if env_password is not None:
                 logger.debug("Using QBITTORRENTAPI_PASSWORD env variable for password")
                 self._password = env_password
+        if not self._api_key:
+            env_api_key = environ.get("QBITTORRENTAPI_API_KEY")
+            if env_api_key is not None:
+                logger.debug("Using QBITTORRENTAPI_API_KEY env variable for API key")
+                self._api_key = env_api_key
         if self._VERIFY_WEBUI_CERTIFICATE is True:
             env_verify_cert = environ.get(
                 "QBITTORRENTAPI_DO_NOT_VERIFY_WEBUI_CERTIFICATE",
@@ -609,7 +619,9 @@ class Request:
             # Do not retry auth endpoints for 403. If an auth endpoint is returning
             # 403, then trying again won't work because it is likely the credentials
             # are no longer valid. Furthermore, it leads to infinite recursion.
-            if api_namespace == APINames.Authorization:
+            # Likewise, API key auth has no login endpoint to (re-)establish a session,
+            # so re-authenticating cannot resolve a 403; surface it directly.
+            if api_namespace == APINames.Authorization or self._api_key:
                 raise
             logger.debug("Login may have expired...attempting new login")
             self.auth_log_in(  # type: ignore[attr-defined]
@@ -905,6 +917,11 @@ class Request:
         # add any user-defined headers to be sent in all requests
         self._http_session.headers.update(self._EXTRA_HEADERS)
 
+        # authenticate all requests via API key (qBittorrent v5.2.0+) when provided;
+        # applied after EXTRA_HEADERS so an explicit user-supplied header still wins
+        if self._api_key and "Authorization" not in self._http_session.headers:
+            self._http_session.headers["Authorization"] = f"Bearer {self._api_key}"
+
         # enable/disable TLS verification for all requests
         self._http_session.verify = self._VERIFY_WEBUI_CERTIFICATE
 
@@ -1041,6 +1058,19 @@ class Request:
         http_error.http_status_code = response.status_code
         raise http_error
 
+    @classmethod
+    def _sanitize_headers(cls, headers: Mapping[str, str]) -> dict[str, str]:
+        """
+        Return a copy of ``headers`` with credential values redacted.
+
+        Prevents secrets such as the API key (``Authorization`` header) or session
+        cookie from being exposed in verbose logging output.
+        """
+        return {
+            key: ("******" if key.lower() in cls._SENSITIVE_HEADERS else value)
+            for key, value in headers.items()
+        }
+
     def _verbose_logging(
         self,
         url: str,
@@ -1058,7 +1088,10 @@ class Request:
                 max_text_length_to_log = 10000
 
             resp_logger("Request URL: (%s) %s", response.request.method, response.url)
-            resp_logger("Request Headers: %s", response.request.headers)
+            resp_logger(
+                "Request Headers: %s",
+                self._sanitize_headers(response.request.headers),
+            )
             if "auth/login" not in url:
                 resp_logger("Request HTTP Data: %s", {"data": data, "params": params})
             resp_logger("Requests Config: %s", requests_kwargs)

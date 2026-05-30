@@ -89,27 +89,37 @@ class AuthAPIMixIn(Request):
         # trigger a (re-)initialization in case this is a new instance of qBittorrent
         self._initialize_context()
 
-        creds = {"username": self.username, "password": self._password}
-        try:
-            auth_response = self._post_cast(
-                _name=APINames.Authorization,
-                _method="login",
-                data=creds,
-                response_class=Response,
-                **kwargs,
-            )
-        except Unauthorized401Error:
-            success = False
+        if self._api_key:
+            # API key authentication (qBittorrent v5.2.0+) sends a bearer-token header
+            # on every request and has no login endpoint; validate the key works via a
+            # low-overhead authenticated call instead.
+            if self.is_logged_in:
+                logger.debug("Login successful (API key)")
+            else:
+                logger.debug("Login failed (API key)")
+                raise LoginFailed()
         else:
-            # after v5.1.2, failed auth attempts returned a 401 (or 403 if banned);
-            # previous versions still return Ok./Fails.
-            success = (auth_response.text == "") or (auth_response.text == "Ok.")
+            creds = {"username": self.username, "password": self._password}
+            try:
+                auth_response = self._post_cast(
+                    _name=APINames.Authorization,
+                    _method="login",
+                    data=creds,
+                    response_class=Response,
+                    **kwargs,
+                )
+            except Unauthorized401Error:
+                success = False
+            else:
+                # after v5.1.2, failed auth attempts returned a 401 (or 403 if banned);
+                # previous versions still return Ok./Fails.
+                success = (auth_response.text == "") or (auth_response.text == "Ok.")
 
-        if success:
-            logger.debug("Login successful")
-        else:
-            logger.debug("Login failed")
-            raise LoginFailed()
+            if success:
+                logger.debug("Login successful")
+            else:
+                logger.debug("Login failed")
+                raise LoginFailed()
 
         # check if the connected qBittorrent is fully supported by this Client yet
         if self._RAISE_UNSUPPORTEDVERSIONERROR:
@@ -154,6 +164,10 @@ class AuthAPIMixIn(Request):
 
     def auth_log_out(self, **kwargs: APIKwargsT) -> None:
         """End session with qBittorrent."""
+        # API key authentication is stateless and has no logout endpoint, so there is
+        # no session to end.
+        if self._api_key:
+            return
         # Originally, if log out failed authentication, the client would re-authenticate
         # and then log out of that session. With the change to avoid retrying failed
         # auth calls, only attempt to log out if the current authentication is valid.
