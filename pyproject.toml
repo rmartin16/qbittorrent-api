@@ -35,14 +35,14 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "build ==1.4.4",
-    "coverage[toml] ==7.10.7",
-    "mypy ==1.19.1",
-    "pre-commit ==4.3.0",
-    "pytest ==8.4.2",
-    "tox ==4.30.3",
+    "build ==1.5.0",
+    "coverage[toml] ==7.14.1",
+    "mypy ==2.1.0",
+    "pre-commit ==4.6.0",
+    "pytest ==9.0.3",
+    "tox ==4.55.0",
     "twine ==6.2.0",
-    "types-requests ==2.32.4.20260107",
+    "types-requests ==2.33.0.20260518",
 ]
 
 docs = [
@@ -51,7 +51,7 @@ docs = [
     "sphinx ==8.2.1",
     "sphinx-autobuild ==2024.10.3",
     "sphinx-copybutton ==0.5.2",
-    "sphinxcontrib-spelling ==8.0.1",
+    "sphinxcontrib-spelling ==8.0.2",
     "sphinx-autodoc-typehints ==3.1.0",
 ]
 
