@@ -33,7 +33,13 @@ dependencies = [
     "urllib3 >=1.24.2",
 ]
 
-[project.optional-dependencies]
+[project.urls]
+"Homepage" = "https://github.com/rmartin16/qbittorrent-api"
+"Documentation" = "https://qbittorrent-api.readthedocs.io/"
+"API Reference" = "https://qbittorrent-api.readthedocs.io/en/latest/api.html"
+"Source" = "https://github.com/rmartin16/qbittorrent-api"
+
+[dependency-groups]
 dev = [
     "build ==1.5.0",
     "coverage[toml] ==7.14.1",
@@ -41,25 +47,20 @@ dev = [
     "pre-commit ==4.6.0",
     "pytest ==9.0.3",
     "tox ==4.55.0",
+    "tox-uv ==1.35.2",
     "twine ==6.2.0",
     "types-requests ==2.33.0.20260518",
 ]
 
 docs = [
     # building docs requires Python >3.10
-    "furo ==2025.12.19",
-    "sphinx ==8.2.1",
-    "sphinx-autobuild ==2024.10.3",
-    "sphinx-copybutton ==0.5.2",
-    "sphinxcontrib-spelling ==8.0.2",
-    "sphinx-autodoc-typehints ==3.1.0",
+    "furo ==2025.12.19 ; python_version >= '3.11'",
+    "sphinx ==8.2.1 ; python_version >= '3.11'",
+    "sphinx-autobuild ==2024.10.3 ; python_version >= '3.11'",
+    "sphinx-copybutton ==0.5.2 ; python_version >= '3.11'",
+    "sphinxcontrib-spelling ==8.0.2 ; python_version >= '3.11'",
+    "sphinx-autodoc-typehints ==3.1.0 ; python_version >= '3.11'",
 ]
-
-[project.urls]
-"Homepage" = "https://github.com/rmartin16/qbittorrent-api"
-"Documentation" = "https://qbittorrent-api.readthedocs.io/"
-"API Reference" = "https://qbittorrent-api.readthedocs.io/en/latest/api.html"
-"Source" = "https://github.com/rmartin16/qbittorrent-api"
 
 [tool.setuptools.dynamic]
 readme = {file = ["README.md", "CHANGELOG.md", "LICENSE"], content-type = "text/markdown"}

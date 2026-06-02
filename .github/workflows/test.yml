@@ -52,14 +52,11 @@ jobs:
           name: Packages
           path: ./dist
 
-      - name: Set up Python ${{ inputs.python-version }}
-        uses: actions/setup-python@v6.2.0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.1.0
         with:
           python-version: ${{ inputs.python-version }}
-          allow-prereleases: true
-          cache: pip
-          check-latest: true
-          cache-dependency-path: ${{ github.workspace }}/setup.cfg
+          enable-cache: true
 
       - name: Start qBittorrent ${{ inputs.qbittorrent-version }}
         id: start-qbittorrent
@@ -69,13 +66,15 @@ jobs:
         run: docker exec qbt-tox-testing /bin/sh -c "tail -n+1 /build_commit.*"
 
       - name: Install
-        run: |
-          python -m pip install --upgrade pip setuptools
-          # force installing py03 packages not explicitly compatible with the version of python
-          PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1 python -m pip install $(ls dist/qbittorrent_api-*.whl)[dev]
+        # force building pyo3 packages not explicitly compatible with the version of python
+        env:
+          PYO3_USE_ABI3_FORWARD_COMPATIBILITY: 1
+        run: uv sync
 
       - name: Test
-        run: tox -e py-ci --installpkg dist/qbittorrent_api-*.whl
+        env:
+          PYO3_USE_ABI3_FORWARD_COMPATIBILITY: 1
+        run: uv run tox -e py-ci --installpkg $(ls dist/qbittorrent_api-*.whl)
 
       - name: qBittorrent Log
         if: (steps.start-qbittorrent.outcome == 'success') && (success() || failure())
