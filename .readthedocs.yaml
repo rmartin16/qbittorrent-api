@@ -13,8 +13,16 @@ build:
       # RTD defaults to a depth of 50 but qbittorrent-api versioning may require
       # much more Git history to accurately determine the SCM version
       - git fetch --unshallow
+    create_environment:
+      # install uv and create the environment RTD builds the docs in
+      - asdf plugin add uv
+      - asdf install uv latest
+      - asdf global uv latest
+      - uv venv --python "3.12" "${READTHEDOCS_VIRTUALENV_PATH}"
+    install:
+      - UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv sync --group docs --group dev
     pre_build:
-      - tox -e docs-lint
+      - UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv run tox -e docs-lint
 
 sphinx:
   builder: html
@@ -23,11 +31,3 @@ sphinx:
 
 formats:
   - pdf
-
-python:
-  install:
-  - method: pip
-    path: .
-    extra_requirements:
-      - dev
-      - docs

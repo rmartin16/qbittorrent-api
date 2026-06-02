@@ -47,20 +47,23 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v6.0.2
 
-      - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
-        uses: actions/setup-python@v6.2.0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.1.0
         with:
           python-version: ${{ env.LATEST_PYTHON_VER }}
-          allow-prereleases: true
-          cache: pip
-          check-latest: true
-          cache-dependency-path: ${{ github.workspace }}/pyproject.toml
+          enable-cache: true
 
       - name: Install
-        run: python -m pip install .[dev]
+        run: uv sync
+
+      - name: Cache pre-commit
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
 
       - name: Lint
-        uses: pre-commit/action@v3.0.1
+        run: uv run pre-commit run --all-files --show-diff-on-failure --color=always
 
   package:
     #######
@@ -156,15 +159,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Python
-        uses: actions/setup-python@v6.2.0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.1.0
         with:
-          python-version: 3.x
+          enable-cache: true
 
       - name: Install dev dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools
-          python -m pip install -e .[dev]
+        run: uv sync
 
       - name: Retrieve coverage data
         uses: actions/download-artifact@v8.0.1
@@ -173,13 +174,14 @@ jobs:
           merge-multiple: true
 
       - name: Combine coverage
-        run: python -m coverage combine
+        run: uv run coverage combine
 
       - name: Generate coverage report
         id: coverage
         run: |
-          python -m coverage html --skip-covered --skip-empty
-          python -m coverage report --fail-under=100
+          uv run coverage html --skip-covered --skip-empty
+          uv run coverage xml
+          uv run coverage report --fail-under=100
 
       - name: Upload HTML coverage report
         if: always() && steps.coverage.outcome == 'failure'
@@ -209,18 +211,14 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v6.0.2
 
-      - name: Set up Python ${{ env.LATEST_PYTHON_VER }}
-        uses: actions/setup-python@v6.2.0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.1.0
         with:
           python-version: ${{ env.LATEST_PYTHON_VER }}
-          allow-prereleases: true
-          cache: pip
-          cache-dependency-path: ${{ github.workspace }}/setup.cfg
+          enable-cache: true
 
       - name: Install in Dev Mode
-        run: |
-          python -m pip install -U pip wheel setuptools
-          python -m pip install -e .[dev]
+        run: uv sync
 
       - name: Import Package
-        run: python -c "from qbittorrentapi import Client; assert Client().host == 'localhost:8080'"
+        run: uv run python -c "from qbittorrentapi import Client; assert Client().host == 'localhost:8080'"
