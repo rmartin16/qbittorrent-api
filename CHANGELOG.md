@@ -1,5 +1,8 @@
 Change Log
 ==========
+### v2026.5.4 (3 june 2026)
+- Add support for ``app/processInfo``
+
 ### v2026.5.3 (30 may 2026)
 - Add support for API key authentication (#620)
 - Minimum Python is now 3.10 (#618)
