@@ -38,7 +38,7 @@ class BuildInfoDictionary(Dictionary[str | int]):
 
 
 class ProcessInfoDictionary(Dictionary[str | int]):
-    """Response for :meth:`~AppAPIMixIn.app_process_info`"""  # noqa: E501
+    """Response for :meth:`~AppAPIMixIn.app_process_info`"""
 
 
 class Cookie(ListEntry):
