@@ -373,7 +373,7 @@ class Application(ClientCache[AppAPIMixIn]):
         """Implements :meth:`~AppAPIMixIn.app_process_info`."""
         return self._client.app_process_info()
 
-    proocessInfo = process_info
+    processInfo = process_info
 
     def shutdown(self, **kwargs: APIKwargsT) -> None:
         """Implements :meth:`~AppAPIMixIn.app_shutdown`."""
