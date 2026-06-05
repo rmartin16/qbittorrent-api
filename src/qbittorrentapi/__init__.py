@@ -3,12 +3,12 @@ from qbittorrentapi.app import (
     AppAPIMixIn,
     ApplicationPreferencesDictionary,
     BuildInfoDictionary,
-    ProcessInfoDictionary,
     Cookie,
     CookieList,
     NetworkInterface,
     NetworkInterfaceAddressList,
     NetworkInterfaceList,
+    ProcessInfoDictionary,
 )
 from qbittorrentapi.auth import AuthAPIMixIn
 from qbittorrentapi.client import Client
