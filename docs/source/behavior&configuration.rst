@@ -75,7 +75,7 @@ Untrusted Web API Certificate
 
 .. code:: python
 
-    qbt_client = Client(..., VERIFY_WEBUI_CERTIFICATE=False}
+    qbt_client = Client(..., VERIFY_WEBUI_CERTIFICATE=False)
 
 Requests Configuration
 **********************
@@ -94,7 +94,7 @@ Requests Configuration
 
 .. code:: python
 
-    qbt_client = Client(..., REQUESTS_ARGS={'timeout': (3.1, 30)}
+    qbt_client = Client(..., REQUESTS_ARGS={'timeout': (3.1, 30)})
 
 * Alternatively, parameters can be specified for individual requests:
 
@@ -108,7 +108,7 @@ Requests Configuration
 
 .. code:: python
 
-    qbt_client = Client(..., HTTPADAPTER_ARGS={"pool_connections": 100, "pool_maxsize": 100}
+    qbt_client = Client(..., HTTPADAPTER_ARGS={"pool_connections": 100, "pool_maxsize": 100})
 
 Additional HTTP Headers
 ***********************
@@ -121,13 +121,13 @@ Additional HTTP Headers
 
 .. code:: python
 
-    qbt_client = Client(..., EXTRA_HEADERS={'X-My-Fav-Header': 'header value')
+    qbt_client = Client(..., EXTRA_HEADERS={'X-My-Fav-Header': 'header value'})
 
 * Alternatively, you can send custom headers in individual requests:
 
 .. code:: python
 
-    qbt_client.torrents.add(..., headers={'X-My-Fav-Header': 'header value')
+    qbt_client.torrents.add(..., headers={'X-My-Fav-Header': 'header value'})
 
 Unimplemented API Endpoints
 ***************************
