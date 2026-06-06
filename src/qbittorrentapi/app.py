@@ -142,7 +142,7 @@ class AppAPIMixIn(AuthAPIMixIn):
 
     def app_process_info(self, **kwargs: APIKwargsT) -> ProcessInfoDictionary:
         """
-        qBittorrent build info.
+        Information about the process running qBittorrent.
 
         This method was introduced with qBittorrent v5.2.0 (Web API v2.15.1).
         """

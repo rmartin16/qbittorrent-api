@@ -1,6 +1,6 @@
 Change Log
 ==========
-### v2026.5.4 (3 june 2026)
+### v2026.6.0 (5 jun 2026)
 - Add support for ``app/processInfo``
 
 ### v2026.5.3 (30 may 2026)
