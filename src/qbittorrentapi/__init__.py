@@ -8,6 +8,7 @@ from qbittorrentapi.app import (
     NetworkInterface,
     NetworkInterfaceAddressList,
     NetworkInterfaceList,
+    ProcessInfoDictionary,
 )
 from qbittorrentapi.auth import AuthAPIMixIn
 from qbittorrentapi.client import Client
@@ -101,6 +102,7 @@ __all__ = (
     "ApplicationPreferencesDictionary",
     "AuthAPIMixIn",
     "BuildInfoDictionary",
+    "ProcessInfoDictionary",
     "Client",
     "Conflict409Error",
     "Cookie",

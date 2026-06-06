@@ -52,6 +52,21 @@ def test_build_info_not_implemented(client):
         assert "libtorrent" in client.app.build_info
 
 
+@pytest.mark.skipif_before_api_version("2.15.1")
+def test_process_info(client):
+    assert "launch_time" in client.app_process_info()
+    assert "launch_time" in client.app_processInfo()
+    assert "launch_time" in client.app.process_info
+
+
+@pytest.mark.skipif_after_api_version("2.15.1")
+def test_process_info_not_implemented(client):
+    with pytest.raises(NotImplementedError):
+        assert "launch_time" in client.app_process_info()
+    with pytest.raises(NotImplementedError):
+        assert "launch_time" in client.app.process_info
+
+
 def test_preferences(client):
     prefs = client.app_preferences()
     assert "dht" in prefs

@@ -37,6 +37,10 @@ class BuildInfoDictionary(Dictionary[str | int]):
     """  # noqa: E501
 
 
+class ProcessInfoDictionary(Dictionary[str | int]):
+    """Response for :meth:`~AppAPIMixIn.app_process_info`"""  # noqa: D203, D415
+
+
 class Cookie(ListEntry):
     """Item in :class:`CookieList`"""
 
@@ -135,6 +139,22 @@ class AppAPIMixIn(AuthAPIMixIn):
         )
 
     app_buildInfo = app_build_info
+
+    def app_process_info(self, **kwargs: APIKwargsT) -> ProcessInfoDictionary:
+        """
+        Information about the process running qBittorrent.
+
+        This method was introduced with qBittorrent v5.2.0 (Web API v2.15.1).
+        """
+        return self._get_cast(
+            _name=APINames.Application,
+            _method="processInfo",
+            response_class=ProcessInfoDictionary,
+            version_introduced="2.15.1",
+            **kwargs,
+        )
+
+    app_processInfo = app_process_info
 
     def app_shutdown(self, **kwargs: APIKwargsT) -> None:
         """Shutdown qBittorrent."""
@@ -347,6 +367,13 @@ class Application(ClientCache[AppAPIMixIn]):
         return self._client.app_build_info()
 
     buildInfo = build_info
+
+    @property
+    def process_info(self) -> ProcessInfoDictionary:
+        """Implements :meth:`~AppAPIMixIn.app_process_info`."""
+        return self._client.app_process_info()
+
+    processInfo = process_info
 
     def shutdown(self, **kwargs: APIKwargsT) -> None:
         """Implements :meth:`~AppAPIMixIn.app_shutdown`."""
