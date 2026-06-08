@@ -163,9 +163,9 @@ class RSSAPIMixIn(AppAPIMixIn):
 
         :raises Conflict409Error:
 
-        :param orig_item_path: path to item to be removed
+        :param orig_item_path: path to item to be moved
             (e.g. ``Folder\\Subfolder\\ItemName``)
-        :param new_item_path: path to item to be removed
+        :param new_item_path: new path for the item
             (e.g. ``Folder\\Subfolder\\ItemName``)
         """
         data = {"itemPath": orig_item_path, "destPath": new_item_path}
