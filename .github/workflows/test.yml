@@ -44,7 +44,7 @@ jobs:
 
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v6.0.3
+        uses: actions/checkout@v7.0.0
 
       - name: Get packages
         uses: actions/download-artifact@v8.0.1
@@ -90,7 +90,7 @@ jobs:
 
       - name: Send mail
         if: failure() && github.event_name != 'pull_request'
-        uses: dawidd6/action-send-mail@v17
+        uses: dawidd6/action-send-mail@v18
         with:
           server_address: smtp.gmail.com
           server_port: 587
