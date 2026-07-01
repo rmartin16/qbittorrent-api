@@ -30,7 +30,7 @@ jobs:
       hook-repos: ${{ steps.hooks.outputs.repos }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v6.0.3
+        uses: actions/checkout@v7.0.0
 
       - name: Get Pre-commit Hooks
         id: hooks
@@ -50,7 +50,7 @@ jobs:
         hook-repo: ${{ fromJson(needs.pre-commit-hooks.outputs.hook-repos) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.3
+        uses: actions/checkout@v7.0.0
         with:
           fetch-depth: 1
           token: ${{ secrets.PAT }}
@@ -61,7 +61,7 @@ jobs:
           git config user.name "pre-commit updates"
 
       - name: Set up Python
-        uses: actions/setup-python@v6.2.0
+        uses: actions/setup-python@v6.3.0
         with:
           python-version: 3.X
 
