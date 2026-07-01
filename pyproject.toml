@@ -42,11 +42,11 @@ dependencies = [
 [dependency-groups]
 dev = [
     "build ==1.5.0",
-    "coverage[toml] ==7.14.1",
+    "coverage[toml]==7.14.3",
     "mypy ==2.1.0",
     "pre-commit ==4.6.0",
-    "pytest ==9.0.3",
-    "tox ==4.55.0",
+    "pytest==9.1.1",
+    "tox==4.56.1",
     "tox-uv ==1.35.2",
     "twine ==6.2.0",
     "types-requests ==2.33.0.20260518",
