@@ -1,5 +1,8 @@
 Change Log
 ==========
+### v2026.7.0 (07 jul 2026)
+- Advertise support for qBittorrent v5.2.3
+
 ### v2026.6.1 (26 jun 2026)
 - Advertise support for qBittorrent v5.2.2
 
