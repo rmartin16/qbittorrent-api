@@ -725,7 +725,6 @@ def test_verbose_logging_redacts_api_key(caplog):
     assert "qbt_secret_api_key" not in caplog.text
 
 
-@pytest.mark.xfail(reason="failing on 3.15 alpha")
 def test_stack_printing(capsys):
     client = Client(VERIFY_WEBUI_CERTIFICATE=False)
     client._PRINT_STACK_FOR_EACH_REQUEST = True
