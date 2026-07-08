@@ -1285,7 +1285,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     def torrents_set_share_limits(
         self,
-        ratio_limit: str | int | None = None,
+        ratio_limit: str | float | None = None,
         seeding_time_limit: str | int | None = None,
         inactive_seeding_time_limit: str | int | None = None,
         share_limit_action: Literal[
@@ -2084,7 +2084,7 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     def set_share_limits(
         self,
-        ratio_limit: str | int | None = None,
+        ratio_limit: str | float | None = None,
         seeding_time_limit: str | int | None = None,
         inactive_seeding_time_limit: str | int | None = None,
         share_limit_action: Literal[
