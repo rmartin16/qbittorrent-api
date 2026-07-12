@@ -9,7 +9,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from qbittorrentapi import APIConnectionError, Client, Conflict409Error
+from qbittorrentapi import APIConnectionError, Client
 from qbittorrentapi._version_support import (
     APP_VERSION_2_API_VERSION_MAP as api_version_map,
 )
@@ -147,39 +147,34 @@ def orig_torrent(client):
 @contextmanager
 def new_torrent_standalone(client, torrent_hash=TORRENT1_HASH, tmp_path=None, **kwargs):
     def add_test_torrent(torrent_hash_, **kw):
-        check_limit = int(10 / CHECK_SLEEP)
-        for attempt in range(check_limit):
-            try:
-                if kw:
-                    client.torrents.add(**kw)
-                elif tmp_path:
-                    client.torrents.add(
-                        torrent_files=TORRENT1_FILE,
-                        save_path=mkpath(tmp_path, "test_dow2nload"),
-                        category="test_category",
-                        is_paused=True,
-                        upload_limit=1024,
-                        download_limit=2048,
-                        is_sequential_download=True,
-                        is_first_last_piece_priority=True,
-                    )
-                else:
-                    raise Exception("invalid params")
-            except Conflict409Error:
-                # qBittorrent >= 5.2 returns 409 when adding a torrent that is
-                # already present (e.g. it was added on a previous retry
-                # iteration but hasn't shown up in torrents_info() yet). That is
-                # the state we want, so fall through and locate it below.
-                pass
-            try:
-                torrent = get_torrent(client, torrent_hash_)
-            except Exception:
-                if attempt >= check_limit - 1:
-                    raise
-                sleep(CHECK_SLEEP)
-            else:
-                torrent.func = staticmethod(partial(get_func, torrent))
-                return torrent
+        # Add the torrent exactly once, then wait for it to register. The torrent
+        # isn't visible in torrents_info() the instant after adding, so we poll
+        # for it. (Re-adding on each poll -- the previous approach -- relied on
+        # qBittorrent silently tolerating duplicate adds, which stopped being
+        # true in v5.2: it now returns 409 Conflict for an already-added torrent.)
+        if kw:
+            client.torrents.add(**kw)
+        elif tmp_path:
+            client.torrents.add(
+                torrent_files=TORRENT1_FILE,
+                save_path=mkpath(tmp_path, "test_dow2nload"),
+                category="test_category",
+                is_paused=True,
+                upload_limit=1024,
+                download_limit=2048,
+                is_sequential_download=True,
+                is_first_last_piece_priority=True,
+            )
+        else:
+            raise Exception("invalid params")
+
+        for _ in range(int(10 / CHECK_SLEEP)):
+            for torrent in client.torrents_info():
+                if torrent.hash == torrent_hash_:
+                    torrent.func = staticmethod(partial(get_func, torrent))
+                    return torrent
+            sleep(CHECK_SLEEP)
+        raise Exception(f"Failed to find added torrent for {torrent_hash_}")
 
     @retry()
     def delete_test_torrent(client_, torrent_hash_):
