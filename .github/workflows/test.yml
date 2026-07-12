@@ -39,7 +39,7 @@ jobs:
       QBITTORRENTAPI_PASSWORD: ${{ inputs.qbittorrent-password }}
       IS_QBT_DEV: ${{ inputs.is-qbt-dev }}
       DOCKER_QBT_IMAGE_NAME: ghcr.io/rmartin16/qbittorrent-nox
-      DOCKER_QBT_IMAGE_TAG: ${{ inputs.qbittorrent-version }}-debug
+      DOCKER_QBT_IMAGE_TAG: ${{ inputs.qbittorrent-version }}
       DOCKER_ARGS: --name qbt-tox-testing --detach --publish 8080:8080 --volume ${{ github.workspace }}/tests/_resources:/tmp/_resources
 
     steps:
