@@ -9,7 +9,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from qbittorrentapi import APIConnectionError, Client
+from qbittorrentapi import APIConnectionError, Client, Conflict409Error
 from qbittorrentapi._version_support import (
     APP_VERSION_2_API_VERSION_MAP as api_version_map,
 )
@@ -149,21 +149,28 @@ def new_torrent_standalone(client, torrent_hash=TORRENT1_HASH, tmp_path=None, **
     def add_test_torrent(torrent_hash_, **kw):
         check_limit = int(10 / CHECK_SLEEP)
         for attempt in range(check_limit):
-            if kw:
-                client.torrents.add(**kw)
-            elif tmp_path:
-                client.torrents.add(
-                    torrent_files=TORRENT1_FILE,
-                    save_path=mkpath(tmp_path, "test_dow2nload"),
-                    category="test_category",
-                    is_paused=True,
-                    upload_limit=1024,
-                    download_limit=2048,
-                    is_sequential_download=True,
-                    is_first_last_piece_priority=True,
-                )
-            else:
-                raise Exception("invalid params")
+            try:
+                if kw:
+                    client.torrents.add(**kw)
+                elif tmp_path:
+                    client.torrents.add(
+                        torrent_files=TORRENT1_FILE,
+                        save_path=mkpath(tmp_path, "test_dow2nload"),
+                        category="test_category",
+                        is_paused=True,
+                        upload_limit=1024,
+                        download_limit=2048,
+                        is_sequential_download=True,
+                        is_first_last_piece_priority=True,
+                    )
+                else:
+                    raise Exception("invalid params")
+            except Conflict409Error:
+                # qBittorrent >= 5.2 returns 409 when adding a torrent that is
+                # already present (e.g. it was added on a previous retry
+                # iteration but hasn't shown up in torrents_info() yet). That is
+                # the state we want, so fall through and locate it below.
+                pass
             try:
                 torrent = get_torrent(client, torrent_hash_)
             except Exception:
