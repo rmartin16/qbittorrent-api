@@ -88,7 +88,15 @@ def add_torrent(client, torrent_url, torrent_hash):
         raise Exception("didn't find added torrent")
 
 
-def check(check_func, value, reverse=False, negate=False, any=False, check_time=None):
+def check(
+    check_func,
+    value,
+    reverse=False,
+    negate=False,
+    any=False,
+    check_time=None,
+    action=None,
+):
     """
     Compare the return value of an arbitrary function to expected value with retries.
     Since some requests take some time to take effect in qBittorrent, the retries every
@@ -102,6 +110,9 @@ def check(check_func, value, reverse=False, negate=False, any=False, check_time=
     :param check_time: maximum number of seconds to spend checking
     :param any: False: all values must be (not) found; True: any value must be (not)
         found
+    :param action: optional callable re-invoked before each check attempt; use this
+        when the request that produces the expected value can be slow to take effect
+        (or dropped) under load, so it is retried alongside the check
     """
 
     def _do_check(_check_func_val, _v, _negate, _reverse):
@@ -129,6 +140,8 @@ def check(check_func, value, reverse=False, negate=False, any=False, check_time=
     try:
         for i in range(check_limit):
             try:
+                if action is not None:
+                    action()
                 exp = None
                 for val in value:
                     # clear any previous exceptions if any=True
@@ -157,11 +170,14 @@ def check(check_func, value, reverse=False, negate=False, any=False, check_time=
                 break
 
             except AssertionError:
-                if i >= check_limit:
+                # on the final attempt, re-raise the real assertion so the failure
+                # reports the actual value mismatch rather than the opaque
+                # "neither succeeded nor failed" below
+                if i >= check_limit - 1:
                     raise
                 sleep(CHECK_SLEEP)
     except APIConnectionError:
         raise AssertionError("qBittorrent crashed...")
 
-    if not success:
+    if not success:  # pragma: no cover - defensive; loop above always exits via above
         raise Exception("Test neither succeeded nor failed...")

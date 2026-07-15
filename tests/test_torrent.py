@@ -336,10 +336,19 @@ def test_set_force_start(orig_torrent, set_force_start_func):
 )
 def test_set_super_seeding(orig_torrent, set_super_seeding_func):
     current_setting = orig_torrent.super_seeding
-    orig_torrent.func(set_super_seeding_func)(enable=(not current_setting))
-    check(lambda: orig_torrent.info.super_seeding, not current_setting)
-    orig_torrent.func(set_super_seeding_func)(enable=current_setting)
-    check(lambda: orig_torrent.info.super_seeding, current_setting)
+    set_super_seeding = orig_torrent.func(set_super_seeding_func)
+    # super seeding can be slow to take effect (or the request dropped) on a busy,
+    # actively-connected torrent, so re-issue the set on each check attempt
+    check(
+        lambda: orig_torrent.info.super_seeding,
+        not current_setting,
+        action=lambda: set_super_seeding(enable=(not current_setting)),
+    )
+    check(
+        lambda: orig_torrent.info.super_seeding,
+        current_setting,
+        action=lambda: set_super_seeding(enable=current_setting),
+    )
 
 
 def test_properties(orig_torrent):
