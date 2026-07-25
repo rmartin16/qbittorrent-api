@@ -204,3 +204,13 @@ def test_list_actions(client):
         ListEntry({"two": "2"}),
         ListEntry({"three": "3"}),
     ]
+
+
+def test_list_slice_preserves_entries():
+    """Slicing must not re-wrap (and so strip the client from) existing entries."""
+    from qbittorrentapi.torrents import TorrentInfoList
+
+    torrents = TorrentInfoList([{"hash": "abc"}], client="client sentinel")
+
+    assert torrents[0:1][0] is torrents[0]
+    assert torrents[0:1][0]._client == "client sentinel"
