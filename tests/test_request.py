@@ -1,6 +1,7 @@
 import logging
 import re
 from os import environ
+from time import sleep
 from unittest.mock import MagicMock, PropertyMock
 
 import pytest
@@ -14,7 +15,7 @@ from qbittorrentapi.exceptions import Forbidden403Error
 from qbittorrentapi.request import Request
 from qbittorrentapi.torrents import TorrentDictionary, TorrentInfoList
 from tests.conftest import IS_QBT_DEV
-from tests.utils import mkpath
+from tests.utils import CHECK_SLEEP, mkpath
 
 
 def test_method_name(client, app_version):
@@ -129,15 +130,39 @@ def test_port_from_host(app_version):
     assert client.app.version == app_version
 
 
-def _enable_disable_https(client, use_https):
+def _enable_disable_https(use_https):
+    """
+    Switch qBittorrent's Web UI between HTTP and HTTPS.
+
+    A dedicated client is used since the Web UI's scheme is in flux; the
+    session-scoped client is pinned to HTTP and cannot reach the Web UI while it is
+    serving HTTPS.
+    """
+    https_client = Client(
+        host=environ["QBITTORRENTAPI_HOST"],  # no scheme so it is detected
+        VERIFY_WEBUI_CERTIFICATE=False,
+        REQUESTS_ARGS={"timeout": 3},
+    )
     if use_https:
-        client.app.preferences = {
+        https_client.app.preferences = {
             "use_https": True,
             "web_ui_https_cert_path": mkpath("/tmp", "_resources", "server.crt"),
             "web_ui_https_key_path": mkpath("/tmp", "_resources", "server.key"),
         }
     else:
-        client.app.preferences = {"use_https": False}
+        https_client.app.preferences = {"use_https": False}
+
+
+def _wait_for_http_web_ui(client):
+    """Wait for the Web UI to start responding to HTTP again."""
+    for _ in range(int(30 / CHECK_SLEEP)):
+        try:
+            client.app_version()
+        except exceptions.APIConnectionError:
+            sleep(CHECK_SLEEP)
+        else:
+            return
+    raise AssertionError("qBittorrent Web UI never returned to HTTP")
 
 
 # disabling test: become unstable when approaching v5.2.0 release
@@ -195,18 +220,21 @@ def _enable_disable_https(client, use_https):
 @pytest.mark.filterwarnings("ignore:Unverified HTTPS request")
 def test_both_https_http_not_working(client, app_version, scheme):
     default_host = environ["QBITTORRENTAPI_HOST"]
-    _enable_disable_https(client, use_https=True)
+    _enable_disable_https(use_https=True)
 
-    # rerun with verify=True
-    test_client = Client(
-        host=scheme + default_host,
-        REQUESTS_ARGS={"timeout": 3},
-    )
-    with pytest.raises(exceptions.APIConnectionError):
-        assert test_client.app.version == app_version
-    assert test_client._url._base_url.startswith("https://")
-
-    _enable_disable_https(client, use_https=False)
+    try:
+        # rerun with verify=True
+        test_client = Client(
+            host=scheme + default_host,
+            REQUESTS_ARGS={"timeout": 3},
+        )
+        with pytest.raises(exceptions.APIConnectionError):
+            assert test_client.app.version == app_version
+        assert test_client._url._base_url.startswith("https://")
+    finally:
+        # every remaining test needs the Web UI back on HTTP
+        _enable_disable_https(use_https=False)
+        _wait_for_http_web_ui(client)
 
 
 def test_legacy_env_vars():

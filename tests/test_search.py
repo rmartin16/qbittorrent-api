@@ -322,6 +322,9 @@ def test_download_torrent(client, client_func, app_version):
             lambda: [t.hash for t in client.torrents_info()],
             TORRENT2_HASH,
             reverse=True,
+            # qBittorrent must download the torrent file from GitHub before it
+            # shows up, so allow for the internet being slow
+            check_time=60,
         )
     finally:
         client.torrents.delete(torrent_hashes=TORRENT2_HASH)

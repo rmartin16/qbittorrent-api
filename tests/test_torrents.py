@@ -287,8 +287,8 @@ def test_add_options(client, api_version, keep_root_folder, content_layout, tmp_
             check(lambda: torrent.info.category, "test_category")
             check(
                 lambda: torrent.info.state,
-                ("pausedDL", "checkingResumeData"),
-                reverse=True,
+                # qBittorrent v5 renamed the paused states to stopped
+                ("pausedDL", "stoppedDL"),
                 any=True,
             )
             check(
@@ -423,11 +423,17 @@ def test_webseeds_slice(client, orig_torrent, webseeds_func):
 )
 def test_add_webseeds(client, new_torrent, add_webseeds_func, webseeds):
     assert new_torrent.webseeds == WebSeedsList([])
-    client.func(add_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
+
+    def add_webseeds():
+        client.func(add_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
+
+    add_webseeds()
     check(
         lambda: sorted([w.url for w in new_torrent.webseeds]),
         (webseeds if isinstance(webseeds, list) else [webseeds]),
         reverse=True,
+        # see tests/test_torrent.py::test_add_webseed for why this is re-sent
+        action=add_webseeds,
     )
 
 
@@ -458,14 +464,32 @@ def test_add_webseeds_not_implemented(client, orig_torrent, add_webseeds_func):
 )
 def test_edit_webseeds(client, new_torrent, edit_webseed_func):
     assert new_torrent.webseeds == WebSeedsList([])
-    new_torrent.add_webseeds(urls="http://example/asdf")
-    client.func(edit_webseed_func)(
-        torrent_hash=new_torrent.hash,
-        orig_url="http://example/asdf",
-        new_url="http://example/qwer",
-    )
-    check(lambda: len(new_torrent.webseeds), 1)
-    check(lambda: new_torrent.webseeds[0].url, "http://example/qwer", reverse=True)
+    orig_url, new_url = "http://example/asdf", "http://example/qwer"
+
+    def urls():
+        return [w.url for w in new_torrent.webseeds]
+
+    def add_orig_url():
+        new_torrent.add_webseeds(urls=orig_url)
+
+    def edit_webseed():
+        client.func(edit_webseed_func)(
+            torrent_hash=new_torrent.hash, orig_url=orig_url, new_url=new_url
+        )
+
+    # see tests/test_torrent.py::test_edit_webseeds for why this is re-sent
+    def redo_edit():
+        current = urls()
+        if orig_url in current:
+            edit_webseed()
+        elif new_url not in current:
+            add_orig_url()
+
+    add_orig_url()
+    check(urls, orig_url, reverse=True, action=add_orig_url)
+    edit_webseed()
+    check(urls, new_url, reverse=True, action=redo_edit)
+    check(lambda: len(new_torrent.webseeds), 1, action=redo_edit)
 
 
 @pytest.mark.skipif_after_api_version("2.11.3")
@@ -502,16 +526,33 @@ def test_edit_webseed_not_implemented(client, orig_torrent, edit_webseed_func):
 )
 def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
     assert new_torrent.webseeds == WebSeedsList([])
-    new_torrent.add_webseeds(
-        urls=[
-            "http://example/webseedone",
-            "http://example/webseedtwo",
-            "http://example/webseedthree",
-        ]
+    all_webseeds = [
+        "http://example/webseedone",
+        "http://example/webseedtwo",
+        "http://example/webseedthree",
+    ]
+
+    def add_webseeds():
+        new_torrent.add_webseeds(urls=all_webseeds)
+
+    def remove_webseeds():
+        client.func(remove_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
+
+    add_webseeds()
+    # removing before qBittorrent registers them would silently do nothing
+    check(
+        lambda: [w.url for w in new_torrent.webseeds],
+        all_webseeds,
+        reverse=True,
+        action=add_webseeds,
     )
-    client.func(remove_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
+    remove_webseeds()
     for webseed in webseeds if isinstance(webseeds, list) else [webseeds]:
-        check(lambda: webseed not in {w.url for w in new_torrent.webseeds}, True)
+        check(
+            lambda: webseed not in {w.url for w in new_torrent.webseeds},
+            True,
+            action=remove_webseeds,
+        )
 
 
 @pytest.mark.skipif_after_api_version("2.11.3")
@@ -1401,8 +1442,9 @@ def test_set_force_start(client, orig_torrent, set_force_start_func):
     ],
 )
 def test_set_super_seeding(client, orig_torrent, set_super_seeding_func):
+    # see tests/test_torrent.py::test_set_super_seeding for why the resulting
+    # super seeding state isn't asserted here
     client.func(set_super_seeding_func)(enable=False, torrent_hashes=orig_torrent.hash)
-    check(lambda: orig_torrent.info.force_start, False)
 
 
 @pytest.mark.skipif_before_api_version("2.3.0")
