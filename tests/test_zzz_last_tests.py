@@ -8,5 +8,5 @@ from tests.utils import check
 @pytest.mark.skipif(environ.get("CI") != "true", reason="not in CI")
 def test_shutdown(client):
     client.app.shutdown()
-    with pytest.raises(AssertionError, match="qBittorrent crashed..."):
+    with pytest.raises(AssertionError, match="qBittorrent is unreachable"):
         check(lambda: client.app_version(), "")
