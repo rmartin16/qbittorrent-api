@@ -10,6 +10,7 @@ from qbittorrentapi.definitions import (
     TorrentState,
     TrackerStatus,
 )
+from qbittorrentapi.torrents import TorrentInfoList
 
 torrent_all_states = [
     "error",
@@ -204,3 +205,17 @@ def test_list_actions(client):
         ListEntry({"two": "2"}),
         ListEntry({"three": "3"}),
     ]
+
+
+def test_list_slice_preserves_client():
+    """Slicing must not re-wrap entries and drop their cached client (#406)."""
+    client = object()
+    torrents = TorrentInfoList(
+        [{"hash": "abc", "name": "one"}, {"hash": "def", "name": "two"}],
+        client=client,
+    )
+
+    assert torrents[0]._client is client
+    assert torrents[0:1][0]._client is client
+    assert torrents.copy()[0]._client is client
+    assert torrents[0:1][0].name == "one"
