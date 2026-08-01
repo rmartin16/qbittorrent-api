@@ -257,7 +257,9 @@ class List(UserList[ListEntryT]):
             [
                 (
                     entry_class(data=entry, **kwargs)  # type: ignore[misc]
-                    if entry_class is not None and isinstance(entry, Mapping)
+                    if entry_class is not None
+                    and isinstance(entry, Mapping)
+                    and not isinstance(entry, entry_class)
                     else entry
                 )
                 for entry in list_entries or []
