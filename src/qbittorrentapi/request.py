@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ssl
 from collections.abc import Iterable, Mapping
 from json import loads
 from logging import Logger, NullHandler, getLogger
@@ -57,6 +58,27 @@ ResponseT = TypeVar("ResponseT")
 
 logger: Logger = getLogger(__name__)
 getLogger("qbittorrentapi").addHandler(NullHandler())
+
+
+def _is_certificate_error(exc: BaseException) -> bool:
+    """
+    Determine whether an :class:`~requests.exceptions.SSLError` is a cert failure.
+
+    Speaking TLS to a plaintext port also raises ``SSLError``, so only a certificate
+    failure is evidence that qBittorrent is actually serving HTTPS.
+
+    :param exc: exception raised while attempting a TLS connection
+    :return: whether the exception was caused by certificate verification
+    """
+    seen = set()
+    cause: BaseException | None = exc
+    while cause is not None and id(cause) not in seen:
+        if isinstance(cause, ssl.SSLCertVerificationError):
+            return True
+        seen.add(id(cause))
+        cause = cause.__cause__ or cause.__context__
+    # older urllib3 versions can lose the original exception; fall back to the message
+    return "certificate verify failed" in str(exc).lower()
 
 
 class QbittorrentURL:
@@ -192,12 +214,21 @@ class QbittorrentURL:
                 )
                 scheme_to_use: str = urlparse(r.url).scheme
                 break
-            except requests_exceptions.SSLError:
-                # an SSLError means that qBittorrent is likely listening on HTTPS
-                # but the TLS connection is not trusted...so, if the attempt to
-                # connect on HTTP also fails, this will tell us to switch back to HTTPS
-                logger.debug("Encountered SSLError: will prefer HTTPS if HTTP fails")
-                prefer_https = True
+            except requests_exceptions.SSLError as exc:
+                # a certificate SSLError means that qBittorrent is likely listening on
+                # HTTPS but the TLS connection is not trusted...so, if the attempt to
+                # connect on HTTP also fails, this will tell us to switch back to HTTPS.
+                # speaking TLS to a plaintext port also raises SSLError, though, and
+                # that is no evidence at all that qBittorrent is serving HTTPS
+                if _is_certificate_error(exc):
+                    logger.debug(
+                        "Encountered SSLError: will prefer HTTPS if HTTP fails"
+                    )
+                    prefer_https = True
+                else:
+                    logger.debug(
+                        "Encountered non-certificate SSLError with %s", scheme.upper()
+                    )
             except requests_exceptions.RequestException:
                 logger.debug("Failed connection attempt with %s", scheme.upper())
         else:

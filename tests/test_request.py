@@ -1,11 +1,14 @@
 import logging
 import re
+import ssl
 from os import environ
 from time import sleep
 from unittest.mock import MagicMock, PropertyMock
+from urllib.parse import urlparse
 
 import pytest
 from requests import Response
+from requests import exceptions as requests_exceptions
 from requests.adapters import DEFAULT_POOLBLOCK, DEFAULT_POOLSIZE
 
 from qbittorrentapi import APINames, Client, exceptions
@@ -106,6 +109,48 @@ def test_hostname_format(app_version, hostname):
     assert client.app.version == app_version
     # ensure the base URL is always normalized
     assert re.match(r"(http|https)://localhost:8080/", client._url._base_url)
+
+
+@pytest.mark.parametrize(
+    ("ssl_error", "expected_scheme"),
+    (
+        (
+            ssl.SSLEOFError(
+                8, "[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation"
+            ),
+            "http",
+        ),
+        (
+            ssl.SSLCertVerificationError(
+                1, "certificate verify failed: self signed certificate"
+            ),
+            "https",
+        ),
+    ),
+)
+def test_detect_scheme_ssl_error(monkeypatch, ssl_error, expected_scheme):
+    """Only a certificate failure means qBittorrent is serving HTTPS."""
+    client = Client(host="localhost:8080")
+
+    def request(method, url, **kwargs):
+        if urlparse(url).scheme == "http":
+            raise requests_exceptions.ConnectionError("transient connection failure")
+        raise requests_exceptions.SSLError(ssl_error)
+
+    session = MagicMock()
+    session.request = request
+    monkeypatch.setattr(type(client), "_session", PropertyMock(return_value=session))
+
+    assert (
+        client._url.detect_scheme(
+            urlparse("//localhost:8080"),
+            "http",
+            "https",
+            headers={},
+            requests_kwargs={},
+        )
+        == expected_scheme
+    )
 
 
 @pytest.mark.parametrize(
