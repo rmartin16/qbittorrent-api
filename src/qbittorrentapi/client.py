@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
+from qbittorrentapi.clientdata import ClientDataAPIMixIn
 from qbittorrentapi.log import LogAPIMixIn
 from qbittorrentapi.rss import RSSAPIMixIn
 from qbittorrentapi.search import SearchAPIMixIn
@@ -47,6 +48,7 @@ from qbittorrentapi.transfer import TransferAPIMixIn
 
 
 class Client(
+    ClientDataAPIMixIn,
     LogAPIMixIn,
     SyncAPIMixIn,
     TransferAPIMixIn,

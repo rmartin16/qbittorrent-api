@@ -1,5 +1,6 @@
 from qbittorrentapi._version_support import Version
 from qbittorrentapi.app import (
+    APIKeyDictionary,
     AppAPIMixIn,
     ApplicationPreferencesDictionary,
     BuildInfoDictionary,
@@ -12,6 +13,11 @@ from qbittorrentapi.app import (
 )
 from qbittorrentapi.auth import AuthAPIMixIn
 from qbittorrentapi.client import Client
+from qbittorrentapi.clientdata import (
+    ClientData,
+    ClientDataAPIMixIn,
+    ClientDataDictionary,
+)
 from qbittorrentapi.definitions import (
     APINames,
     TorrentState,
@@ -82,11 +88,14 @@ from qbittorrentapi.torrents import (
     TorrentFilesList,
     TorrentInfoList,
     TorrentLimitsDictionary,
+    TorrentMetadataDictionary,
+    TorrentMetadataList,
     TorrentPieceData,
     TorrentPieceInfoList,
     TorrentPropertiesDictionary,
     TorrentsAddPeersDictionary,
     TorrentsAPIMixIn,
+    TorrentSSLParametersDictionary,
     Tracker,
     TrackersList,
     WebSeed,
@@ -101,6 +110,7 @@ from qbittorrentapi.transfer import (
 __all__ = (
     "APIConnectionError",
     "APIError",
+    "APIKeyDictionary",
     "APINames",
     "AppAPIMixIn",
     "ApplicationPreferencesDictionary",
@@ -108,6 +118,9 @@ __all__ = (
     "BuildInfoDictionary",
     "ProcessInfoDictionary",
     "Client",
+    "ClientData",
+    "ClientDataAPIMixIn",
+    "ClientDataDictionary",
     "Conflict409Error",
     "Cookie",
     "CookieList",
@@ -170,11 +183,14 @@ __all__ = (
     "TorrentFilesList",
     "TorrentInfoList",
     "TorrentLimitsDictionary",
+    "TorrentMetadataDictionary",
+    "TorrentMetadataList",
     "TorrentPieceData",
     "TorrentPieceInfoList",
     "TorrentPropertiesDictionary",
     "TorrentsAddPeersDictionary",
     "TorrentsAPIMixIn",
+    "TorrentSSLParametersDictionary",
     "TorrentState",
     "TorrentStates",
     "Tracker",

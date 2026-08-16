@@ -41,6 +41,10 @@ class ProcessInfoDictionary(Dictionary[str | int]):
     """Response for :meth:`~AppAPIMixIn.app_process_info`"""  # noqa: D203, D415
 
 
+class APIKeyDictionary(Dictionary[str]):
+    """Response for :meth:`~AppAPIMixIn.app_rotate_api_key`"""
+
+
 class Cookie(ListEntry):
     """Item in :class:`CookieList`"""
 
@@ -355,6 +359,41 @@ class AppAPIMixIn(AuthAPIMixIn):
 
     app_getFreeSpaceAtPath = app_get_free_space_at_path
 
+    def app_rotate_api_key(self, **kwargs: APIKwargsT) -> APIKeyDictionary:
+        """
+        Generate a new Web API key, replacing any existing one.
+
+        This method was introduced with qBittorrent v5.2.0 (Web API v2.14.0).
+
+        Note that the returned key immediately invalidates the previous one; pass
+        it as ``api_key`` when constructing a :class:`~qbittorrentapi.client.Client`
+        to authenticate with it.
+        """
+        return self._post_cast(
+            _name=APINames.Application,
+            _method="rotateAPIKey",
+            response_class=APIKeyDictionary,
+            version_introduced="2.14.0",
+            **kwargs,
+        )
+
+    app_rotateAPIKey = app_rotate_api_key
+
+    def app_delete_api_key(self, **kwargs: APIKwargsT) -> None:
+        """
+        Delete the Web API key, disabling API key authentication.
+
+        This method was introduced with qBittorrent v5.2.0 (Web API v2.14.1).
+        """
+        self._post(
+            _name=APINames.Application,
+            _method="deleteAPIKey",
+            version_introduced="2.14.1",
+            **kwargs,
+        )
+
+    app_deleteAPIKey = app_delete_api_key
+
 
 class Application(ClientCache[AppAPIMixIn]):
     """
@@ -501,3 +540,15 @@ class Application(ClientCache[AppAPIMixIn]):
         return self._client.app_get_free_space_at_path(path=path, **kwargs)
 
     getFreeSpaceAtPath = get_free_space_at_path
+
+    def rotate_api_key(self, **kwargs: APIKwargsT) -> APIKeyDictionary:
+        """Implements :meth:`~AppAPIMixIn.app_rotate_api_key`."""
+        return self._client.app_rotate_api_key(**kwargs)
+
+    rotateAPIKey = rotate_api_key
+
+    def delete_api_key(self, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~AppAPIMixIn.app_delete_api_key`."""
+        self._client.app_delete_api_key(**kwargs)
+
+    deleteAPIKey = delete_api_key

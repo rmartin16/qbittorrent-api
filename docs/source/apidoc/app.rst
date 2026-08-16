@@ -4,13 +4,13 @@ Application
 .. autoclass:: qbittorrentapi.app.AppAPIMixIn
     :members:
     :undoc-members:
-    :exclude-members: app, application, app_webapiVersion, app_buildInfo, app_processInfo, app_setPreferences, app_defaultSavePath, app_setCookies, app_networkInterfaceAddressList, app_networkInterfaceList, app_sendTestEmail, app_getDirectoryContent, app_getFreeSpaceAtPath
+    :exclude-members: app, application, app_webapiVersion, app_buildInfo, app_processInfo, app_setPreferences, app_defaultSavePath, app_setCookies, app_networkInterfaceAddressList, app_networkInterfaceList, app_sendTestEmail, app_getDirectoryContent, app_getFreeSpaceAtPath, app_rotateAPIKey, app_deleteAPIKey
     :show-inheritance:
 
 .. autoclass:: qbittorrentapi.app.Application
     :members:
     :undoc-members:
-    :exclude-members: app, application, webapiVersion, buildInfo, processInfo, setPreferences, defaultSavePath, setCookies, networkInterfaceAddressList, networkInterfaceList, sendTestEmail, getDirectoryContent, getFreeSpaceAtPath
+    :exclude-members: app, application, webapiVersion, buildInfo, processInfo, setPreferences, defaultSavePath, setCookies, networkInterfaceAddressList, networkInterfaceList, sendTestEmail, getDirectoryContent, getFreeSpaceAtPath, rotateAPIKey, deleteAPIKey
 
 .. autoclass:: qbittorrentapi.app.ApplicationPreferencesDictionary
     :members:
@@ -53,6 +53,11 @@ Application
     :show-inheritance:
 
 .. autoclass:: qbittorrentapi.app.NetworkInterfaceAddressList
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: qbittorrentapi.app.APIKeyDictionary
     :members:
     :undoc-members:
     :show-inheritance:

@@ -51,6 +51,7 @@ class APINames(str, Enum):
     TorrentCreator = "torrentcreator"
     RSS = "rss"
     Search = "search"
+    ClientData = "clientdata"
     EMPTY = ""
 
 

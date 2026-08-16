@@ -2,7 +2,7 @@ import sys
 
 import pytest
 
-from qbittorrentapi import APINames, CookieList
+from qbittorrentapi import APIKeyDictionary, APINames, CookieList
 from qbittorrentapi._attrdict import AttrDict
 from qbittorrentapi._version_support import v
 from qbittorrentapi.app import (
@@ -277,3 +277,71 @@ def test_get_free_space_at_path(client, free_space_func):
 def test_get_free_space_at_path_not_implemented(client, free_space_func):
     with pytest.raises(NotImplementedError):
         client.func(free_space_func)("/")
+
+
+@pytest.mark.skipif_before_api_version("2.14.0")
+@pytest.mark.parametrize(
+    "rotate_api_key_func",
+    [
+        "app_rotate_api_key",
+        "app.rotate_api_key",
+        "app_rotateAPIKey",
+        "app.rotateAPIKey",
+    ],
+)
+def test_rotate_api_key(client, rotate_api_key_func):
+    api_key = client.func(rotate_api_key_func)()
+    assert isinstance(api_key, APIKeyDictionary)
+    assert api_key.apiKey
+    # rotating again must produce a different key
+    assert client.func(rotate_api_key_func)().apiKey != api_key.apiKey
+
+
+@pytest.mark.skipif_after_api_version("2.14.0")
+@pytest.mark.parametrize(
+    "rotate_api_key_func",
+    [
+        "app_rotate_api_key",
+        "app.rotate_api_key",
+        "app_rotateAPIKey",
+        "app.rotateAPIKey",
+    ],
+)
+def test_rotate_api_key_not_implemented(client, rotate_api_key_func):
+    with pytest.raises(NotImplementedError):
+        client.func(rotate_api_key_func)()
+
+
+@pytest.mark.skipif_before_api_version("2.14.1")
+@pytest.mark.parametrize(
+    "delete_api_key_func",
+    [
+        "app_delete_api_key",
+        "app.delete_api_key",
+        "app_deleteAPIKey",
+        "app.deleteAPIKey",
+    ],
+)
+def test_delete_api_key(client_mock, delete_api_key_func):
+    client_mock.func(delete_api_key_func)()
+
+    client_mock._post.assert_called_with(
+        _name=APINames.Application,
+        _method="deleteAPIKey",
+        version_introduced="2.14.1",
+    )
+
+
+@pytest.mark.skipif_after_api_version("2.14.1")
+@pytest.mark.parametrize(
+    "delete_api_key_func",
+    [
+        "app_delete_api_key",
+        "app.delete_api_key",
+        "app_deleteAPIKey",
+        "app.deleteAPIKey",
+    ],
+)
+def test_delete_api_key_not_implemented(client, delete_api_key_func):
+    with pytest.raises(NotImplementedError):
+        client.func(delete_api_key_func)()
