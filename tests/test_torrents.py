@@ -898,6 +898,41 @@ def test_export_not_implemented(client, export_func):
         client.func(export_func)()
 
 
+@pytest.mark.skipif_before_api_version("2.16.0")
+@pytest.mark.parametrize(
+    "download_file_func",
+    [
+        "torrents_download_file",
+        "torrents_downloadFile",
+        "torrents.download_file",
+        "torrents.downloadFile",
+    ],
+)
+def test_download_file(client, orig_torrent, download_file_func):
+    # the test torrents are never actually downloaded, so qBittorrent refuses
+    # to hand back a path for the file
+    with pytest.raises(Conflict409Error):
+        client.func(download_file_func)(torrent_hash=orig_torrent.hash, file=0)
+
+    with pytest.raises(Conflict409Error):
+        orig_torrent.download_file(file=0)
+
+
+@pytest.mark.skipif_after_api_version("2.16.0")
+@pytest.mark.parametrize(
+    "download_file_func",
+    [
+        "torrents_download_file",
+        "torrents_downloadFile",
+        "torrents.download_file",
+        "torrents.downloadFile",
+    ],
+)
+def test_download_file_not_implemented(client, download_file_func):
+    with pytest.raises(NotImplementedError):
+        client.func(download_file_func)()
+
+
 @pytest.mark.parametrize("info_func", ["torrents_info", "torrents.info"])
 def test_torrents_info(client, info_func):
     assert isinstance(client.func(info_func)(), TorrentInfoList)
