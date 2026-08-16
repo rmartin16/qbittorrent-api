@@ -13,6 +13,7 @@ the ones someone remembered to write a test for.
 
 from __future__ import annotations
 
+import inspect
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -28,6 +29,8 @@ SNAPSHOT_PATH = Path(__file__).parent / "api_surface.json"
 ALIASED = [e for e in CATALOG if e.client_aliases]
 INTRODUCED = [e for e in CATALOG if e.version_introduced]
 REMOVED = [e for e in CATALOG if e.version_removed]
+INTERFACE_ALIASED = [e for e in CATALOG if e.interface_aliases]
+INTERFACE_INTRODUCED = [e for e in INTRODUCED if e.interface]
 
 
 def by_primary(endpoint):
@@ -87,6 +90,64 @@ def test_client_aliases_are_the_same_callable(endpoint):
         assert getattr(Client, alias) is primary, (
             f"{alias}() is not the same callable as {endpoint.primary}()"
         )
+
+
+def reach_through_interface(client, endpoint):
+    """
+    Reach an endpoint by its interface spelling.
+
+    Interfaces expose endpoints either as methods or as properties, and for a
+    property the request is issued by the attribute access itself.
+    """
+    interface_name, short_name = endpoint.interface.split(".", 1)
+    attribute = getattr(getattr(client, interface_name), short_name)
+
+    if endpoint.interface_kind == "method":
+        return attribute()
+    return attribute
+
+
+def resolve_without_invoking(interface, name):
+    """
+    Resolve an interface attribute without triggering it.
+
+    Plain ``getattr`` is wrong twice over here: it builds a new bound method on
+    every access, so identity never holds for methods, and it *executes*
+    properties, which would issue a request.
+    """
+    if name in vars(interface):
+        return vars(interface)[name]
+    return inspect.getattr_static(type(interface), name)
+
+
+@pytest.mark.parametrize("endpoint", INTERFACE_ALIASED, ids=by_primary)
+def test_interface_aliases_are_the_same_object(endpoint):
+    """As on the client, the interface's camelCase spellings are assignments."""
+    interface_name, short_name = endpoint.interface.split(".", 1)
+    interface = getattr(Client(host="localhost:1"), interface_name)
+    primary = resolve_without_invoking(interface, short_name)
+
+    for alias in endpoint.interface_aliases:
+        alias_short = alias.split(".", 1)[1]
+        assert resolve_without_invoking(interface, alias_short) is primary, (
+            f"{alias} is not the same object as {endpoint.interface}"
+        )
+
+
+@pytest.mark.parametrize("endpoint", INTERFACE_INTRODUCED, ids=by_primary)
+def test_interface_spelling_is_gated_before_introduction(
+    offline_client, monkeypatch, endpoint
+):
+    """
+    The gate must also fire when the endpoint is reached through its interface.
+
+    This is the only coverage of the version gate on interface *properties* such
+    as ``client.app.cookies``, where the request happens on attribute access.
+    """
+    pin_versions(offline_client, monkeypatch, api_version="0.0.1", app_version="v0.0.1")
+
+    with pytest.raises(NotImplementedError, match="available starting in"):
+        reach_through_interface(offline_client, endpoint)
 
 
 @pytest.mark.parametrize("endpoint", INTRODUCED, ids=by_primary)
