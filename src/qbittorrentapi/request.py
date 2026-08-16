@@ -43,6 +43,7 @@ from qbittorrentapi.exceptions import (
 if TYPE_CHECKING:
     from qbittorrentapi.app import Application
     from qbittorrentapi.auth import Authorization
+    from qbittorrentapi.clientdata import ClientData
     from qbittorrentapi.log import Log
     from qbittorrentapi.rss import RSS
     from qbittorrentapi.search import Search
@@ -280,6 +281,7 @@ class Request:
         self._http_session: QbittorrentSession | None = None
 
         self._application: Application | None = None
+        self._clientdata: ClientData | None = None
         self._authorization: Authorization | None = None
         self._log: Log | None = None
         self._rss: RSS | None = None
@@ -317,6 +319,7 @@ class Request:
 
         # reinitialize interaction layers
         self._application = None
+        self._clientdata = None
         self._authorization = None
         self._transfer = None
         self._torrents = None

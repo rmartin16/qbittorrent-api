@@ -199,6 +199,29 @@ class TorrentsAddedMetadata(Dictionary[Any]):
     """Response to :meth:`~TorrentsAPIMixIn.torrents_add` for API v2.14.0+"""
 
 
+class TorrentSSLParametersDictionary(Dictionary[str]):
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_ssl_parameters`"""
+
+
+class TorrentMetadataDictionary(ListEntry):
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_fetch_metadata`"""
+
+
+class TorrentMetadataList(List[TorrentMetadataDictionary]):
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_parse_metadata`"""
+
+    def __init__(
+        self,
+        list_entries: ListInputT,
+        client: TorrentsAPIMixIn | None = None,
+    ):
+        super().__init__(
+            list_entries,
+            entry_class=TorrentMetadataDictionary,
+            client=client,
+        )
+
+
 class TorrentsAPIMixIn(AppAPIMixIn):
     """
     Implementation of all Torrents API methods.
@@ -728,6 +751,95 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
     torrents_pieceHashes = torrents_piece_hashes
 
+    def torrents_piece_availability(
+        self,
+        torrent_hash: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentPieceInfoList:
+        """
+        Retrieve the number of copies of each piece available across all peers.
+
+        This method was introduced with qBittorrent v5.2.0 (Web API v2.15.1).
+
+        :raises NotFound404Error:
+
+        :param torrent_hash: hash for torrent
+        """
+        data = {"hash": torrent_hash}
+        return self._post_cast(
+            _name=APINames.Torrents,
+            _method="pieceAvailability",
+            data=data,
+            response_class=TorrentPieceInfoList,
+            version_introduced="2.15.1",
+            **kwargs,
+        )
+
+    torrents_pieceAvailability = torrents_piece_availability
+
+    def torrents_ssl_parameters(
+        self,
+        torrent_hash: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentSSLParametersDictionary:
+        """
+        Retrieve the SSL parameters for an SSL torrent.
+
+        This method was introduced with qBittorrent v5.0.0 (Web API v2.10.3).
+
+        :raises NotFound404Error:
+
+        :param torrent_hash: hash for torrent
+        """
+        data = {"hash": torrent_hash}
+        return self._post_cast(
+            _name=APINames.Torrents,
+            _method="SSLParameters",
+            data=data,
+            response_class=TorrentSSLParametersDictionary,
+            version_introduced="2.10.3",
+            **kwargs,
+        )
+
+    torrents_SSLParameters = torrents_ssl_parameters
+
+    def torrents_set_ssl_parameters(
+        self,
+        torrent_hash: str | None = None,
+        ssl_certificate: str | None = None,
+        ssl_private_key: str | None = None,
+        ssl_dh_params: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Set the SSL parameters for an SSL torrent.
+
+        This method was introduced with qBittorrent v5.0.0 (Web API v2.10.3).
+
+        :raises NotFound404Error:
+        :raises InvalidRequest400Error: if the SSL parameters are not valid
+
+        :param torrent_hash: hash for torrent
+        :param ssl_certificate: peer certificate (in PEM format)
+        :param ssl_private_key: peer private key
+        :param ssl_dh_params: Diffie-Hellman parameters
+        """
+        data = {
+            "hash": torrent_hash,
+            "ssl_certificate": ssl_certificate,
+            "ssl_private_key": ssl_private_key,
+            "ssl_dh_params": ssl_dh_params,
+        }
+        self._post(
+            _name=APINames.Torrents,
+            _method="setSSLParameters",
+            data=data,
+            version_introduced="2.10.3",
+            **kwargs,
+        )
+
+    torrents_setSSLParameters = torrents_set_ssl_parameters
+
     def torrents_add_trackers(
         self,
         torrent_hash: str | None = None,
@@ -1009,6 +1121,102 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             version_introduced="2.8.14",
             **kwargs,
         )
+
+    ##########################################################################
+    # TORRENT METADATA ENDPOINTS
+    ##########################################################################
+    def torrents_fetch_metadata(
+        self,
+        source: str | None = None,
+        downloader: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentMetadataDictionary:
+        """
+        Retrieve the metadata for a torrent without adding it to qBittorrent.
+
+        This method was introduced with qBittorrent v5.2.0 (Web API v2.11.9).
+
+        Metadata is not necessarily available immediately. When qBittorrent must
+        fetch it from peers or download it from a URL, the response is empty and
+        qBittorrent continues retrieving it in the background; call this method
+        again with the same ``source`` to collect the result.
+
+        :raises InvalidRequest400Error: if ``source`` cannot be parsed or
+            ``downloader`` is not a valid search plugin
+
+        :param source: URL (``http://``, ``https://``, ``magnet:``) or info hash
+        :param downloader: name of the search plugin to download the torrent with
+        """
+        data = {"source": source, "downloader": downloader}
+        return self._post_cast(
+            _name=APINames.Torrents,
+            _method="fetchMetadata",
+            data=data,
+            response_class=TorrentMetadataDictionary,
+            version_introduced="2.11.9",
+            **kwargs,
+        )
+
+    torrents_fetchMetadata = torrents_fetch_metadata
+
+    def torrents_parse_metadata(
+        self,
+        torrent_files: TorrentFilesT | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentMetadataList:
+        """
+        Parse the metadata of one or more torrent files without adding them.
+
+        This method was introduced with qBittorrent v5.2.0 (Web API v2.11.9).
+
+        :raises UnsupportedMediaType415Error: if file is not a valid torrent file
+        :raises TorrentFileNotFoundError: if a torrent file doesn't exist
+        :raises TorrentFilePermissionError: if read permission is denied to torrent file
+
+        :param torrent_files: torrent files to parse; accepts the same values as
+            :meth:`~TorrentsAPIMixIn.torrents_add`
+        """
+        return self._post_cast(
+            _name=APINames.Torrents,
+            _method="parseMetadata",
+            files=self._normalize_torrent_files(torrent_files),
+            response_class=TorrentMetadataList,
+            version_introduced="2.11.9",
+            **kwargs,
+        )
+
+    torrents_parseMetadata = torrents_parse_metadata
+
+    def torrents_save_metadata(
+        self,
+        source: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> bytes:
+        """
+        Export a .torrent file from previously fetched metadata.
+
+        This method was introduced with qBittorrent v5.2.0 (Web API v2.11.9).
+
+        The metadata must already have been retrieved with
+        :meth:`~TorrentsAPIMixIn.torrents_fetch_metadata` or
+        :meth:`~TorrentsAPIMixIn.torrents_parse_metadata`.
+
+        :raises NotFound404Error: if ``source`` is unknown
+        :raises Conflict409Error: if metadata is not yet available
+
+        :param source: URL (``http://``, ``https://``, ``magnet:``) or info hash
+        """
+        data = {"source": source}
+        return self._post_cast(
+            _name=APINames.Torrents,
+            _method="saveMetadata",
+            data=data,
+            response_class=bytes,
+            version_introduced="2.11.9",
+            **kwargs,
+        )
+
+    torrents_saveMetadata = torrents_save_metadata
 
     ##########################################################################
     # MULTIPLE TORRENT ENDPOINTS
@@ -2473,6 +2681,38 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
 
     pieceHashes = piece_hashes
 
+    @property
+    def piece_availability(self) -> TorrentPieceInfoList:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_piece_availability`."""
+        return self._client.torrents_piece_availability(torrent_hash=self._torrent_hash)
+
+    pieceAvailability = piece_availability
+
+    @property
+    def ssl_parameters(self) -> TorrentSSLParametersDictionary:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_ssl_parameters`."""
+        return self._client.torrents_ssl_parameters(torrent_hash=self._torrent_hash)
+
+    SSLParameters = ssl_parameters
+
+    def set_ssl_parameters(
+        self,
+        ssl_certificate: str | None = None,
+        ssl_private_key: str | None = None,
+        ssl_dh_params: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_ssl_parameters`."""
+        self._client.torrents_set_ssl_parameters(
+            torrent_hash=self._torrent_hash,
+            ssl_certificate=ssl_certificate,
+            ssl_private_key=ssl_private_key,
+            ssl_dh_params=ssl_dh_params,
+            **kwargs,
+        )
+
+    setSSLParameters = set_ssl_parameters
+
     def add_trackers(
         self,
         urls: str | Iterable[str] | None = None,
@@ -3347,6 +3587,89 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
         return self._client.torrents_piece_hashes(torrent_hash=torrent_hash, **kwargs)
 
     pieceHashes = piece_hashes
+
+    def piece_availability(
+        self,
+        torrent_hash: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentPieceInfoList:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_piece_availability`."""
+        return self._client.torrents_piece_availability(
+            torrent_hash=torrent_hash,
+            **kwargs,
+        )
+
+    pieceAvailability = piece_availability
+
+    def ssl_parameters(
+        self,
+        torrent_hash: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentSSLParametersDictionary:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_ssl_parameters`."""
+        return self._client.torrents_ssl_parameters(
+            torrent_hash=torrent_hash,
+            **kwargs,
+        )
+
+    SSLParameters = ssl_parameters
+
+    def set_ssl_parameters(
+        self,
+        torrent_hash: str | None = None,
+        ssl_certificate: str | None = None,
+        ssl_private_key: str | None = None,
+        ssl_dh_params: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_set_ssl_parameters`."""
+        return self._client.torrents_set_ssl_parameters(
+            torrent_hash=torrent_hash,
+            ssl_certificate=ssl_certificate,
+            ssl_private_key=ssl_private_key,
+            ssl_dh_params=ssl_dh_params,
+            **kwargs,
+        )
+
+    setSSLParameters = set_ssl_parameters
+
+    def fetch_metadata(
+        self,
+        source: str | None = None,
+        downloader: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentMetadataDictionary:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_fetch_metadata`."""
+        return self._client.torrents_fetch_metadata(
+            source=source,
+            downloader=downloader,
+            **kwargs,
+        )
+
+    fetchMetadata = fetch_metadata
+
+    def parse_metadata(
+        self,
+        torrent_files: TorrentFilesT | None = None,
+        **kwargs: APIKwargsT,
+    ) -> TorrentMetadataList:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_parse_metadata`."""
+        return self._client.torrents_parse_metadata(
+            torrent_files=torrent_files,
+            **kwargs,
+        )
+
+    parseMetadata = parse_metadata
+
+    def save_metadata(
+        self,
+        source: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> bytes:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_save_metadata`."""
+        return self._client.torrents_save_metadata(source=source, **kwargs)
+
+    saveMetadata = save_metadata
 
     def add_trackers(
         self,
