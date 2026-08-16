@@ -22,10 +22,13 @@ from qbittorrentapi.torrents import (
     TorrentFilesList,
     TorrentInfoList,
     TorrentLimitsDictionary,
+    TorrentMetadataDictionary,
+    TorrentMetadataList,
     TorrentPieceInfoList,
     TorrentPropertiesDictionary,
     TorrentsAddedMetadata,
     TorrentsAddPeersDictionary,
+    TorrentSSLParametersDictionary,
     TrackersList,
     WebSeedsList,
 )
@@ -624,6 +627,145 @@ def test_piece_states_slice(client, orig_torrent, piece_state_func):
 def test_piece_hashes(client, orig_torrent, piece_hashes_func):
     piece_hashes = client.func(piece_hashes_func)(torrent_hash=orig_torrent.hash)
     assert isinstance(piece_hashes, TorrentPieceInfoList)
+
+
+@pytest.mark.skipif_before_api_version("2.15.1")
+@pytest.mark.parametrize(
+    "piece_availability_func",
+    [
+        "torrents_piece_availability",
+        "torrents_pieceAvailability",
+        "torrents.piece_availability",
+        "torrents.pieceAvailability",
+    ],
+)
+def test_piece_availability(client, orig_torrent, piece_availability_func):
+    availability = client.func(piece_availability_func)(torrent_hash=orig_torrent.hash)
+    assert isinstance(availability, TorrentPieceInfoList)
+    assert isinstance(orig_torrent.piece_availability, TorrentPieceInfoList)
+
+
+@pytest.mark.skipif_after_api_version("2.15.1")
+@pytest.mark.parametrize(
+    "piece_availability_func",
+    [
+        "torrents_piece_availability",
+        "torrents_pieceAvailability",
+        "torrents.piece_availability",
+        "torrents.pieceAvailability",
+    ],
+)
+def test_piece_availability_not_implemented(client, piece_availability_func):
+    with pytest.raises(NotImplementedError):
+        client.func(piece_availability_func)()
+
+
+@pytest.mark.skipif_before_api_version("2.10.3")
+@pytest.mark.parametrize(
+    "ssl_params_func",
+    [
+        "torrents_ssl_parameters",
+        "torrents_SSLParameters",
+        "torrents.ssl_parameters",
+        "torrents.SSLParameters",
+    ],
+)
+def test_ssl_parameters(client, orig_torrent, ssl_params_func):
+    ssl_params = client.func(ssl_params_func)(torrent_hash=orig_torrent.hash)
+    assert isinstance(ssl_params, TorrentSSLParametersDictionary)
+    # a non-SSL torrent reports empty parameters
+    assert "ssl_certificate" in ssl_params
+    assert isinstance(orig_torrent.ssl_parameters, TorrentSSLParametersDictionary)
+
+
+@pytest.mark.skipif_after_api_version("2.10.3")
+@pytest.mark.parametrize(
+    "ssl_params_func",
+    [
+        "torrents_ssl_parameters",
+        "torrents_SSLParameters",
+        "torrents.ssl_parameters",
+        "torrents.SSLParameters",
+    ],
+)
+def test_ssl_parameters_not_implemented(client, ssl_params_func):
+    with pytest.raises(NotImplementedError):
+        client.func(ssl_params_func)()
+
+
+@pytest.mark.skipif_before_api_version("2.10.3")
+@pytest.mark.parametrize(
+    "set_ssl_params_func",
+    [
+        "torrents_set_ssl_parameters",
+        "torrents_setSSLParameters",
+        "torrents.set_ssl_parameters",
+        "torrents.setSSLParameters",
+    ],
+)
+def test_set_ssl_parameters(client, orig_torrent, set_ssl_params_func):
+    # qBittorrent rejects SSL parameters that don't parse
+    with pytest.raises(InvalidRequest400Error):
+        client.func(set_ssl_params_func)(
+            torrent_hash=orig_torrent.hash,
+            ssl_certificate="not-a-certificate",
+            ssl_private_key="not-a-key",
+            ssl_dh_params="not-dh-params",
+        )
+
+
+@pytest.mark.skipif_before_api_version("2.11.9")
+@pytest.mark.parametrize(
+    "fetch_metadata_func",
+    ["torrents_fetch_metadata", "torrents_fetchMetadata", "torrents.fetch_metadata"],
+)
+def test_fetch_metadata(client, fetch_metadata_func):
+    metadata = client.func(fetch_metadata_func)(source=TORRENT1_URL)
+    assert isinstance(metadata, TorrentMetadataDictionary)
+
+
+@pytest.mark.skipif_before_api_version("2.11.9")
+@pytest.mark.parametrize(
+    "fetch_metadata_func",
+    ["torrents_fetch_metadata", "torrents_fetchMetadata", "torrents.fetch_metadata"],
+)
+def test_fetch_metadata_invalid_source(client, fetch_metadata_func):
+    with pytest.raises(InvalidRequest400Error):
+        client.func(fetch_metadata_func)(source="not a torrent source")
+
+
+@pytest.mark.skipif_after_api_version("2.11.9")
+@pytest.mark.parametrize(
+    "fetch_metadata_func",
+    ["torrents_fetch_metadata", "torrents_fetchMetadata", "torrents.fetch_metadata"],
+)
+def test_fetch_metadata_not_implemented(client, fetch_metadata_func):
+    with pytest.raises(NotImplementedError):
+        client.func(fetch_metadata_func)()
+
+
+@pytest.mark.skipif_before_api_version("2.11.9")
+@pytest.mark.parametrize(
+    "parse_metadata_func",
+    ["torrents_parse_metadata", "torrents_parseMetadata", "torrents.parse_metadata"],
+)
+def test_parse_metadata(client, parse_metadata_func):
+    metadata = client.func(parse_metadata_func)(torrent_files=TORRENT1_FILENAME)
+    assert isinstance(metadata, TorrentMetadataList)
+    assert len(metadata) == 1
+    assert isinstance(metadata[0], TorrentMetadataDictionary)
+
+
+@pytest.mark.skipif_before_api_version("2.11.9")
+@pytest.mark.parametrize(
+    "save_metadata_func",
+    ["torrents_save_metadata", "torrents_saveMetadata", "torrents.save_metadata"],
+)
+def test_save_metadata(client, save_metadata_func):
+    client.torrents_parse_metadata(torrent_files=TORRENT1_FILENAME)
+    torrent_file = client.func(save_metadata_func)(source=TORRENT1_HASH)
+    assert isinstance(torrent_file, bytes)
+    assert torrent_file[:11] == b"d8:announce"
 
 
 @pytest.mark.parametrize(
