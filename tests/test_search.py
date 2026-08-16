@@ -297,13 +297,7 @@ def test_delete_not_implemented(client):
 
 @pytest.mark.skipif_before_api_version("2.11")
 @pytest.mark.parametrize(
-    "client_func",
-    [
-        "search_download_torrent",
-        "search_downloadTorrent",
-        "search.download_torrent",
-        "search.downloadTorrent",
-    ],
+    "client_func", ["search_download_torrent", "search.download_torrent"]
 )
 def test_download_torrent(client, client_func, app_version):
     if v(app_version) <= v("v5.0.5"):

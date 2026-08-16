@@ -88,15 +88,7 @@ def test_default_save_path(client):
 
 
 @pytest.mark.skipif_before_api_version("2.11.3")
-@pytest.mark.parametrize(
-    "set_cookies_func",
-    [
-        "app_set_cookies",
-        "app_setCookies",
-        "app.set_cookies",
-        "app.setCookies",
-    ],
-)
+@pytest.mark.parametrize("set_cookies_func", ["app_set_cookies", "app.set_cookies"])
 def test_cookies(client, set_cookies_func):
     client.func(set_cookies_func)()
     assert client.app_cookies() == CookieList([])
@@ -130,15 +122,7 @@ def test_cookies(client, set_cookies_func):
 
 
 @pytest.mark.skipif_after_api_version("2.11.3")
-@pytest.mark.parametrize(
-    "set_cookies_func",
-    [
-        "app_set_cookies",
-        "app_setCookies",
-        "app.set_cookies",
-        "app.setCookies",
-    ],
-)
+@pytest.mark.parametrize("set_cookies_func", ["app_set_cookies", "app.set_cookies"])
 def test_cookies_not_implemented(client, set_cookies_func):
     with pytest.raises(NotImplementedError):
         _ = client.app_cookies()
@@ -190,13 +174,7 @@ def test_network_interface_address_list_not_implemented(client):
 
 @pytest.mark.skipif_before_api_version("2.10.4")
 @pytest.mark.parametrize(
-    "send_test_email_func",
-    [
-        "app_send_test_email",
-        "app.send_test_email",
-        "app_sendTestEmail",
-        "app.sendTestEmail",
-    ],
+    "send_test_email_func", ["app_send_test_email", "app.send_test_email"]
 )
 def test_send_test_email(client_mock, send_test_email_func):
     client_mock.func(send_test_email_func)()
@@ -211,12 +189,7 @@ def test_send_test_email(client_mock, send_test_email_func):
 @pytest.mark.skipif_before_api_version("2.11")
 @pytest.mark.parametrize(
     "get_directory_content_func",
-    [
-        "app_get_directory_content",
-        "app.get_directory_content",
-        "app_getDirectoryContent",
-        "app.getDirectoryContent",
-    ],
+    ["app_get_directory_content", "app.get_directory_content"],
 )
 def test_get_directory_content(client, api_version, get_directory_content_func):
     dir_contents = client.func(get_directory_content_func)("/")
@@ -236,12 +209,7 @@ def test_get_directory_content(client, api_version, get_directory_content_func):
 @pytest.mark.skipif_after_api_version("2.11")
 @pytest.mark.parametrize(
     "get_directory_content_func",
-    [
-        "app_get_directory_content",
-        "app.get_directory_content",
-        "app_getDirectoryContent",
-        "app.getDirectoryContent",
-    ],
+    ["app_get_directory_content", "app.get_directory_content"],
 )
 def test_get_directory_content_not_implemented(client, get_directory_content_func):
     with pytest.raises(NotImplementedError):
@@ -250,13 +218,7 @@ def test_get_directory_content_not_implemented(client, get_directory_content_fun
 
 @pytest.mark.skipif_before_api_version("2.15.2")
 @pytest.mark.parametrize(
-    "free_space_func",
-    [
-        "app_get_free_space_at_path",
-        "app.get_free_space_at_path",
-        "app_getFreeSpaceAtPath",
-        "app.getFreeSpaceAtPath",
-    ],
+    "free_space_func", ["app_get_free_space_at_path", "app.get_free_space_at_path"]
 )
 def test_get_free_space_at_path(client, free_space_func):
     free_space = client.func(free_space_func)(client.app_default_save_path())
@@ -266,13 +228,7 @@ def test_get_free_space_at_path(client, free_space_func):
 
 @pytest.mark.skipif_after_api_version("2.15.2")
 @pytest.mark.parametrize(
-    "free_space_func",
-    [
-        "app_get_free_space_at_path",
-        "app.get_free_space_at_path",
-        "app_getFreeSpaceAtPath",
-        "app.getFreeSpaceAtPath",
-    ],
+    "free_space_func", ["app_get_free_space_at_path", "app.get_free_space_at_path"]
 )
 def test_get_free_space_at_path_not_implemented(client, free_space_func):
     with pytest.raises(NotImplementedError):
@@ -281,13 +237,7 @@ def test_get_free_space_at_path_not_implemented(client, free_space_func):
 
 @pytest.mark.skipif_before_api_version("2.14.0")
 @pytest.mark.parametrize(
-    "rotate_api_key_func",
-    [
-        "app_rotate_api_key",
-        "app.rotate_api_key",
-        "app_rotateAPIKey",
-        "app.rotateAPIKey",
-    ],
+    "rotate_api_key_func", ["app_rotate_api_key", "app.rotate_api_key"]
 )
 def test_rotate_api_key(client, rotate_api_key_func):
     api_key = client.func(rotate_api_key_func)()
@@ -299,13 +249,7 @@ def test_rotate_api_key(client, rotate_api_key_func):
 
 @pytest.mark.skipif_after_api_version("2.14.0")
 @pytest.mark.parametrize(
-    "rotate_api_key_func",
-    [
-        "app_rotate_api_key",
-        "app.rotate_api_key",
-        "app_rotateAPIKey",
-        "app.rotateAPIKey",
-    ],
+    "rotate_api_key_func", ["app_rotate_api_key", "app.rotate_api_key"]
 )
 def test_rotate_api_key_not_implemented(client, rotate_api_key_func):
     with pytest.raises(NotImplementedError):
@@ -314,13 +258,7 @@ def test_rotate_api_key_not_implemented(client, rotate_api_key_func):
 
 @pytest.mark.skipif_before_api_version("2.14.1")
 @pytest.mark.parametrize(
-    "delete_api_key_func",
-    [
-        "app_delete_api_key",
-        "app.delete_api_key",
-        "app_deleteAPIKey",
-        "app.deleteAPIKey",
-    ],
+    "delete_api_key_func", ["app_delete_api_key", "app.delete_api_key"]
 )
 def test_delete_api_key(client_mock, delete_api_key_func):
     client_mock.func(delete_api_key_func)()
@@ -334,13 +272,7 @@ def test_delete_api_key(client_mock, delete_api_key_func):
 
 @pytest.mark.skipif_after_api_version("2.14.1")
 @pytest.mark.parametrize(
-    "delete_api_key_func",
-    [
-        "app_delete_api_key",
-        "app.delete_api_key",
-        "app_deleteAPIKey",
-        "app.deleteAPIKey",
-    ],
+    "delete_api_key_func", ["app_delete_api_key", "app.delete_api_key"]
 )
 def test_delete_api_key_not_implemented(client, delete_api_key_func):
     with pytest.raises(NotImplementedError):
