@@ -332,6 +332,33 @@ class AppAPIMixIn(AuthAPIMixIn):
 
     app_getDirectoryContent = app_get_directory_content
 
+    def app_get_free_space_at_path(
+        self,
+        path: str | os.PathLike[AnyStr] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> int:
+        """
+        The free disk space, in bytes, for a file system path.
+
+        This method was introduced with qBittorrent v5.3.0 (Web API v2.15.2).
+
+        For a path that does not exist yet, the closest existing ancestor is
+        used; ``-1`` is returned when free space cannot be determined.
+
+        :param path: file system path to check
+        """
+        data = {"path": os.fsdecode(path) if path is not None else None}
+        return self._post_cast(
+            _name=APINames.Application,
+            _method="getFreeSpaceAtPath",
+            data=data,
+            response_class=int,
+            version_introduced="2.15.2",
+            **kwargs,
+        )
+
+    app_getFreeSpaceAtPath = app_get_free_space_at_path
+
     def app_rotate_api_key(self, **kwargs: APIKwargsT) -> APIKeyDictionary:
         """
         Generate a new Web API key, replacing any existing one.
@@ -503,6 +530,16 @@ class Application(ClientCache[AppAPIMixIn]):
         )
 
     getDirectoryContent = get_directory_content
+
+    def get_free_space_at_path(
+        self,
+        path: str | os.PathLike[AnyStr] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> int:
+        """Implements :meth:`~AppAPIMixIn.app_get_free_space_at_path`."""
+        return self._client.app_get_free_space_at_path(path=path, **kwargs)
+
+    getFreeSpaceAtPath = get_free_space_at_path
 
     def rotate_api_key(self, **kwargs: APIKwargsT) -> APIKeyDictionary:
         """Implements :meth:`~AppAPIMixIn.app_rotate_api_key`."""

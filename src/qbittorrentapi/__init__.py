@@ -101,7 +101,11 @@ from qbittorrentapi.torrents import (
     WebSeed,
     WebSeedsList,
 )
-from qbittorrentapi.transfer import TransferAPIMixIn, TransferInfoDictionary
+from qbittorrentapi.transfer import (
+    TransferAPIMixIn,
+    TransferInfoDictionary,
+    TransferSpeedLimitsDictionary,
+)
 
 __all__ = (
     "APIConnectionError",
@@ -194,6 +198,7 @@ __all__ = (
     "TrackerStatus",
     "TransferAPIMixIn",
     "TransferInfoDictionary",
+    "TransferSpeedLimitsDictionary",
     "Unauthorized401Error",
     "UnsupportedMediaType415Error",
     "UnsupportedQbittorrentVersion",

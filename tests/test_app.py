@@ -248,6 +248,37 @@ def test_get_directory_content_not_implemented(client, get_directory_content_fun
         client.func(get_directory_content_func)("/")
 
 
+@pytest.mark.skipif_before_api_version("2.15.2")
+@pytest.mark.parametrize(
+    "free_space_func",
+    [
+        "app_get_free_space_at_path",
+        "app.get_free_space_at_path",
+        "app_getFreeSpaceAtPath",
+        "app.getFreeSpaceAtPath",
+    ],
+)
+def test_get_free_space_at_path(client, free_space_func):
+    free_space = client.func(free_space_func)(client.app_default_save_path())
+    assert isinstance(free_space, int)
+    assert free_space >= 0
+
+
+@pytest.mark.skipif_after_api_version("2.15.2")
+@pytest.mark.parametrize(
+    "free_space_func",
+    [
+        "app_get_free_space_at_path",
+        "app.get_free_space_at_path",
+        "app_getFreeSpaceAtPath",
+        "app.getFreeSpaceAtPath",
+    ],
+)
+def test_get_free_space_at_path_not_implemented(client, free_space_func):
+    with pytest.raises(NotImplementedError):
+        client.func(free_space_func)("/")
+
+
 @pytest.mark.skipif_before_api_version("2.14.0")
 @pytest.mark.parametrize(
     "rotate_api_key_func",

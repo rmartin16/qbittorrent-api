@@ -3,7 +3,10 @@ import sys
 import pytest
 
 from qbittorrentapi import APINames
-from qbittorrentapi.transfer import TransferInfoDictionary
+from qbittorrentapi.transfer import (
+    TransferInfoDictionary,
+    TransferSpeedLimitsDictionary,
+)
 
 
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="removeprefix not in 3.8")
@@ -110,3 +113,68 @@ def test_ban_peers(client):
 def test_ban_peers_not_implemented(client):
     with pytest.raises(NotImplementedError):
         client.transfer_ban_peers(peers="1.1.1.1:8080")
+
+
+@pytest.mark.skipif_before_api_version("2.16.0")
+@pytest.mark.parametrize(
+    "speed_limits_func",
+    ["transfer_speed_limits", "transfer_getSpeedLimits"],
+)
+def test_speed_limits(client, speed_limits_func):
+    keys = ("up_limit", "dl_limit", "alt_up_limit", "alt_dl_limit")
+
+    limits = client.func(speed_limits_func)()
+    assert isinstance(limits, TransferSpeedLimitsDictionary)
+    for key in keys:
+        assert key in limits
+
+    # the interface exposes this as a property rather than a method
+    limits = client.transfer.speed_limits
+    assert isinstance(limits, TransferSpeedLimitsDictionary)
+    for key in keys:
+        assert key in limits
+
+
+@pytest.mark.skipif_before_api_version("2.16.0")
+@pytest.mark.parametrize(
+    "set_speed_limits_func",
+    [
+        "transfer_set_speed_limits",
+        "transfer_setSpeedLimits",
+        "transfer.set_speed_limits",
+        "transfer.setSpeedLimits",
+    ],
+)
+def test_set_speed_limits(client, set_speed_limits_func):
+    original = client.transfer_speed_limits()
+    try:
+        client.func(set_speed_limits_func)(
+            upload_limit=2048000,
+            download_limit=3072000,
+            alt_upload_limit=1024000,
+            alt_download_limit=512000,
+        )
+        limits = client.transfer_speed_limits()
+        assert limits["up_limit"] == 2048000
+        assert limits["dl_limit"] == 3072000
+        assert limits["alt_up_limit"] == 1024000
+        assert limits["alt_dl_limit"] == 512000
+    finally:
+        client.transfer_set_speed_limits(
+            upload_limit=original["up_limit"],
+            download_limit=original["dl_limit"],
+            alt_upload_limit=original["alt_up_limit"],
+            alt_download_limit=original["alt_dl_limit"],
+        )
+
+
+@pytest.mark.skipif_after_api_version("2.16.0")
+@pytest.mark.parametrize(
+    "speed_limits_func",
+    ["transfer_speed_limits", "transfer_getSpeedLimits"],
+)
+def test_speed_limits_not_implemented(client, speed_limits_func):
+    with pytest.raises(NotImplementedError):
+        client.func(speed_limits_func)()
+    with pytest.raises(NotImplementedError):
+        client.transfer.speed_limits
