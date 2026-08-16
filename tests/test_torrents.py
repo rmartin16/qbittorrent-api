@@ -47,7 +47,13 @@ from tests.conftest import (
     TORRENT2_URL,
     new_torrent_standalone,
 )
-from tests.utils import check, mkpath, retry
+from tests.utils import (
+    WEBSEED_ACTION_EVERY,
+    WEBSEED_CHECK_TIME,
+    check,
+    mkpath,
+    retry,
+)
 
 
 def disable_queueing(client):
@@ -446,6 +452,8 @@ def test_add_webseeds(client, new_torrent, add_webseeds_func, webseeds):
         reverse=True,
         # see tests/test_torrent.py::test_add_webseed for why this is re-sent
         action=add_webseeds,
+        check_time=WEBSEED_CHECK_TIME,
+        action_every=WEBSEED_ACTION_EVERY,
     )
 
 
@@ -482,10 +490,30 @@ def test_edit_webseeds(client, new_torrent, edit_webseed_func):
             add_orig_url()
 
     add_orig_url()
-    check(urls, orig_url, reverse=True, action=add_orig_url)
+    check(
+        urls,
+        orig_url,
+        reverse=True,
+        action=add_orig_url,
+        check_time=WEBSEED_CHECK_TIME,
+        action_every=WEBSEED_ACTION_EVERY,
+    )
     edit_webseed()
-    check(urls, new_url, reverse=True, action=redo_edit)
-    check(lambda: len(new_torrent.webseeds), 1, action=redo_edit)
+    check(
+        urls,
+        new_url,
+        reverse=True,
+        action=redo_edit,
+        check_time=WEBSEED_CHECK_TIME,
+        action_every=WEBSEED_ACTION_EVERY,
+    )
+    check(
+        lambda: len(new_torrent.webseeds),
+        1,
+        action=redo_edit,
+        check_time=WEBSEED_CHECK_TIME,
+        action_every=WEBSEED_ACTION_EVERY,
+    )
 
 
 @pytest.mark.skipif_after_api_version("2.11.3")
@@ -519,6 +547,8 @@ def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
         all_webseeds,
         reverse=True,
         action=add_webseeds,
+        check_time=WEBSEED_CHECK_TIME,
+        action_every=WEBSEED_ACTION_EVERY,
     )
     remove_webseeds()
     for webseed in webseeds if isinstance(webseeds, list) else [webseeds]:

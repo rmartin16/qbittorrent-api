@@ -19,6 +19,13 @@ from qbittorrentapi._version_support import (
 CHECK_TIME = 10
 # Amount of time to sleep between checks
 CHECK_SLEEP = 0.25
+# Webseed changes are handed to a qBittorrent thread pool that silently discards
+# whatever it fails to apply, and under load it can discard a great many in a row.
+# They need a much longer window than other checks, and re-sending on every retry
+# only queues more work onto the pool that is already behind, so back off between
+# attempts instead of hammering it.
+WEBSEED_CHECK_TIME = 60
+WEBSEED_ACTION_EVERY = 8
 # Errors that mean qBittorrent hasn't caught up yet, so the check should be retried.
 # LookupError and AttributeError cover values qBittorrent hasn't populated yet, e.g.
 # indexing into a list that is still empty. The last attempt raises regardless, so
@@ -113,6 +120,7 @@ def check(
     any=False,
     check_time=None,
     action=None,
+    action_every=1,
 ):
     """
     Compare the return value of an arbitrary function to expected value with retries.
@@ -131,6 +139,9 @@ def check(
         qBittorrent occasionally never applies a request (e.g. it decides its own,
         potentially stale, cached state already matches), and re-sending is the only
         way to recover. Only use for requests that are safe to send more than once.
+    :param action_every: number of retries between each ``action`` call; raise it for
+        requests qBittorrent handles on a worker thread, where re-sending on every
+        retry just queues more work onto a pool that is already behind
     """
 
     # assertions are not rewritten by pytest in this module, so each
@@ -186,7 +197,7 @@ def check(
                 if i >= check_limit - 1:
                     raise
                 sleep(CHECK_SLEEP)
-                if action is not None:
+                if action is not None and (i + 1) % action_every == 0:
                     action()
     except HTTPError:
         # every HTTP error subclasses APIConnectionError, so let anything
