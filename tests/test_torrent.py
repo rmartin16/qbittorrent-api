@@ -18,7 +18,13 @@ from qbittorrentapi import (
 )
 from qbittorrentapi._version_support import v
 from tests.test_torrents import disable_queueing, enable_queueing
-from tests.utils import check, mkpath, retry
+from tests.utils import (
+    WEBSEED_ACTION_EVERY,
+    WEBSEED_CHECK_TIME,
+    check,
+    mkpath,
+    retry,
+)
 
 
 def test_info(orig_torrent, monkeypatch):
@@ -460,6 +466,8 @@ def test_add_webseed(new_torrent, add_webseeds_func, webseeds):
         # discards any that fail, so re-send until it takes effect. adding a
         # webseed that is already there is ignored, so this is safe to repeat.
         action=add_webseeds,
+        check_time=WEBSEED_CHECK_TIME,
+        action_every=WEBSEED_ACTION_EVERY,
     )
 
 
@@ -491,11 +499,31 @@ def test_edit_webseeds(new_torrent, edit_webseed_func):
             add_orig_url()
 
     add_orig_url()
-    check(urls, orig_url, reverse=True, action=add_orig_url)
+    check(
+        urls,
+        orig_url,
+        reverse=True,
+        action=add_orig_url,
+        check_time=WEBSEED_CHECK_TIME,
+        action_every=WEBSEED_ACTION_EVERY,
+    )
     edit_webseed()
-    check(urls, new_url, reverse=True, action=redo_edit)
+    check(
+        urls,
+        new_url,
+        reverse=True,
+        action=redo_edit,
+        check_time=WEBSEED_CHECK_TIME,
+        action_every=WEBSEED_ACTION_EVERY,
+    )
     # the original must have been replaced rather than added alongside
-    check(lambda: len(new_torrent.webseeds), 1, action=redo_edit)
+    check(
+        lambda: len(new_torrent.webseeds),
+        1,
+        action=redo_edit,
+        check_time=WEBSEED_CHECK_TIME,
+        action_every=WEBSEED_ACTION_EVERY,
+    )
 
 
 @pytest.mark.skipif_before_api_version("2.11.3")
@@ -528,6 +556,8 @@ def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
         all_webseeds,
         reverse=True,
         action=add_webseeds,
+        check_time=WEBSEED_CHECK_TIME,
+        action_every=WEBSEED_ACTION_EVERY,
     )
     remove_webseeds()
     for webseed in webseeds if isinstance(webseeds, list) else [webseeds]:
@@ -535,6 +565,8 @@ def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
             lambda: webseed not in {w.url for w in new_torrent.webseeds},
             True,
             action=remove_webseeds,
+            check_time=WEBSEED_CHECK_TIME,
+            action_every=WEBSEED_ACTION_EVERY,
         )
 
 
