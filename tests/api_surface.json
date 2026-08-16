@@ -4,6 +4,11 @@
     "client_aliases": [
       "app_buildInfo"
     ],
+    "interface": "app.build_info",
+    "interface_aliases": [
+      "app.buildInfo"
+    ],
+    "interface_kind": "property",
     "namespace": "app",
     "primary": "app_build_info",
     "version_introduced": "2.3",
@@ -12,6 +17,9 @@
   {
     "api_method": "cookies",
     "client_aliases": [],
+    "interface": "app.cookies",
+    "interface_aliases": [],
+    "interface_kind": "property",
     "namespace": "app",
     "primary": "app_cookies",
     "version_introduced": "2.11.3",
@@ -22,6 +30,11 @@
     "client_aliases": [
       "app_defaultSavePath"
     ],
+    "interface": "app.default_save_path",
+    "interface_aliases": [
+      "app.defaultSavePath"
+    ],
+    "interface_kind": "property",
     "namespace": "app",
     "primary": "app_default_save_path",
     "version_introduced": "",
@@ -32,6 +45,11 @@
     "client_aliases": [
       "app_deleteAPIKey"
     ],
+    "interface": "app.delete_api_key",
+    "interface_aliases": [
+      "app.deleteAPIKey"
+    ],
+    "interface_kind": "method",
     "namespace": "app",
     "primary": "app_delete_api_key",
     "version_introduced": "2.14.1",
@@ -42,6 +60,11 @@
     "client_aliases": [
       "app_getDirectoryContent"
     ],
+    "interface": "app.get_directory_content",
+    "interface_aliases": [
+      "app.getDirectoryContent"
+    ],
+    "interface_kind": "method",
     "namespace": "app",
     "primary": "app_get_directory_content",
     "version_introduced": "2.11",
@@ -52,6 +75,11 @@
     "client_aliases": [
       "app_getFreeSpaceAtPath"
     ],
+    "interface": "app.get_free_space_at_path",
+    "interface_aliases": [
+      "app.getFreeSpaceAtPath"
+    ],
+    "interface_kind": "method",
     "namespace": "app",
     "primary": "app_get_free_space_at_path",
     "version_introduced": "2.15.2",
@@ -62,6 +90,11 @@
     "client_aliases": [
       "app_networkInterfaceAddressList"
     ],
+    "interface": "app.network_interface_address_list",
+    "interface_aliases": [
+      "app.networkInterfaceAddressList"
+    ],
+    "interface_kind": "method",
     "namespace": "app",
     "primary": "app_network_interface_address_list",
     "version_introduced": "2.3",
@@ -72,6 +105,11 @@
     "client_aliases": [
       "app_networkInterfaceList"
     ],
+    "interface": "app.network_interface_list",
+    "interface_aliases": [
+      "app.networkInterfaceList"
+    ],
+    "interface_kind": "property",
     "namespace": "app",
     "primary": "app_network_interface_list",
     "version_introduced": "2.3",
@@ -80,6 +118,9 @@
   {
     "api_method": "preferences",
     "client_aliases": [],
+    "interface": "app.preferences",
+    "interface_aliases": [],
+    "interface_kind": "property",
     "namespace": "app",
     "primary": "app_preferences",
     "version_introduced": "",
@@ -90,6 +131,11 @@
     "client_aliases": [
       "app_processInfo"
     ],
+    "interface": "app.process_info",
+    "interface_aliases": [
+      "app.processInfo"
+    ],
+    "interface_kind": "property",
     "namespace": "app",
     "primary": "app_process_info",
     "version_introduced": "2.15.1",
@@ -100,6 +146,11 @@
     "client_aliases": [
       "app_rotateAPIKey"
     ],
+    "interface": "app.rotate_api_key",
+    "interface_aliases": [
+      "app.rotateAPIKey"
+    ],
+    "interface_kind": "method",
     "namespace": "app",
     "primary": "app_rotate_api_key",
     "version_introduced": "2.14.0",
@@ -110,6 +161,11 @@
     "client_aliases": [
       "app_sendTestEmail"
     ],
+    "interface": "app.send_test_email",
+    "interface_aliases": [
+      "app.sendTestEmail"
+    ],
+    "interface_kind": "method",
     "namespace": "app",
     "primary": "app_send_test_email",
     "version_introduced": "2.10.4",
@@ -120,6 +176,11 @@
     "client_aliases": [
       "app_setCookies"
     ],
+    "interface": "app.set_cookies",
+    "interface_aliases": [
+      "app.setCookies"
+    ],
+    "interface_kind": "method",
     "namespace": "app",
     "primary": "app_set_cookies",
     "version_introduced": "2.11.3",
@@ -130,6 +191,11 @@
     "client_aliases": [
       "app_setPreferences"
     ],
+    "interface": "app.set_preferences",
+    "interface_aliases": [
+      "app.setPreferences"
+    ],
+    "interface_kind": "method",
     "namespace": "app",
     "primary": "app_set_preferences",
     "version_introduced": "",
@@ -138,6 +204,9 @@
   {
     "api_method": "shutdown",
     "client_aliases": [],
+    "interface": "app.shutdown",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "app",
     "primary": "app_shutdown",
     "version_introduced": "",
@@ -146,6 +215,9 @@
   {
     "api_method": "version",
     "client_aliases": [],
+    "interface": "app.version",
+    "interface_aliases": [],
+    "interface_kind": "property",
     "namespace": "app",
     "primary": "app_version",
     "version_introduced": "",
@@ -156,6 +228,11 @@
     "client_aliases": [
       "app_webapiVersion"
     ],
+    "interface": "app.web_api_version",
+    "interface_aliases": [
+      "app.webapiVersion"
+    ],
+    "interface_kind": "property",
     "namespace": "app",
     "primary": "app_web_api_version",
     "version_introduced": "",
@@ -164,6 +241,9 @@
   {
     "api_method": "login",
     "client_aliases": [],
+    "interface": "auth.log_in",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "auth",
     "primary": "auth_log_in",
     "version_introduced": "",
@@ -172,6 +252,9 @@
   {
     "api_method": "logout",
     "client_aliases": [],
+    "interface": "auth.log_out",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "auth",
     "primary": "auth_log_out",
     "version_introduced": "",
@@ -180,6 +263,9 @@
   {
     "api_method": "load",
     "client_aliases": [],
+    "interface": "clientdata.load",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "clientdata",
     "primary": "clientdata_load",
     "version_introduced": "2.13.1",
@@ -188,6 +274,9 @@
   {
     "api_method": "store",
     "client_aliases": [],
+    "interface": "clientdata.store",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "clientdata",
     "primary": "clientdata_store",
     "version_introduced": "2.13.1",
@@ -196,6 +285,9 @@
   {
     "api_method": "main",
     "client_aliases": [],
+    "interface": "log.main",
+    "interface_aliases": [],
+    "interface_kind": "property",
     "namespace": "log",
     "primary": "log_main",
     "version_introduced": "",
@@ -204,6 +296,9 @@
   {
     "api_method": "peers",
     "client_aliases": [],
+    "interface": "log.peers",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "log",
     "primary": "log_peers",
     "version_introduced": "",
@@ -214,6 +309,11 @@
     "client_aliases": [
       "rss_addFeed"
     ],
+    "interface": "rss.add_feed",
+    "interface_aliases": [
+      "rss.addFeed"
+    ],
+    "interface_kind": "method",
     "namespace": "rss",
     "primary": "rss_add_feed",
     "version_introduced": "",
@@ -224,6 +324,11 @@
     "client_aliases": [
       "rss_addFolder"
     ],
+    "interface": "rss.add_folder",
+    "interface_aliases": [
+      "rss.addFolder"
+    ],
+    "interface_kind": "method",
     "namespace": "rss",
     "primary": "rss_add_folder",
     "version_introduced": "",
@@ -234,6 +339,11 @@
     "client_aliases": [
       "rss_cloneRule"
     ],
+    "interface": "rss.clone_rule",
+    "interface_aliases": [
+      "rss.cloneRule"
+    ],
+    "interface_kind": "method",
     "namespace": "rss",
     "primary": "rss_clone_rule",
     "version_introduced": "2.15.4",
@@ -242,6 +352,9 @@
   {
     "api_method": "items",
     "client_aliases": [],
+    "interface": "rss.items",
+    "interface_aliases": [],
+    "interface_kind": "property",
     "namespace": "rss",
     "primary": "rss_items",
     "version_introduced": "",
@@ -252,6 +365,11 @@
     "client_aliases": [
       "rss_markAsRead"
     ],
+    "interface": "rss.mark_as_read",
+    "interface_aliases": [
+      "rss.markAsRead"
+    ],
+    "interface_kind": "method",
     "namespace": "rss",
     "primary": "rss_mark_as_read",
     "version_introduced": "2.5.1",
@@ -262,6 +380,11 @@
     "client_aliases": [
       "rss_matchingArticles"
     ],
+    "interface": "rss.matching_articles",
+    "interface_aliases": [
+      "rss.matchingArticles"
+    ],
+    "interface_kind": "method",
     "namespace": "rss",
     "primary": "rss_matching_articles",
     "version_introduced": "2.5.1",
@@ -272,6 +395,11 @@
     "client_aliases": [
       "rss_moveItem"
     ],
+    "interface": "rss.move_item",
+    "interface_aliases": [
+      "rss.moveItem"
+    ],
+    "interface_kind": "method",
     "namespace": "rss",
     "primary": "rss_move_item",
     "version_introduced": "",
@@ -282,6 +410,11 @@
     "client_aliases": [
       "rss_refreshItem"
     ],
+    "interface": "rss.refresh_item",
+    "interface_aliases": [
+      "rss.refreshItem"
+    ],
+    "interface_kind": "method",
     "namespace": "rss",
     "primary": "rss_refresh_item",
     "version_introduced": "2.2",
@@ -292,6 +425,11 @@
     "client_aliases": [
       "rss_removeItem"
     ],
+    "interface": "rss.remove_item",
+    "interface_aliases": [
+      "rss.removeItem"
+    ],
+    "interface_kind": "method",
     "namespace": "rss",
     "primary": "rss_remove_item",
     "version_introduced": "",
@@ -302,6 +440,11 @@
     "client_aliases": [
       "rss_removeRule"
     ],
+    "interface": "rss.remove_rule",
+    "interface_aliases": [
+      "rss.removeRule"
+    ],
+    "interface_kind": "method",
     "namespace": "rss",
     "primary": "rss_remove_rule",
     "version_introduced": "",
@@ -312,6 +455,11 @@
     "client_aliases": [
       "rss_renameRule"
     ],
+    "interface": "rss.rename_rule",
+    "interface_aliases": [
+      "rss.renameRule"
+    ],
+    "interface_kind": "method",
     "namespace": "rss",
     "primary": "rss_rename_rule",
     "version_introduced": "",
@@ -320,6 +468,9 @@
   {
     "api_method": "rules",
     "client_aliases": [],
+    "interface": "rss.rules",
+    "interface_aliases": [],
+    "interface_kind": "property",
     "namespace": "rss",
     "primary": "rss_rules",
     "version_introduced": "",
@@ -330,6 +481,11 @@
     "client_aliases": [
       "rss_setFeedRefreshInterval"
     ],
+    "interface": "rss.set_feed_refresh_interval",
+    "interface_aliases": [
+      "rss.setFeedRefreshInterval"
+    ],
+    "interface_kind": "method",
     "namespace": "rss",
     "primary": "rss_set_feed_refresh_interval",
     "version_introduced": "2.11.5",
@@ -340,6 +496,11 @@
     "client_aliases": [
       "rss_setFeedURL"
     ],
+    "interface": "rss.set_feed_url",
+    "interface_aliases": [
+      "rss.setFeedURL"
+    ],
+    "interface_kind": "method",
     "namespace": "rss",
     "primary": "rss_set_feed_url",
     "version_introduced": "2.9.1",
@@ -350,6 +511,11 @@
     "client_aliases": [
       "rss_setRule"
     ],
+    "interface": "rss.set_rule",
+    "interface_aliases": [
+      "rss.setRule"
+    ],
+    "interface_kind": "method",
     "namespace": "rss",
     "primary": "rss_set_rule",
     "version_introduced": "",
@@ -358,6 +524,9 @@
   {
     "api_method": "categories",
     "client_aliases": [],
+    "interface": "search.categories",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "search",
     "primary": "search_categories",
     "version_introduced": "2.1.1",
@@ -366,6 +535,9 @@
   {
     "api_method": "delete",
     "client_aliases": [],
+    "interface": "search.delete",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "search",
     "primary": "search_delete",
     "version_introduced": "2.1.1",
@@ -376,6 +548,11 @@
     "client_aliases": [
       "search_downloadTorrent"
     ],
+    "interface": "search.download_torrent",
+    "interface_aliases": [
+      "search.downloadTorrent"
+    ],
+    "interface_kind": "method",
     "namespace": "search",
     "primary": "search_download_torrent",
     "version_introduced": "2.11",
@@ -386,6 +563,11 @@
     "client_aliases": [
       "search_enablePlugin"
     ],
+    "interface": "search.enable_plugin",
+    "interface_aliases": [
+      "search.enablePlugin"
+    ],
+    "interface_kind": "method",
     "namespace": "search",
     "primary": "search_enable_plugin",
     "version_introduced": "2.1.1",
@@ -396,6 +578,11 @@
     "client_aliases": [
       "search_installPlugin"
     ],
+    "interface": "search.install_plugin",
+    "interface_aliases": [
+      "search.installPlugin"
+    ],
+    "interface_kind": "method",
     "namespace": "search",
     "primary": "search_install_plugin",
     "version_introduced": "2.1.1",
@@ -404,6 +591,9 @@
   {
     "api_method": "plugins",
     "client_aliases": [],
+    "interface": "search.plugins",
+    "interface_aliases": [],
+    "interface_kind": "property",
     "namespace": "search",
     "primary": "search_plugins",
     "version_introduced": "2.1.1",
@@ -412,6 +602,9 @@
   {
     "api_method": "results",
     "client_aliases": [],
+    "interface": "search.results",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "search",
     "primary": "search_results",
     "version_introduced": "2.1.1",
@@ -420,6 +613,9 @@
   {
     "api_method": "start",
     "client_aliases": [],
+    "interface": "search.start",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "search",
     "primary": "search_start",
     "version_introduced": "2.1.1",
@@ -428,6 +624,9 @@
   {
     "api_method": "status",
     "client_aliases": [],
+    "interface": "search.status",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "search",
     "primary": "search_status",
     "version_introduced": "2.1.1",
@@ -436,6 +635,9 @@
   {
     "api_method": "stop",
     "client_aliases": [],
+    "interface": "search.stop",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "search",
     "primary": "search_stop",
     "version_introduced": "2.1.1",
@@ -446,6 +648,11 @@
     "client_aliases": [
       "search_uninstallPlugin"
     ],
+    "interface": "search.uninstall_plugin",
+    "interface_aliases": [
+      "search.uninstallPlugin"
+    ],
+    "interface_kind": "method",
     "namespace": "search",
     "primary": "search_uninstall_plugin",
     "version_introduced": "2.1.1",
@@ -456,6 +663,11 @@
     "client_aliases": [
       "search_updatePlugins"
     ],
+    "interface": "search.update_plugins",
+    "interface_aliases": [
+      "search.updatePlugins"
+    ],
+    "interface_kind": "method",
     "namespace": "search",
     "primary": "search_update_plugins",
     "version_introduced": "2.1.1",
@@ -464,6 +676,9 @@
   {
     "api_method": "maindata",
     "client_aliases": [],
+    "interface": "sync.maindata",
+    "interface_aliases": [],
+    "interface_kind": "property",
     "namespace": "sync",
     "primary": "sync_maindata",
     "version_introduced": "",
@@ -474,6 +689,11 @@
     "client_aliases": [
       "sync_torrentPeers"
     ],
+    "interface": "sync.torrent_peers",
+    "interface_aliases": [
+      "sync.torrentPeers"
+    ],
+    "interface_kind": "property",
     "namespace": "sync",
     "primary": "sync_torrent_peers",
     "version_introduced": "",
@@ -484,6 +704,11 @@
     "client_aliases": [
       "torrentcreator_addTask"
     ],
+    "interface": "torrentcreator.add_task",
+    "interface_aliases": [
+      "torrentcreator.addTask"
+    ],
+    "interface_kind": "method",
     "namespace": "torrentcreator",
     "primary": "torrentcreator_add_task",
     "version_introduced": "2.10.4",
@@ -494,6 +719,11 @@
     "client_aliases": [
       "torrentcreator_deleteTask"
     ],
+    "interface": "torrentcreator.delete_task",
+    "interface_aliases": [
+      "torrentcreator.deleteTask"
+    ],
+    "interface_kind": "method",
     "namespace": "torrentcreator",
     "primary": "torrentcreator_delete_task",
     "version_introduced": "2.10.4",
@@ -502,6 +732,9 @@
   {
     "api_method": "status",
     "client_aliases": [],
+    "interface": "torrentcreator.status",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "torrentcreator",
     "primary": "torrentcreator_status",
     "version_introduced": "2.10.4",
@@ -512,6 +745,11 @@
     "client_aliases": [
       "torrentcreator_torrentFile"
     ],
+    "interface": "torrentcreator.torrent_file",
+    "interface_aliases": [
+      "torrentcreator.torrentFile"
+    ],
+    "interface_kind": "method",
     "namespace": "torrentcreator",
     "primary": "torrentcreator_torrent_file",
     "version_introduced": "2.10.4",
@@ -520,6 +758,9 @@
   {
     "api_method": "add",
     "client_aliases": [],
+    "interface": "torrents.add",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_add",
     "version_introduced": "",
@@ -530,6 +771,11 @@
     "client_aliases": [
       "torrents_addPeers"
     ],
+    "interface": "torrents.add_peers",
+    "interface_aliases": [
+      "torrents.addPeers"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_add_peers",
     "version_introduced": "2.3.0",
@@ -540,6 +786,11 @@
     "client_aliases": [
       "torrents_addTags"
     ],
+    "interface": "torrent_tags.add_tags",
+    "interface_aliases": [
+      "torrent_tags.addTags"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_add_tags",
     "version_introduced": "2.3.0",
@@ -550,6 +801,11 @@
     "client_aliases": [
       "torrents_addTrackers"
     ],
+    "interface": "torrents.add_trackers",
+    "interface_aliases": [
+      "torrents.addTrackers"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_add_trackers",
     "version_introduced": "",
@@ -560,6 +816,11 @@
     "client_aliases": [
       "torrents_addWebSeeds"
     ],
+    "interface": "torrents.add_webseeds",
+    "interface_aliases": [
+      "torrents.addWebSeeds"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_add_webseeds",
     "version_introduced": "2.11.3",
@@ -570,6 +831,11 @@
     "client_aliases": [
       "torrents_bottomPrio"
     ],
+    "interface": "torrents.bottom_priority",
+    "interface_aliases": [
+      "torrents.bottomPrio"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_bottom_priority",
     "version_introduced": "",
@@ -578,6 +844,9 @@
   {
     "api_method": "categories",
     "client_aliases": [],
+    "interface": "search.categories",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_categories",
     "version_introduced": "2.1.1",
@@ -586,6 +855,9 @@
   {
     "api_method": "count",
     "client_aliases": [],
+    "interface": "torrents.count",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_count",
     "version_introduced": "2.9.3",
@@ -596,6 +868,11 @@
     "client_aliases": [
       "torrents_createCategory"
     ],
+    "interface": "torrent_categories.create_category",
+    "interface_aliases": [
+      "torrent_categories.createCategory"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_create_category",
     "version_introduced": "",
@@ -606,6 +883,11 @@
     "client_aliases": [
       "torrents_createTags"
     ],
+    "interface": "torrent_tags.create_tags",
+    "interface_aliases": [
+      "torrent_tags.createTags"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_create_tags",
     "version_introduced": "2.3.0",
@@ -616,6 +898,11 @@
     "client_aliases": [
       "torrents_decreasePrio"
     ],
+    "interface": "torrents.decrease_priority",
+    "interface_aliases": [
+      "torrents.decreasePrio"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_decrease_priority",
     "version_introduced": "",
@@ -624,6 +911,9 @@
   {
     "api_method": "delete",
     "client_aliases": [],
+    "interface": "torrents.delete",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_delete",
     "version_introduced": "",
@@ -634,6 +924,11 @@
     "client_aliases": [
       "torrents_deleteTags"
     ],
+    "interface": "torrent_tags.delete_tags",
+    "interface_aliases": [
+      "torrent_tags.deleteTags"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_delete_tags",
     "version_introduced": "2.3.0",
@@ -644,6 +939,11 @@
     "client_aliases": [
       "torrents_downloadFile"
     ],
+    "interface": "torrents.download_file",
+    "interface_aliases": [
+      "torrents.downloadFile"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_download_file",
     "version_introduced": "2.16.0",
@@ -654,6 +954,11 @@
     "client_aliases": [
       "torrents_downloadLimit"
     ],
+    "interface": "torrents.download_limit",
+    "interface_aliases": [
+      "torrents.downloadLimit"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_download_limit",
     "version_introduced": "",
@@ -664,6 +969,11 @@
     "client_aliases": [
       "torrents_editCategory"
     ],
+    "interface": "torrent_categories.edit_category",
+    "interface_aliases": [
+      "torrent_categories.editCategory"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_edit_category",
     "version_introduced": "2.1.0",
@@ -674,6 +984,11 @@
     "client_aliases": [
       "torrents_editTracker"
     ],
+    "interface": "torrents.edit_tracker",
+    "interface_aliases": [
+      "torrents.editTracker"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_edit_tracker",
     "version_introduced": "2.2.0",
@@ -684,6 +999,11 @@
     "client_aliases": [
       "torrents_editWebSeed"
     ],
+    "interface": "torrents.edit_webseed",
+    "interface_aliases": [
+      "torrents.editWebSeed"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_edit_webseed",
     "version_introduced": "2.11.3",
@@ -692,6 +1012,9 @@
   {
     "api_method": "export",
     "client_aliases": [],
+    "interface": "torrents.export",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_export",
     "version_introduced": "2.8.14",
@@ -702,6 +1025,11 @@
     "client_aliases": [
       "torrents_fetchMetadata"
     ],
+    "interface": "torrents.fetch_metadata",
+    "interface_aliases": [
+      "torrents.fetchMetadata"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_fetch_metadata",
     "version_introduced": "2.11.9",
@@ -712,6 +1040,11 @@
     "client_aliases": [
       "torrents_filePrio"
     ],
+    "interface": "torrents.file_priority",
+    "interface_aliases": [
+      "torrents.filePrio"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_file_priority",
     "version_introduced": "",
@@ -720,6 +1053,9 @@
   {
     "api_method": "files",
     "client_aliases": [],
+    "interface": "torrents.files",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_files",
     "version_introduced": "",
@@ -730,6 +1066,11 @@
     "client_aliases": [
       "torrents_increasePrio"
     ],
+    "interface": "torrents.increase_priority",
+    "interface_aliases": [
+      "torrents.increasePrio"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_increase_priority",
     "version_introduced": "",
@@ -738,6 +1079,9 @@
   {
     "api_method": "info",
     "client_aliases": [],
+    "interface": "torrents.info",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_info",
     "version_introduced": "",
@@ -748,6 +1092,11 @@
     "client_aliases": [
       "torrents_parseMetadata"
     ],
+    "interface": "torrents.parse_metadata",
+    "interface_aliases": [
+      "torrents.parseMetadata"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_parse_metadata",
     "version_introduced": "2.11.9",
@@ -758,6 +1107,11 @@
     "client_aliases": [
       "torrents_stop"
     ],
+    "interface": "torrents.pause",
+    "interface_aliases": [
+      "torrents.stop"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_pause",
     "version_introduced": "",
@@ -768,6 +1122,11 @@
     "client_aliases": [
       "torrents_pieceAvailability"
     ],
+    "interface": "torrents.piece_availability",
+    "interface_aliases": [
+      "torrents.pieceAvailability"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_piece_availability",
     "version_introduced": "2.15.1",
@@ -778,6 +1137,11 @@
     "client_aliases": [
       "torrents_pieceHashes"
     ],
+    "interface": "torrents.piece_hashes",
+    "interface_aliases": [
+      "torrents.pieceHashes"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_piece_hashes",
     "version_introduced": "",
@@ -788,6 +1152,11 @@
     "client_aliases": [
       "torrents_pieceStates"
     ],
+    "interface": "torrents.piece_states",
+    "interface_aliases": [
+      "torrents.pieceStates"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_piece_states",
     "version_introduced": "",
@@ -796,6 +1165,9 @@
   {
     "api_method": "properties",
     "client_aliases": [],
+    "interface": "torrents.properties",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_properties",
     "version_introduced": "",
@@ -804,6 +1176,9 @@
   {
     "api_method": "reannounce",
     "client_aliases": [],
+    "interface": "torrents.reannounce",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_reannounce",
     "version_introduced": "2.0.2",
@@ -812,6 +1187,9 @@
   {
     "api_method": "recheck",
     "client_aliases": [],
+    "interface": "torrents.recheck",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_recheck",
     "version_introduced": "",
@@ -822,6 +1200,11 @@
     "client_aliases": [
       "torrents_removeCategories"
     ],
+    "interface": "torrent_categories.remove_categories",
+    "interface_aliases": [
+      "torrent_categories.removeCategories"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_remove_categories",
     "version_introduced": "",
@@ -832,6 +1215,11 @@
     "client_aliases": [
       "torrents_removeTags"
     ],
+    "interface": "torrent_tags.remove_tags",
+    "interface_aliases": [
+      "torrent_tags.removeTags"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_remove_tags",
     "version_introduced": "2.3.0",
@@ -842,6 +1230,11 @@
     "client_aliases": [
       "torrents_removeTrackers"
     ],
+    "interface": "torrents.remove_trackers",
+    "interface_aliases": [
+      "torrents.removeTrackers"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_remove_trackers",
     "version_introduced": "2.2.0",
@@ -852,6 +1245,11 @@
     "client_aliases": [
       "torrents_removeWebSeeds"
     ],
+    "interface": "torrents.remove_webseeds",
+    "interface_aliases": [
+      "torrents.removeWebSeeds"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_remove_webseeds",
     "version_introduced": "2.11.3",
@@ -860,6 +1258,9 @@
   {
     "api_method": "rename",
     "client_aliases": [],
+    "interface": "torrents.rename",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_rename",
     "version_introduced": "",
@@ -870,6 +1271,11 @@
     "client_aliases": [
       "torrents_renameFile"
     ],
+    "interface": "torrents.rename_file",
+    "interface_aliases": [
+      "torrents.renameFile"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_rename_file",
     "version_introduced": "2.4.0",
@@ -880,6 +1286,11 @@
     "client_aliases": [
       "torrents_renameFolder"
     ],
+    "interface": "torrents.rename_folder",
+    "interface_aliases": [
+      "torrents.renameFolder"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_rename_folder",
     "version_introduced": "2.7",
@@ -890,6 +1301,11 @@
     "client_aliases": [
       "torrents_start"
     ],
+    "interface": "torrents.resume",
+    "interface_aliases": [
+      "torrents.start"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_resume",
     "version_introduced": "",
@@ -900,6 +1316,11 @@
     "client_aliases": [
       "torrents_saveMetadata"
     ],
+    "interface": "torrents.save_metadata",
+    "interface_aliases": [
+      "torrents.saveMetadata"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_save_metadata",
     "version_introduced": "2.11.9",
@@ -910,6 +1331,11 @@
     "client_aliases": [
       "torrents_setAutoManagement"
     ],
+    "interface": "torrents.set_auto_management",
+    "interface_aliases": [
+      "torrents.setAutoManagement"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_set_auto_management",
     "version_introduced": "",
@@ -920,6 +1346,11 @@
     "client_aliases": [
       "torrents_setCategory"
     ],
+    "interface": "torrents.set_category",
+    "interface_aliases": [
+      "torrents.setCategory"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_set_category",
     "version_introduced": "",
@@ -930,6 +1361,11 @@
     "client_aliases": [
       "torrents_setComment"
     ],
+    "interface": "torrents.set_comment",
+    "interface_aliases": [
+      "torrents.setComment"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_set_comment",
     "version_introduced": "2.12.1",
@@ -940,6 +1376,11 @@
     "client_aliases": [
       "torrents_setDownloadLimit"
     ],
+    "interface": "torrents.set_download_limit",
+    "interface_aliases": [
+      "torrents.setDownloadLimit"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_set_download_limit",
     "version_introduced": "",
@@ -950,6 +1391,11 @@
     "client_aliases": [
       "torrents_setDownloadPath"
     ],
+    "interface": "torrents.set_download_path",
+    "interface_aliases": [
+      "torrents.setDownloadPath"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_set_download_path",
     "version_introduced": "2.8.4",
@@ -960,6 +1406,11 @@
     "client_aliases": [
       "torrents_setForceStart"
     ],
+    "interface": "torrents.set_force_start",
+    "interface_aliases": [
+      "torrents.setForceStart"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_set_force_start",
     "version_introduced": "",
@@ -970,6 +1421,11 @@
     "client_aliases": [
       "torrents_setLocation"
     ],
+    "interface": "torrents.set_location",
+    "interface_aliases": [
+      "torrents.setLocation"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_set_location",
     "version_introduced": "",
@@ -980,6 +1436,11 @@
     "client_aliases": [
       "torrents_setSavePath"
     ],
+    "interface": "torrents.set_save_path",
+    "interface_aliases": [
+      "torrents.setSavePath"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_set_save_path",
     "version_introduced": "2.8.4",
@@ -990,6 +1451,11 @@
     "client_aliases": [
       "torrents_setShareLimits"
     ],
+    "interface": "torrents.set_share_limits",
+    "interface_aliases": [
+      "torrents.setShareLimits"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_set_share_limits",
     "version_introduced": "2.0.1",
@@ -1000,6 +1466,11 @@
     "client_aliases": [
       "torrents_setSSLParameters"
     ],
+    "interface": "torrents.set_ssl_parameters",
+    "interface_aliases": [
+      "torrents.setSSLParameters"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_set_ssl_parameters",
     "version_introduced": "2.10.3",
@@ -1010,6 +1481,11 @@
     "client_aliases": [
       "torrents_setSuperSeeding"
     ],
+    "interface": "torrents.set_super_seeding",
+    "interface_aliases": [
+      "torrents.setSuperSeeding"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_set_super_seeding",
     "version_introduced": "",
@@ -1020,6 +1496,11 @@
     "client_aliases": [
       "torrents_setTags"
     ],
+    "interface": "torrent_tags.set_tags",
+    "interface_aliases": [
+      "torrent_tags.setTags"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_set_tags",
     "version_introduced": "2.11.4",
@@ -1030,6 +1511,11 @@
     "client_aliases": [
       "torrents_setUploadLimit"
     ],
+    "interface": "torrents.set_upload_limit",
+    "interface_aliases": [
+      "torrents.setUploadLimit"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_set_upload_limit",
     "version_introduced": "",
@@ -1040,6 +1526,11 @@
     "client_aliases": [
       "torrents_SSLParameters"
     ],
+    "interface": "torrents.ssl_parameters",
+    "interface_aliases": [
+      "torrents.SSLParameters"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_ssl_parameters",
     "version_introduced": "2.10.3",
@@ -1048,6 +1539,9 @@
   {
     "api_method": "tags",
     "client_aliases": [],
+    "interface": "torrent_tags.tags",
+    "interface_aliases": [],
+    "interface_kind": "property",
     "namespace": "torrents",
     "primary": "torrents_tags",
     "version_introduced": "2.3.0",
@@ -1058,6 +1552,11 @@
     "client_aliases": [
       "torrents_toggleFirstLastPiecePrio"
     ],
+    "interface": "torrents.toggle_first_last_piece_priority",
+    "interface_aliases": [
+      "torrents.toggleFirstLastPiecePrio"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_toggle_first_last_piece_priority",
     "version_introduced": "",
@@ -1068,6 +1567,11 @@
     "client_aliases": [
       "torrents_toggleSequentialDownload"
     ],
+    "interface": "torrents.toggle_sequential_download",
+    "interface_aliases": [
+      "torrents.toggleSequentialDownload"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_toggle_sequential_download",
     "version_introduced": "",
@@ -1078,6 +1582,11 @@
     "client_aliases": [
       "torrents_topPrio"
     ],
+    "interface": "torrents.top_priority",
+    "interface_aliases": [
+      "torrents.topPrio"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_top_priority",
     "version_introduced": "",
@@ -1086,6 +1595,9 @@
   {
     "api_method": "trackers",
     "client_aliases": [],
+    "interface": "torrents.trackers",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_trackers",
     "version_introduced": "",
@@ -1096,6 +1608,11 @@
     "client_aliases": [
       "torrents_uploadLimit"
     ],
+    "interface": "torrents.upload_limit",
+    "interface_aliases": [
+      "torrents.uploadLimit"
+    ],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_upload_limit",
     "version_introduced": "",
@@ -1104,6 +1621,9 @@
   {
     "api_method": "webseeds",
     "client_aliases": [],
+    "interface": "torrents.webseeds",
+    "interface_aliases": [],
+    "interface_kind": "method",
     "namespace": "torrents",
     "primary": "torrents_webseeds",
     "version_introduced": "",
@@ -1114,6 +1634,11 @@
     "client_aliases": [
       "transfer_banPeers"
     ],
+    "interface": "transfer.ban_peers",
+    "interface_aliases": [
+      "transfer.banPeers"
+    ],
+    "interface_kind": "method",
     "namespace": "transfer",
     "primary": "transfer_ban_peers",
     "version_introduced": "2.3.0",
@@ -1124,6 +1649,9 @@
     "client_aliases": [
       "transfer_downloadLimit"
     ],
+    "interface": "transfer.download_limit",
+    "interface_aliases": [],
+    "interface_kind": "property",
     "namespace": "transfer",
     "primary": "transfer_download_limit",
     "version_introduced": "",
@@ -1132,6 +1660,9 @@
   {
     "api_method": "info",
     "client_aliases": [],
+    "interface": "transfer.info",
+    "interface_aliases": [],
+    "interface_kind": "property",
     "namespace": "transfer",
     "primary": "transfer_info",
     "version_introduced": "",
@@ -1142,6 +1673,11 @@
     "client_aliases": [
       "transfer_setDownloadLimit"
     ],
+    "interface": "transfer.set_download_limit",
+    "interface_aliases": [
+      "transfer.setDownloadLimit"
+    ],
+    "interface_kind": "method",
     "namespace": "transfer",
     "primary": "transfer_set_download_limit",
     "version_introduced": "",
@@ -1152,6 +1688,11 @@
     "client_aliases": [
       "transfer_setSpeedLimits"
     ],
+    "interface": "transfer.set_speed_limits",
+    "interface_aliases": [
+      "transfer.setSpeedLimits"
+    ],
+    "interface_kind": "method",
     "namespace": "transfer",
     "primary": "transfer_set_speed_limits",
     "version_introduced": "2.16.0",
@@ -1164,6 +1705,13 @@
       "transfer_toggleSpeedLimitsMode",
       "transfer_toggle_speed_limits_mode"
     ],
+    "interface": "transfer.set_speed_limits_mode",
+    "interface_aliases": [
+      "transfer.setSpeedLimitsMode",
+      "transfer.toggleSpeedLimitsMode",
+      "transfer.toggle_speed_limits_mode"
+    ],
+    "interface_kind": "method",
     "namespace": "transfer",
     "primary": "transfer_set_speed_limits_mode",
     "version_introduced": "",
@@ -1174,6 +1722,11 @@
     "client_aliases": [
       "transfer_setUploadLimit"
     ],
+    "interface": "transfer.set_upload_limit",
+    "interface_aliases": [
+      "transfer.setUploadLimit"
+    ],
+    "interface_kind": "method",
     "namespace": "transfer",
     "primary": "transfer_set_upload_limit",
     "version_introduced": "",
@@ -1184,6 +1737,11 @@
     "client_aliases": [
       "transfer_getSpeedLimits"
     ],
+    "interface": "transfer.speed_limits",
+    "interface_aliases": [
+      "transfer.getSpeedLimits"
+    ],
+    "interface_kind": "property",
     "namespace": "transfer",
     "primary": "transfer_speed_limits",
     "version_introduced": "2.16.0",
@@ -1194,6 +1752,9 @@
     "client_aliases": [
       "transfer_speedLimitsMode"
     ],
+    "interface": "transfer.speed_limits_mode",
+    "interface_aliases": [],
+    "interface_kind": "property",
     "namespace": "transfer",
     "primary": "transfer_speed_limits_mode",
     "version_introduced": "",
@@ -1204,6 +1765,9 @@
     "client_aliases": [
       "transfer_uploadLimit"
     ],
+    "interface": "transfer.upload_limit",
+    "interface_aliases": [],
+    "interface_kind": "property",
     "namespace": "transfer",
     "primary": "transfer_upload_limit",
     "version_introduced": "",

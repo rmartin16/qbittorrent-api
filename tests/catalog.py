@@ -47,6 +47,12 @@ class Endpoint:
     api_method: str
     #: other client spellings bound to the same callable
     client_aliases: tuple[str, ...] = ()
+    #: interface spelling, e.g. ``torrents.add_webseeds``
+    interface: str = ""
+    #: how the interface exposes it: ``method`` or ``property``
+    interface_kind: str = ""
+    #: other interface spellings bound to the same object
+    interface_aliases: tuple[str, ...] = ()
     #: Web API version the endpoint first appeared in, if it is gated
     version_introduced: str = ""
     #: Web API version the endpoint was removed in, if it was removed
@@ -100,9 +106,67 @@ def _client_methods() -> dict[object, list[str]]:
     return grouped
 
 
+def _interfaces(client: object) -> dict[str, object]:
+    """Namespace interface objects on a client, e.g. ``client.torrents``."""
+    interfaces = {}
+    for name in dir(client):
+        if name.startswith("_"):
+            continue
+        # every interface is a plain attribute, so this never issues a request
+        obj = getattr(client, name)
+        if type(obj).__module__.startswith("qbittorrentapi") and not callable(obj):
+            interfaces[name] = obj
+    return interfaces
+
+
+def _interface_spelling(interfaces, namespace: str, short_name: str):
+    """
+    Locate ``short_name`` on the interface that exposes it.
+
+    Interfaces expose endpoints three different ways: as ordinary methods, as
+    properties (``client.app.cookies``), and as callable objects assigned in
+    ``__init__`` (most of ``client.torrents``). A few endpoints also live on an
+    interface other than their namespace, such as ``torrents_add_tags`` on
+    ``client.torrent_tags``, so the matching namespace is tried first and the
+    rest are a fallback.
+    """
+    ordered = sorted(interfaces, key=lambda name: name != namespace)
+    for iface_name in ordered:
+        iface = interfaces[iface_name]
+        static = inspect.getattr_static(type(iface), short_name, None)
+
+        if isinstance(static, property):
+            kind, target = "property", static
+        elif short_name in vars(iface):
+            kind, target = "method", vars(iface)[short_name]
+        elif static is not None and callable(static):
+            kind, target = "method", static
+        else:
+            continue
+
+        # other names on this interface bound to the very same object
+        aliases = sorted(
+            name
+            for name in set(vars(iface)) | set(dir(type(iface)))
+            if name != short_name
+            and not name.startswith("_")
+            and (
+                vars(iface).get(name) is target
+                or inspect.getattr_static(type(iface), name, None) is target
+            )
+        )
+        return (
+            f"{iface_name}.{short_name}",
+            kind,
+            tuple(f"{iface_name}.{name}" for name in aliases),
+        )
+    return "", "", ()
+
+
 def build_catalog() -> tuple[Endpoint, ...]:
     """Derive every API endpoint the client exposes."""
     endpoints = []
+    interfaces = _interfaces(qbittorrentapi.Client(host="localhost:1"))
     for func, names in _client_methods().items():
         # the snake_case spelling is the canonical one; camelCase are aliases
         snake_case = sorted(name for name in names if name.lower() == name)
@@ -116,12 +180,20 @@ def build_catalog() -> tuple[Endpoint, ...]:
         # calls "stop" or "pause" depending on the version), so there is no
         # literal to read and api_method is left empty
 
+        namespace = kwargs.get("_name", "")
+        interface, kind, iface_aliases = _interface_spelling(
+            interfaces, namespace, primary[len(namespace) + 1 :]
+        )
+
         endpoints.append(
             Endpoint(
                 primary=primary,
-                namespace=kwargs.get("_name", ""),
+                namespace=namespace,
                 api_method=kwargs.get("_method", ""),
                 client_aliases=tuple(sorted(set(names) - {primary})),
+                interface=interface,
+                interface_kind=kind,
+                interface_aliases=iface_aliases,
                 version_introduced=kwargs.get("version_introduced", ""),
                 version_removed=kwargs.get("version_removed", ""),
             )
