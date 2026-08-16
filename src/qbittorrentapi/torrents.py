@@ -277,6 +277,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         ssl_dh_params: str | None = None,
         is_stopped: bool | None = None,
         forced: bool | None = None,
+        share_limits_mode: Literal["Default", "MatchAny", "MatchAll"] | None = None,
         **kwargs: APIKwargsT,
     ) -> str | TorrentsAddedMetadata:
         """
@@ -347,6 +348,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :param is_stopped: Adds torrent in stopped state; alias for ``is_paused`` (added
             in Web API v2.11.0)
         :param forced: add torrent in forced state (added in Web API v2.11.0)
+        :param share_limits_mode: mode once share limit is reached.
+            Options: Default, MatchAny, MatchAll (added in Web API v2.16.0)
         """  # noqa: E501
 
         # convert pre-v2.7 params to post-v2.7 params...or post-v2.7 to pre-v2.7
@@ -404,6 +407,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             "ssl_private_key": (None, ssl_private_key),
             "ssl_dh_params": (None, ssl_dh_params),
             "forced": (None, forced),
+            "shareLimitsMode": (None, share_limits_mode),
         }
 
         resp = self._post(
@@ -997,6 +1001,36 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             version_introduced="2.8.14",
             **kwargs,
         )
+
+    def torrents_download_file(
+        self,
+        torrent_hash: str | None = None,
+        file: str | int | None = None,
+        **kwargs: APIKwargsT,
+    ) -> str:
+        """
+        The file system path for a fully downloaded file within a torrent.
+
+        This method was introduced with qBittorrent v5.3.0 (Web API v2.16.0).
+
+        :raises NotFound404Error: torrent not found
+        :raises Conflict409Error: torrent metadata unavailable, file not found,
+            or file not fully downloaded
+
+        :param torrent_hash: hash for torrent
+        :param file: index of the file within the torrent or its path
+        """
+        data = {"hash": torrent_hash, "file": file}
+        return self._post_cast(
+            _name=APINames.Torrents,
+            _method="downloadFile",
+            data=data,
+            response_class=str,
+            version_introduced="2.16.0",
+            **kwargs,
+        )
+
+    torrents_downloadFile = torrents_download_file
 
     ##########################################################################
     # MULTIPLE TORRENT ENDPOINTS
@@ -2561,6 +2595,20 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
         """Implements :meth:`~TorrentsAPIMixIn.torrents_export`."""
         return self._client.torrents_export(torrent_hash=self._torrent_hash, **kwargs)
 
+    def download_file(
+        self,
+        file: str | int | None = None,
+        **kwargs: APIKwargsT,
+    ) -> str:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_download_file`."""
+        return self._client.torrents_download_file(
+            torrent_hash=self._torrent_hash,
+            file=file,
+            **kwargs,
+        )
+
+    downloadFile = download_file
+
 
 class Torrents(ClientCache[TorrentsAPIMixIn]):
     """
@@ -3176,6 +3224,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
         ssl_private_key: str | None = None,
         ssl_dh_params: str | None = None,
         is_stopped: bool | None = None,
+        share_limits_mode: Literal["Default", "MatchAny", "MatchAll"] | None = None,
         **kwargs: APIKwargsT,
     ) -> str | TorrentsAddedMetadata:
         """Implements :meth:`~TorrentsAPIMixIn.torrents_add`."""
@@ -3208,6 +3257,7 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             ssl_private_key=ssl_private_key,
             ssl_dh_params=ssl_dh_params,
             is_stopped=is_stopped,
+            share_limits_mode=share_limits_mode,
             **kwargs,
         )
 
@@ -3438,6 +3488,21 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
     ) -> bytes:
         """Implements :meth:`~TorrentsAPIMixIn.torrents_export`."""
         return self._client.torrents_export(torrent_hash=torrent_hash, **kwargs)
+
+    def download_file(
+        self,
+        torrent_hash: str | None = None,
+        file: str | int | None = None,
+        **kwargs: APIKwargsT,
+    ) -> str:
+        """Implements :meth:`~TorrentsAPIMixIn.torrents_download_file`."""
+        return self._client.torrents_download_file(
+            torrent_hash=torrent_hash,
+            file=file,
+            **kwargs,
+        )
+
+    downloadFile = download_file
 
 
 class TorrentCategories(ClientCache[TorrentsAPIMixIn]):

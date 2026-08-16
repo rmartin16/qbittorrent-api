@@ -284,6 +284,31 @@ class RSSAPIMixIn(AppAPIMixIn):
 
     rss_renameRule = rss_rename_rule
 
+    def rss_clone_rule(
+        self,
+        orig_rule_name: str | None = None,
+        new_rule_name: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Copy an RSS auto-download rule to a new rule.
+
+        This method was introduced with qBittorrent v5.3.0 (Web API v2.15.4).
+
+        :param orig_rule_name: name of rule to copy
+        :param new_rule_name: name for the new rule
+        """
+        data = {"sourceName": orig_rule_name, "cloneName": new_rule_name}
+        self._post(
+            _name=APINames.RSS,
+            _method="cloneRule",
+            data=data,
+            version_introduced="2.15.4",
+            **kwargs,
+        )
+
+    rss_cloneRule = rss_clone_rule
+
     def rss_remove_rule(
         self,
         rule_name: str | None = None,
@@ -477,6 +502,21 @@ class RSS(ClientCache[RSSAPIMixIn]):
         )
 
     renameRule = rename_rule
+
+    def clone_rule(
+        self,
+        orig_rule_name: str | None = None,
+        new_rule_name: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """Implements :meth:`~RSSAPIMixIn.rss_clone_rule`."""
+        return self._client.rss_clone_rule(
+            orig_rule_name=orig_rule_name,
+            new_rule_name=new_rule_name,
+            **kwargs,
+        )
+
+    cloneRule = clone_rule
 
     def remove_rule(
         self,

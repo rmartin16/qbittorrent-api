@@ -365,3 +365,33 @@ def test_rss_rules(
 def test_rss_rules_not_implemented(client, matching_func):
     with pytest.raises(NotImplementedError):
         client.func(matching_func)()
+
+
+@pytest.mark.skipif_before_api_version("2.15.4")
+@pytest.mark.parametrize(
+    "clone_rule_func",
+    ["rss_clone_rule", "rss_cloneRule", "rss.clone_rule", "rss.cloneRule"],
+)
+def test_rss_clone_rule(client, clone_rule_func):
+    rule_name = ITEM_ONE + "CloneRule"
+    clone_name = rule_name + "Clone"
+    rule_def = {"enabled": True, "affectedFeeds": RSS_URL, "addPaused": True}
+    try:
+        client.rss_set_rule(rule_name=rule_name, rule_def=rule_def)
+        client.func(clone_rule_func)(orig_rule_name=rule_name, new_rule_name=clone_name)
+        check(lambda: client.rss_rules(), clone_name, reverse=True)
+        # the clone is a copy; the original is left in place
+        check(lambda: client.rss_rules(), rule_name, reverse=True)
+    finally:
+        client.rss_remove_rule(rule_name=rule_name)
+        client.rss_remove_rule(rule_name=clone_name)
+
+
+@pytest.mark.skipif_after_api_version("2.15.4")
+@pytest.mark.parametrize(
+    "clone_rule_func",
+    ["rss_clone_rule", "rss_cloneRule", "rss.clone_rule", "rss.cloneRule"],
+)
+def test_rss_clone_rule_not_implemented(client, clone_rule_func):
+    with pytest.raises(NotImplementedError):
+        client.func(clone_rule_func)()
