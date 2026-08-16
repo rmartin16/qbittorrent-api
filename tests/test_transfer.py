@@ -116,10 +116,7 @@ def test_ban_peers_not_implemented(client):
 
 
 @pytest.mark.skipif_before_api_version("2.16.0")
-@pytest.mark.parametrize(
-    "speed_limits_func",
-    ["transfer_speed_limits", "transfer_getSpeedLimits"],
-)
+@pytest.mark.parametrize("speed_limits_func", ["transfer_speed_limits"])
 def test_speed_limits(client, speed_limits_func):
     keys = ("up_limit", "dl_limit", "alt_up_limit", "alt_dl_limit")
 
@@ -137,13 +134,7 @@ def test_speed_limits(client, speed_limits_func):
 
 @pytest.mark.skipif_before_api_version("2.16.0")
 @pytest.mark.parametrize(
-    "set_speed_limits_func",
-    [
-        "transfer_set_speed_limits",
-        "transfer_setSpeedLimits",
-        "transfer.set_speed_limits",
-        "transfer.setSpeedLimits",
-    ],
+    "set_speed_limits_func", ["transfer_set_speed_limits", "transfer.set_speed_limits"]
 )
 def test_set_speed_limits(client, set_speed_limits_func):
     original = client.transfer_speed_limits()
@@ -169,10 +160,7 @@ def test_set_speed_limits(client, set_speed_limits_func):
 
 
 @pytest.mark.skipif_after_api_version("2.16.0")
-@pytest.mark.parametrize(
-    "speed_limits_func",
-    ["transfer_speed_limits", "transfer_getSpeedLimits"],
-)
+@pytest.mark.parametrize("speed_limits_func", ["transfer_speed_limits"])
 def test_speed_limits_not_implemented(client, speed_limits_func):
     with pytest.raises(NotImplementedError):
         client.func(speed_limits_func)()

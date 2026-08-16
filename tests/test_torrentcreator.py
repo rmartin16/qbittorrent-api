@@ -45,13 +45,7 @@ def test_methods(client):
 
 @pytest.mark.skipif_before_api_version("2.10.4")
 @pytest.mark.parametrize(
-    "add_task_func",
-    [
-        "torrentcreator_add_task",
-        "torrentcreator_addTask",
-        "torrentcreator.add_task",
-        "torrentcreator.addTask",
-    ],
+    "add_task_func", ["torrentcreator_add_task", "torrentcreator.add_task"]
 )
 def test_add_task(client, add_task_func):
     task = client.func(add_task_func)(source_path="/empty-dir", start_seeding=False)
@@ -63,13 +57,7 @@ def test_add_task(client, add_task_func):
 
 @pytest.mark.skipif_after_api_version("2.10.4")
 @pytest.mark.parametrize(
-    "add_task_func",
-    [
-        "torrentcreator_add_task",
-        "torrentcreator_addTask",
-        "torrentcreator.add_task",
-        "torrentcreator.addTask",
-    ],
+    "add_task_func", ["torrentcreator_add_task", "torrentcreator.add_task"]
 )
 def test_add_task_not_implemented(client, add_task_func):
     with pytest.raises(NotImplementedError):
