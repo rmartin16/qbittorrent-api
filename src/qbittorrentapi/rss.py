@@ -117,7 +117,7 @@ class RSSAPIMixIn(AppAPIMixIn):
         """
         Update the refresh interval for the RSS feed.
 
-        The method was introduced with qBittorrent v5.2.0 (Web API v2.11.5).
+        This method was introduced with qBittorrent v5.2.0 (Web API v2.11.5).
 
         :param item_path: Name and/or path for feed
         :param refresh_interval: refresh interval in minutes
