@@ -1,5 +1,16 @@
 Change Log
 ==========
+### v2026.8.1 (16 aug 2026)
+- Add support for ``app/rotateAPIKey`` and ``app/deleteAPIKey`` (#658)
+- Add support for ``torrents/SSLParameters`` and ``torrents/setSSLParameters`` (#658)
+- Add support for ``torrents/fetchMetadata``, ``torrents/parseMetadata``, and ``torrents/saveMetadata`` (#658)
+- Add support for ``torrents/pieceAvailability`` (#658)
+- Add support for ``clientdata/load`` and ``clientdata/store`` (#658)
+- Add ``file_priorities`` and ``downloader`` for ``torrents/add`` (#656)
+- Add ``urls`` for ``torrents/reannounce`` (#656)
+- Fix ``is_skip_checking`` for ``torrents/add`` being ignored by qBittorrent v5.3.0 (#654)
+- Fix missing ``**kwargs`` for several endpoints (#655)
+
 ### v2026.8.0 (01 aug 2026)
 - Fix slicing returned objects (#644)
 
