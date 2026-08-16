@@ -1329,8 +1329,9 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             (added in Web API v2.9.2)
         :param share_limit_action: action once share limit is reached.
             Options: Default, Stop, Remove, RemoveWithContent, EnableSuperSeeding
+            (added in Web API v2.10.4)
         :param share_limits_mode: mode once share limit is reached.
-            Options: Default, MatchAny, MatchAll
+            Options: Default, MatchAny, MatchAll (added in Web API v2.16.0)
         """
         data = {
             "hashes": self._list2string(torrent_hashes, "|"),
