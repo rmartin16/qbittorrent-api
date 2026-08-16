@@ -1,6 +1,7 @@
 import errno
 import platform
 import sys
+from contextlib import ExitStack
 from time import sleep
 from unittest.mock import MagicMock
 
@@ -59,6 +60,36 @@ def enable_queueing(client):
         client.app.set_preferences(dict(queueing_enabled=True))
 
 
+# Each endpoint is reachable as ``client.torrents_x()`` and ``client.torrents.x()``,
+# both with a camelCase alias. These lists are shared by the tests for the endpoint
+# and its "raises NotImplementedError on older API versions" counterpart, so the two
+# can never drift apart.
+ADD_WEBSEEDS_FUNCS = [
+    "torrents_add_webseeds",
+    "torrents_addWebSeeds",
+    "torrents.add_webseeds",
+    "torrents.addWebSeeds",
+]
+EDIT_WEBSEED_FUNCS = [
+    "torrents_edit_webseed",
+    "torrents_editWebSeed",
+    "torrents.edit_webseed",
+    "torrents.editWebSeed",
+]
+REMOVE_WEBSEEDS_FUNCS = [
+    "torrents_remove_webseeds",
+    "torrents_removeWebSeeds",
+    "torrents.remove_webseeds",
+    "torrents.removeWebSeeds",
+]
+
+# webseed endpoints accept either a single URL or a list of them
+WEBSEED_URLS = [
+    "http://example/webseedone",
+    ["http://example/webseedone", "http://example/webseedtwo"],
+]
+
+
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="removeprefix not in 3.8")
 def test_methods(client):
     all_dotted_methods = {
@@ -71,31 +102,91 @@ def test_methods(client):
         assert meth.removeprefix("torrents_") in all_dotted_methods
 
 
+def download_torrent_file(url, dest=None):
+    """
+    Download a torrent file, retrying transient failures.
+
+    Returns the raw bytes when ``dest`` is None; otherwise writes the file to
+    ``dest`` and returns that path.
+    """
+    max_attempts = 3
+    for attempt in range(max_attempts):
+        try:
+            with requests.get(url, timeout=30) as r:
+                r.raise_for_status()
+                if dest is None:
+                    return r.content
+                with open(dest, "wb") as f:
+                    for chunk in r.iter_content(chunk_size=1024):
+                        f.write(chunk)
+                return dest
+        except Exception:
+            if attempt >= max_attempts - 1:
+                raise Exception(f"Download failed: {url}") from None
+
+
+def downloaded_torrent_paths(tmp_path):
+    """Both test torrents downloaded to ``tmp_path``."""
+    return [
+        download_torrent_file(TORRENT1_URL, mkpath(tmp_path, TORRENT1_FILENAME)),
+        download_torrent_file(TORRENT2_URL, mkpath(tmp_path, TORRENT2_FILENAME)),
+    ]
+
+
+def build_add_kwargs(source, single, tmp_path, stack):
+    """
+    Build the ``torrents_add()`` kwargs supplying the test torrents via ``source``.
+
+    ``stack`` is an :class:`~contextlib.ExitStack` used to close any opened files.
+    """
+    if source == "urls":
+        urls = [TORRENT1_URL, TORRENT2_URL]
+        return dict(urls=urls[0] if single else tuple(urls))
+
+    if source == "paths":
+        paths = downloaded_torrent_paths(tmp_path)
+        return dict(torrent_files=paths[0] if single else tuple(paths))
+
+    if source == "path_dict":
+        paths = downloaded_torrent_paths(tmp_path)
+        pairs = list(zip([TORRENT1_FILENAME, TORRENT2_FILENAME], paths))
+        return dict(torrent_files=dict(pairs[:1] if single else pairs))
+
+    if source == "filehandles":
+        handles = [
+            # the ExitStack closes these; ruff doesn't recognize enter_context()
+            stack.enter_context(open(torrent_path, "rb"))  # noqa: SIM115
+            for torrent_path in downloaded_torrent_paths(tmp_path)
+        ]
+        return dict(torrent_files=handles[0] if single else tuple(handles))
+
+    if source == "bytes":
+        blobs = [
+            download_torrent_file(TORRENT1_URL),
+            download_torrent_file(TORRENT2_URL),
+        ]
+        return dict(torrent_files=blobs[0] if single else tuple(blobs))
+
+    raise ValueError(f"unknown torrent source: {source}")
+
+
 # something was wrong with torrents_add on v2.0.0 (the initial version)
 @pytest.mark.skipif_before_api_version("2.0.1")
 @pytest.mark.parametrize(
     "add_func, delete_func",
     [("torrents_add", "torrents_delete"), ("torrents.add", "torrents.delete")],
 )
-def test_add_delete(client, api_version, add_func, delete_func, tmp_path):
-    def download_file(url, filename=None, return_bytes=False):
-        max_attempts = 3
-        for attempt in range(max_attempts):
-            try:
-                with requests.get(url, timeout=30) as r:
-                    r.raise_for_status()
-                    if return_bytes:
-                        return r.content
-                    with open(mkpath(tmp_path, filename), "wb") as f:
-                        for chunk in r.iter_content(chunk_size=1024):
-                            f.write(chunk)
-            except Exception if attempt < (max_attempts - 1) else ZeroDivisionError:
-                pass  # throw away errors until we hit the retry limit
-            else:
-                return
-        raise Exception(f"Download failed: {url}")
+@pytest.mark.parametrize(
+    "source", ["urls", "paths", "path_dict", "filehandles", "bytes"]
+)
+@pytest.mark.parametrize("single", [True, False], ids=["single", "multiple"])
+def test_add_delete(
+    client, api_version, add_func, delete_func, source, single, tmp_path
+):
+    expected_hashes = [TORRENT1_HASH] if single else [TORRENT1_HASH, TORRENT2_HASH]
 
-    def delete():
+    def delete_test_torrents():
+        """Delete through ``delete_func`` so both namespaces are exercised."""
         client.func(delete_func)(delete_files=True, torrent_hashes=TORRENT1_HASH)
         client.func(delete_func)(delete_files=True, torrent_hashes=TORRENT2_HASH)
         check(
@@ -105,141 +196,36 @@ def test_add_delete(client, api_version, add_func, delete_func, tmp_path):
             negate=True,
         )
 
-    def check_torrents_added(f):
-        def inner(**kwargs):
-            try:
-                f(**kwargs)
+    @retry()
+    def add_and_delete():
+        # each attempt must start from a clean slate, so the torrents are always
+        # removed again...whether the add succeeded, failed, or half-succeeded
+        try:
+            # Arrange
+            with ExitStack() as stack:
+                add_kwargs = build_add_kwargs(source, single, tmp_path, stack)
+
+                # Act
+                resp = client.func(add_func)(**add_kwargs)
+
+            # Assert
+            if source != "urls":
+                # adding by URL returns nothing worth asserting on
+                if v(api_version) >= v("2.14.0"):
+                    assert isinstance(resp, TorrentsAddedMetadata)
+                else:
+                    assert resp == "Ok."
+
+            for torrent_hash in expected_hashes:
                 check(
                     lambda: [t.hash for t in client.torrents_info()],
-                    TORRENT1_HASH,
+                    torrent_hash,
                     reverse=True,
                 )
-                if kwargs.get("single", False) is False:
-                    check(
-                        lambda: [t.hash for t in client.torrents_info()],
-                        TORRENT2_HASH,
-                        reverse=True,
-                    )
-            finally:
-                delete()
+        finally:
+            delete_test_torrents()
 
-        return inner
-
-    @retry()
-    @check_torrents_added
-    def add_by_filename(single):
-        download_file(url=TORRENT1_URL, filename=TORRENT1_FILENAME)
-        download_file(url=TORRENT2_URL, filename=TORRENT2_FILENAME)
-        files = (
-            mkpath(tmp_path, TORRENT1_FILENAME),
-            mkpath(tmp_path, TORRENT2_FILENAME),
-        )
-
-        if single:
-            resp = client.func(add_func)(torrent_files=files[0])
-            if v(api_version) >= v("2.14.0"):
-                isinstance(resp, TorrentsAddedMetadata)
-            else:
-                assert resp == "Ok."
-        else:
-            resp = client.func(add_func)(torrent_files=files)
-            if v(api_version) >= v("2.14.0"):
-                isinstance(resp, TorrentsAddedMetadata)
-            else:
-                assert resp == "Ok."
-
-    @retry()
-    @check_torrents_added
-    def add_by_filename_dict(single):
-        download_file(url=TORRENT1_URL, filename=TORRENT1_FILENAME)
-        download_file(url=TORRENT2_URL, filename=TORRENT2_FILENAME)
-
-        if single:
-            resp = client.func(add_func)(
-                torrent_files={TORRENT1_FILENAME: mkpath(tmp_path, TORRENT1_FILENAME)}
-            )
-            if v(api_version) >= v("2.14.0"):
-                isinstance(resp, TorrentsAddedMetadata)
-            else:
-                assert resp == "Ok."
-        else:
-            files = {
-                TORRENT1_FILENAME: mkpath(tmp_path, TORRENT1_FILENAME),
-                TORRENT2_FILENAME: mkpath(tmp_path, TORRENT2_FILENAME),
-            }
-            resp = client.func(add_func)(torrent_files=files)
-            if v(api_version) >= v("2.14.0"):
-                isinstance(resp, TorrentsAddedMetadata)
-            else:
-                assert resp == "Ok."
-
-    @retry()
-    @check_torrents_added
-    def add_by_filehandles(single):
-        download_file(url=TORRENT1_URL, filename=TORRENT1_FILENAME)
-        download_file(url=TORRENT2_URL, filename=TORRENT2_FILENAME)
-        files = (
-            open(mkpath(tmp_path, TORRENT1_FILENAME), "rb"),  # noqa: SIM115
-            open(mkpath(tmp_path, TORRENT2_FILENAME), "rb"),  # noqa: SIM115
-        )
-
-        if single:
-            resp = client.func(add_func)(torrent_files=files[0])
-            if v(api_version) >= v("2.14.0"):
-                isinstance(resp, TorrentsAddedMetadata)
-            else:
-                assert resp == "Ok."
-        else:
-            resp = client.func(add_func)(torrent_files=files)
-            if v(api_version) >= v("2.14.0"):
-                isinstance(resp, TorrentsAddedMetadata)
-            else:
-                assert resp == "Ok."
-
-        for file in files:
-            file.close()
-
-    @retry()
-    @check_torrents_added
-    def add_by_bytes(single):
-        files = (
-            download_file(TORRENT1_URL, return_bytes=True),
-            download_file(TORRENT2_URL, return_bytes=True),
-        )
-
-        if single:
-            resp = client.func(add_func)(torrent_files=files[0])
-            if v(api_version) >= v("2.14.0"):
-                isinstance(resp, TorrentsAddedMetadata)
-            else:
-                assert resp == "Ok."
-        else:
-            resp = client.func(add_func)(torrent_files=files)
-            if v(api_version) >= v("2.14.0"):
-                isinstance(resp, TorrentsAddedMetadata)
-            else:
-                assert resp == "Ok."
-
-    @retry()
-    @check_torrents_added
-    def add_by_url(single):
-        urls = (TORRENT1_URL, TORRENT2_URL)
-
-        if single:
-            client.func(add_func)(urls=urls[0])
-        else:
-            client.func(add_func)(urls=urls)
-
-    add_by_filename(single=False)
-    add_by_filename(single=True)
-    add_by_filename_dict(single=False)
-    add_by_filename_dict(single=True)
-    add_by_url(single=False)
-    add_by_url(single=True)
-    add_by_filehandles(single=False)
-    add_by_filehandles(single=True)
-    add_by_bytes(single=False)
-    add_by_bytes(single=True)
+    add_and_delete()
 
 
 def test_add_torrent_file_fail(client, monkeypatch):
@@ -445,22 +431,8 @@ def test_webseeds_slice(client, orig_torrent, webseeds_func):
 
 
 @pytest.mark.skipif_before_api_version("2.11.3")
-@pytest.mark.parametrize(
-    "add_webseeds_func",
-    [
-        "torrents_add_webseeds",
-        "torrents_addWebSeeds",
-        "torrents.add_webseeds",
-        "torrents.addWebSeeds",
-    ],
-)
-@pytest.mark.parametrize(
-    "webseeds",
-    [
-        "http://example/webseedone",
-        ["http://example/webseedone", "http://example/webseedtwo"],
-    ],
-)
+@pytest.mark.parametrize("add_webseeds_func", ADD_WEBSEEDS_FUNCS)
+@pytest.mark.parametrize("webseeds", WEBSEED_URLS)
 def test_add_webseeds(client, new_torrent, add_webseeds_func, webseeds):
     assert new_torrent.webseeds == WebSeedsList([])
 
@@ -478,30 +450,14 @@ def test_add_webseeds(client, new_torrent, add_webseeds_func, webseeds):
 
 
 @pytest.mark.skipif_after_api_version("2.11.3")
-@pytest.mark.parametrize(
-    "add_webseeds_func",
-    [
-        "torrents_add_webseeds",
-        "torrents_addWebSeeds",
-        "torrents.add_webseeds",
-        "torrents.addWebSeeds",
-    ],
-)
+@pytest.mark.parametrize("add_webseeds_func", ADD_WEBSEEDS_FUNCS)
 def test_add_webseeds_not_implemented(client, orig_torrent, add_webseeds_func):
     with pytest.raises(NotImplementedError):
         client.func(add_webseeds_func)()
 
 
 @pytest.mark.skipif_before_api_version("2.11.3")
-@pytest.mark.parametrize(
-    "edit_webseed_func",
-    [
-        "torrents_edit_webseed",
-        "torrents_editWebSeed",
-        "torrents.edit_webseed",
-        "torrents.editWebSeed",
-    ],
-)
+@pytest.mark.parametrize("edit_webseed_func", EDIT_WEBSEED_FUNCS)
 def test_edit_webseeds(client, new_torrent, edit_webseed_func):
     assert new_torrent.webseeds == WebSeedsList([])
     orig_url, new_url = "http://example/asdf", "http://example/qwer"
@@ -533,37 +489,15 @@ def test_edit_webseeds(client, new_torrent, edit_webseed_func):
 
 
 @pytest.mark.skipif_after_api_version("2.11.3")
-@pytest.mark.parametrize(
-    "edit_webseed_func",
-    [
-        "torrents_edit_webseed",
-        "torrents_editWebSeed",
-        "torrents.edit_webseed",
-        "torrents.editWebSeed",
-    ],
-)
+@pytest.mark.parametrize("edit_webseed_func", EDIT_WEBSEED_FUNCS)
 def test_edit_webseed_not_implemented(client, orig_torrent, edit_webseed_func):
     with pytest.raises(NotImplementedError):
         client.func(edit_webseed_func)()
 
 
 @pytest.mark.skipif_before_api_version("2.11.3")
-@pytest.mark.parametrize(
-    "remove_webseeds_func",
-    [
-        "torrents_remove_webseeds",
-        "torrents_removeWebSeeds",
-        "torrents.remove_webseeds",
-        "torrents.removeWebSeeds",
-    ],
-)
-@pytest.mark.parametrize(
-    "webseeds",
-    [
-        "http://example/webseedone",
-        ["http://example/webseedone", "http://example/webseedtwo"],
-    ],
-)
+@pytest.mark.parametrize("remove_webseeds_func", REMOVE_WEBSEEDS_FUNCS)
+@pytest.mark.parametrize("webseeds", WEBSEED_URLS)
 def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
     assert new_torrent.webseeds == WebSeedsList([])
     all_webseeds = [
@@ -596,15 +530,7 @@ def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
 
 
 @pytest.mark.skipif_after_api_version("2.11.3")
-@pytest.mark.parametrize(
-    "remove_webseeds_func",
-    [
-        "torrents_remove_webseeds",
-        "torrents_removeWebSeeds",
-        "torrents.remove_webseeds",
-        "torrents.removeWebSeeds",
-    ],
-)
+@pytest.mark.parametrize("remove_webseeds_func", REMOVE_WEBSEEDS_FUNCS)
 def test_remove_webseeds_not_implemented(client, orig_torrent, remove_webseeds_func):
     with pytest.raises(NotImplementedError):
         client.func(remove_webseeds_func)()
