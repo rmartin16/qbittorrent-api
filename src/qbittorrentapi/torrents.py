@@ -277,6 +277,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         ssl_dh_params: str | None = None,
         is_stopped: bool | None = None,
         forced: bool | None = None,
+        file_priorities: Iterable[int] | None = None,
+        downloader: str | None = None,
         share_limits_mode: Literal["Default", "MatchAny", "MatchAll"] | None = None,
         **kwargs: APIKwargsT,
     ) -> str | TorrentsAddedMetadata:
@@ -348,6 +350,11 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :param is_stopped: Adds torrent in stopped state; alias for ``is_paused`` (added
             in Web API v2.11.0)
         :param forced: add torrent in forced state (added in Web API v2.11.0)
+        :param file_priorities: priority for each file in the torrent; must contain one
+            entry per file and cannot be used when adding multiple torrents or when
+            uploading torrent files (added in Web API v2.11.9)
+        :param downloader: name of the search plugin to download the torrent with; only
+            applies when adding by URL (added in Web API v2.13.1)
         :param share_limits_mode: mode once share limit is reached.
             Options: Default, MatchAny, MatchAll (added in Web API v2.16.0)
         """  # noqa: E501
@@ -407,6 +414,8 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             "ssl_private_key": (None, ssl_private_key),
             "ssl_dh_params": (None, ssl_dh_params),
             "forced": (None, forced),
+            "filePriorities": (None, self._list2string(file_priorities, ",")),
+            "downloader": (None, downloader),
             "shareLimitsMode": (None, share_limits_mode),
         }
 
@@ -490,13 +499,14 @@ class TorrentsAPIMixIn(AppAPIMixIn):
                 raise TorrentFileError(io_err)
         return files  # type: ignore[return-value]
 
-    def torrents_count(self) -> int:
+    def torrents_count(self, **kwargs: APIKwargsT) -> int:
         """Retrieve count of torrents."""
         return self._post_cast(
             _name=APINames.Torrents,
             _method="count",
             response_class=int,
             version_introduced="2.9.3",
+            **kwargs,
         )
 
     ##########################################################################
@@ -1183,6 +1193,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
     def torrents_reannounce(
         self,
         torrent_hashes: str | Iterable[str] | None = None,
+        urls: str | Iterable[str] | None = None,
         **kwargs: APIKwargsT,
     ) -> None:
         """
@@ -1192,8 +1203,14 @@ class TorrentsAPIMixIn(AppAPIMixIn):
 
         :param torrent_hashes: single torrent hash or list of torrent hashes.
             Or ``all`` for all torrents.
+        :param urls: single tracker URL or list of tracker URLs to reannounce to;
+            defaults to all trackers for the torrent(s)
+            (added in Web API v2.11.10)
         """
-        data = {"hashes": self._list2string(torrent_hashes, "|")}
+        data = {
+            "hashes": self._list2string(torrent_hashes, "|"),
+            "urls": self._list2string(urls, "|"),
+        }
         self._post(
             _name=APINames.Torrents,
             _method="reannounce",
@@ -1346,8 +1363,9 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             (added in Web API v2.9.2)
         :param share_limit_action: action once share limit is reached.
             Options: Default, Stop, Remove, RemoveWithContent, EnableSuperSeeding
+            (added in Web API v2.10.4)
         :param share_limits_mode: mode once share limit is reached.
-            Options: Default, MatchAny, MatchAll
+            Options: Default, MatchAny, MatchAll (added in Web API v2.16.0)
         """
         data = {
             "hashes": self._list2string(torrent_hashes, "|"),
@@ -2079,9 +2097,17 @@ class TorrentDictionary(ClientCache[TorrentsAPIMixIn], ListEntry):
         """Implements :meth:`~TorrentsAPIMixIn.torrents_recheck`."""
         self._client.torrents_recheck(torrent_hashes=self._torrent_hash, **kwargs)
 
-    def reannounce(self, **kwargs: APIKwargsT) -> None:
+    def reannounce(
+        self,
+        urls: str | Iterable[str] | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         """Implements :meth:`~TorrentsAPIMixIn.torrents_reannounce`."""
-        self._client.torrents_reannounce(torrent_hashes=self._torrent_hash, **kwargs)
+        self._client.torrents_reannounce(
+            torrent_hashes=self._torrent_hash,
+            urls=urls,
+            **kwargs,
+        )
 
     def increase_priority(self, **kwargs: APIKwargsT) -> None:
         """Implements :meth:`~TorrentsAPIMixIn.torrents_increase_priority`."""
@@ -3224,6 +3250,9 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
         ssl_private_key: str | None = None,
         ssl_dh_params: str | None = None,
         is_stopped: bool | None = None,
+        forced: bool | None = None,
+        file_priorities: Iterable[int] | None = None,
+        downloader: str | None = None,
         share_limits_mode: Literal["Default", "MatchAny", "MatchAll"] | None = None,
         **kwargs: APIKwargsT,
     ) -> str | TorrentsAddedMetadata:
@@ -3257,13 +3286,16 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             ssl_private_key=ssl_private_key,
             ssl_dh_params=ssl_dh_params,
             is_stopped=is_stopped,
+            forced=forced,
+            file_priorities=file_priorities,
+            downloader=downloader,
             share_limits_mode=share_limits_mode,
             **kwargs,
         )
 
-    def count(self) -> int:
+    def count(self, **kwargs: APIKwargsT) -> int:
         """Implements :meth:`~TorrentsAPIMixIn.torrents_count`."""
-        return self._client.torrents_count()
+        return self._client.torrents_count(**kwargs)
 
     def properties(
         self,

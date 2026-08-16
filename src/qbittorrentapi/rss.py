@@ -113,11 +113,12 @@ class RSSAPIMixIn(AppAPIMixIn):
         self,
         item_path: str | None = None,
         refresh_interval: int | None = None,
+        **kwargs: APIKwargsT,
     ) -> None:
         """
         Update the refresh interval for the RSS feed.
 
-        The method was introduced with qBittorrent v5.2.0 (Web API v2.11.5).
+        This method was introduced with qBittorrent v5.2.0 (Web API v2.11.5).
 
         :param item_path: Name and/or path for feed
         :param refresh_interval: refresh interval in minutes
@@ -128,6 +129,7 @@ class RSSAPIMixIn(AppAPIMixIn):
             _method="setFeedRefreshInterval",
             data=data,
             version_introduced="2.11.5",
+            **kwargs,
         )
 
     rss_setFeedRefreshInterval = rss_set_feed_refresh_interval
@@ -422,11 +424,13 @@ class RSS(ClientCache[RSSAPIMixIn]):
         self,
         item_path: str | None = None,
         refresh_interval: int | None = None,
+        **kwargs: APIKwargsT,
     ) -> None:
         """Implements :meth:`~RSSAPIMixIn.rss_set_feed_refresh_interval`."""
         return self._client.rss_set_feed_refresh_interval(
             item_path=item_path,
             refresh_interval=refresh_interval,
+            **kwargs,
         )
 
     setFeedRefreshInterval = set_feed_refresh_interval
@@ -452,9 +456,13 @@ class RSS(ClientCache[RSSAPIMixIn]):
 
     moveItem = move_item
 
-    def refresh_item(self, item_path: str | None = None) -> None:
+    def refresh_item(
+        self,
+        item_path: str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
         """Implements :meth:`~RSSAPIMixIn.rss_refresh_item`."""
-        return self._client.rss_refresh_item(item_path=item_path)
+        return self._client.rss_refresh_item(item_path=item_path, **kwargs)
 
     refreshItem = refresh_item
 

@@ -238,7 +238,7 @@ class TransferAPIMixIn(AppAPIMixIn):
             _name=APINames.Transfer,
             _method="banPeers",
             data=data,
-            version_introduced="2.3",
+            version_introduced="2.3.0",
             **kwargs,
         )
 
