@@ -486,13 +486,14 @@ class TorrentsAPIMixIn(AppAPIMixIn):
                 raise TorrentFileError(io_err)
         return files  # type: ignore[return-value]
 
-    def torrents_count(self) -> int:
+    def torrents_count(self, **kwargs: APIKwargsT) -> int:
         """Retrieve count of torrents."""
         return self._post_cast(
             _name=APINames.Torrents,
             _method="count",
             response_class=int,
             version_introduced="2.9.3",
+            **kwargs,
         )
 
     ##########################################################################
@@ -3211,9 +3212,9 @@ class Torrents(ClientCache[TorrentsAPIMixIn]):
             **kwargs,
         )
 
-    def count(self) -> int:
+    def count(self, **kwargs: APIKwargsT) -> int:
         """Implements :meth:`~TorrentsAPIMixIn.torrents_count`."""
-        return self._client.torrents_count()
+        return self._client.torrents_count(**kwargs)
 
     def properties(
         self,
