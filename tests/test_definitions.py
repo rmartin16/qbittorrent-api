@@ -1,15 +1,21 @@
+import ast
+import inspect
+import textwrap
 from enum import Enum
 
 import pytest
 
+import qbittorrentapi
 from qbittorrentapi._attrdict import AttrDict
 from qbittorrentapi.definitions import (
+    APINames,
     Dictionary,
     List,
     ListEntry,
     TorrentState,
     TrackerStatus,
 )
+from qbittorrentapi.torrents import TorrentInfoList
 
 torrent_all_states = [
     "error",
@@ -204,3 +210,86 @@ def test_list_actions(client):
         ListEntry({"two": "2"}),
         ListEntry({"three": "3"}),
     ]
+
+
+def _api_method_names():
+    """Every ``<namespace>_<method>`` API method implemented on the mixins."""
+    for namespace in APINames:
+        if not namespace.value:
+            continue
+        for name in dir(qbittorrentapi.Client):
+            if not name.startswith(f"{namespace.value}_"):
+                continue
+            if callable(getattr(qbittorrentapi.Client, name)):
+                yield namespace.value, name
+
+
+_API_METHODS = list(_api_method_names())
+_API_METHOD_IDS = [name for _, name in _API_METHODS]
+
+
+def _accepts_kwargs(func):
+    try:
+        params = inspect.signature(func).parameters.values()
+    except (ValueError, TypeError):  # pragma: no cover - builtins have no signature
+        return True
+    return any(param.kind is inspect.Parameter.VAR_KEYWORD for param in params)
+
+
+def _forwards_kwargs(func):
+    """Whether ``func`` passes its ``**kwargs`` on to a call in its body."""
+    tree = ast.parse(textwrap.dedent(inspect.getsource(func)))
+    func_def = tree.body[0]
+    kwarg_name = func_def.args.kwarg.arg
+    return any(
+        isinstance(node, ast.Call)
+        and any(
+            keyword.arg is None
+            and isinstance(keyword.value, ast.Name)
+            and keyword.value.id == kwarg_name
+            for keyword in node.keywords
+        )
+        for node in ast.walk(func_def)
+    )
+
+
+@pytest.mark.parametrize("namespace, name", _API_METHODS, ids=_API_METHOD_IDS)
+def test_api_methods_accept_kwargs(namespace, name):
+    """API methods must accept ``**kwargs`` to pass through to the request."""
+    meth = getattr(qbittorrentapi.Client, name)
+    assert _accepts_kwargs(meth), f"{name}() does not accept **kwargs"
+
+
+@pytest.mark.parametrize("namespace, name", _API_METHODS, ids=_API_METHOD_IDS)
+def test_interface_methods_accept_kwargs(namespace, name):
+    """Interface methods must accept ``**kwargs`` and pass them along."""
+    interface = getattr(qbittorrentapi.Client(host="localhost:1"), namespace)
+    short_name = name[len(namespace) + 1 :]
+
+    if isinstance(inspect.getattr_static(type(interface), short_name, None), property):
+        pytest.skip(f"{namespace}.{short_name} is a property")
+    meth = getattr(interface, short_name, None)
+    if meth is None or not callable(meth):
+        # e.g. torrents_create_tags is exposed via the torrent_tags interface
+        pytest.skip(f"{namespace}.{short_name} is implemented on another interface")
+
+    assert _accepts_kwargs(meth), f"{namespace}.{short_name}() does not accept **kwargs"
+
+    if inspect.ismethod(meth):
+        assert _forwards_kwargs(meth), (
+            f"{namespace}.{short_name}() accepts **kwargs but never forwards them"
+        )
+
+
+def test_list_slice_preserves_client():
+    """Slicing must not re-wrap entries and drop their cached client (#406)."""
+    client = object()
+    torrents = TorrentInfoList(
+        [{"hash": "abc", "name": "one"}, {"hash": "def", "name": "two"}],
+        client=client,
+    )
+
+    assert torrents[0]._client is client
+    assert torrents[0:1][0]._client is client
+    assert torrents.copy()[0]._client is client
+    assert torrents[0:1][0].name == "one"

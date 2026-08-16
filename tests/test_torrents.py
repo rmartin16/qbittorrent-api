@@ -2,6 +2,7 @@ import errno
 import platform
 import sys
 from time import sleep
+from unittest.mock import MagicMock
 
 import pytest
 import requests
@@ -15,6 +16,7 @@ from qbittorrentapi.exceptions import (
     TorrentFileError,
     TorrentFileNotFoundError,
     TorrentFilePermissionError,
+    UnsupportedMediaType415Error,
 )
 from qbittorrentapi.torrents import (
     TagList,
@@ -22,16 +24,20 @@ from qbittorrentapi.torrents import (
     TorrentFilesList,
     TorrentInfoList,
     TorrentLimitsDictionary,
+    TorrentMetadataDictionary,
+    TorrentMetadataList,
     TorrentPieceInfoList,
     TorrentPropertiesDictionary,
     TorrentsAddedMetadata,
     TorrentsAddPeersDictionary,
+    TorrentSSLParametersDictionary,
     TrackersList,
     WebSeedsList,
 )
 from tests.conftest import (
     ROOT_FOLDER_TORRENT_FILE,
     ROOT_FOLDER_TORRENT_HASH,
+    TORRENT1_FILE,
     TORRENT1_FILENAME,
     TORRENT1_HASH,
     TORRENT1_URL,
@@ -254,6 +260,40 @@ def test_add_torrent_file_fail(client, monkeypatch):
                 client.torrents_add(torrent_files="/etc/hosts")
 
 
+def test_add_skip_checking_sends_both_names(client, monkeypatch):
+    """``skip_checking`` was renamed to ``seedMode`` in Web API v2.16.0."""
+    sent = {}
+
+    def fake_post(*args, **kwargs):
+        sent.update(kwargs["data"])
+        return MagicMock(text="Ok.")
+
+    monkeypatch.setattr(client, "_post", fake_post)
+    client.torrents_add(urls=TORRENT1_URL, is_skip_checking=True)
+
+    assert sent["skip_checking"] == (None, True)
+    assert sent["seedMode"] == (None, True)
+
+
+def test_add_file_priorities_and_downloader(client, monkeypatch):
+    """``filePriorities`` (v2.11.9) and ``downloader`` (v2.13.1) on torrents/add."""
+    sent = {}
+
+    def fake_post(*args, **kwargs):
+        sent.update(kwargs["data"])
+        return MagicMock(text="Ok.")
+
+    monkeypatch.setattr(client, "_post", fake_post)
+    client.torrents_add(
+        urls=TORRENT1_URL,
+        file_priorities=[0, 1, 7],
+        downloader="a-search-plugin",
+    )
+
+    assert sent["filePriorities"] == (None, "0,1,7")
+    assert sent["downloader"] == (None, "a-search-plugin")
+
+
 @pytest.mark.parametrize("keep_root_folder", [True, False, None])
 @pytest.mark.parametrize(
     "content_layout", [None, "Original", "Subfolder", "NoSubfolder"]
@@ -287,8 +327,8 @@ def test_add_options(client, api_version, keep_root_folder, content_layout, tmp_
             check(lambda: torrent.info.category, "test_category")
             check(
                 lambda: torrent.info.state,
-                ("pausedDL", "checkingResumeData"),
-                reverse=True,
+                # qBittorrent v5 renamed the paused states to stopped
+                ("pausedDL", "stoppedDL"),
                 any=True,
             )
             check(
@@ -423,11 +463,17 @@ def test_webseeds_slice(client, orig_torrent, webseeds_func):
 )
 def test_add_webseeds(client, new_torrent, add_webseeds_func, webseeds):
     assert new_torrent.webseeds == WebSeedsList([])
-    client.func(add_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
+
+    def add_webseeds():
+        client.func(add_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
+
+    add_webseeds()
     check(
         lambda: sorted([w.url for w in new_torrent.webseeds]),
         (webseeds if isinstance(webseeds, list) else [webseeds]),
         reverse=True,
+        # see tests/test_torrent.py::test_add_webseed for why this is re-sent
+        action=add_webseeds,
     )
 
 
@@ -458,14 +504,32 @@ def test_add_webseeds_not_implemented(client, orig_torrent, add_webseeds_func):
 )
 def test_edit_webseeds(client, new_torrent, edit_webseed_func):
     assert new_torrent.webseeds == WebSeedsList([])
-    new_torrent.add_webseeds(urls="http://example/asdf")
-    client.func(edit_webseed_func)(
-        torrent_hash=new_torrent.hash,
-        orig_url="http://example/asdf",
-        new_url="http://example/qwer",
-    )
-    check(lambda: len(new_torrent.webseeds), 1)
-    check(lambda: new_torrent.webseeds[0].url, "http://example/qwer", reverse=True)
+    orig_url, new_url = "http://example/asdf", "http://example/qwer"
+
+    def urls():
+        return [w.url for w in new_torrent.webseeds]
+
+    def add_orig_url():
+        new_torrent.add_webseeds(urls=orig_url)
+
+    def edit_webseed():
+        client.func(edit_webseed_func)(
+            torrent_hash=new_torrent.hash, orig_url=orig_url, new_url=new_url
+        )
+
+    # see tests/test_torrent.py::test_edit_webseeds for why this is re-sent
+    def redo_edit():
+        current = urls()
+        if orig_url in current:
+            edit_webseed()
+        elif new_url not in current:
+            add_orig_url()
+
+    add_orig_url()
+    check(urls, orig_url, reverse=True, action=add_orig_url)
+    edit_webseed()
+    check(urls, new_url, reverse=True, action=redo_edit)
+    check(lambda: len(new_torrent.webseeds), 1, action=redo_edit)
 
 
 @pytest.mark.skipif_after_api_version("2.11.3")
@@ -502,16 +566,33 @@ def test_edit_webseed_not_implemented(client, orig_torrent, edit_webseed_func):
 )
 def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
     assert new_torrent.webseeds == WebSeedsList([])
-    new_torrent.add_webseeds(
-        urls=[
-            "http://example/webseedone",
-            "http://example/webseedtwo",
-            "http://example/webseedthree",
-        ]
+    all_webseeds = [
+        "http://example/webseedone",
+        "http://example/webseedtwo",
+        "http://example/webseedthree",
+    ]
+
+    def add_webseeds():
+        new_torrent.add_webseeds(urls=all_webseeds)
+
+    def remove_webseeds():
+        client.func(remove_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
+
+    add_webseeds()
+    # removing before qBittorrent registers them would silently do nothing
+    check(
+        lambda: [w.url for w in new_torrent.webseeds],
+        all_webseeds,
+        reverse=True,
+        action=add_webseeds,
     )
-    client.func(remove_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
+    remove_webseeds()
     for webseed in webseeds if isinstance(webseeds, list) else [webseeds]:
-        check(lambda: webseed not in {w.url for w in new_torrent.webseeds}, True)
+        check(
+            lambda: webseed not in {w.url for w in new_torrent.webseeds},
+            True,
+            action=remove_webseeds,
+        )
 
 
 @pytest.mark.skipif_after_api_version("2.11.3")
@@ -583,6 +664,153 @@ def test_piece_states_slice(client, orig_torrent, piece_state_func):
 def test_piece_hashes(client, orig_torrent, piece_hashes_func):
     piece_hashes = client.func(piece_hashes_func)(torrent_hash=orig_torrent.hash)
     assert isinstance(piece_hashes, TorrentPieceInfoList)
+
+
+@pytest.mark.skipif_before_api_version("2.15.1")
+@pytest.mark.parametrize(
+    "piece_availability_func",
+    [
+        "torrents_piece_availability",
+        "torrents_pieceAvailability",
+        "torrents.piece_availability",
+        "torrents.pieceAvailability",
+    ],
+)
+def test_piece_availability(client, orig_torrent, piece_availability_func):
+    availability = client.func(piece_availability_func)(torrent_hash=orig_torrent.hash)
+    assert isinstance(availability, TorrentPieceInfoList)
+    assert isinstance(orig_torrent.piece_availability, TorrentPieceInfoList)
+
+
+@pytest.mark.skipif_after_api_version("2.15.1")
+@pytest.mark.parametrize(
+    "piece_availability_func",
+    [
+        "torrents_piece_availability",
+        "torrents_pieceAvailability",
+        "torrents.piece_availability",
+        "torrents.pieceAvailability",
+    ],
+)
+def test_piece_availability_not_implemented(client, piece_availability_func):
+    with pytest.raises(NotImplementedError):
+        client.func(piece_availability_func)()
+
+
+@pytest.mark.skipif_before_api_version("2.10.3")
+@pytest.mark.parametrize(
+    "ssl_params_func",
+    [
+        "torrents_ssl_parameters",
+        "torrents_SSLParameters",
+        "torrents.ssl_parameters",
+        "torrents.SSLParameters",
+    ],
+)
+def test_ssl_parameters(client, orig_torrent, ssl_params_func):
+    ssl_params = client.func(ssl_params_func)(torrent_hash=orig_torrent.hash)
+    assert isinstance(ssl_params, TorrentSSLParametersDictionary)
+    # a non-SSL torrent reports empty parameters
+    assert "ssl_certificate" in ssl_params
+    assert isinstance(orig_torrent.ssl_parameters, TorrentSSLParametersDictionary)
+
+
+@pytest.mark.skipif_after_api_version("2.10.3")
+@pytest.mark.parametrize(
+    "ssl_params_func",
+    [
+        "torrents_ssl_parameters",
+        "torrents_SSLParameters",
+        "torrents.ssl_parameters",
+        "torrents.SSLParameters",
+    ],
+)
+def test_ssl_parameters_not_implemented(client, ssl_params_func):
+    with pytest.raises(NotImplementedError):
+        client.func(ssl_params_func)()
+
+
+@pytest.mark.skipif_before_api_version("2.10.3")
+@pytest.mark.parametrize(
+    "set_ssl_params_func",
+    [
+        "torrents_set_ssl_parameters",
+        "torrents_setSSLParameters",
+        "torrents.set_ssl_parameters",
+        "torrents.setSSLParameters",
+    ],
+)
+def test_set_ssl_parameters(client, orig_torrent, set_ssl_params_func):
+    # qBittorrent raises APIErrorType::BadData for SSL parameters that don't
+    # parse, which it maps to HTTP 415 rather than 400
+    with pytest.raises(UnsupportedMediaType415Error):
+        client.func(set_ssl_params_func)(
+            torrent_hash=orig_torrent.hash,
+            ssl_certificate="not-a-certificate",
+            ssl_private_key="not-a-key",
+            ssl_dh_params="not-dh-params",
+        )
+
+    with pytest.raises(UnsupportedMediaType415Error):
+        orig_torrent.set_ssl_parameters(
+            ssl_certificate="not-a-certificate",
+            ssl_private_key="not-a-key",
+            ssl_dh_params="not-dh-params",
+        )
+
+
+@pytest.mark.skipif_before_api_version("2.11.9")
+@pytest.mark.parametrize(
+    "fetch_metadata_func",
+    ["torrents_fetch_metadata", "torrents_fetchMetadata", "torrents.fetch_metadata"],
+)
+def test_fetch_metadata(client, fetch_metadata_func):
+    metadata = client.func(fetch_metadata_func)(source=TORRENT1_URL)
+    assert isinstance(metadata, TorrentMetadataDictionary)
+
+
+@pytest.mark.skipif_before_api_version("2.11.9")
+@pytest.mark.parametrize(
+    "fetch_metadata_func",
+    ["torrents_fetch_metadata", "torrents_fetchMetadata", "torrents.fetch_metadata"],
+)
+def test_fetch_metadata_invalid_source(client, fetch_metadata_func):
+    with pytest.raises(InvalidRequest400Error):
+        client.func(fetch_metadata_func)(source="not a torrent source")
+
+
+@pytest.mark.skipif_after_api_version("2.11.9")
+@pytest.mark.parametrize(
+    "fetch_metadata_func",
+    ["torrents_fetch_metadata", "torrents_fetchMetadata", "torrents.fetch_metadata"],
+)
+def test_fetch_metadata_not_implemented(client, fetch_metadata_func):
+    with pytest.raises(NotImplementedError):
+        client.func(fetch_metadata_func)()
+
+
+@pytest.mark.skipif_before_api_version("2.11.9")
+@pytest.mark.parametrize(
+    "parse_metadata_func",
+    ["torrents_parse_metadata", "torrents_parseMetadata", "torrents.parse_metadata"],
+)
+def test_parse_metadata(client, parse_metadata_func):
+    metadata = client.func(parse_metadata_func)(torrent_files=TORRENT1_FILE)
+    assert isinstance(metadata, TorrentMetadataList)
+    assert len(metadata) == 1
+    assert isinstance(metadata[0], TorrentMetadataDictionary)
+
+
+@pytest.mark.skipif_before_api_version("2.11.9")
+@pytest.mark.parametrize(
+    "save_metadata_func",
+    ["torrents_save_metadata", "torrents_saveMetadata", "torrents.save_metadata"],
+)
+def test_save_metadata(client, save_metadata_func):
+    client.torrents_parse_metadata(torrent_files=TORRENT1_FILE)
+    torrent_file = client.func(save_metadata_func)(source=TORRENT1_HASH)
+    assert isinstance(torrent_file, bytes)
+    assert torrent_file[:11] == b"d8:announce"
 
 
 @pytest.mark.parametrize(
@@ -960,6 +1188,23 @@ def test_reannounce(client, orig_torrent, reannounce_func):
 def test_reannounce_not_implemented(client, reannounce_func):
     with pytest.raises(NotImplementedError):
         client.func(reannounce_func)()
+
+
+def test_reannounce_urls(client, monkeypatch):
+    """``urls`` limits the reannounce to specific trackers (Web API v2.11.10)."""
+    sent = {}
+
+    def fake_post(*args, **kwargs):
+        sent.update(kwargs["data"])
+
+    monkeypatch.setattr(client, "_post", fake_post)
+    client.torrents_reannounce(
+        torrent_hashes="hash1",
+        urls=["http://one.example/announce", "http://two.example/announce"],
+    )
+
+    assert sent["hashes"] == "hash1"
+    assert sent["urls"] == ("http://one.example/announce|http://two.example/announce")
 
 
 # priority doesn't seem to work on v4.1.0
@@ -1401,8 +1646,9 @@ def test_set_force_start(client, orig_torrent, set_force_start_func):
     ],
 )
 def test_set_super_seeding(client, orig_torrent, set_super_seeding_func):
+    # see tests/test_torrent.py::test_set_super_seeding for why the resulting
+    # super seeding state isn't asserted here
     client.func(set_super_seeding_func)(enable=False, torrent_hashes=orig_torrent.hash)
-    check(lambda: orig_torrent.info.force_start, False)
 
 
 @pytest.mark.skipif_before_api_version("2.3.0")

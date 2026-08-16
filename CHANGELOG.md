@@ -1,5 +1,8 @@
 Change Log
 ==========
+### v2026.8.0 (01 aug 2026)
+- Fix slicing returned objects (#644)
+
 ### v2026.7.0 (07 jul 2026)
 - Advertise support for qBittorrent v5.2.3
 

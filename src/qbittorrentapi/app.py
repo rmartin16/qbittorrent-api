@@ -41,6 +41,10 @@ class ProcessInfoDictionary(Dictionary[str | int]):
     """Response for :meth:`~AppAPIMixIn.app_process_info`"""  # noqa: D203, D415
 
 
+class APIKeyDictionary(Dictionary[str]):
+    """Response for :meth:`~AppAPIMixIn.app_rotate_api_key`"""
+
+
 class Cookie(ListEntry):
     """Item in :class:`CookieList`"""
 
@@ -287,12 +291,13 @@ class AppAPIMixIn(AuthAPIMixIn):
 
     app_networkInterfaceAddressList = app_network_interface_address_list
 
-    def app_send_test_email(self) -> None:
+    def app_send_test_email(self, **kwargs: APIKwargsT) -> None:
         """Sends a test email using the configured email address."""
         self._post(
             _name=APINames.Application,
             _method="sendTestEmail",
             version_introduced="2.10.4",
+            **kwargs,
         )
 
     app_sendTestEmail = app_send_test_email
@@ -301,6 +306,7 @@ class AppAPIMixIn(AuthAPIMixIn):
         self,
         directory_path: str | os.PathLike[AnyStr] | None = None,
         with_metadata: bool | None = None,
+        **kwargs: APIKwargsT,
     ) -> DirectoryContentList:
         """
         The contents of a directory file path.
@@ -321,9 +327,45 @@ class AppAPIMixIn(AuthAPIMixIn):
             data=data,
             response_class=DirectoryContentList,
             version_introduced="2.11",
+            **kwargs,
         )
 
     app_getDirectoryContent = app_get_directory_content
+
+    def app_rotate_api_key(self, **kwargs: APIKwargsT) -> APIKeyDictionary:
+        """
+        Generate a new Web API key, replacing any existing one.
+
+        This method was introduced with qBittorrent v5.2.0 (Web API v2.14.0).
+
+        Note that the returned key immediately invalidates the previous one; pass
+        it as ``api_key`` when constructing a :class:`~qbittorrentapi.client.Client`
+        to authenticate with it.
+        """
+        return self._post_cast(
+            _name=APINames.Application,
+            _method="rotateAPIKey",
+            response_class=APIKeyDictionary,
+            version_introduced="2.14.0",
+            **kwargs,
+        )
+
+    app_rotateAPIKey = app_rotate_api_key
+
+    def app_delete_api_key(self, **kwargs: APIKwargsT) -> None:
+        """
+        Delete the Web API key, disabling API key authentication.
+
+        This method was introduced with qBittorrent v5.2.0 (Web API v2.14.1).
+        """
+        self._post(
+            _name=APINames.Application,
+            _method="deleteAPIKey",
+            version_introduced="2.14.1",
+            **kwargs,
+        )
+
+    app_deleteAPIKey = app_delete_api_key
 
 
 class Application(ClientCache[AppAPIMixIn]):
@@ -441,9 +483,9 @@ class Application(ClientCache[AppAPIMixIn]):
 
     networkInterfaceAddressList = network_interface_address_list
 
-    def send_test_email(self) -> None:
+    def send_test_email(self, **kwargs: APIKwargsT) -> None:
         """Implements :meth:`~AppAPIMixIn.app_send_test_email`."""
-        self._client.app_send_test_email()
+        self._client.app_send_test_email(**kwargs)
 
     sendTestEmail = send_test_email
 
@@ -451,11 +493,25 @@ class Application(ClientCache[AppAPIMixIn]):
         self,
         directory_path: str | os.PathLike[AnyStr] | None = None,
         with_metadata: bool | None = None,
+        **kwargs: APIKwargsT,
     ) -> DirectoryContentList:
         """Implements :meth:`~AppAPIMixIn.app_get_directory_content`."""
         return self._client.app_get_directory_content(
             directory_path=directory_path,
             with_metadata=with_metadata,
+            **kwargs,
         )
 
     getDirectoryContent = get_directory_content
+
+    def rotate_api_key(self, **kwargs: APIKwargsT) -> APIKeyDictionary:
+        """Implements :meth:`~AppAPIMixIn.app_rotate_api_key`."""
+        return self._client.app_rotate_api_key(**kwargs)
+
+    rotateAPIKey = rotate_api_key
+
+    def delete_api_key(self, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~AppAPIMixIn.app_delete_api_key`."""
+        self._client.app_delete_api_key(**kwargs)
+
+    deleteAPIKey = delete_api_key

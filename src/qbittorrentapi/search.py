@@ -549,6 +549,6 @@ class Search(ClientCache[SearchAPIMixIn]):
         **kwargs: APIKwargsT,
     ) -> None:
         """Implements :meth:`~SearchAPIMixIn.search_download_torrent`."""
-        return self._client.search_download_torrent(url=url, plugin=plugin)
+        return self._client.search_download_torrent(url=url, plugin=plugin, **kwargs)
 
     downloadTorrent = download_torrent

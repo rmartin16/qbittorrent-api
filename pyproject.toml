@@ -42,14 +42,14 @@ dependencies = [
 [dependency-groups]
 dev = [
     "build ==1.5.0",
-    "coverage[toml]==7.14.3",
-    "mypy ==2.1.0",
-    "pre-commit ==4.6.0",
+    "coverage[toml]==7.15.2",
+    "mypy==2.3.0",
+    "pre-commit==4.6.1",
     "pytest==9.1.1",
-    "tox==4.56.1",
-    "tox-uv ==1.35.2",
-    "twine ==6.2.0",
-    "types-requests ==2.33.0.20260518",
+    "tox==4.58.0",
+    "tox-uv==1.36.0",
+    "twine==7.0.0",
+    "types-requests==2.33.0.20260712",
 ]
 
 docs = [

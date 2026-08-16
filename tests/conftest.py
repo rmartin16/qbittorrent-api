@@ -68,11 +68,18 @@ ROOT_FOLDER_TORRENT_FILE = ROOT_FOLDER_TORRENT_FILE_HANDLE.read()
 @pytest.fixture(autouse=True)
 def abort_if_qbittorrent_crashes(client):
     """Abort tests if qbittorrent seemingly disappears during testing."""
-    try:
-        client.app_version()
-    except APIConnectionError as e:
-        print(f"qbittorrent crashed: {e!r}")
-        pytest.exit("qBittorrent crashed :(")
+    # a single failed request isn't proof qBittorrent is gone; it may just be busy
+    # enough to stall its event loop. since this aborts the entire test session,
+    # give it a chance to respond before giving up.
+    for attempt in range(5):
+        try:
+            client.app_version()
+        except APIConnectionError as e:
+            print(f"qbittorrent unreachable (attempt {attempt + 1}): {e!r}")
+            sleep(2)
+        else:
+            return
+    pytest.exit("qBittorrent crashed :(")
 
 
 @pytest.fixture(autouse=True)
@@ -97,6 +104,12 @@ def skip_if_implemented(request, api_version):
 def client():
     """qBittorrent Client for testing session."""
     client = Client(
+        # pin the scheme for this client. qBittorrent is always serving HTTP for
+        # testing, but a transient connection failure can otherwise cause scheme
+        # detection to permanently switch this client to HTTPS...which then fails
+        # every subsequent request for the rest of the session.
+        host=f"http://{environ['QBITTORRENTAPI_HOST']}",
+        FORCE_SCHEME_FROM_HOST=True,
         RAISE_NOTIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True,
         VERBOSE_RESPONSE_LOGGING=True,
         VERIFY_WEBUI_CERTIFICATE=False,
@@ -144,6 +157,22 @@ def orig_torrent(client):
     return ORIG_TORRENT
 
 
+def wait_until_torrent_is_loaded(torrent):
+    """
+    Wait for qBittorrent to finish loading a newly added torrent.
+
+    Requests for a torrent qBittorrent is still loading are liable to be discarded
+    without any indication to the caller...for instance, adding a webseed is done in
+    a worker thread that silently swallows any exception it encounters.
+    """
+    check(
+        lambda: torrent.info.state,
+        ("checkingResumeData", "checkingDL", "checkingUP", "allocating", "metaDL"),
+        negate=True,
+        check_time=30,
+    )
+
+
 @contextmanager
 def new_torrent_standalone(client, torrent_hash=TORRENT1_HASH, tmp_path=None, **kwargs):
     def add_test_torrent(torrent_hash_, **kw):
@@ -179,6 +208,7 @@ def new_torrent_standalone(client, torrent_hash=TORRENT1_HASH, tmp_path=None, **
                 sleep(CHECK_SLEEP)
             else:
                 torrent.func = staticmethod(partial(get_func, torrent))
+                wait_until_torrent_is_loaded(torrent)
                 return torrent
 
     @retry()
@@ -193,11 +223,15 @@ def new_torrent_standalone(client, torrent_hash=TORRENT1_HASH, tmp_path=None, **
 
     try:
         try:
-            yield add_test_torrent(torrent_hash, **kwargs)
+            torrent = add_test_torrent(torrent_hash, **kwargs)
         except Exception:
+            # only adding the torrent is retried. yielding inside this handler
+            # instead would yield a second time for a failure raised by the test
+            # itself, and the RuntimeError that causes hides the real failure.
             delete_test_torrent(client, torrent_hash)
             sleep(1)
-            yield add_test_torrent(torrent_hash, **kwargs)
+            torrent = add_test_torrent(torrent_hash, **kwargs)
+        yield torrent
     finally:
         delete_test_torrent(client, torrent_hash)
 

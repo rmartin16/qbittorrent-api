@@ -1,9 +1,16 @@
+from contextlib import suppress
 from os import environ, path
 from time import sleep
 
 import pytest
 
-from qbittorrentapi import APIConnectionError, Client, TorrentDictionary
+from qbittorrentapi import (
+    APIConnectionError,
+    Client,
+    Conflict409Error,
+    HTTPError,
+    TorrentDictionary,
+)
 from qbittorrentapi._version_support import (
     APP_VERSION_2_API_VERSION_MAP as api_version_map,
 )
@@ -12,6 +19,11 @@ from qbittorrentapi._version_support import (
 CHECK_TIME = 10
 # Amount of time to sleep between checks
 CHECK_SLEEP = 0.25
+# Errors that mean qBittorrent hasn't caught up yet, so the check should be retried.
+# LookupError and AttributeError cover values qBittorrent hasn't populated yet, e.g.
+# indexing into a list that is still empty. The last attempt raises regardless, so
+# retrying these can only delay a genuine failure...never hide one.
+RETRY_ERRORS = (AssertionError, AttributeError, LookupError)
 
 
 def setup_environ():
@@ -82,17 +94,30 @@ def get_torrent(client, torrent_hash) -> TorrentDictionary:
 
 @retry(200)
 def add_torrent(client, torrent_url, torrent_hash):
-    client.torrents_add(urls=torrent_url, upload_limit=10, download_limit=10)
+    with suppress(Conflict409Error):
+        # qBittorrent >= 5.2 returns 409 when adding a torrent that is already
+        # present (e.g. it was added on a previous retry iteration but hasn't
+        # shown up in torrents_info() yet). That is the state we want, so fall
+        # through and look for it below.
+        client.torrents_add(urls=torrent_url, upload_limit=10, download_limit=10)
     if torrent_hash not in [t.hash for t in client.torrents_info()]:
         sleep(0.1)
         raise Exception("didn't find added torrent")
 
 
-def check(check_func, value, reverse=False, negate=False, any=False, check_time=None):
+def check(
+    check_func,
+    value,
+    reverse=False,
+    negate=False,
+    any=False,
+    check_time=None,
+    action=None,
+):
     """
     Compare the return value of an arbitrary function to expected value with retries.
-    Since some requests take some time to take effect in qBittorrent, the retries every
-    second for 10 seconds.
+    Since some requests take some time to take effect in qBittorrent, the value is
+    re-checked every ``CHECK_SLEEP`` seconds for ``CHECK_TIME`` seconds.
 
     :param check_func: callable to generate values to check
     :param value: str, int, or iterator of values to look for
@@ -102,29 +127,30 @@ def check(check_func, value, reverse=False, negate=False, any=False, check_time=
     :param check_time: maximum number of seconds to spend checking
     :param any: False: all values must be (not) found; True: any value must be (not)
         found
+    :param action: callable to re-send the request being checked before each retry;
+        qBittorrent occasionally never applies a request (e.g. it decides its own,
+        potentially stale, cached state already matches), and re-sending is the only
+        way to recover. Only use for requests that are safe to send more than once.
     """
 
+    # assertions are not rewritten by pytest in this module, so each
+    # assertion needs to report the values that caused it to fail
     def _do_check(_check_func_val, _v, _negate, _reverse):
         if _negate:
             if _reverse:
-                # print("Looking that %s is _not_ in %s" % (_v, _check_func_val))
-                assert _v not in _check_func_val
+                assert _v not in _check_func_val, f"found {_v!r} in {_check_func_val!r}"
             else:
-                # print("Looking that %s is _not_ in %s" % (_check_func_val, (_v,)))
-                assert _check_func_val not in (_v,)
+                assert _check_func_val not in (_v,), f"{_check_func_val!r} is {_v!r}"
         else:
             if _reverse:
-                # print("Looking for %s in %s" % (_v, _check_func_val))
-                assert _v in _check_func_val
+                assert _v in _check_func_val, f"{_v!r} not in {_check_func_val!r}"
             else:
-                # print("Looking for %s in %s" % (_check_func_val, (_v,)))
-                assert _check_func_val in (_v,)
+                assert _check_func_val in (_v,), f"{_check_func_val!r} is not {_v!r}"
 
     if isinstance(value, (str, int)):
         value = (value,)
 
     check_limit = int((check_time or CHECK_TIME) / CHECK_SLEEP)
-    success = False
 
     try:
         for i in range(check_limit):
@@ -138,7 +164,7 @@ def check(check_func, value, reverse=False, negate=False, any=False, check_time=
                         # get val here so pytest includes value in failures
                         check_val = check_func()
                         _do_check(check_val, val, negate, reverse)
-                    except AssertionError as e:
+                    except RETRY_ERRORS as e:
                         exp = e
 
                     # fail the test on first failure if any=False
@@ -153,15 +179,18 @@ def check(check_func, value, reverse=False, negate=False, any=False, check_time=
                     raise exp
 
                 # test succeeded!!!!
-                success = True
-                break
+                return
 
-            except AssertionError:
-                if i >= check_limit:
+            except RETRY_ERRORS:
+                # let the last failure fail the test so its details are reported
+                if i >= check_limit - 1:
                     raise
                 sleep(CHECK_SLEEP)
-    except APIConnectionError:
-        raise AssertionError("qBittorrent crashed...")
-
-    if not success:
-        raise Exception("Test neither succeeded nor failed...")
+                if action is not None:
+                    action()
+    except HTTPError:
+        # every HTTP error subclasses APIConnectionError, so let anything
+        # qBittorrent actually responded with be reported as itself
+        raise
+    except APIConnectionError as e:
+        raise AssertionError(f"qBittorrent is unreachable: {e!r}") from e
