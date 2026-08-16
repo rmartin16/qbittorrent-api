@@ -397,7 +397,9 @@ class TorrentsAPIMixIn(AppAPIMixIn):
             "paused": (None, is_stopped),
             "stopped": (None, is_stopped),
             "stopCondition": (None, stop_condition),
+            # skip_checking renamed to seedMode in v5.3.0
             "skip_checking": (None, is_skip_checking),
+            "seedMode": (None, is_skip_checking),
             "root_folder": (None, is_root_folder),
             "contentLayout": (None, content_layout),
             "autoTMM": (None, use_auto_torrent_management),

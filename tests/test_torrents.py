@@ -255,6 +255,21 @@ def test_add_torrent_file_fail(client, monkeypatch):
                 client.torrents_add(torrent_files="/etc/hosts")
 
 
+def test_add_skip_checking_sends_both_names(client, monkeypatch):
+    """``skip_checking`` was renamed to ``seedMode`` in Web API v2.16.0."""
+    sent = {}
+
+    def fake_post(*args, **kwargs):
+        sent.update(kwargs["data"])
+        return MagicMock(text="Ok.")
+
+    monkeypatch.setattr(client, "_post", fake_post)
+    client.torrents_add(urls=TORRENT1_URL, is_skip_checking=True)
+
+    assert sent["skip_checking"] == (None, True)
+    assert sent["seedMode"] == (None, True)
+
+
 def test_add_file_priorities_and_downloader(client, monkeypatch):
     """``filePriorities`` (v2.11.9) and ``downloader`` (v2.13.1) on torrents/add."""
     sent = {}
