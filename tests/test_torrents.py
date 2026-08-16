@@ -15,6 +15,7 @@ from qbittorrentapi.exceptions import (
     TorrentFileError,
     TorrentFileNotFoundError,
     TorrentFilePermissionError,
+    UnsupportedMediaType415Error,
 )
 from qbittorrentapi.torrents import (
     TagList,
@@ -35,6 +36,7 @@ from qbittorrentapi.torrents import (
 from tests.conftest import (
     ROOT_FOLDER_TORRENT_FILE,
     ROOT_FOLDER_TORRENT_HASH,
+    TORRENT1_FILE,
     TORRENT1_FILENAME,
     TORRENT1_HASH,
     TORRENT1_URL,
@@ -704,8 +706,9 @@ def test_ssl_parameters_not_implemented(client, ssl_params_func):
     ],
 )
 def test_set_ssl_parameters(client, orig_torrent, set_ssl_params_func):
-    # qBittorrent rejects SSL parameters that don't parse
-    with pytest.raises(InvalidRequest400Error):
+    # qBittorrent raises APIErrorType::BadData for SSL parameters that don't
+    # parse, which it maps to HTTP 415 rather than 400
+    with pytest.raises(UnsupportedMediaType415Error):
         client.func(set_ssl_params_func)(
             torrent_hash=orig_torrent.hash,
             ssl_certificate="not-a-certificate",
@@ -750,7 +753,7 @@ def test_fetch_metadata_not_implemented(client, fetch_metadata_func):
     ["torrents_parse_metadata", "torrents_parseMetadata", "torrents.parse_metadata"],
 )
 def test_parse_metadata(client, parse_metadata_func):
-    metadata = client.func(parse_metadata_func)(torrent_files=TORRENT1_FILENAME)
+    metadata = client.func(parse_metadata_func)(torrent_files=TORRENT1_FILE)
     assert isinstance(metadata, TorrentMetadataList)
     assert len(metadata) == 1
     assert isinstance(metadata[0], TorrentMetadataDictionary)
@@ -762,7 +765,7 @@ def test_parse_metadata(client, parse_metadata_func):
     ["torrents_save_metadata", "torrents_saveMetadata", "torrents.save_metadata"],
 )
 def test_save_metadata(client, save_metadata_func):
-    client.torrents_parse_metadata(torrent_files=TORRENT1_FILENAME)
+    client.torrents_parse_metadata(torrent_files=TORRENT1_FILE)
     torrent_file = client.func(save_metadata_func)(source=TORRENT1_HASH)
     assert isinstance(torrent_file, bytes)
     assert torrent_file[:11] == b"d8:announce"
