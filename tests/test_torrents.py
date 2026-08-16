@@ -270,6 +270,25 @@ def test_add_skip_checking_sends_both_names(client, monkeypatch):
     assert sent["seedMode"] == (None, True)
 
 
+def test_add_file_priorities_and_downloader(client, monkeypatch):
+    """``filePriorities`` (v2.11.9) and ``downloader`` (v2.13.1) on torrents/add."""
+    sent = {}
+
+    def fake_post(*args, **kwargs):
+        sent.update(kwargs["data"])
+        return MagicMock(text="Ok.")
+
+    monkeypatch.setattr(client, "_post", fake_post)
+    client.torrents_add(
+        urls=TORRENT1_URL,
+        file_priorities=[0, 1, 7],
+        downloader="a-search-plugin",
+    )
+
+    assert sent["filePriorities"] == (None, "0,1,7")
+    assert sent["downloader"] == (None, "a-search-plugin")
+
+
 @pytest.mark.parametrize("keep_root_folder", [True, False, None])
 @pytest.mark.parametrize(
     "content_layout", [None, "Original", "Subfolder", "NoSubfolder"]
@@ -1017,6 +1036,23 @@ def test_reannounce(client, orig_torrent, reannounce_func):
 def test_reannounce_not_implemented(client, reannounce_func):
     with pytest.raises(NotImplementedError):
         client.func(reannounce_func)()
+
+
+def test_reannounce_urls(client, monkeypatch):
+    """``urls`` limits the reannounce to specific trackers (Web API v2.11.10)."""
+    sent = {}
+
+    def fake_post(*args, **kwargs):
+        sent.update(kwargs["data"])
+
+    monkeypatch.setattr(client, "_post", fake_post)
+    client.torrents_reannounce(
+        torrent_hashes="hash1",
+        urls=["http://one.example/announce", "http://two.example/announce"],
+    )
+
+    assert sent["hashes"] == "hash1"
+    assert sent["urls"] == ("http://one.example/announce|http://two.example/announce")
 
 
 # priority doesn't seem to work on v4.1.0

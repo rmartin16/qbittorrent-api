@@ -23,6 +23,7 @@ namespaces
 qBittorrent
 pem
 Reannounce
+reannounce
 ResponseT
 str
 Upsert
