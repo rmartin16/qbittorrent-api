@@ -20,6 +20,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from qbittorrentapi import Client
+from qbittorrentapi.torrents import TorrentDictionary
 from tests.catalog import CATALOG, as_snapshot
 
 pytestmark = pytest.mark.offline
@@ -31,6 +32,8 @@ INTRODUCED = [e for e in CATALOG if e.version_introduced]
 REMOVED = [e for e in CATALOG if e.version_removed]
 INTERFACE_ALIASED = [e for e in CATALOG if e.interface_aliases]
 INTERFACE_INTRODUCED = [e for e in INTRODUCED if e.interface]
+TORRENT_ALIASED = [e for e in CATALOG if e.torrent_method_aliases]
+TORRENT_INTRODUCED = [e for e in INTRODUCED if e.torrent_method]
 
 
 def by_primary(endpoint):
@@ -148,6 +151,61 @@ def test_interface_spelling_is_gated_before_introduction(
 
     with pytest.raises(NotImplementedError, match="available starting in"):
         reach_through_interface(offline_client, endpoint)
+
+
+def required_kwargs(func):
+    """
+    Placeholder arguments for whatever ``func`` requires.
+
+    The version gate fires before the request is built, so the values are
+    irrelevant...but a method with a required argument raises TypeError before
+    reaching the gate if it is called with none.
+    """
+    kwargs = {}
+    for name, param in inspect.signature(func).parameters.items():
+        if name == "self" or param.kind in (param.VAR_POSITIONAL, param.VAR_KEYWORD):
+            continue
+        if param.default is inspect.Parameter.empty:
+            kwargs[name] = None
+    return kwargs
+
+
+def reach_through_torrent(client, endpoint):
+    """Reach an endpoint through a torrent object, as ``torrents_info()`` returns."""
+    torrent = TorrentDictionary({"hash": "abc123"}, client=client)
+    attribute = getattr(torrent, endpoint.torrent_method)
+
+    if endpoint.torrent_method_kind == "method":
+        return attribute(**required_kwargs(attribute))
+    return attribute
+
+
+@pytest.mark.parametrize("endpoint", TORRENT_ALIASED, ids=by_primary)
+def test_torrent_method_aliases_are_the_same_object(endpoint):
+    """The torrent object's camelCase spellings are assignments too."""
+    primary = inspect.getattr_static(TorrentDictionary, endpoint.torrent_method)
+
+    for alias in endpoint.torrent_method_aliases:
+        assert inspect.getattr_static(TorrentDictionary, alias) is primary, (
+            f"torrent.{alias} is not the same object "
+            f"as torrent.{endpoint.torrent_method}"
+        )
+
+
+@pytest.mark.parametrize("endpoint", TORRENT_INTRODUCED, ids=by_primary)
+def test_torrent_method_is_gated_before_introduction(
+    offline_client, monkeypatch, endpoint
+):
+    """
+    The gate must fire on torrent objects as well.
+
+    These are a third way to reach the same endpoints, and the only thing that
+    covered them was a handful of hand-written tests.
+    """
+    pin_versions(offline_client, monkeypatch, api_version="0.0.1", app_version="v0.0.1")
+
+    with pytest.raises(NotImplementedError, match="available starting in"):
+        reach_through_torrent(offline_client, endpoint)
 
 
 @pytest.mark.parametrize("endpoint", INTRODUCED, ids=by_primary)
