@@ -204,8 +204,7 @@ class TorrentSSLParametersDictionary(Dictionary[str]):
 
 
 class TorrentMetadataDictionary(ListEntry):
-    """Response to :meth:`~TorrentsAPIMixIn.torrents_fetch_metadata` and item in
-    :class:`TorrentMetadataList`"""
+    """Response to :meth:`~TorrentsAPIMixIn.torrents_fetch_metadata`"""
 
 
 class TorrentMetadataList(List[TorrentMetadataDictionary]):
