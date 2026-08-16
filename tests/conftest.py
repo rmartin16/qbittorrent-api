@@ -3,6 +3,7 @@ import os
 from contextlib import contextmanager, suppress
 from functools import partial
 from os import environ, path
+from pathlib import Path
 from sys import path as sys_path
 from time import sleep
 from unittest.mock import MagicMock
@@ -46,13 +47,11 @@ assert BASE_PATH.split("/")[-1] == "qbittorrent-api"
 ORIG_TORRENT_FILENAME = "ubuntu-22.04.1-desktop-amd64.iso.torrent"
 ORIG_TORRENT_URL = f"https://github.com/rmartin16/qbittorrent-api/raw/main/tests/_resources/{ORIG_TORRENT_FILENAME}"
 ORIG_TORRENT_HASH = "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0"
-ORIG_TORRENT = None
 
 TORRENT1_FILENAME = "kubuntu-22.04.4-desktop-amd64.iso.torrent"
 TORRENT1_URL = f"https://github.com/rmartin16/qbittorrent-api/raw/main/tests/_resources/{TORRENT1_FILENAME}"
 TORRENT1_HASH = "27a92b32757893ac9eb898e32c952636a3cc7b24"
-TORRENT1_FILE_HANDLE = open(path.join(RESOURCES_PATH, TORRENT1_FILENAME), mode="rb")  # noqa: SIM115
-TORRENT1_FILE = TORRENT1_FILE_HANDLE.read()
+TORRENT1_FILE = Path(RESOURCES_PATH, TORRENT1_FILENAME).read_bytes()
 
 TORRENT2_FILENAME = "xubuntu-22.04.4-desktop-amd64.iso.torrent"
 TORRENT2_URL = f"https://github.com/rmartin16/qbittorrent-api/raw/main/tests/_resources/{TORRENT2_FILENAME}"
@@ -60,8 +59,7 @@ TORRENT2_HASH = "c7d77fc3ecb68344b59ada11a0508dd6d08f2dfd"
 
 ROOT_FOLDER_TORRENT_FILENAME = "root_folder.torrent"
 ROOT_FOLDER_TORRENT_HASH = "a14553bd936a6d496402082454a70ea7a9521adc"
-ROOT_FOLDER_TORRENT_FILE_HANDLE = open(path.join(RESOURCES_PATH, ROOT_FOLDER_TORRENT_FILENAME), mode="rb")  # noqa: E501, SIM115
-ROOT_FOLDER_TORRENT_FILE = ROOT_FOLDER_TORRENT_FILE_HANDLE.read()
+ROOT_FOLDER_TORRENT_FILE = Path(RESOURCES_PATH, ROOT_FOLDER_TORRENT_FILENAME).read_bytes()  # noqa: E501
 # fmt: on
 
 
@@ -146,15 +144,19 @@ def client_mock(client):
         client._post_cast = client._post_cast
 
 
+@pytest.fixture(scope="session")
+def _orig_torrent(client):
+    """Torrent that remains in qBittorrent for the entirety of the session."""
+    torrent = get_torrent(client, torrent_hash=ORIG_TORRENT_HASH)
+    torrent.func = staticmethod(partial(get_func, torrent))
+    return torrent
+
+
 @pytest.fixture
-def orig_torrent(client):
-    """Torrent to remain in qBittorrent for entirety of session."""
-    global ORIG_TORRENT
-    if ORIG_TORRENT is None:
-        ORIG_TORRENT = get_torrent(client, torrent_hash=ORIG_TORRENT_HASH)
-        ORIG_TORRENT.func = staticmethod(partial(get_func, ORIG_TORRENT))
-    ORIG_TORRENT.sync_local()  # ensure torrent is up-to-date
-    return ORIG_TORRENT
+def orig_torrent(_orig_torrent):
+    """Session-long torrent, re-synced so each test sees current values."""
+    _orig_torrent.sync_local()
+    return _orig_torrent
 
 
 def wait_until_torrent_is_loaded(torrent):
@@ -260,9 +262,6 @@ def api_version(client):
 
 
 def pytest_sessionfinish(session, exitstatus):
-    for fh in [TORRENT1_FILE_HANDLE, ROOT_FOLDER_TORRENT_FILE_HANDLE]:
-        with suppress(Exception):
-            fh.close()
     if environ.get("CI") != "true":
         client = Client()
         with suppress(Exception):
