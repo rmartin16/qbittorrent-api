@@ -64,8 +64,13 @@ ROOT_FOLDER_TORRENT_FILE = Path(RESOURCES_PATH, ROOT_FOLDER_TORRENT_FILENAME).re
 
 
 @pytest.fixture(autouse=True)
-def abort_if_qbittorrent_crashes(client):
+def abort_if_qbittorrent_crashes(request):
     """Abort tests if qbittorrent seemingly disappears during testing."""
+    if "offline" in request.keywords:
+        # the test never talks to qBittorrent, so there is nothing to watch for
+        return
+
+    client = request.getfixturevalue("client")
     # a single failed request isn't proof qBittorrent is gone; it may just be busy
     # enough to stall its event loop. since this aborts the entire test session,
     # give it a chance to respond before giving up.
@@ -81,21 +86,29 @@ def abort_if_qbittorrent_crashes(client):
 
 
 @pytest.fixture(autouse=True)
-def skip_if_not_implemented(request, api_version):
+def skip_if_not_implemented(request):
     """Skips test if `skipif_before_api_version` marker specifies min API version."""
-    if request.node.get_closest_marker("skipif_before_api_version"):
-        version = request.node.get_closest_marker("skipif_before_api_version").args[0]
-        if v(api_version) < v(version):
-            pytest.skip(f"testing {v(api_version)}; needs {version} or later")
+    # the marker is checked before the version is looked up so that tests without
+    # one never pull in the live client just to be told they are not skipped
+    marker = request.node.get_closest_marker("skipif_before_api_version")
+    if marker is None:
+        return
+
+    api_version = request.getfixturevalue("api_version")
+    if v(api_version) < v(marker.args[0]):
+        pytest.skip(f"testing {v(api_version)}; needs {marker.args[0]} or later")
 
 
 @pytest.fixture(autouse=True)
-def skip_if_implemented(request, api_version):
+def skip_if_implemented(request):
     """Skips test if `skipif_after_api_version` marker specifies max API version."""
-    if request.node.get_closest_marker("skipif_after_api_version"):
-        version = request.node.get_closest_marker("skipif_after_api_version").args[0]
-        if v(api_version) >= v(version):
-            pytest.skip(f"testing {v(api_version)}; needs before {version}")
+    marker = request.node.get_closest_marker("skipif_after_api_version")
+    if marker is None:
+        return
+
+    api_version = request.getfixturevalue("api_version")
+    if v(api_version) >= v(marker.args[0]):
+        pytest.skip(f"testing {v(api_version)}; needs before {marker.args[0]}")
 
 
 @pytest.fixture(scope="session")
