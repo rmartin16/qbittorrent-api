@@ -716,6 +716,13 @@ def test_set_ssl_parameters(client, orig_torrent, set_ssl_params_func):
             ssl_dh_params="not-dh-params",
         )
 
+    with pytest.raises(UnsupportedMediaType415Error):
+        orig_torrent.set_ssl_parameters(
+            ssl_certificate="not-a-certificate",
+            ssl_private_key="not-a-key",
+            ssl_dh_params="not-dh-params",
+        )
+
 
 @pytest.mark.skipif_before_api_version("2.11.9")
 @pytest.mark.parametrize(
