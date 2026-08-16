@@ -124,6 +124,16 @@ Endpoints exist only in some Web API versions. Skip accordingly:
 CI runs the suite against qBittorrent versions back to v4.1.0, so a test without
 the right marker will fail there even though it passes locally against master.
 
+**Do not write a `*_not_implemented` test for a new endpoint.** The offline layer
+already asserts, for every gated endpoint, that it raises `NotImplementedError`
+below the version it was introduced in — through the client method *and* its
+interface spelling — and that it stops raising at that version. Writing one by
+hand adds a live request that proves something already proven.
+
+The `*_not_implemented` tests that remain cover methods on torrent objects, such
+as `torrent.set_comment()`. That surface is not in the catalog yet, so those are
+still carrying their own weight.
+
 ## Gotchas that have cost real time
 
 - **camelCase spellings are the same function object.** `torrents_addWebSeeds`

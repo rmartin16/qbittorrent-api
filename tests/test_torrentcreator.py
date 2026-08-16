@@ -55,15 +55,6 @@ def test_add_task(client, add_task_func):
     assert task.task_id
 
 
-@pytest.mark.skipif_after_api_version("2.10.4")
-@pytest.mark.parametrize(
-    "add_task_func", ["torrentcreator_add_task", "torrentcreator.add_task"]
-)
-def test_add_task_not_implemented(client, add_task_func):
-    with pytest.raises(NotImplementedError):
-        client.func(add_task_func)()
-
-
 @pytest.mark.skipif_before_api_version("2.10.4")
 @pytest.mark.parametrize(
     "status_func", ["torrentcreator_status", "torrentcreator.status"]
@@ -77,15 +68,6 @@ def test_status(client, status_func, task):
     )
     assert isinstance(task.status(), TorrentCreatorTaskStatus)
     assert TaskStatus(task.status().status) in TaskStatus
-
-
-@pytest.mark.skipif_after_api_version("2.10.4")
-@pytest.mark.parametrize(
-    "status_func", ["torrentcreator_status", "torrentcreator.status"]
-)
-def test_status_not_implemented(client, status_func):
-    with pytest.raises(NotImplementedError):
-        client.func(status_func)()
 
 
 def test_status_enum():
@@ -106,15 +88,6 @@ def test_torrent_file(client, torrent_file_func, task):
     assert isinstance(task.torrentFile(), bytes)
 
 
-@pytest.mark.skipif_after_api_version("2.10.4")
-@pytest.mark.parametrize(
-    "torrent_file_func", ["torrentcreator_torrent_file", "torrentcreator.torrent_file"]
-)
-def test_torrent_file_not_implemented(client, torrent_file_func):
-    with pytest.raises(NotImplementedError):
-        client.func(torrent_file_func)()
-
-
 @pytest.mark.skipif_before_api_version("2.10.4")
 @pytest.mark.parametrize(
     "torrent_delete_func", ["torrentcreator_delete_task", "torrentcreator.delete_task"]
@@ -129,12 +102,3 @@ def test_delete(client, torrent_delete_func):
     client.func(torrent_delete_func)(task_id=task.task_id)
     with pytest.raises(NotFound404Error):
         client.func(torrent_delete_func)(task_id=task.task_id)
-
-
-@pytest.mark.skipif_after_api_version("2.10.4")
-@pytest.mark.parametrize(
-    "torrent_delete_func", ["torrentcreator_delete_task", "torrentcreator.delete_task"]
-)
-def test_delete_not_implemented(client, torrent_delete_func):
-    with pytest.raises(NotImplementedError):
-        client.func(torrent_delete_func)()

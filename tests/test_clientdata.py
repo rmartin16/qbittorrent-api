@@ -40,10 +40,3 @@ def test_clientdata_load_bad_keys(client):
     # `keys` must be a JSON array of strings
     with pytest.raises(InvalidRequest400Error):
         client.clientdata_load(keys=[{"not": "a string"}])
-
-
-@pytest.mark.skipif_after_api_version("2.13.1")
-@pytest.mark.parametrize("load_func", ["clientdata_load", "clientdata.load"])
-def test_clientdata_not_implemented(client, load_func):
-    with pytest.raises(NotImplementedError):
-        client.func(load_func)()

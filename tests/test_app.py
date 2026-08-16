@@ -44,27 +44,11 @@ def test_build_info(client):
     assert "libtorrent" in client.app.build_info
 
 
-@pytest.mark.skipif_after_api_version("2.3")
-def test_build_info_not_implemented(client):
-    with pytest.raises(NotImplementedError):
-        assert "libtorrent" in client.app_build_info()
-    with pytest.raises(NotImplementedError):
-        assert "libtorrent" in client.app.build_info
-
-
 @pytest.mark.skipif_before_api_version("2.15.1")
 def test_process_info(client):
     assert "launch_time" in client.app_process_info()
     assert "launch_time" in client.app_processInfo()
     assert "launch_time" in client.app.process_info
-
-
-@pytest.mark.skipif_after_api_version("2.15.1")
-def test_process_info_not_implemented(client):
-    with pytest.raises(NotImplementedError):
-        assert "launch_time" in client.app_process_info()
-    with pytest.raises(NotImplementedError):
-        assert "launch_time" in client.app.process_info
 
 
 def test_preferences(client):
@@ -121,31 +105,12 @@ def test_cookies(client, set_cookies_func):
     assert client.app_cookies() == CookieList([])
 
 
-@pytest.mark.skipif_after_api_version("2.11.3")
-@pytest.mark.parametrize("set_cookies_func", ["app_set_cookies", "app.set_cookies"])
-def test_cookies_not_implemented(client, set_cookies_func):
-    with pytest.raises(NotImplementedError):
-        _ = client.app_cookies()
-    with pytest.raises(NotImplementedError):
-        _ = client.app.cookies
-    with pytest.raises(NotImplementedError):
-        client.func(set_cookies_func)([])
-
-
 @pytest.mark.skipif_before_api_version("2.3")
 def test_network_interface_list(client):
     assert isinstance(client.app_network_interface_list(), NetworkInterfaceList)
     assert isinstance(client.app_network_interface_list()[0], NetworkInterface)
     assert isinstance(client.app.network_interface_list, NetworkInterfaceList)
     assert isinstance(client.app.network_interface_list[0], NetworkInterface)
-
-
-@pytest.mark.skipif_after_api_version("2.3")
-def test_network_interface_list_not_implemented(client):
-    with pytest.raises(NotImplementedError):
-        client.app_network_interface_list()
-    with pytest.raises(NotImplementedError):
-        _ = client.app.network_interface_list
 
 
 @pytest.mark.skipif_before_api_version("2.3")
@@ -162,14 +127,6 @@ def test_network_interface_address_list(client):
         NetworkInterfaceAddressList,
     )
     assert isinstance(client.app.network_interface_address_list()[0], str)
-
-
-@pytest.mark.skipif_after_api_version("2.3")
-def test_network_interface_address_list_not_implemented(client):
-    with pytest.raises(NotImplementedError):
-        client.app_network_interface_address_list()
-    with pytest.raises(NotImplementedError):
-        client.app.network_interface_address_list()
 
 
 @pytest.mark.skipif_before_api_version("2.10.4")
@@ -206,16 +163,6 @@ def test_get_directory_content(client, api_version, get_directory_content_func):
         assert all(isinstance(f, dict) for f in dir_contents)
 
 
-@pytest.mark.skipif_after_api_version("2.11")
-@pytest.mark.parametrize(
-    "get_directory_content_func",
-    ["app_get_directory_content", "app.get_directory_content"],
-)
-def test_get_directory_content_not_implemented(client, get_directory_content_func):
-    with pytest.raises(NotImplementedError):
-        client.func(get_directory_content_func)("/")
-
-
 @pytest.mark.skipif_before_api_version("2.15.2")
 @pytest.mark.parametrize(
     "free_space_func", ["app_get_free_space_at_path", "app.get_free_space_at_path"]
@@ -224,15 +171,6 @@ def test_get_free_space_at_path(client, free_space_func):
     free_space = client.func(free_space_func)(client.app_default_save_path())
     assert isinstance(free_space, int)
     assert free_space >= 0
-
-
-@pytest.mark.skipif_after_api_version("2.15.2")
-@pytest.mark.parametrize(
-    "free_space_func", ["app_get_free_space_at_path", "app.get_free_space_at_path"]
-)
-def test_get_free_space_at_path_not_implemented(client, free_space_func):
-    with pytest.raises(NotImplementedError):
-        client.func(free_space_func)("/")
 
 
 @pytest.mark.skipif_before_api_version("2.14.0")
@@ -247,15 +185,6 @@ def test_rotate_api_key(client, rotate_api_key_func):
     assert client.func(rotate_api_key_func)().apiKey != api_key.apiKey
 
 
-@pytest.mark.skipif_after_api_version("2.14.0")
-@pytest.mark.parametrize(
-    "rotate_api_key_func", ["app_rotate_api_key", "app.rotate_api_key"]
-)
-def test_rotate_api_key_not_implemented(client, rotate_api_key_func):
-    with pytest.raises(NotImplementedError):
-        client.func(rotate_api_key_func)()
-
-
 @pytest.mark.skipif_before_api_version("2.14.1")
 @pytest.mark.parametrize(
     "delete_api_key_func", ["app_delete_api_key", "app.delete_api_key"]
@@ -268,12 +197,3 @@ def test_delete_api_key(client_mock, delete_api_key_func):
         _method="deleteAPIKey",
         version_introduced="2.14.1",
     )
-
-
-@pytest.mark.skipif_after_api_version("2.14.1")
-@pytest.mark.parametrize(
-    "delete_api_key_func", ["app_delete_api_key", "app.delete_api_key"]
-)
-def test_delete_api_key_not_implemented(client, delete_api_key_func):
-    with pytest.raises(NotImplementedError):
-        client.func(delete_api_key_func)()
