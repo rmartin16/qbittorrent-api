@@ -311,8 +311,7 @@ class TorrentsAPIMixIn(AppAPIMixIn):
         :param save_path: location to save the torrent data
         :param cookie: cookie(s) to retrieve torrents by URL
         :param category: category to assign to torrent(s)
-        :param is_skip_checking: ``True`` to skip hash checking (sent as ``skip_checking``
-            before Web API v2.16.0 and ``seedMode`` after)
+        :param is_skip_checking: ``True`` to skip hash checking
         :param is_paused: Adds torrent in stopped state; alias for ``is_stopped``
         :param is_root_folder: ``True`` or ``False`` to create root folder (superseded by
             content_layout with v4.3.2)
