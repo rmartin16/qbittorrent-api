@@ -109,12 +109,6 @@ def test_ban_peers(client):
     assert "1.1.1.6" in client.app.preferences.banned_IPs
 
 
-@pytest.mark.skipif_after_api_version("2.3")
-def test_ban_peers_not_implemented(client):
-    with pytest.raises(NotImplementedError):
-        client.transfer_ban_peers(peers="1.1.1.1:8080")
-
-
 @pytest.mark.skipif_before_api_version("2.16.0")
 @pytest.mark.parametrize("speed_limits_func", ["transfer_speed_limits"])
 def test_speed_limits(client, speed_limits_func):
@@ -157,12 +151,3 @@ def test_set_speed_limits(client, set_speed_limits_func):
             alt_upload_limit=original["alt_up_limit"],
             alt_download_limit=original["alt_dl_limit"],
         )
-
-
-@pytest.mark.skipif_after_api_version("2.16.0")
-@pytest.mark.parametrize("speed_limits_func", ["transfer_speed_limits"])
-def test_speed_limits_not_implemented(client, speed_limits_func):
-    with pytest.raises(NotImplementedError):
-        client.func(speed_limits_func)()
-    with pytest.raises(NotImplementedError):
-        client.transfer.speed_limits

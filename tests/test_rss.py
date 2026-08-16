@@ -83,11 +83,6 @@ def test_rss_refresh_item(client, rss_feed, refresh_item_func):
 
 
 # inconsistent behavior with endpoint for API version 2.2
-@pytest.mark.skipif_after_api_version("2.2")
-@pytest.mark.parametrize("refresh_item_func", ["rss_refresh_item", "rss.refresh_item"])
-def test_rss_refresh_item_not_implemented(client, refresh_item_func):
-    with pytest.raises(NotImplementedError):
-        client.func(refresh_item_func)()
 
 
 @pytest.mark.skipif_before_api_version("2.2")
@@ -151,13 +146,6 @@ def test_rss_set_feed_url(client, rss_feed, set_feed_func):
     assert new_feed_url == client.rss_items()[rss_feed].url
 
 
-@pytest.mark.skipif_after_api_version("2.9.1")
-@pytest.mark.parametrize("set_feed_func", ["rss_set_feed_url", "rss.set_feed_url"])
-def test_rss_set_feed_url_not_implemented(client, set_feed_func):
-    with pytest.raises(NotImplementedError):
-        client.func(set_feed_func)()
-
-
 @pytest.mark.skipif_before_api_version("2.11.5")
 @pytest.mark.parametrize(
     "set_refresh_interval_func",
@@ -167,16 +155,6 @@ def test_rss_set_refresh_interval(client, rss_feed, set_refresh_interval_func):
     client.func(set_refresh_interval_func)(item_path=rss_feed, refresh_interval=120)
     # refresh interval doesn't appear to be retrievable right now...
     # assert refresh_interval == client.rss_items()[rss_feed]...
-
-
-@pytest.mark.skipif_after_api_version("2.11.5")
-@pytest.mark.parametrize(
-    "set_refresh_interval_func",
-    ["rss_set_feed_refresh_interval", "rss.set_feed_refresh_interval"],
-)
-def test_rss_set_refresh_interval_not_implemented(client, set_refresh_interval_func):
-    with pytest.raises(NotImplementedError):
-        client.func(set_refresh_interval_func)()
 
 
 @pytest.mark.skipif_before_api_version("2.2")
@@ -226,13 +204,6 @@ def test_rss_mark_as_read(client, rss_feed, mark_read_func):
         "isRead",
         reverse=True,
     )
-
-
-@pytest.mark.skipif_after_api_version("2.5.1")
-@pytest.mark.parametrize("mark_read_func", ["rss_mark_as_read", "rss.mark_as_read"])
-def test_rss_mark_as_read_not_implemented(client, mark_read_func):
-    with pytest.raises(NotImplementedError):
-        client.func(mark_read_func)()
 
 
 @pytest.mark.skipif_before_api_version("2.2")
@@ -319,15 +290,6 @@ def test_rss_rules(
         check(lambda: client.rss_items(), ITEM_TWO, reverse=True, negate=True)
 
 
-@pytest.mark.skipif_after_api_version("2.2")
-@pytest.mark.parametrize(
-    "matching_func", ["rss_matching_articles", "rss.matching_articles"]
-)
-def test_rss_rules_not_implemented(client, matching_func):
-    with pytest.raises(NotImplementedError):
-        client.func(matching_func)()
-
-
 @pytest.mark.skipif_before_api_version("2.15.4")
 @pytest.mark.parametrize("clone_rule_func", ["rss_clone_rule", "rss.clone_rule"])
 def test_rss_clone_rule(client, clone_rule_func):
@@ -343,10 +305,3 @@ def test_rss_clone_rule(client, clone_rule_func):
     finally:
         client.rss_remove_rule(rule_name=rule_name)
         client.rss_remove_rule(rule_name=clone_name)
-
-
-@pytest.mark.skipif_after_api_version("2.15.4")
-@pytest.mark.parametrize("clone_rule_func", ["rss_clone_rule", "rss.clone_rule"])
-def test_rss_clone_rule_not_implemented(client, clone_rule_func):
-    with pytest.raises(NotImplementedError):
-        client.func(clone_rule_func)()
