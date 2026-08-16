@@ -556,6 +556,8 @@ def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
             lambda: webseed not in {w.url for w in new_torrent.webseeds},
             True,
             action=remove_webseeds,
+            check_time=WEBSEED_CHECK_TIME,
+            action_every=WEBSEED_ACTION_EVERY,
         )
 
 
