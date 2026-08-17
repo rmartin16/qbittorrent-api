@@ -12,7 +12,7 @@ from qbittorrentapi.search import (
     SearchStatusesList,
 )
 from tests.conftest import TORRENT2_HASH, TORRENT2_URL
-from tests.utils import check, retry
+from tests.utils import eventually, retry
 
 PLUGIN_NAME = "therarbg"
 PLUGIN_URL = "https://raw.githubusercontent.com/BurningMop/qBittorrent-Search-Plugins/refs/heads/main/therarbg.py"
@@ -38,15 +38,16 @@ def test_update_plugins(client, update_func, app_version):
     @retry()
     def do_test():
         client.func(update_func)()
-        check(
-            lambda: any(
-                entry.message.startswith("Updating plugin ")
-                or entry.message == "All plugins are already up to date."
-                or entry.message.endswith("content was not found at the server (404)")
-                for entry in reversed(client.log.main())
-            ),
-            True,
-        )
+        for attempt in eventually():
+            with attempt:
+                assert any(
+                    entry.message.startswith("Updating plugin ")
+                    or entry.message == "All plugins are already up to date."
+                    or entry.message.endswith(
+                        "content was not found at the server (404)"
+                    )
+                    for entry in reversed(client.log.main())
+                )
 
     do_test()
 
@@ -72,21 +73,15 @@ def test_enable_plugin(client, search_func, enable_func):
         client.func(enable_func)(
             plugins=(p["name"] for p in get_plugins()), enable=False
         )
-        check(
-            lambda: (p["enabled"] for p in get_plugins()),
-            True,
-            reverse=True,
-            negate=True,
-        )
+        for attempt in eventually():
+            with attempt:
+                assert True not in [p["enabled"] for p in get_plugins()]
         client.func(enable_func)(
             plugins=(p["name"] for p in get_plugins()), enable=True
         )
-        check(
-            lambda: (p["enabled"] for p in get_plugins()),
-            False,
-            reverse=True,
-            negate=True,
-        )
+        for attempt in eventually():
+            with attempt:
+                assert False not in [p["enabled"] for p in get_plugins()]
 
     enable_plugin()
 
@@ -108,21 +103,16 @@ def test_install_uninstall_plugin(client, install_func, uninstall_func):
     @retry()
     def install_plugin():
         client.func(install_func)(sources=PLUGIN_URL)
-        check(
-            lambda: (p.name for p in client.search.plugins),
-            PLUGIN_NAME,
-            reverse=True,
-        )
+        for attempt in eventually():
+            with attempt:
+                assert PLUGIN_NAME in [p.name for p in client.search.plugins]
 
     @retry()
     def uninstall_plugin():
         client.func(uninstall_func)(names=PLUGIN_NAME)
-        check(
-            lambda: (p.name for p in client.search.plugins),
-            PLUGIN_NAME,
-            reverse=True,
-            negate=True,
-        )
+        for attempt in eventually():
+            with attempt:
+                assert PLUGIN_NAME not in [p.name for p in client.search.plugins]
 
     install_plugin()
     uninstall_plugin()
@@ -134,7 +124,9 @@ def test_install_uninstall_plugin(client, install_func, uninstall_func):
 def test_categories(client, categories_func):
     assert isinstance(client.func(categories_func)(), SearchCategoriesList)
     assert isinstance(client.func(categories_func)()[1:2], SearchCategoriesList)
-    check(lambda: client.func(categories_func)(), "All categories", reverse=True)
+    for attempt in eventually():
+        with attempt:
+            assert "All categories" in client.func(categories_func)()
 
 
 @pytest.mark.skipif_before_api_version("2.1.1")
@@ -175,10 +167,12 @@ def test_search(client, start_func, status_func, results_func, stop_func, delete
         assert isinstance(results, SearchResultsDictionary)
 
         client.func(stop_func)(search_id=job["id"])
-        check(
-            lambda: client.func(status_func)(search_id=job["id"])[0]["status"],
-            "Stopped",
-        )
+        for attempt in eventually():
+            with attempt:
+                assert (
+                    client.func(status_func)(search_id=job["id"])[0]["status"]
+                    == "Stopped"
+                )
 
         client.func(delete_stop)(search_id=job["id"])
         statuses = client.func(status_func)()
@@ -200,15 +194,23 @@ def test_statuses_slice(client, status_func):
 )
 def test_stop(client, stop_func, start_func):
     job = client.func(start_func)(pattern="Ubuntu", plugins="enabled", category="all")
-    check(lambda: client.search.status(search_id=job["id"])[0]["status"], "Running")
+    for attempt in eventually():
+        with attempt:
+            assert client.search.status(search_id=job["id"])[0]["status"] == "Running"
 
     client.func(stop_func)(search_id=job.id)
-    check(lambda: client.search.status(search_id=job["id"])[0]["status"], "Stopped")
+    for attempt in eventually():
+        with attempt:
+            assert client.search.status(search_id=job["id"])[0]["status"] == "Stopped"
 
     job = client.func(start_func)(pattern="Ubuntu", plugins="enabled", category="all")
-    check(lambda: client.search.status(search_id=job["id"])[0]["status"], "Running")
+    for attempt in eventually():
+        with attempt:
+            assert client.search.status(search_id=job["id"])[0]["status"] == "Running"
     job.stop()
-    check(lambda: client.search.status(search_id=job["id"])[0]["status"], "Stopped")
+    for attempt in eventually():
+        with attempt:
+            assert client.search.status(search_id=job["id"])[0]["status"] == "Stopped"
 
 
 @pytest.mark.skipif_before_api_version("2.1.1")
@@ -229,26 +231,18 @@ def test_download_torrent(client, client_func, app_version):
 
     # run update to ensure plugins are loaded
     client.search.update_plugins()
-    check(
-        lambda: [p.name for p in client.search.plugins],
-        "eztv",
-        reverse=True,
-    )
+    for attempt in eventually():
+        with attempt:
+            assert "eztv" in [p.name for p in client.search.plugins]
     try:
         client.func(client_func)(url=TORRENT2_URL, plugin="eztv")
-        check(
-            lambda: [t.hash for t in client.torrents_info()],
-            TORRENT2_HASH,
-            reverse=True,
-            # qBittorrent must download the torrent file from GitHub before it
-            # shows up, so allow for the internet being slow
-            check_time=60,
-        )
+        # qBittorrent must download the torrent file from GitHub before it
+        # shows up, so allow for the internet being slow
+        for attempt in eventually(timeout=60):
+            with attempt:
+                assert TORRENT2_HASH in [t.hash for t in client.torrents_info()]
     finally:
         client.torrents.delete(torrent_hashes=TORRENT2_HASH)
-        check(
-            lambda: [t.hash for t in client.torrents_info()],
-            TORRENT2_HASH,
-            reverse=True,
-            negate=True,
-        )
+        for attempt in eventually():
+            with attempt:
+                assert TORRENT2_HASH not in [t.hash for t in client.torrents_info()]
