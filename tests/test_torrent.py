@@ -27,6 +27,15 @@ from tests.utils import (
 )
 
 
+def as_list(value):
+    """
+    Normalise a parameter given as either a single string or a list of them.
+
+    Several tests are parametrized both ways to prove the endpoint accepts each.
+    """
+    return [value] if isinstance(value, str) else list(value)
+
+
 def test_info(orig_torrent, monkeypatch):
     assert orig_torrent.info.hash == orig_torrent.hash
     # mimic <=v2.0.1 where torrents_info() doesn't support hash arg
@@ -416,7 +425,7 @@ def test_trackers(orig_torrent, trackers):
     orig_torrent.trackers = trackers
     for attempt in eventually():
         with attempt:
-            assert trackers in (t.url for t in orig_torrent.trackers)
+            assert set(as_list(trackers)) <= {t.url for t in orig_torrent.trackers}
 
 
 @pytest.mark.parametrize("add_trackers_func", ["add_trackers", "addTrackers"])
@@ -426,7 +435,7 @@ def test_add_tracker(new_torrent, add_trackers_func, trackers):
     sleep(0.1)  # try to stop crashing qbittorrent
     for attempt in eventually():
         with attempt:
-            assert trackers in (t.url for t in new_torrent.trackers)
+            assert set(as_list(trackers)) <= {t.url for t in new_torrent.trackers}
 
 
 @pytest.mark.skipif_before_api_version("2.2.0")
@@ -449,15 +458,19 @@ def test_edit_tracker(orig_torrent, edit_tracker_func):
 def test_remove_trackers(orig_torrent, remove_trackers_func, trackers):
     for attempt in eventually():
         with attempt:
-            assert trackers not in (t.url for t in orig_torrent.trackers)
+            assert set(as_list(trackers)).isdisjoint(
+                {t.url for t in orig_torrent.trackers}
+            )
     orig_torrent.add_trackers(urls=trackers)
     for attempt in eventually():
         with attempt:
-            assert trackers in (t.url for t in orig_torrent.trackers)
+            assert set(as_list(trackers)) <= {t.url for t in orig_torrent.trackers}
     orig_torrent.func(remove_trackers_func)(urls=trackers)
     for attempt in eventually():
         with attempt:
-            assert trackers not in (t.url for t in orig_torrent.trackers)
+            assert set(as_list(trackers)).isdisjoint(
+                {t.url for t in orig_torrent.trackers}
+            )
 
 
 def test_webseeds(orig_torrent):
@@ -484,9 +497,7 @@ def test_add_webseed(new_torrent, add_webseeds_func, webseeds):
         timeout=WEBSEED_TIMEOUT, resend=add_webseeds, resend_every=WEBSEED_RESEND_EVERY
     ):
         with attempt:
-            assert (webseeds if isinstance(webseeds, list) else [webseeds]) in sorted(
-                [w.url for w in new_torrent.webseeds]
-            )
+            assert set(as_list(webseeds)) <= {w.url for w in new_torrent.webseeds}
 
 
 @pytest.mark.skipif_before_api_version("2.11.3")
@@ -565,7 +576,7 @@ def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
         timeout=WEBSEED_TIMEOUT, resend=add_webseeds, resend_every=WEBSEED_RESEND_EVERY
     ):
         with attempt:
-            assert all_webseeds in [w.url for w in new_torrent.webseeds]
+            assert set(all_webseeds) <= {w.url for w in new_torrent.webseeds}
     remove_webseeds()
     for webseed in webseeds if isinstance(webseeds, list) else [webseeds]:
         for attempt in eventually(
@@ -710,12 +721,12 @@ def test_add_remove_tags(client, orig_torrent, add_tags_func, remove_tags_func, 
         orig_torrent.func(add_tags_func)(tags=tags)
         for attempt in eventually():
             with attempt:
-                assert tags in orig_torrent.info.tags
+                assert all(tag in orig_torrent.info.tags for tag in as_list(tags))
 
         orig_torrent.func(remove_tags_func)(tags=tags)
         for attempt in eventually():
             with attempt:
-                assert tags not in orig_torrent.info.tags
+                assert all(tag not in orig_torrent.info.tags for tag in as_list(tags))
     finally:
         client.torrents_delete_tags(tags=tags)
 
@@ -729,6 +740,6 @@ def test_set_tags(client, orig_torrent, set_tags_func, tags):
         orig_torrent.func(set_tags_func)(tags=tags)
         for attempt in eventually():
             with attempt:
-                assert tags in orig_torrent.info.tags
+                assert all(tag in orig_torrent.info.tags for tag in as_list(tags))
     finally:
         client.torrents_delete_tags(tags=tags)
