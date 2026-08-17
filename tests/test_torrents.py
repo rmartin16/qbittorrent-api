@@ -1000,7 +1000,13 @@ def test_reannounce_urls(client, monkeypatch):
     ],
 )
 def test_priority(
-    client, new_torrent, inc_prio_func, dec_prio_func, top_prio_func, bottom_prio_func
+    client,
+    new_torrent,
+    inc_prio_func,
+    dec_prio_func,
+    top_prio_func,
+    bottom_prio_func,
+    restore_queueing,
 ):
     disable_queueing(client)
 

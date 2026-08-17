@@ -263,6 +263,19 @@ def new_torrent(client, tmp_path):
 
 
 @pytest.fixture
+def restore_queueing(client):
+    """
+    Put the global queueing preference back.
+
+    The priority tests have to turn queueing on to exercise the endpoints, and
+    whether it was on to begin with depends on the qBittorrent version.
+    """
+    original = client.app.preferences.queueing_enabled
+    yield
+    client.app.set_preferences(dict(queueing_enabled=original))
+
+
+@pytest.fixture
 def app_version(client):
     """qBittorrent Version being used for testing."""
     if IS_QBT_DEV:
