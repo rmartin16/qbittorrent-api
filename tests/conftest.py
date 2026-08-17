@@ -18,7 +18,7 @@ from qbittorrentapi._version_support import v
 from tests.utils import (
     CHECK_SLEEP,
     add_torrent,
-    check,
+    eventually,
     get_func,
     get_torrent,
     mkpath,
@@ -180,12 +180,15 @@ def wait_until_torrent_is_loaded(torrent):
     without any indication to the caller...for instance, adding a webseed is done in
     a worker thread that silently swallows any exception it encounters.
     """
-    check(
-        lambda: torrent.info.state,
-        ("checkingResumeData", "checkingDL", "checkingUP", "allocating", "metaDL"),
-        negate=True,
-        check_time=30,
-    )
+    for attempt in eventually(timeout=30):
+        with attempt:
+            assert torrent.info.state not in (
+                "checkingResumeData",
+                "checkingDL",
+                "checkingUP",
+                "allocating",
+                "metaDL",
+            )
 
 
 @contextmanager
@@ -229,12 +232,9 @@ def new_torrent_standalone(client, torrent_hash=TORRENT1_HASH, tmp_path=None, **
     @retry()
     def delete_test_torrent(client_, torrent_hash_):
         client_.torrents_delete(torrent_hashes=torrent_hash_, delete_files=True)
-        check(
-            lambda: [t.hash for t in client_.torrents_info()],
-            torrent_hash_,
-            reverse=True,
-            negate=True,
-        )
+        for attempt in eventually():
+            with attempt:
+                assert torrent_hash_ not in [t.hash for t in client_.torrents_info()]
 
     try:
         try:

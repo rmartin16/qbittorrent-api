@@ -21,19 +21,11 @@ from tests.test_torrents import disable_queueing, enable_queueing
 from tests.utils import (
     WEBSEED_RESEND_EVERY,
     WEBSEED_TIMEOUT,
+    as_list,
     eventually,
     mkpath,
     retry,
 )
-
-
-def as_list(value):
-    """
-    Normalise a parameter given as either a single string or a list of them.
-
-    Several tests are parametrized both ways to prove the endpoint accepts each.
-    """
-    return [value] if isinstance(value, str) else list(value)
 
 
 def test_info(orig_torrent, monkeypatch):

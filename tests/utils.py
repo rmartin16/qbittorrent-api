@@ -53,6 +53,15 @@ def setup_environ():
     return qbt_version, is_qbt_dev
 
 
+def as_list(value):
+    """
+    Normalise a parameter given as either a single string or a list of them.
+
+    Several tests are parametrized both ways to prove the endpoint accepts each.
+    """
+    return [value] if isinstance(value, str) else list(value)
+
+
 def get_func(obj, method_name):
     """
     Retrieve a method from an object.
@@ -110,101 +119,6 @@ def add_torrent(client, torrent_url, torrent_hash):
     if torrent_hash not in [t.hash for t in client.torrents_info()]:
         sleep(0.1)
         raise Exception("didn't find added torrent")
-
-
-def check(
-    check_func,
-    value,
-    reverse=False,
-    negate=False,
-    any=False,
-    check_time=None,
-    action=None,
-    action_every=1,
-):
-    """
-    Compare the return value of an arbitrary function to expected value with retries.
-    Since some requests take some time to take effect in qBittorrent, the value is
-    re-checked every ``CHECK_SLEEP`` seconds for ``CHECK_TIME`` seconds.
-
-    :param check_func: callable to generate values to check
-    :param value: str, int, or iterator of values to look for
-    :param reverse: False: look for check_func return in value; True: look for value in
-        check_func return
-    :param negate: False: value must be found; True: value must not be found
-    :param check_time: maximum number of seconds to spend checking
-    :param any: False: all values must be (not) found; True: any value must be (not)
-        found
-    :param action: callable to re-send the request being checked before each retry;
-        qBittorrent occasionally never applies a request (e.g. it decides its own,
-        potentially stale, cached state already matches), and re-sending is the only
-        way to recover. Only use for requests that are safe to send more than once.
-    :param action_every: number of retries between each ``action`` call; raise it for
-        requests qBittorrent handles on a worker thread, where re-sending on every
-        retry just queues more work onto a pool that is already behind
-    """
-
-    # assertions are not rewritten by pytest in this module, so each
-    # assertion needs to report the values that caused it to fail
-    def _do_check(_check_func_val, _v, _negate, _reverse):
-        if _negate:
-            if _reverse:
-                assert _v not in _check_func_val, f"found {_v!r} in {_check_func_val!r}"
-            else:
-                assert _check_func_val not in (_v,), f"{_check_func_val!r} is {_v!r}"
-        else:
-            if _reverse:
-                assert _v in _check_func_val, f"{_v!r} not in {_check_func_val!r}"
-            else:
-                assert _check_func_val in (_v,), f"{_check_func_val!r} is not {_v!r}"
-
-    if isinstance(value, (str, int)):
-        value = (value,)
-
-    check_limit = int((check_time or CHECK_TIME) / CHECK_SLEEP)
-
-    try:
-        for i in range(check_limit):
-            try:
-                exp = None
-                for val in value:
-                    # clear any previous exceptions if any=True
-                    exp = None if any else exp
-
-                    try:
-                        # get val here so pytest includes value in failures
-                        check_val = check_func()
-                        _do_check(check_val, val, negate, reverse)
-                    except RETRY_ERRORS as e:
-                        exp = e
-
-                    # fail the test on first failure if any=False
-                    if not any and exp:
-                        break
-                    # this value passed so test succeeded if any=True
-                    if any and not exp:
-                        break
-
-                # raise caught inner exception for handling
-                if exp:
-                    raise exp
-
-                # test succeeded!!!!
-                return
-
-            except RETRY_ERRORS:
-                # let the last failure fail the test so its details are reported
-                if i >= check_limit - 1:
-                    raise
-                sleep(CHECK_SLEEP)
-                if action is not None and (i + 1) % action_every == 0:
-                    action()
-    except HTTPError:
-        # every HTTP error subclasses APIConnectionError, so let anything
-        # qBittorrent actually responded with be reported as itself
-        raise
-    except APIConnectionError as e:
-        raise AssertionError(f"qBittorrent is unreachable: {e!r}") from e
 
 
 class _Attempt:
