@@ -92,6 +92,7 @@ markers = [
     "skipif_before_api_version(api_version): skips test for current api version",
     "skipif_after_api_version(api_version): skips test for current api version",
     "offline: test inspects the library only and never talks to qBittorrent",
+    "no_sandbox: test deliberately leaves qBittorrent in an altered state",
 ]
 norecursedirs = "dist build .tox scripts"
 testpaths = ["tests"]

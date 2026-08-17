@@ -147,7 +147,13 @@ def test_delete(client_mock, new_torrent, delete):
     ],
 )
 def test_priority(
-    client, new_torrent, inc_prio_func, dec_prio_func, top_prio_func, bottom_prio_func
+    client,
+    new_torrent,
+    inc_prio_func,
+    dec_prio_func,
+    top_prio_func,
+    bottom_prio_func,
+    restore_queueing,
 ):
     disable_queueing(client)
 
@@ -734,4 +740,4 @@ def test_set_tags(client, orig_torrent, set_tags_func, tags):
             with attempt:
                 assert all(tag in orig_torrent.info.tags for tag in as_list(tags))
     finally:
-        client.torrents_delete_tags(tags=tags)
+        client.torrents_delete_tags(tags=[*as_list(tags), "extra-tag"])

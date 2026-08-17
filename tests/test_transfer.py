@@ -71,6 +71,7 @@ def test_speed_limits_mode(client):
 
 
 def test_download_limit(client):
+    original = client.transfer_download_limit()
     client.transfer_set_download_limit(limit=2048)
     assert client.transfer_download_limit() == 2048
     client.transfer_setDownloadLimit(limit=3072)
@@ -81,8 +82,11 @@ def test_download_limit(client):
     client.transfer.downloadLimit = 5120
     assert client.transfer.downloadLimit == 5120
 
+    client.transfer_set_download_limit(limit=original)
+
 
 def test_upload_limit(client):
+    original = client.transfer_upload_limit()
     client.transfer_set_upload_limit(limit=2048)
     assert client.transfer_upload_limit() == 2048
     client.transfer_setUploadLimit(limit=3072)
@@ -93,9 +97,12 @@ def test_upload_limit(client):
     client.transfer.uploadLimit = 5120
     assert client.transfer.uploadLimit == 5120
 
+    client.transfer_set_upload_limit(limit=original)
+
 
 @pytest.mark.skipif_before_api_version("2.3")
 def test_ban_peers(client):
+    original_bans = client.app.preferences.banned_IPs
     client.transfer_ban_peers(peers="1.1.1.1:8080")
     assert "1.1.1.1" in client.app.preferences.banned_IPs
     client.transfer.ban_peers(peers="1.1.1.2:8080")
@@ -107,6 +114,9 @@ def test_ban_peers(client):
     client.transfer.ban_peers(peers=["1.1.1.5:8080", "1.1.1.6:8080"])
     assert "1.1.1.5" in client.app.preferences.banned_IPs
     assert "1.1.1.6" in client.app.preferences.banned_IPs
+
+    # banned_IPs is global and nothing else clears it
+    client.app.set_preferences(dict(banned_IPs=original_bans))
 
 
 @pytest.mark.skipif_before_api_version("2.16.0")

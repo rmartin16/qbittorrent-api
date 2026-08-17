@@ -232,6 +232,10 @@ def new_torrent_standalone(client, torrent_hash=TORRENT1_HASH, tmp_path=None, **
     @retry()
     def delete_test_torrent(client_, torrent_hash_):
         client_.torrents_delete(torrent_hashes=torrent_hash_, delete_files=True)
+        # adding the torrent creates this category, and deleting the torrent
+        # leaves it behind
+        with suppress(Exception):
+            client_.torrents_remove_categories(categories="test_category")
         for attempt in eventually():
             with attempt:
                 assert torrent_hash_ not in [t.hash for t in client_.torrents_info()]
@@ -259,6 +263,19 @@ def new_torrent(client, tmp_path):
 
 
 @pytest.fixture
+def restore_queueing(client):
+    """
+    Put the global queueing preference back.
+
+    The priority tests have to turn queueing on to exercise the endpoints, and
+    whether it was on to begin with depends on the qBittorrent version.
+    """
+    original = client.app.preferences.queueing_enabled
+    yield
+    client.app.set_preferences(dict(queueing_enabled=original))
+
+
+@pytest.fixture
 def app_version(client):
     """qBittorrent Version being used for testing."""
     if IS_QBT_DEV:
@@ -272,6 +289,67 @@ def api_version(client):
     if IS_QBT_DEV:
         return client.app.web_api_version
     return api_version_map[QBT_VERSION]
+
+
+def _state_snapshot(client):
+    """
+    What qBittorrent is currently holding that a test could have left behind.
+
+    Each piece is optional: the endpoints arrived in different Web API versions,
+    and the client raises NotImplementedError for the ones this qBittorrent is
+    too old to have.
+    """
+    snapshot = {}
+    for name, read in (
+        ("torrents", lambda: {t.hash for t in client.torrents_info()}),
+        ("categories", lambda: set(client.torrents_categories())),
+        ("tags", lambda: set(client.torrents_tags())),
+        ("rss", lambda: set(client.rss_items())),
+        ("preferences", lambda: dict(client.app.preferences)),
+    ):
+        try:
+            snapshot[name] = read()
+        except Exception:
+            snapshot[name] = None
+    return snapshot
+
+
+@pytest.fixture(autouse=True)
+def no_state_left_behind(request, client):
+    """
+    Fail a test that leaves torrents, categories, tags or RSS items behind, or
+    that changes a preference without putting it back.
+
+    Tests share one qBittorrent, so anything left over is inherited by whatever
+    runs next. That is how an unlucky ordering turns into failures that look
+    like real bugs somewhere else entirely. Mark a test ``no_sandbox`` if
+    altering qBittorrent is the point of it.
+    """
+    if "offline" in request.keywords or "no_sandbox" in request.keywords:
+        yield
+        return
+
+    before = _state_snapshot(client)
+    yield
+    after = _state_snapshot(client)
+
+    leaked = {}
+    for name, was in before.items():
+        now = after.get(name)
+        if was is None or now is None:
+            continue
+        if name == "preferences":
+            changed = [
+                key for key, value in was.items() if now.get(key, value) != value
+            ]
+            if changed:
+                leaked[name] = sorted(changed)
+        elif added := now - was:
+            leaked[name] = sorted(added)
+    assert not leaked, (
+        f"test left state behind in qBittorrent: {leaked}. Clean up in a "
+        f"finally block, or mark the test no_sandbox if that is the point of it."
+    )
 
 
 def pytest_sessionfinish(session, exitstatus):
