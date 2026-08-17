@@ -205,3 +205,60 @@ def check(
         raise
     except APIConnectionError as e:
         raise AssertionError(f"qBittorrent is unreachable: {e!r}") from e
+
+
+class _Attempt:
+    """One try inside an :func:`eventually` loop."""
+
+    def __init__(self, is_last):
+        self.is_last = is_last
+        self.failed = False
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        if exc_type is None:
+            return False
+        if issubclass(exc_type, APIConnectionError) and not issubclass(
+            exc_type, HTTPError
+        ):
+            raise AssertionError(f"qBittorrent is unreachable: {exc!r}") from exc
+        if issubclass(exc_type, RETRY_ERRORS) and not self.is_last:
+            self.failed = True
+            return True  # swallow it and let the loop try again
+        return False
+
+
+def eventually(timeout=None, resend=None, resend_every=1):
+    """
+    Retry the assertions inside the loop until they pass or time out.
+
+    qBittorrent applies many changes asynchronously, so an assertion made
+    immediately after a request is liable to run before the change lands. Wrap it
+    instead::
+
+        for attempt in eventually():
+            with attempt:
+                assert torrent.info.category == "test_category"
+
+    The assertions stay in the test module, so pytest rewrites them and reports
+    the values that failed.
+
+    :param timeout: seconds to keep retrying for
+    :param resend: callable re-sending the request being waited on, for the
+        requests qBittorrent silently drops. Only for requests that are safe to
+        send more than once.
+    :param resend_every: attempts between each ``resend`` call; raise it for
+        requests handled on a worker thread, where re-sending constantly only
+        queues more work onto a pool that is already behind
+    """
+    limit = int((timeout or CHECK_TIME) / CHECK_SLEEP)
+    for i in range(limit):
+        attempt = _Attempt(is_last=i == limit - 1)
+        yield attempt
+        if not attempt.failed:
+            return
+        sleep(CHECK_SLEEP)
+        if resend is not None and (i + 1) % resend_every == 0:
+            resend()
