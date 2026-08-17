@@ -734,4 +734,4 @@ def test_set_tags(client, orig_torrent, set_tags_func, tags):
             with attempt:
                 assert all(tag in orig_torrent.info.tags for tag in as_list(tags))
     finally:
-        client.torrents_delete_tags(tags=tags)
+        client.torrents_delete_tags(tags=[*as_list(tags), "extra-tag"])

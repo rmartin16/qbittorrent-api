@@ -1,7 +1,7 @@
 import errno
 import platform
 import sys
-from contextlib import ExitStack
+from contextlib import ExitStack, suppress
 from time import sleep
 from unittest.mock import MagicMock
 
@@ -380,7 +380,12 @@ def test_add_options(client, api_version, keep_root_folder, content_layout, tmp_
                     with attempt:
                         assert torrent.info.seeding_time_limit == 120
 
-    do_test()
+    try:
+        do_test()
+    finally:
+        # created by do_test() and not removed with the torrent
+        with suppress(Exception):
+            client.torrents_delete_tags(tags="option-tag")
 
 
 @pytest.mark.skipif_before_api_version("2.8.4")
@@ -885,9 +890,12 @@ def test_torrents_info_slice(client):
 @pytest.mark.parametrize("info_func", ["torrents_info", "torrents.info"])
 def test_torrents_info_tag(client, new_torrent, info_func):
     tag_name = "tag_filter_name"
-    client.torrents_add_tags(tags=tag_name, torrent_hashes=new_torrent.hash)
-    torrents = client.func(info_func)(torrent_hashes=new_torrent.hash, tag=tag_name)
-    assert new_torrent.hash in {t.hash for t in torrents}
+    try:
+        client.torrents_add_tags(tags=tag_name, torrent_hashes=new_torrent.hash)
+        torrents = client.func(info_func)(torrent_hashes=new_torrent.hash, tag=tag_name)
+        assert new_torrent.hash in {t.hash for t in torrents}
+    finally:
+        client.torrents_delete_tags(tags=tag_name)
 
 
 # test fails on 4.1.0 release
@@ -1644,7 +1652,7 @@ def test_set_tags(client, orig_torrent, set_tags_func, tags):
             with attempt:
                 assert all(tag in orig_torrent.info.tags for tag in tags)
     finally:
-        client.torrents_delete_tags(tags=tags)
+        client.torrents_delete_tags(tags=[*tags, "extra-tag"])
 
 
 @pytest.mark.skipif_before_api_version("2.3.0")

@@ -5,6 +5,7 @@ import pytest
 from tests.utils import eventually
 
 
+@pytest.mark.no_sandbox
 @pytest.mark.skipif(environ.get("CI") != "true", reason="not in CI")
 def test_shutdown(client):
     client.app.shutdown()

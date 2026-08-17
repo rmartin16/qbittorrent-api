@@ -174,6 +174,7 @@ def test_get_free_space_at_path(client, free_space_func):
 
 
 @pytest.mark.skipif_before_api_version("2.14.0")
+@pytest.mark.no_sandbox  # rotating the key is the point of the test
 @pytest.mark.parametrize(
     "rotate_api_key_func", ["app_rotate_api_key", "app.rotate_api_key"]
 )
@@ -186,6 +187,7 @@ def test_rotate_api_key(client, rotate_api_key_func):
 
 
 @pytest.mark.skipif_before_api_version("2.14.1")
+@pytest.mark.no_sandbox  # rotating the key is the point of the test
 @pytest.mark.parametrize(
     "delete_api_key_func", ["app_delete_api_key", "app.delete_api_key"]
 )

@@ -150,7 +150,12 @@ def _enable_disable_https(use_https):
             "web_ui_https_key_path": mkpath("/tmp", "_resources", "server.key"),
         }
     else:
-        https_client.app.preferences = {"use_https": False}
+        # the cert paths outlive use_https, so clear them as well
+        https_client.app.preferences = {
+            "use_https": False,
+            "web_ui_https_cert_path": "",
+            "web_ui_https_key_path": "",
+        }
 
 
 def _wait_for_http_web_ui(client):

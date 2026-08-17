@@ -114,6 +114,22 @@ hand-rolling setup:
 
 Clean up in a `finally` block so a mid-test failure still tidies up.
 
+This is enforced. An autouse fixture compares qBittorrent's torrents,
+categories, tags, RSS items and preferences either side of every test, and fails
+one that leaves anything behind or changes a preference without putting it back:
+
+```
+AssertionError: test left state behind in qBittorrent: {'tags': ['extra-tag']}
+```
+
+Restore preferences you change by reading the original first, rather than
+assuming a default. If altering qBittorrent is the whole point of a test — as it
+is for rotating the Web UI API key — mark it `no_sandbox` instead.
+
+Be aware that one leak can hide another: if an earlier test already left a tag
+behind, a later test leaking the same tag shows no difference across itself.
+Fixing leaks tends to reveal more of them, so re-run after each fix.
+
 ## Version gating
 
 Endpoints exist only in some Web API versions. Skip accordingly:
