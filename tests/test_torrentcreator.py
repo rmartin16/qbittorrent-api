@@ -11,7 +11,7 @@ from qbittorrentapi.torrentcreator import (
     TorrentCreatorTaskStatus,
     TorrentCreatorTaskStatusList,
 )
-from tests.utils import check
+from tests.utils import eventually
 
 
 @pytest.fixture
@@ -82,7 +82,9 @@ def test_status_enum():
     "torrent_file_func", ["torrentcreator_torrent_file", "torrentcreator.torrent_file"]
 )
 def test_torrent_file(client, torrent_file_func, task):
-    check(lambda: TaskStatus(task.status().status), [TaskStatus.FINISHED])
+    for attempt in eventually():
+        with attempt:
+            assert TaskStatus(task.status().status) == TaskStatus.FINISHED
     assert isinstance(client.func(torrent_file_func)(task_id=task.task_id), bytes)
     assert isinstance(task.torrent_file(), bytes)
     assert isinstance(task.torrentFile(), bytes)

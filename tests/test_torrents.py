@@ -48,9 +48,10 @@ from tests.conftest import (
     new_torrent_standalone,
 )
 from tests.utils import (
-    WEBSEED_ACTION_EVERY,
-    WEBSEED_CHECK_TIME,
-    check,
+    WEBSEED_RESEND_EVERY,
+    WEBSEED_TIMEOUT,
+    as_list,
+    eventually,
     mkpath,
     retry,
 )
@@ -195,12 +196,9 @@ def test_add_delete(
         """Delete through ``delete_func`` so both namespaces are exercised."""
         client.func(delete_func)(delete_files=True, torrent_hashes=TORRENT1_HASH)
         client.func(delete_func)(delete_files=True, torrent_hashes=TORRENT2_HASH)
-        check(
-            lambda: [t.hash for t in client.torrents_info()],
-            TORRENT2_HASH,
-            reverse=True,
-            negate=True,
-        )
+        for attempt in eventually():
+            with attempt:
+                assert TORRENT2_HASH not in [t.hash for t in client.torrents_info()]
 
     @retry()
     def add_and_delete():
@@ -223,11 +221,9 @@ def test_add_delete(
                     assert resp == "Ok."
 
             for torrent_hash in expected_hashes:
-                check(
-                    lambda: [t.hash for t in client.torrents_info()],
-                    torrent_hash,
-                    reverse=True,
-                )
+                for attempt in eventually():
+                    with attempt:
+                        assert torrent_hash in [t.hash for t in client.torrents_info()]
         finally:
             delete_test_torrents()
 
@@ -316,31 +312,46 @@ def test_add_options(client, api_version, keep_root_folder, content_layout, tmp_
         )
 
         with new_torrent as torrent:
-            check(lambda: torrent.info.category, "test_category")
-            check(
-                lambda: torrent.info.state,
-                # qBittorrent v5 renamed the paused states to stopped
-                ("pausedDL", "stoppedDL"),
-                any=True,
-            )
-            check(
-                lambda: mkpath(torrent.info.save_path),
-                mkpath(tmp_path, "test_download"),
-            )
-            check(lambda: torrent.info.up_limit, 1024)
-            check(lambda: torrent.info.dl_limit, 2048)
-            check(lambda: torrent.info.seq_dl, True)
+            for attempt in eventually():
+                with attempt:
+                    assert torrent.info.category == "test_category"
+            for attempt in eventually():
+                with attempt:
+                    assert torrent.info.state in ("pausedDL", "stoppedDL")
+            for attempt in eventually():
+                with attempt:
+                    assert mkpath(torrent.info.save_path) == mkpath(
+                        tmp_path, "test_download"
+                    )
+            for attempt in eventually():
+                with attempt:
+                    assert torrent.info.up_limit == 1024
+            for attempt in eventually():
+                with attempt:
+                    assert torrent.info.dl_limit == 2048
+            for attempt in eventually():
+                with attempt:
+                    assert torrent.info.seq_dl is True
             if v(api_version) >= v("2.0.1"):
-                check(lambda: torrent.info.f_l_piece_prio, True)
+                for attempt in eventually():
+                    with attempt:
+                        assert torrent.info.f_l_piece_prio is True
             if content_layout is None:
-                check(
-                    lambda: torrent.files[0]["name"].startswith("root_folder"),
-                    keep_root_folder in {True, None},
-                )
-            check(lambda: torrent.info.name, "this is a new name for the torrent")
-            check(lambda: torrent.info.auto_tmm, False)
+                for attempt in eventually():
+                    with attempt:
+                        assert torrent.files[0]["name"].startswith("root_folder") == (
+                            keep_root_folder in {True, None}
+                        )
+            for attempt in eventually():
+                with attempt:
+                    assert torrent.info.name == "this is a new name for the torrent"
+            for attempt in eventually():
+                with attempt:
+                    assert torrent.info.auto_tmm is False
             if v(api_version) >= v("2.6.2"):
-                check(lambda: torrent.info.tags, "option-tag")
+                for attempt in eventually():
+                    with attempt:
+                        assert torrent.info.tags == "option-tag"
 
             if v(api_version) >= v("2.7"):
                 # after web api v2.7...root dir is driven by content_layout
@@ -354,14 +365,20 @@ def test_add_options(client, api_version, keep_root_folder, content_layout, tmp_
                     should_root_dir_exists = content_layout in {"Original", "Subfolder"}
                 else:
                     should_root_dir_exists = keep_root_folder in {None, True}
-            check(
-                lambda: any(f["name"].startswith("root_folder") for f in torrent.files),
-                should_root_dir_exists,
-            )
+            for attempt in eventually():
+                with attempt:
+                    assert (
+                        any(f["name"].startswith("root_folder") for f in torrent.files)
+                        == should_root_dir_exists
+                    )
 
             if v(api_version) >= v("2.8.1"):
-                check(lambda: torrent.info.ratio_limit, 2)
-                check(lambda: torrent.info.seeding_time_limit, 120)
+                for attempt in eventually():
+                    with attempt:
+                        assert torrent.info.ratio_limit == 2
+                for attempt in eventually():
+                    with attempt:
+                        assert torrent.info.seeding_time_limit == 120
 
     do_test()
 
@@ -384,11 +401,13 @@ def test_torrents_add_download_path(client, use_download_path, tmp_path):
 
     with new_torrent as torrent:
         if use_download_path is False:
-            check(
-                lambda: mkpath(torrent.info.download_path), download_path, negate=True
-            )
+            for attempt in eventually():
+                with attempt:
+                    assert mkpath(torrent.info.download_path) != download_path
         else:
-            check(lambda: mkpath(torrent.info.download_path), download_path)
+            for attempt in eventually():
+                with attempt:
+                    assert mkpath(torrent.info.download_path) == download_path
 
 
 @pytest.mark.skipif_before_api_version("2.9.3")
@@ -439,15 +458,11 @@ def test_add_webseeds(client, new_torrent, add_webseeds_func, webseeds):
         client.func(add_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
 
     add_webseeds()
-    check(
-        lambda: sorted([w.url for w in new_torrent.webseeds]),
-        (webseeds if isinstance(webseeds, list) else [webseeds]),
-        reverse=True,
-        # see tests/test_torrent.py::test_add_webseed for why this is re-sent
-        action=add_webseeds,
-        check_time=WEBSEED_CHECK_TIME,
-        action_every=WEBSEED_ACTION_EVERY,
-    )
+    for attempt in eventually(
+        timeout=WEBSEED_TIMEOUT, resend=add_webseeds, resend_every=WEBSEED_RESEND_EVERY
+    ):
+        with attempt:
+            assert set(as_list(webseeds)) <= {w.url for w in new_torrent.webseeds}
 
 
 @pytest.mark.skipif_before_api_version("2.11.3")
@@ -476,30 +491,22 @@ def test_edit_webseeds(client, new_torrent, edit_webseed_func):
             add_orig_url()
 
     add_orig_url()
-    check(
-        urls,
-        orig_url,
-        reverse=True,
-        action=add_orig_url,
-        check_time=WEBSEED_CHECK_TIME,
-        action_every=WEBSEED_ACTION_EVERY,
-    )
+    for attempt in eventually(
+        timeout=WEBSEED_TIMEOUT, resend=add_orig_url, resend_every=WEBSEED_RESEND_EVERY
+    ):
+        with attempt:
+            assert orig_url in urls()
     edit_webseed()
-    check(
-        urls,
-        new_url,
-        reverse=True,
-        action=redo_edit,
-        check_time=WEBSEED_CHECK_TIME,
-        action_every=WEBSEED_ACTION_EVERY,
-    )
-    check(
-        lambda: len(new_torrent.webseeds),
-        1,
-        action=redo_edit,
-        check_time=WEBSEED_CHECK_TIME,
-        action_every=WEBSEED_ACTION_EVERY,
-    )
+    for attempt in eventually(
+        timeout=WEBSEED_TIMEOUT, resend=redo_edit, resend_every=WEBSEED_RESEND_EVERY
+    ):
+        with attempt:
+            assert new_url in urls()
+    for attempt in eventually(
+        timeout=WEBSEED_TIMEOUT, resend=redo_edit, resend_every=WEBSEED_RESEND_EVERY
+    ):
+        with attempt:
+            assert len(new_torrent.webseeds) == 1
 
 
 @pytest.mark.skipif_before_api_version("2.11.3")
@@ -521,23 +528,20 @@ def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
 
     add_webseeds()
     # removing before qBittorrent registers them would silently do nothing
-    check(
-        lambda: [w.url for w in new_torrent.webseeds],
-        all_webseeds,
-        reverse=True,
-        action=add_webseeds,
-        check_time=WEBSEED_CHECK_TIME,
-        action_every=WEBSEED_ACTION_EVERY,
-    )
+    for attempt in eventually(
+        timeout=WEBSEED_TIMEOUT, resend=add_webseeds, resend_every=WEBSEED_RESEND_EVERY
+    ):
+        with attempt:
+            assert set(all_webseeds) <= {w.url for w in new_torrent.webseeds}
     remove_webseeds()
     for webseed in webseeds if isinstance(webseeds, list) else [webseeds]:
-        check(
-            lambda: webseed not in {w.url for w in new_torrent.webseeds},
-            True,
-            action=remove_webseeds,
-            check_time=WEBSEED_CHECK_TIME,
-            action_every=WEBSEED_ACTION_EVERY,
-        )
+        for attempt in eventually(
+            timeout=WEBSEED_TIMEOUT,
+            resend=remove_webseeds,
+            resend_every=WEBSEED_RESEND_EVERY,
+        ):
+            with attempt:
+                assert webseed not in {w.url for w in new_torrent.webseeds}
 
 
 @pytest.mark.parametrize("files_func", ["torrents_files", "torrents.files"])
@@ -679,7 +683,9 @@ def test_piece_hashes_slice(client, orig_torrent, piece_hashes_func):
 )
 def test_add_trackers(client, trackers, new_torrent, add_trackers_func):
     client.func(add_trackers_func)(torrent_hash=new_torrent.hash, urls=trackers)
-    check(lambda: (t.url for t in new_torrent.trackers), trackers, reverse=True)
+    for attempt in eventually():
+        with attempt:
+            assert set(as_list(trackers)) <= {t.url for t in new_torrent.trackers}
 
 
 @pytest.mark.skipif_before_api_version("2.2.0")
@@ -693,7 +699,9 @@ def test_edit_tracker(client, orig_torrent, edit_trackers_func):
         original_url="127.1.0.1",
         new_url="127.1.0.2",
     )
-    check(lambda: (t.url for t in orig_torrent.trackers), "127.1.0.2", reverse=True)
+    for attempt in eventually():
+        with attempt:
+            assert "127.1.0.2" in (t.url for t in orig_torrent.trackers)
     client.torrents_remove_trackers(torrent_hash=orig_torrent.hash, urls="127.1.0.2")
 
 
@@ -711,12 +719,11 @@ def test_edit_tracker(client, orig_torrent, edit_trackers_func):
 def test_remove_trackers(client, trackers, orig_torrent, remove_trackers_func):
     orig_torrent.add_trackers(trackers)
     client.func(remove_trackers_func)(torrent_hash=orig_torrent.hash, urls=trackers)
-    check(
-        lambda: (t.url for t in orig_torrent.trackers),
-        trackers,
-        reverse=True,
-        negate=True,
-    )
+    for attempt in eventually():
+        with attempt:
+            assert set(as_list(trackers)).isdisjoint(
+                {t.url for t in orig_torrent.trackers}
+            )
 
 
 @pytest.mark.parametrize(
@@ -724,16 +731,22 @@ def test_remove_trackers(client, trackers, orig_torrent, remove_trackers_func):
 )
 def test_file_priority(client, orig_torrent, file_prio_func):
     client.func(file_prio_func)(torrent_hash=orig_torrent.hash, file_ids=0, priority=6)
-    check(lambda: orig_torrent.files[0].priority, 6)
+    for attempt in eventually():
+        with attempt:
+            assert orig_torrent.files[0].priority == 6
     client.func(file_prio_func)(torrent_hash=orig_torrent.hash, file_ids=0, priority=7)
-    check(lambda: orig_torrent.files[0].priority, 7)
+    for attempt in eventually():
+        with attempt:
+            assert orig_torrent.files[0].priority == 7
 
 
 @pytest.mark.parametrize("new_name", ["new name 2", "new_name_2"])
 @pytest.mark.parametrize("rename_func", ["torrents_rename", "torrents.rename"])
 def test_rename(client, new_torrent, new_name, rename_func):
     client.func(rename_func)(torrent_hash=new_torrent.hash, new_torrent_name=new_name)
-    check(lambda: new_torrent.info.name.replace("+", " "), new_name)
+    for attempt in eventually():
+        with attempt:
+            assert new_torrent.info.name.replace("+", " ") == new_name
 
 
 @pytest.mark.skipif_before_api_version("2.4.0")
@@ -753,7 +766,9 @@ def test_rename_file(
         client.func(rename_file_func)(
             torrent_hash=new_torrent.hash, file_id=0, new_file_name=new_name
         )
-        check(lambda: new_torrent.files[0].name.replace("+", " "), new_name)
+        for attempt in eventually():
+            with attempt:
+                assert new_torrent.files[0].name.replace("+", " ") == new_name
         # test invalid file ID is rejected
         with pytest.raises(Conflict409Error):
             client.func(rename_file_func)(
@@ -766,7 +781,9 @@ def test_rename_file(
             old_path=new_torrent.files[0].name,
             new_path=new_new_name,
         )
-        check(lambda: new_torrent.files[0].name.replace("+", " "), new_new_name)
+        for attempt in eventually():
+            with attempt:
+                assert new_torrent.files[0].name.replace("+", " ") == new_new_name
         # test invalid old_path is rejected
         with pytest.raises(Conflict409Error):
             client.func(rename_file_func)(
@@ -795,11 +812,11 @@ def test_rename_folder(client, app_version, new_torrent, new_name, rename_folder
             )
 
             # wait for the folder to be renamed
-            check(
-                lambda: [f.name.split("/")[0] for f in new_torrent.files],
-                new_folder,
-                reverse=True,
-            )
+            for attempt in eventually():
+                with attempt:
+                    assert new_folder in [
+                        f.name.split("/")[0] for f in new_torrent.files
+                    ]
 
             # test rename that new folder
             client.func(rename_folder_func)(
@@ -807,10 +824,12 @@ def test_rename_folder(client, app_version, new_torrent, new_name, rename_folder
                 old_path=new_folder,
                 new_path=new_name,
             )
-            check(
-                lambda: new_torrent.files[0].name.replace("+", " "),
-                new_name + "/" + orig_file_path,
-            )
+            for attempt in eventually():
+                with attempt:
+                    assert (
+                        new_torrent.files[0].name.replace("+", " ")
+                        == new_name + "/" + orig_file_path
+                    )
         elif v(app_version) >= v("v4.3.2"):
             with pytest.raises(NotImplementedError):
                 client.func(rename_folder_func)()
@@ -884,41 +903,43 @@ def test_torrents_info_tag(client, new_torrent, info_func):
 )
 def test_stop_start(client, new_torrent, stop_func, start_func):
     client.func(stop_func)(torrent_hashes=new_torrent.hash)
-    check(
-        lambda: (
-            client.torrents_info(torrent_hashes=new_torrent.hash)[
-                0
-            ].state_enum.is_paused
-        ),
-        True,
-    )
+    for attempt in eventually():
+        with attempt:
+            assert (
+                client.torrents_info(torrent_hashes=new_torrent.hash)[
+                    0
+                ].state_enum.is_paused
+                is True
+            )
 
     client.func(start_func)(torrent_hashes=new_torrent.hash)
-    check(
-        lambda: (
-            client.torrents_info(torrent_hashes=new_torrent.hash)[
-                0
-            ].state_enum.is_paused
-        ),
-        False,
-    )
+    for attempt in eventually():
+        with attempt:
+            assert (
+                client.torrents_info(torrent_hashes=new_torrent.hash)[
+                    0
+                ].state_enum.is_paused
+                is False
+            )
 
 
 def test_action_for_all_torrents(client):
     client.torrents.resume.all()
     for torrent in client.torrents.info():
-        check(
-            lambda: client.torrents_info(torrent_hashes=torrent.hash)[0].state,
-            {"pausedDL", "stoppedDL"},
-            negate=True,
-        )
+        for attempt in eventually():
+            with attempt:
+                assert client.torrents_info(torrent_hashes=torrent.hash)[
+                    0
+                ].state not in {"pausedDL", "stoppedDL"}
     client.torrents.pause.all()
     for torrent in client.torrents.info():
-        check(
-            lambda: client.torrents_info(torrent_hashes=torrent.hash)[0].state,
-            {"stalledDL", "pausedDL", "stoppedDL"},
-            any=True,
-        )
+        for attempt in eventually():
+            with attempt:
+                assert client.torrents_info(torrent_hashes=torrent.hash)[0].state in {
+                    "stalledDL",
+                    "pausedDL",
+                    "stoppedDL",
+                }
 
 
 @pytest.mark.parametrize("recheck_func", ["torrents_recheck", "torrents.recheck"])
@@ -989,22 +1010,30 @@ def test_priority(
     @retry()
     def test1(current_priority):
         client.func(inc_prio_func)(torrent_hashes=new_torrent.hash)
-        check(lambda: new_torrent.info.priority < current_priority, True)
+        for attempt in eventually():
+            with attempt:
+                assert new_torrent.info.priority < current_priority
 
     @retry()
     def test2(current_priority):
         client.func(dec_prio_func)(torrent_hashes=new_torrent.hash)
-        check(lambda: new_torrent.info.priority > current_priority, True)
+        for attempt in eventually():
+            with attempt:
+                assert new_torrent.info.priority > current_priority
 
     @retry()
     def test3(current_priority):
         client.func(top_prio_func)(torrent_hashes=new_torrent.hash)
-        check(lambda: new_torrent.info.priority < current_priority, True)
+        for attempt in eventually():
+            with attempt:
+                assert new_torrent.info.priority < current_priority
 
     @retry()
     def test4(current_priority):
         client.func(bottom_prio_func)(torrent_hashes=new_torrent.hash)
-        check(lambda: new_torrent.info.priority > current_priority, True)
+        for attempt in eventually():
+            with attempt:
+                assert new_torrent.info.priority > current_priority
 
     test1(current_priority=new_torrent.info.priority)
     test2(current_priority=new_torrent.info.priority)
@@ -1031,23 +1060,27 @@ def test_download_limit(client, orig_torrent, set_down_limit_func, down_limit_fu
         client.func(down_limit_func)(torrent_hashes=orig_torrent.hash),
         TorrentLimitsDictionary,
     )
-    check(
-        lambda: client.func(down_limit_func)(torrent_hashes=orig_torrent.hash)[
-            orig_torrent.hash
-        ],
-        100,
-    )
+    for attempt in eventually():
+        with attempt:
+            assert (
+                client.func(down_limit_func)(torrent_hashes=orig_torrent.hash)[
+                    orig_torrent.hash
+                ]
+                == 100
+            )
 
     # reset download limit
     client.func(set_down_limit_func)(
         torrent_hashes=orig_torrent.hash, limit=orig_download_limit
     )
-    check(
-        lambda: client.func(down_limit_func)(torrent_hashes=orig_torrent.hash)[
-            orig_torrent.hash
-        ],
-        orig_download_limit,
-    )
+    for attempt in eventually():
+        with attempt:
+            assert (
+                client.func(down_limit_func)(torrent_hashes=orig_torrent.hash)[
+                    orig_torrent.hash
+                ]
+                == orig_download_limit
+            )
 
 
 @pytest.mark.parametrize(
@@ -1069,23 +1102,27 @@ def test_upload_limit(client, orig_torrent, set_up_limit_func, up_limit_func):
         client.func(up_limit_func)(torrent_hashes=orig_torrent.hash),
         TorrentLimitsDictionary,
     )
-    check(
-        lambda: client.func(up_limit_func)(torrent_hashes=orig_torrent.hash)[
-            orig_torrent.hash
-        ],
-        100,
-    )
+    for attempt in eventually():
+        with attempt:
+            assert (
+                client.func(up_limit_func)(torrent_hashes=orig_torrent.hash)[
+                    orig_torrent.hash
+                ]
+                == 100
+            )
 
     # reset upload limit
     client.func(set_up_limit_func)(
         torrent_hashes=orig_torrent.hash, limit=orig_upload_limit
     )
-    check(
-        lambda: client.func(up_limit_func)(torrent_hashes=orig_torrent.hash)[
-            orig_torrent.hash
-        ],
-        orig_upload_limit,
-    )
+    for attempt in eventually():
+        with attempt:
+            assert (
+                client.func(up_limit_func)(torrent_hashes=orig_torrent.hash)[
+                    orig_torrent.hash
+                ]
+                == orig_upload_limit
+            )
 
 
 @pytest.mark.skipif_before_api_version("2.0.1")
@@ -1107,14 +1144,24 @@ def test_set_share_limits(client, orig_torrent, set_share_limits_func):
         share_limits_mode="MatchAny",
         torrent_hashes=orig_torrent.hash,
     )
-    check(lambda: orig_torrent.info.max_ratio, 2)
-    check(lambda: orig_torrent.info.max_seeding_time, 5)
+    for attempt in eventually():
+        with attempt:
+            assert orig_torrent.info.max_ratio == 2
+    for attempt in eventually():
+        with attempt:
+            assert orig_torrent.info.max_seeding_time == 5
     if "share_limit_action" in orig_torrent.info:
-        check(lambda: orig_torrent.info.share_limit_action, "Stop")
+        for attempt in eventually():
+            with attempt:
+                assert orig_torrent.info.share_limit_action == "Stop"
     if "share_limits_mode" in orig_torrent.info:
-        check(lambda: orig_torrent.info.share_limits_mode, "MatchAny")
+        for attempt in eventually():
+            with attempt:
+                assert orig_torrent.info.share_limits_mode == "MatchAny"
     if "max_inactive_seeding_time" in orig_torrent.info:
-        check(lambda: orig_torrent.info.max_inactive_seeding_time, 8)
+        for attempt in eventually():
+            with attempt:
+                assert orig_torrent.info.max_inactive_seeding_time == 8
 
     client.func(set_share_limits_func)(
         ratio_limit=3,
@@ -1124,14 +1171,24 @@ def test_set_share_limits(client, orig_torrent, set_share_limits_func):
         share_limits_mode="MatchAll",
         torrent_hashes=orig_torrent.hash,
     )
-    check(lambda: orig_torrent.info.max_ratio, 3)
-    check(lambda: orig_torrent.info.max_seeding_time, 6)
+    for attempt in eventually():
+        with attempt:
+            assert orig_torrent.info.max_ratio == 3
+    for attempt in eventually():
+        with attempt:
+            assert orig_torrent.info.max_seeding_time == 6
     if "share_limit_action" in orig_torrent.info:
-        check(lambda: orig_torrent.info.share_limit_action, "Remove")
+        for attempt in eventually():
+            with attempt:
+                assert orig_torrent.info.share_limit_action == "Remove"
     if "share_limits_mode" in orig_torrent.info:
-        check(lambda: orig_torrent.info.share_limits_mode, "MatchAll")
+        for attempt in eventually():
+            with attempt:
+                assert orig_torrent.info.share_limits_mode == "MatchAll"
     if "max_inactive_seeding_time" in orig_torrent.info:
-        check(lambda: orig_torrent.info.max_inactive_seeding_time, 9)
+        for attempt in eventually():
+            with attempt:
+                assert orig_torrent.info.max_inactive_seeding_time == 9
 
 
 @pytest.mark.skipif_before_api_version("2.0.2")
@@ -1154,7 +1211,9 @@ def test_set_location(client, app_version, new_torrent, set_loc_func, tmp_path):
     loc = mkpath(tmp_path, "1")
     client.func(set_loc_func)(location=loc, torrent_hashes=new_torrent.hash)
     # qBittorrent may return trailing separators depending on version....
-    check(lambda: mkpath(new_torrent.info.save_path), loc, any=True)
+    for attempt in eventually():
+        with attempt:
+            assert mkpath(new_torrent.info.save_path) == loc
 
 
 @pytest.mark.skipif_before_api_version("2.8.4")
@@ -1180,7 +1239,9 @@ def test_set_save_path(client, new_torrent, set_save_path_func, tmp_path):
     loc = mkpath(tmp_path, "savepath1")
     client.func(set_save_path_func)(save_path=loc, torrent_hashes=new_torrent.hash)
     # qBittorrent may return trailing separators depending on version....
-    check(lambda: mkpath(new_torrent.info.save_path), loc, any=True)
+    for attempt in eventually():
+        with attempt:
+            assert mkpath(new_torrent.info.save_path) == loc
 
 
 @pytest.mark.skipif_before_api_version("2.8.4")
@@ -1206,7 +1267,9 @@ def test_set_download_path(client, new_torrent, set_down_path_func, tmp_path):
     loc = mkpath(tmp_path, "savepath1")
     client.func(set_down_path_func)(download_path=loc, torrent_hashes=new_torrent.hash)
     # qBittorrent may return trailing separators depending on version....
-    check(lambda: mkpath(new_torrent.info.download_path), loc, any=True)
+    for attempt in eventually():
+        with attempt:
+            assert mkpath(new_torrent.info.download_path) == loc
 
 
 @pytest.mark.parametrize(
@@ -1228,7 +1291,9 @@ def test_set_category(client, orig_torrent, set_cat_func, name):
     client.torrents_create_category(name=name)
     try:
         client.func(set_cat_func)(category=name, torrent_hashes=orig_torrent.hash)
-        check(lambda: orig_torrent.info.category.replace("+", " "), name)
+        for attempt in eventually():
+            with attempt:
+                assert orig_torrent.info.category.replace("+", " ") == name
     finally:
         client.torrents_remove_categories(categories=name)
 
@@ -1247,7 +1312,9 @@ def test_torrents_set_auto_management(client, orig_torrent, set_auto_mgmt_func):
     client.func(set_auto_mgmt_func)(
         enable=(not current_setting), torrent_hashes=orig_torrent.hash
     )
-    check(lambda: orig_torrent.info.auto_tmm, (not current_setting))
+    for attempt in eventually():
+        with attempt:
+            assert orig_torrent.info.auto_tmm == (not current_setting)
     client.func(set_auto_mgmt_func)(
         enable=False, torrent_hashes=orig_torrent.hash
     )  # leave on False
@@ -1267,9 +1334,13 @@ def test_torrents_set_comment(client, orig_torrent, set_comment_func):
     client.func(set_comment_func)(
         comment="new comment", torrent_hashes=orig_torrent.hash
     )
-    check(lambda: orig_torrent.info.comment, "new comment")
+    for attempt in eventually():
+        with attempt:
+            assert orig_torrent.info.comment == "new comment"
     client.func(set_comment_func)(comment="", torrent_hashes=orig_torrent.hash)
-    check(lambda: orig_torrent.info.comment, "")
+    for attempt in eventually():
+        with attempt:
+            assert orig_torrent.info.comment == ""
 
 
 @pytest.mark.parametrize(
@@ -1284,7 +1355,9 @@ def test_torrents_set_comment(client, orig_torrent, set_comment_func):
 def test_toggle_sequential_download(client, orig_torrent, toggle_seq_down_func):
     current_setting = orig_torrent.info.seq_dl
     client.func(toggle_seq_down_func)(torrent_hashes=orig_torrent.hash)
-    check(lambda: orig_torrent.info.seq_dl, not current_setting)
+    for attempt in eventually():
+        with attempt:
+            assert orig_torrent.info.seq_dl == (not current_setting)
 
 
 @pytest.mark.skipif_before_api_version("2.0.1")
@@ -1300,7 +1373,9 @@ def test_toggle_sequential_download(client, orig_torrent, toggle_seq_down_func):
 def test_toggle_first_last_piece_priority(client, new_torrent, toggle_piece_prio_func):
     current_setting = new_torrent.info.f_l_piece_prio
     client.func(toggle_piece_prio_func)(torrent_hashes=new_torrent.hash)
-    check(lambda: new_torrent.info.f_l_piece_prio, not current_setting)
+    for attempt in eventually():
+        with attempt:
+            assert new_torrent.info.f_l_piece_prio == (not current_setting)
 
 
 @pytest.mark.parametrize(
@@ -1317,7 +1392,9 @@ def test_set_force_start(client, orig_torrent, set_force_start_func):
     client.func(set_force_start_func)(
         enable=(not current_setting), torrent_hashes=orig_torrent.hash
     )
-    check(lambda: orig_torrent.info.force_start, not current_setting)
+    for attempt in eventually():
+        with attempt:
+            assert orig_torrent.info.force_start == (not current_setting)
 
 
 @pytest.mark.parametrize(
@@ -1415,31 +1492,29 @@ def test_create_categories(
             enable_download_path=enable_download_path,
         )
         client.torrents_set_category(torrent_hashes=orig_torrent.hash, category=name)
-        check(lambda: orig_torrent.info.category.replace("+", " "), name)
+        for attempt in eventually():
+            with attempt:
+                assert orig_torrent.info.category.replace("+", " ") == name
         if v(api_version) >= v("2.2"):
-            check(
-                lambda: [n.replace("+", " ") for n in client.torrents_categories()],
-                name,
-                reverse=True,
-            )
+            for attempt in eventually():
+                with attempt:
+                    assert name in [
+                        n.replace("+", " ") for n in client.torrents_categories()
+                    ]
             save_path_key = _categories_save_path_key(api_version)
-            check(
-                lambda: [
-                    mkpath(cat[save_path_key])
-                    for cat in client.torrents_categories().values()
-                ],
-                mkpath(save_path) or "",
-                reverse=True,
-            )
+            for attempt in eventually():
+                with attempt:
+                    assert (mkpath(save_path) or "") in [
+                        mkpath(cat[save_path_key])
+                        for cat in client.torrents_categories().values()
+                    ]
         if v(api_version) >= v("2.8.4") and enable_download_path is not False:
-            check(
-                lambda: [
-                    mkpath(cat.get("download_path", ""))
-                    for cat in client.torrents_categories().values()
-                ],
-                mkpath(download_path) or "",
-                reverse=True,
-            )
+            for attempt in eventually():
+                with attempt:
+                    assert (mkpath(download_path) or "") in [
+                        mkpath(cat.get("download_path", ""))
+                        for cat in client.torrents_categories().values()
+                    ]
     finally:
         client.torrents_remove_categories(categories=name)
 
@@ -1466,29 +1541,25 @@ def test_edit_category(
             download_path=download_path,
             enable_download_path=enable_download_path,
         )
-        check(
-            lambda: [n.replace("+", " ") for n in client.torrents_categories()],
-            name,
-            reverse=True,
-        )
+        for attempt in eventually():
+            with attempt:
+                assert name in [
+                    n.replace("+", " ") for n in client.torrents_categories()
+                ]
         save_path_key = _categories_save_path_key(api_version)
-        check(
-            lambda: (
-                mkpath(cat[save_path_key])
-                for cat in client.torrents_categories().values()
-            ),
-            mkpath(save_path) or "",
-            reverse=True,
-        )
-        if v(api_version) >= v("2.8.4") and enable_download_path is not False:
-            check(
-                lambda: [
-                    mkpath(cat.get("download_path", ""))
+        for attempt in eventually():
+            with attempt:
+                assert (mkpath(save_path) or "") in (
+                    mkpath(cat[save_path_key])
                     for cat in client.torrents_categories().values()
-                ],
-                mkpath(download_path) or "",
-                reverse=True,
-            )
+                )
+        if v(api_version) >= v("2.8.4") and enable_download_path is not False:
+            for attempt in eventually():
+                with attempt:
+                    assert (mkpath(download_path) or "") in [
+                        mkpath(cat.get("download_path", ""))
+                        for cat in client.torrents_categories().values()
+                    ]
     finally:
         client.torrents_remove_categories(categories=name)
 
@@ -1506,13 +1577,14 @@ def test_remove_category(
     orig_torrent.set_category(category=categories[0])
     client.func(remove_cat_func)(categories=categories)
     if v(api_version) >= v("2.2"):
-        check(
-            lambda: [n.replace("+", " ") for n in client.torrents_categories()],
-            categories,
-            reverse=True,
-            negate=True,
-        )
-    check(lambda: orig_torrent.info.category, categories[0], negate=True)
+        for attempt in eventually():
+            with attempt:
+                assert set(categories).isdisjoint(
+                    {n.replace("+", " ") for n in client.torrents_categories()}
+                )
+    for attempt in eventually():
+        with attempt:
+            assert orig_torrent.info.category != categories[0]
 
 
 @pytest.mark.skipif_before_api_version("2.3.0")
@@ -1552,7 +1624,9 @@ def test_add_tag_though_property(client):
 def test_add_tags(client, orig_torrent, add_tags_func, tags):
     try:
         client.func(add_tags_func)(tags=tags, torrent_hashes=orig_torrent.hash)
-        check(lambda: orig_torrent.info.tags, tags, reverse=True)
+        for attempt in eventually():
+            with attempt:
+                assert all(tag in orig_torrent.info.tags for tag in tags)
     finally:
         client.torrents_delete_tags(tags=tags)
 
@@ -1566,7 +1640,9 @@ def test_set_tags(client, orig_torrent, set_tags_func, tags):
     try:
         client.torrents_add_tags(tags="extra-tag", torrent_hashes=orig_torrent.hash)
         client.func(set_tags_func)(tags=tags, torrent_hashes=orig_torrent.hash)
-        check(lambda: orig_torrent.info.tags, tags, reverse=True)
+        for attempt in eventually():
+            with attempt:
+                assert all(tag in orig_torrent.info.tags for tag in tags)
     finally:
         client.torrents_delete_tags(tags=tags)
 
@@ -1580,7 +1656,9 @@ def test_remove_tags(client, orig_torrent, remove_tags_func, tags):
     try:
         orig_torrent.add_tags(tags=tags)
         client.func(remove_tags_func)(tags=tags, torrent_hashes=orig_torrent.hash)
-        check(lambda: orig_torrent.info.tags, tags, reverse=True, negate=True)
+        for attempt in eventually():
+            with attempt:
+                assert all(tag not in orig_torrent.info.tags for tag in tags)
     finally:
         client.torrents_delete_tags(tags=tags)
 
@@ -1593,7 +1671,9 @@ def test_remove_tags(client, orig_torrent, remove_tags_func, tags):
 def test_create_tags(client, create_tags_func, tags):
     try:
         client.func(create_tags_func)(tags=tags)
-        check(lambda: client.torrents_tags(), tags, reverse=True)
+        for attempt in eventually():
+            with attempt:
+                assert set(tags) <= set(client.torrents_tags())
     finally:
         client.torrents_delete_tags(tags=tags)
 
@@ -1606,4 +1686,6 @@ def test_create_tags(client, create_tags_func, tags):
 def test_delete_tags(client, delete_tags_func, tags):
     client.torrents_create_tags(tags=tags)
     client.func(delete_tags_func)(tags=tags)
-    check(lambda: client.torrents_tags(), tags, reverse=True, negate=True)
+    for attempt in eventually():
+        with attempt:
+            assert set(tags).isdisjoint(client.torrents_tags())
