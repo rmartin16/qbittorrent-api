@@ -8,7 +8,7 @@ from qbittorrentapi import APINames
 from qbittorrentapi._version_support import v
 from qbittorrentapi.exceptions import APIError, Conflict409Error
 from qbittorrentapi.rss import RSSitemsDictionary
-from tests.utils import check, retry
+from tests.utils import eventually, retry
 
 FOLDER_ONE = "testFolderOne"
 FOLDER_TWO = "testFolderTwo"
@@ -26,7 +26,9 @@ RSS_URL = (
 def delete_feed(client, name):
     with suppress(Conflict409Error):
         client.rss_remove_item(item_path=name)
-        check(lambda: client.rss_items(), name, reverse=True, negate=True)
+        for attempt in eventually():
+            with attempt:
+                assert name not in client.rss_items()
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -40,7 +42,9 @@ def rss_feed(client, api_version):
                 delete_feed(client, ITEM_ONE)
                 delete_feed(client, RSS_NAME)
                 client.rss.add_feed(url=RSS_URL, item_path=ITEM_ONE)
-                check(lambda: client.rss_items(), ITEM_ONE, reverse=True)
+                for attempt in eventually():
+                    with attempt:
+                        assert ITEM_ONE in client.rss_items()
                 # wait until feed is refreshed
                 for j in range(20):
                     if client.rss.items.with_data[ITEM_ONE]["articles"]:
@@ -75,11 +79,11 @@ def test_rss_refresh_item(client, rss_feed, refresh_item_func):
 
     client.func(refresh_item_func)(item_path=rss_feed)
 
-    check(
-        lambda: [e.message for e in client.log.main(last_known_id=last_log_id)],
-        f"RSS feed at '{RSS_URL}' updated. Added 0 new articles.",
-        reverse=True,
-    )
+    for attempt in eventually():
+        with attempt:
+            assert f"RSS feed at '{RSS_URL}' updated. Added 0 new articles." in [
+                e.message for e in client.log.main(last_known_id=last_log_id)
+            ]
 
 
 # inconsistent behavior with endpoint for API version 2.2
@@ -88,29 +92,25 @@ def test_rss_refresh_item(client, rss_feed, refresh_item_func):
 @pytest.mark.skipif_before_api_version("2.2")
 @pytest.mark.parametrize("items_func", ["rss_items", "rss.items"])
 def test_rss_items(client, rss_feed, items_func):
-    check(lambda: client.func(items_func)(), rss_feed, reverse=True)
-    check(
-        lambda: client.func(items_func)(include_feed_data=True),
-        rss_feed,
-        reverse=True,
-    )
-    check(
-        lambda: client.func(items_func)(include_feed_data=True)[rss_feed],
-        "articles",
-        reverse=True,
-    )
+    for attempt in eventually():
+        with attempt:
+            assert rss_feed in client.func(items_func)()
+    for attempt in eventually():
+        with attempt:
+            assert rss_feed in client.func(items_func)(include_feed_data=True)
+    for attempt in eventually():
+        with attempt:
+            assert (
+                "articles" in client.func(items_func)(include_feed_data=True)[rss_feed]
+            )
 
     if "." in items_func:
-        check(
-            lambda: client.func(items_func).without_data,
-            rss_feed,
-            reverse=True,
-        )
-        check(
-            lambda: client.func(items_func).with_data[rss_feed],
-            "articles",
-            reverse=True,
-        )
+        for attempt in eventually():
+            with attempt:
+                assert rss_feed in client.func(items_func).without_data
+        for attempt in eventually():
+            with attempt:
+                assert "articles" in client.func(items_func).with_data[rss_feed]
 
 
 # disabling as failures are too common...
@@ -161,7 +161,9 @@ def test_rss_set_refresh_interval(client, rss_feed, set_refresh_interval_func):
 @pytest.mark.parametrize("remove_item_func", ["rss_remove_item", "rss.remove_item"])
 def test_rss_remove_feed(client, rss_feed, remove_item_func):
     client.func(remove_item_func)(item_path=rss_feed)
-    check(lambda: client.rss_items(), rss_feed, reverse=True, negate=True)
+    for attempt in eventually():
+        with attempt:
+            assert rss_feed not in client.rss_items()
 
 
 @pytest.mark.parametrize(
@@ -177,9 +179,13 @@ def test_rss_add_remove_folder(client, add_folder_func, remove_item_func):
     name = "test_isos"
 
     client.func(add_folder_func)(folder_path=name)
-    check(lambda: client.rss_items(), name, reverse=True)
+    for attempt in eventually():
+        with attempt:
+            assert name in client.rss_items()
     client.func(remove_item_func)(item_path=name)
-    check(lambda: client.rss_items(), name, reverse=True, negate=True)
+    for attempt in eventually():
+        with attempt:
+            assert name not in client.rss_items()
 
 
 @pytest.mark.skipif_before_api_version("2.2")
@@ -188,7 +194,9 @@ def test_rss_move(client, rss_feed, move_func):
     new_name = "new_loc"
     try:
         client.func(move_func)(orig_item_path=rss_feed, new_item_path=new_name)
-        check(lambda: client.rss_items(), new_name, reverse=True)
+        for attempt in eventually():
+            with attempt:
+                assert new_name in client.rss_items()
     finally:
         with suppress(APIError):
             client.rss_remove_item(item_path=new_name)
@@ -199,11 +207,9 @@ def test_rss_move(client, rss_feed, move_func):
 def test_rss_mark_as_read(client, rss_feed, mark_read_func):
     item_id = client.rss.items.with_data[rss_feed]["articles"][0]["id"]
     client.func(mark_read_func)(item_path=rss_feed, article_id=item_id)
-    check(
-        lambda: client.rss.items.with_data[rss_feed]["articles"][0],
-        "isRead",
-        reverse=True,
-    )
+    for attempt in eventually():
+        with attempt:
+            assert "isRead" in client.rss.items.with_data[rss_feed]["articles"][0]
 
 
 @pytest.mark.skipif_before_api_version("2.2")
@@ -258,9 +264,13 @@ def test_rss_rules(
     def check_for_rule(name):
         try:
             client.func(rules_func)()
-            check(lambda: client.func(rules_func)(), name, reverse=True)
+            for attempt in eventually():
+                with attempt:
+                    assert name in client.func(rules_func)()
         except TypeError:
-            check(lambda: client.func(rules_func), name, reverse=True)
+            for attempt in eventually():
+                with attempt:
+                    assert name in client.func(rules_func)
 
     rule_name = ITEM_ONE + "Rule"
     rule_name_new = rule_name + "New"
@@ -284,10 +294,14 @@ def test_rss_rules(
     finally:
         client.func(remove_rule_func)(rule_name=rule_name)
         client.func(remove_rule_func)(rule_name=rule_name_new)
-        check(lambda: client.rss_rules(), rule_name, reverse=True, negate=True)
+        for attempt in eventually():
+            with attempt:
+                assert rule_name not in client.rss_rules()
         client.func(remove_item_func)(item_path=ITEM_ONE)
         assert ITEM_TWO not in client.rss_items()
-        check(lambda: client.rss_items(), ITEM_TWO, reverse=True, negate=True)
+        for attempt in eventually():
+            with attempt:
+                assert ITEM_TWO not in client.rss_items()
 
 
 @pytest.mark.skipif_before_api_version("2.15.4")
@@ -299,9 +313,13 @@ def test_rss_clone_rule(client, clone_rule_func):
     try:
         client.rss_set_rule(rule_name=rule_name, rule_def=rule_def)
         client.func(clone_rule_func)(orig_rule_name=rule_name, new_rule_name=clone_name)
-        check(lambda: client.rss_rules(), clone_name, reverse=True)
+        for attempt in eventually():
+            with attempt:
+                assert clone_name in client.rss_rules()
         # the clone is a copy; the original is left in place
-        check(lambda: client.rss_rules(), rule_name, reverse=True)
+        for attempt in eventually():
+            with attempt:
+                assert rule_name in client.rss_rules()
     finally:
         client.rss_remove_rule(rule_name=rule_name)
         client.rss_remove_rule(rule_name=clone_name)
