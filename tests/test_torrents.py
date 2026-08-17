@@ -48,8 +48,8 @@ from tests.conftest import (
     new_torrent_standalone,
 )
 from tests.utils import (
-    WEBSEED_ACTION_EVERY,
-    WEBSEED_CHECK_TIME,
+    WEBSEED_RESEND_EVERY,
+    WEBSEED_TIMEOUT,
     check,
     mkpath,
     retry,
@@ -445,8 +445,8 @@ def test_add_webseeds(client, new_torrent, add_webseeds_func, webseeds):
         reverse=True,
         # see tests/test_torrent.py::test_add_webseed for why this is re-sent
         action=add_webseeds,
-        check_time=WEBSEED_CHECK_TIME,
-        action_every=WEBSEED_ACTION_EVERY,
+        check_time=WEBSEED_TIMEOUT,
+        action_every=WEBSEED_RESEND_EVERY,
     )
 
 
@@ -481,8 +481,8 @@ def test_edit_webseeds(client, new_torrent, edit_webseed_func):
         orig_url,
         reverse=True,
         action=add_orig_url,
-        check_time=WEBSEED_CHECK_TIME,
-        action_every=WEBSEED_ACTION_EVERY,
+        check_time=WEBSEED_TIMEOUT,
+        action_every=WEBSEED_RESEND_EVERY,
     )
     edit_webseed()
     check(
@@ -490,15 +490,15 @@ def test_edit_webseeds(client, new_torrent, edit_webseed_func):
         new_url,
         reverse=True,
         action=redo_edit,
-        check_time=WEBSEED_CHECK_TIME,
-        action_every=WEBSEED_ACTION_EVERY,
+        check_time=WEBSEED_TIMEOUT,
+        action_every=WEBSEED_RESEND_EVERY,
     )
     check(
         lambda: len(new_torrent.webseeds),
         1,
         action=redo_edit,
-        check_time=WEBSEED_CHECK_TIME,
-        action_every=WEBSEED_ACTION_EVERY,
+        check_time=WEBSEED_TIMEOUT,
+        action_every=WEBSEED_RESEND_EVERY,
     )
 
 
@@ -526,8 +526,8 @@ def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
         all_webseeds,
         reverse=True,
         action=add_webseeds,
-        check_time=WEBSEED_CHECK_TIME,
-        action_every=WEBSEED_ACTION_EVERY,
+        check_time=WEBSEED_TIMEOUT,
+        action_every=WEBSEED_RESEND_EVERY,
     )
     remove_webseeds()
     for webseed in webseeds if isinstance(webseeds, list) else [webseeds]:
@@ -535,8 +535,8 @@ def test_remove_webseeds(client, new_torrent, remove_webseeds_func, webseeds):
             lambda: webseed not in {w.url for w in new_torrent.webseeds},
             True,
             action=remove_webseeds,
-            check_time=WEBSEED_CHECK_TIME,
-            action_every=WEBSEED_ACTION_EVERY,
+            check_time=WEBSEED_TIMEOUT,
+            action_every=WEBSEED_RESEND_EVERY,
         )
 
 

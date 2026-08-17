@@ -24,8 +24,8 @@ CHECK_SLEEP = 0.25
 # They need a much longer window than other checks, and re-sending on every retry
 # only queues more work onto the pool that is already behind, so back off between
 # attempts instead of hammering it.
-WEBSEED_CHECK_TIME = 60
-WEBSEED_ACTION_EVERY = 8
+WEBSEED_TIMEOUT = 60
+WEBSEED_RESEND_EVERY = 8
 # Errors that mean qBittorrent hasn't caught up yet, so the check should be retried.
 # LookupError and AttributeError cover values qBittorrent hasn't populated yet, e.g.
 # indexing into a list that is still empty. The last attempt raises regardless, so
