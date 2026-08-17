@@ -25,6 +25,7 @@ from dataclasses import asdict, dataclass
 
 import qbittorrentapi
 from qbittorrentapi.definitions import APINames
+from qbittorrentapi.torrents import TorrentDictionary
 
 #: Names of the request helpers an API method calls to reach qBittorrent.
 REQUEST_HELPERS = {"_get", "_get_cast", "_post", "_post_cast", "_request_manager"}
@@ -53,6 +54,12 @@ class Endpoint:
     interface_kind: str = ""
     #: other interface spellings bound to the same object
     interface_aliases: tuple[str, ...] = ()
+    #: spelling on a torrent object, e.g. ``set_comment`` for a TorrentDictionary
+    torrent_method: str = ""
+    #: how the torrent object exposes it: ``method`` or ``property``
+    torrent_method_kind: str = ""
+    #: other torrent object spellings bound to the same object
+    torrent_method_aliases: tuple[str, ...] = ()
     #: Web API version the endpoint first appeared in, if it is gated
     version_introduced: str = ""
     #: Web API version the endpoint was removed in, if it was removed
@@ -163,6 +170,37 @@ def _interface_spelling(interfaces, namespace: str, short_name: str):
     return "", "", ()
 
 
+def _torrent_spelling(namespace: str, short_name: str):
+    """
+    Locate ``short_name`` on :class:`TorrentDictionary`.
+
+    Torrents are also operated on through the torrent objects that
+    ``torrents_info()`` returns, which bind the hash for you:
+    ``torrent.set_comment()`` rather than
+    ``client.torrents_set_comment(torrent_hash=...)``. Only per-torrent
+    endpoints appear there, so collection-level ones like ``torrents_add`` have
+    no torrent spelling.
+    """
+    if namespace != "torrents":
+        return "", "", ()
+
+    target = inspect.getattr_static(TorrentDictionary, short_name, None)
+    if target is None:
+        return "", "", ()
+
+    kind = "property" if isinstance(target, property) else "method"
+    aliases = tuple(
+        sorted(
+            name
+            for name in dir(TorrentDictionary)
+            if name != short_name
+            and not name.startswith("_")
+            and inspect.getattr_static(TorrentDictionary, name, None) is target
+        )
+    )
+    return short_name, kind, aliases
+
+
 def build_catalog() -> tuple[Endpoint, ...]:
     """Derive every API endpoint the client exposes."""
     endpoints = []
@@ -181,8 +219,12 @@ def build_catalog() -> tuple[Endpoint, ...]:
         # literal to read and api_method is left empty
 
         namespace = kwargs.get("_name", "")
+        short_name = primary[len(namespace) + 1 :]
         interface, kind, iface_aliases = _interface_spelling(
-            interfaces, namespace, primary[len(namespace) + 1 :]
+            interfaces, namespace, short_name
+        )
+        torrent_method, torrent_kind, torrent_aliases = _torrent_spelling(
+            namespace, short_name
         )
 
         endpoints.append(
@@ -194,6 +236,9 @@ def build_catalog() -> tuple[Endpoint, ...]:
                 interface=interface,
                 interface_kind=kind,
                 interface_aliases=iface_aliases,
+                torrent_method=torrent_method,
+                torrent_method_kind=torrent_kind,
+                torrent_method_aliases=torrent_aliases,
                 version_introduced=kwargs.get("version_introduced", ""),
                 version_removed=kwargs.get("version_removed", ""),
             )

@@ -206,15 +206,6 @@ def test_set_share_limits(orig_torrent, set_share_limits_func):
         check(lambda: orig_torrent.info.max_inactive_seeding_time, 200)
 
 
-@pytest.mark.skipif_after_api_version("2.0.1")
-@pytest.mark.parametrize(
-    "set_share_limits_func", ["set_share_limits", "setShareLimits"]
-)
-def test_set_share_limits_not_implemented(orig_torrent, set_share_limits_func):
-    with pytest.raises(NotImplementedError):
-        orig_torrent.func(set_share_limits_func)(ratio_limit=5, seeding_time_limit=100)
-
-
 @pytest.mark.parametrize(
     "down_limit_func, set_down_limit_func",
     [("download_limit", "set_download_limit"), ("downloadLimit", "setDownloadLimit")],
@@ -297,13 +288,6 @@ def test_set_comment(orig_torrent, set_comment_func):
     check(lambda: orig_torrent.info.comment, "new comment")
     orig_torrent.func(set_comment_func)(comment="")
     check(lambda: orig_torrent.info.comment, "")
-
-
-@pytest.mark.parametrize("set_comment_func", ["set_comment", "setComment"])
-@pytest.mark.skipif_after_api_version("2.12.1")
-def test_set_comment_not_implemented(orig_torrent, set_comment_func):
-    with pytest.raises(NotImplementedError):
-        orig_torrent.func(set_comment_func)(comment="new comment")
 
 
 @pytest.mark.parametrize(
@@ -403,13 +387,6 @@ def test_edit_tracker(orig_torrent, edit_tracker_func):
     orig_torrent.remove_trackers(urls="127.0.1.2")
 
 
-@pytest.mark.skipif_after_api_version("2.2.0")
-@pytest.mark.parametrize("edit_tracker_func", ["edit_tracker", "editTracker"])
-def test_edit_tracker_not_implemented(orig_torrent, edit_tracker_func):
-    with pytest.raises(NotImplementedError):
-        orig_torrent.func(edit_tracker_func)()
-
-
 @pytest.mark.skipif_before_api_version("2.2.0")
 @pytest.mark.parametrize("remove_trackers_func", ["remove_trackers", "removeTrackers"])
 @pytest.mark.parametrize("trackers", ["127.0.2.2", ["127.0.2.3", "127.0.2.4"]])
@@ -429,13 +406,6 @@ def test_remove_trackers(orig_torrent, remove_trackers_func, trackers):
         reverse=True,
         negate=True,
     )
-
-
-@pytest.mark.skipif_after_api_version("2.2.0")
-@pytest.mark.parametrize("remove_trackers_func", ["remove_trackers", "removeTrackers"])
-def test_remove_trackers_not_implemented(orig_torrent, remove_trackers_func):
-    with pytest.raises(NotImplementedError):
-        orig_torrent.func(remove_trackers_func)()
 
 
 def test_webseeds(orig_torrent):
@@ -584,12 +554,6 @@ def test_reannounce(orig_torrent):
     orig_torrent.reannounce()
 
 
-@pytest.mark.skipif_after_api_version("2.0.2")
-def test_reannounce_not_implemented(orig_torrent):
-    with pytest.raises(NotImplementedError):
-        orig_torrent.reannounce()
-
-
 @pytest.mark.skipif_before_api_version("2.10")
 def test_reannounce_in(orig_torrent):
     assert "reannounce_in" in orig_torrent.info
@@ -622,13 +586,6 @@ def test_rename_file(app_version, new_torrent, rename_file_func, name):
             check(lambda: new_torrent.files[0].name, new_name)
 
         run_test_new()
-
-
-@pytest.mark.skipif_after_api_version("2.4.0")
-@pytest.mark.parametrize("rename_file_func", ["rename_file", "renameFile"])
-def test_rename_file_not_implemented(new_torrent, rename_file_func):
-    with pytest.raises(NotImplementedError):
-        new_torrent.func(rename_file_func)()
 
 
 @pytest.mark.skipif_before_api_version("2.7")
@@ -668,22 +625,9 @@ def test_rename_folder(app_version, new_torrent, rename_folder_func, name):
     test()
 
 
-@pytest.mark.skipif_after_api_version("2.4.0")
-@pytest.mark.parametrize("rename_folder_func", ["rename_folder", "renameFolder"])
-def test_rename_folder_not_implemented(new_torrent, rename_folder_func):
-    with pytest.raises(NotImplementedError):
-        new_torrent.func(rename_folder_func)()
-
-
 @pytest.mark.skipif_before_api_version("2.8.14")
 def test_export(orig_torrent):
     assert isinstance(orig_torrent.export(), bytes)
-
-
-@pytest.mark.skipif_after_api_version("2.8.14")
-def test_export_not_implemented(orig_torrent):
-    with pytest.raises(NotImplementedError):
-        orig_torrent.export()
 
 
 @pytest.mark.parametrize("piece_states_func", ["piece_states", "pieceStates"])
@@ -725,20 +669,6 @@ def test_add_remove_tags(client, orig_torrent, add_tags_func, remove_tags_func, 
         client.torrents_delete_tags(tags=tags)
 
 
-@pytest.mark.skipif_after_api_version("2.3.0")
-@pytest.mark.parametrize(
-    "add_tags_func, remove_tags_func",
-    [("add_tags", "remove_tags"), ("addTags", "removeTags")],
-)
-def test_add_remove_tags_not_implemented(
-    client, orig_torrent, add_tags_func, remove_tags_func
-):
-    with pytest.raises(NotImplementedError):
-        orig_torrent.func(add_tags_func)()
-    with pytest.raises(NotImplementedError):
-        orig_torrent.func(remove_tags_func)()
-
-
 @pytest.mark.skipif_before_api_version("2.11.4")
 @pytest.mark.parametrize("set_tags_func", ["set_tags", "setTags"])
 @pytest.mark.parametrize("tags", ["tag 1", ["tag 2", "tag 3"]])
@@ -749,10 +679,3 @@ def test_set_tags(client, orig_torrent, set_tags_func, tags):
         check(lambda: orig_torrent.info.tags, tags, reverse=True)
     finally:
         client.torrents_delete_tags(tags=tags)
-
-
-@pytest.mark.skipif_after_api_version("2.11.4")
-@pytest.mark.parametrize("set_tags_func", ["set_tags", "setTags"])
-def test_set_tags_not_implemented(client, orig_torrent, set_tags_func):
-    with pytest.raises(NotImplementedError):
-        orig_torrent.func(set_tags_func)()

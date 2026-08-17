@@ -88,9 +88,11 @@ qBittorrent's own cached state already looks correct. For those, pass
 def add_webseeds():
     torrent.add_webseeds(urls=urls)
 
+
 add_webseeds()
-check(lambda: [w.url for w in torrent.webseeds], urls, reverse=True,
-      action=add_webseeds)
+check(
+    lambda: [w.url for w in torrent.webseeds], urls, reverse=True, action=add_webseeds
+)
 ```
 
 Only use `action=` for requests that are safe to send more than once.
@@ -130,9 +132,10 @@ below the version it was introduced in — through the client method *and* its
 interface spelling — and that it stops raising at that version. Writing one by
 hand adds a live request that proves something already proven.
 
-The `*_not_implemented` tests that remain cover methods on torrent objects, such
-as `torrent.set_comment()`. That surface is not in the catalog yet, so those are
-still carrying their own weight.
+That holds for all three ways an endpoint can be reached: the client method, the
+namespace interface, and the torrent objects `torrents_info()` returns. The only
+`*_not_implemented` tests left are in `test_request.py`, and they cover the gate
+mechanism itself rather than any particular endpoint.
 
 ## Gotchas that have cost real time
 
