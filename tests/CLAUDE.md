@@ -34,7 +34,7 @@ each other's state and produce failures that look like real bugs.
 
 **Offline** — `tests/test_api_surface.py`, derived from `tests/catalog.py`. These
 inspect the library itself and never talk to qBittorrent. They carry the
-`offline` marker, are generated from all 128 endpoints in the catalog, and
+`offline` marker, are generated from all 130 endpoints in the catalog, and
 finish in well under a second.
 
 **Live** — everything else. These make real requests and assert on what
@@ -75,31 +75,42 @@ monkeypatch.setattr(client, "app_web_api_version", MagicMock(return_value="0.0.1
 ## qBittorrent applies changes asynchronously
 
 A request that returns 200 has not necessarily taken effect yet, so a bare
-assert immediately after a mutation is a flake waiting to happen. Use `check()`
-from `tests/utils.py`, which re-reads the value until it matches or the timeout
-expires.
+assert immediately after a mutation is a flake waiting to happen. Wrap it in
+`eventually()` from `tests/utils.py`, which retries the block until it passes or
+the timeout expires (10 seconds by default):
+
+```python
+for attempt in eventually():
+    with attempt:
+        assert torrent.info.category == "test_category"
+```
+
+The assertions stay in the test module, so pytest rewrites them and a failure
+reports the values that did not match. Only `AssertionError`, `AttributeError`
+and `LookupError` are retried, and the final attempt re-raises whatever it gets,
+so retrying can delay a genuine failure but never hide one.
 
 Worse, qBittorrent sometimes drops a request entirely — webseed changes run in
 worker threads that swallow every exception, and some setters return early when
-qBittorrent's own cached state already looks correct. For those, pass
-`action=`, which re-sends the request between attempts:
+qBittorrent's own cached state already looks correct. For those, pass `resend=`,
+a callable that re-sends the request between attempts:
 
 ```python
 def add_webseeds():
-    torrent.add_webseeds(urls=urls)
+    client.func(add_webseeds_func)(torrent_hash=new_torrent.hash, urls=webseeds)
 
 
 add_webseeds()
-check(
-    lambda: [w.url for w in torrent.webseeds], urls, reverse=True, action=add_webseeds
-)
+for attempt in eventually(
+    timeout=WEBSEED_TIMEOUT, resend=add_webseeds, resend_every=WEBSEED_RESEND_EVERY
+):
+    with attempt:
+        assert [w.url for w in new_torrent.webseeds] == webseeds
 ```
 
-Only use `action=` for requests that are safe to send more than once.
-
-Note that `check()` lives outside a test module, so pytest does **not** rewrite
-its assertions. Any new assertion helper there must put the offending values in
-its own failure message, or failures will be undebuggable.
+Only use `resend=` for requests that are safe to send more than once. Raise
+`resend_every` for work handled on a thread pool, where re-sending on every
+attempt only queues more onto a pool that is already behind.
 
 ## Tests share one qBittorrent, so clean up
 
@@ -156,8 +167,9 @@ mechanism itself rather than any particular endpoint.
 ## Gotchas that have cost real time
 
 - **camelCase spellings are the same function object.** `torrents_addWebSeeds`
-  *is* `torrents_add_webseeds`, assigned, not reimplemented. 92 of the 128
-  endpoints have at least one alias, 94 alias bindings in all. Do not add live
+  *is* `torrents_add_webseeds`, assigned, not reimplemented. 94 of the 130
+  endpoints have at least one alias, 226 alias bindings in all across the
+  client, the namespace interfaces and the torrent methods. Do not add live
   tests per spelling; the offline layer asserts the identity for every endpoint
   already.
 - **`torrents_rename_folder` gates on the application version**, not the Web API
