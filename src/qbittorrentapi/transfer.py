@@ -244,6 +244,36 @@ class TransferAPIMixIn(AppAPIMixIn):
 
     transfer_banPeers = transfer_ban_peers
 
+    def transfer_pause_session(self, **kwargs: APIKwargsT) -> None:
+        """
+        Pause the BitTorrent session.
+
+        This method was introduced with qBittorrent v5.3.0 (Web API v2.16.2).
+        """
+        self._post(
+            _name=APINames.Transfer,
+            _method="pauseSession",
+            version_introduced="2.16.2",
+            **kwargs,
+        )
+
+    transfer_pauseSession = transfer_pause_session
+
+    def transfer_resume_session(self, **kwargs: APIKwargsT) -> None:
+        """
+        Resume the BitTorrent session.
+
+        This method was introduced with qBittorrent v5.3.0 (Web API v2.16.2).
+        """
+        self._post(
+            _name=APINames.Transfer,
+            _method="resumeSession",
+            version_introduced="2.16.2",
+            **kwargs,
+        )
+
+    transfer_resumeSession = transfer_resume_session
+
 
 class Transfer(ClientCache[TransferAPIMixIn]):
     """
@@ -398,3 +428,15 @@ class Transfer(ClientCache[TransferAPIMixIn]):
         self._client.transfer_ban_peers(peers=peers, **kwargs)
 
     banPeers = ban_peers
+
+    def pause_session(self, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~TransferAPIMixIn.transfer_pause_session`."""
+        self._client.transfer_pause_session(**kwargs)
+
+    pauseSession = pause_session
+
+    def resume_session(self, **kwargs: APIKwargsT) -> None:
+        """Implements :meth:`~TransferAPIMixIn.transfer_resume_session`."""
+        self._client.transfer_resume_session(**kwargs)
+
+    resumeSession = resume_session
