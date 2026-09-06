@@ -7,6 +7,7 @@ from qbittorrentapi.transfer import (
     TransferInfoDictionary,
     TransferSpeedLimitsDictionary,
 )
+from tests.utils import eventually
 
 
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="removeprefix not in 3.8")
@@ -161,3 +162,26 @@ def test_set_speed_limits(client, set_speed_limits_func):
             alt_upload_limit=original["alt_up_limit"],
             alt_download_limit=original["alt_dl_limit"],
         )
+
+
+@pytest.mark.skipif_before_api_version("2.16.2")
+@pytest.mark.parametrize(
+    "pause_func, resume_func",
+    [
+        ("transfer_pause_session", "transfer_resume_session"),
+        ("transfer.pause_session", "transfer.resume_session"),
+    ],
+)
+def test_pause_resume_session(client, pause_func, resume_func):
+    # session_state is True while the BitTorrent session is paused
+    try:
+        client.func(pause_func)()
+        for attempt in eventually():
+            with attempt:
+                assert client.sync_maindata().server_state.session_state
+    finally:
+        client.func(resume_func)()
+
+    for attempt in eventually():
+        with attempt:
+            assert not client.sync_maindata().server_state.session_state

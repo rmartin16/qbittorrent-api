@@ -55,6 +55,22 @@ def test_add_task(client, add_task_func):
     assert task.task_id
 
 
+@pytest.mark.skipif_before_api_version("2.16.0")
+@pytest.mark.parametrize("ignore_dotfiles", [True, False])
+def test_add_task_ignore_dotfiles(client, ignore_dotfiles):
+    task = client.torrentcreator_add_task(
+        source_path="/empty-dir",
+        start_seeding=False,
+        ignore_dotfiles=ignore_dotfiles,
+    )
+    try:
+        for attempt in eventually():
+            with attempt:
+                assert task.status().ignoreDotfiles is ignore_dotfiles
+    finally:
+        task.delete()
+
+
 @pytest.mark.skipif_before_api_version("2.10.4")
 @pytest.mark.parametrize(
     "status_func", ["torrentcreator_status", "torrentcreator.status"]

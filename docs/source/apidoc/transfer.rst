@@ -4,13 +4,13 @@ Transfer
 .. autoclass:: qbittorrentapi.transfer.TransferAPIMixIn
     :members:
     :undoc-members:
-    :exclude-members: transfer, transfer_speedLimitsMode, transfer_toggleSpeedLimitsMode, transfer_downloadLimit, transfer_uploadLimit, transfer_setDownloadLimit, transfer_setUploadLimit, transfer_getSpeedLimits, transfer_setSpeedLimits, transfer_banPeers
+    :exclude-members: transfer, transfer_speedLimitsMode, transfer_toggleSpeedLimitsMode, transfer_downloadLimit, transfer_uploadLimit, transfer_setDownloadLimit, transfer_setUploadLimit, transfer_getSpeedLimits, transfer_setSpeedLimits, transfer_banPeers, transfer_pauseSession, transfer_resumeSession
     :show-inheritance:
 
 .. autoclass:: qbittorrentapi.transfer.Transfer
     :members:
     :undoc-members:
-    :exclude-members: toggleSpeedLimitsMode, setDownloadLimit, setUploadLimit, banPeers, speedLimitsMode, downloadLimit, uploadLimit, setSpeedLimitsMode, getSpeedLimits, setSpeedLimits
+    :exclude-members: toggleSpeedLimitsMode, setDownloadLimit, setUploadLimit, banPeers, speedLimitsMode, downloadLimit, uploadLimit, setSpeedLimitsMode, getSpeedLimits, setSpeedLimits, pauseSession, resumeSession
 
 .. autoclass:: qbittorrentapi.transfer.TransferInfoDictionary
     :members:

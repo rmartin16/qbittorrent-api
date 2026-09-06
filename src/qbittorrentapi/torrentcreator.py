@@ -80,6 +80,7 @@ class TorrentCreatorAPIMixIn(AppAPIMixIn):
         start_seeding: bool | None = None,
         is_private: bool | None = None,
         optimize_alignment: bool | None = None,
+        ignore_dotfiles: bool | None = None,
         padded_file_size_limit: int | None = None,
         piece_size: int | None = None,
         comment: str | None = None,
@@ -100,6 +101,8 @@ class TorrentCreatorAPIMixIn(AppAPIMixIn):
         :param is_private: is the torrent private or not?
         :param optimize_alignment: should optimized alignment be enforced for new
             torrent?
+        :param ignore_dotfiles: should dotfiles be excluded from the torrent?
+            defaults to ``True`` in qBittorrent (added in Web API v2.16.0)
         :param padded_file_size_limit: size limit for padding files
         :param piece_size: size of the pieces
         :param comment: comment
@@ -115,6 +118,9 @@ class TorrentCreatorAPIMixIn(AppAPIMixIn):
             "private": None if is_private is None else bool(is_private),
             "optimizeAlignment": (
                 None if optimize_alignment is None else bool(optimize_alignment)
+            ),
+            "ignoreDotfiles": (
+                None if ignore_dotfiles is None else bool(ignore_dotfiles)
             ),
             "startSeeding": None if start_seeding is None else bool(start_seeding),
             "paddedFileSizeLimit": padded_file_size_limit,
@@ -261,6 +267,7 @@ class TorrentCreator(ClientCache[TorrentCreatorAPIMixIn]):
         start_seeding: bool | None = None,
         is_private: bool | None = None,
         optimize_alignment: bool | None = None,
+        ignore_dotfiles: bool | None = None,
         padded_file_size_limit: int | None = None,
         piece_size: int | None = None,
         comment: str | None = None,
@@ -276,6 +283,7 @@ class TorrentCreator(ClientCache[TorrentCreatorAPIMixIn]):
             start_seeding=start_seeding,
             is_private=is_private,
             optimize_alignment=optimize_alignment,
+            ignore_dotfiles=ignore_dotfiles,
             padded_file_size_limit=padded_file_size_limit,
             piece_size=piece_size,
             comment=comment,

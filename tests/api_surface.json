@@ -2106,6 +2106,42 @@
     "version_removed": ""
   },
   {
+    "api_method": "pauseSession",
+    "client_aliases": [
+      "transfer_pauseSession"
+    ],
+    "interface": "transfer.pause_session",
+    "interface_aliases": [
+      "transfer.pauseSession"
+    ],
+    "interface_kind": "method",
+    "namespace": "transfer",
+    "primary": "transfer_pause_session",
+    "torrent_method": "",
+    "torrent_method_aliases": [],
+    "torrent_method_kind": "",
+    "version_introduced": "2.16.2",
+    "version_removed": ""
+  },
+  {
+    "api_method": "resumeSession",
+    "client_aliases": [
+      "transfer_resumeSession"
+    ],
+    "interface": "transfer.resume_session",
+    "interface_aliases": [
+      "transfer.resumeSession"
+    ],
+    "interface_kind": "method",
+    "namespace": "transfer",
+    "primary": "transfer_resume_session",
+    "torrent_method": "",
+    "torrent_method_aliases": [],
+    "torrent_method_kind": "",
+    "version_introduced": "2.16.2",
+    "version_removed": ""
+  },
+  {
     "api_method": "setDownloadLimit",
     "client_aliases": [
       "transfer_setDownloadLimit"
