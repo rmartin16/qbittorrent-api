@@ -34,7 +34,7 @@ each other's state and produce failures that look like real bugs.
 
 **Offline** — `tests/test_api_surface.py`, derived from `tests/catalog.py`. These
 inspect the library itself and never talk to qBittorrent. They carry the
-`offline` marker, are generated from all 130 endpoints in the catalog, and
+`offline` marker, are generated from all 132 endpoints in the catalog, and
 finish in well under a second.
 
 **Live** — everything else. These make real requests and assert on what
@@ -167,8 +167,8 @@ mechanism itself rather than any particular endpoint.
 ## Gotchas that have cost real time
 
 - **camelCase spellings are the same function object.** `torrents_addWebSeeds`
-  *is* `torrents_add_webseeds`, assigned, not reimplemented. 94 of the 130
-  endpoints have at least one alias, 226 alias bindings in all across the
+  *is* `torrents_add_webseeds`, assigned, not reimplemented. 96 of the 132
+  endpoints have at least one alias, 230 alias bindings in all across the
   client, the namespace interfaces and the torrent methods. Do not add live
   tests per spelling; the offline layer asserts the identity for every endpoint
   already.

@@ -1,13 +1,18 @@
 import sys
 from contextlib import suppress
+from json import dumps
 from time import sleep
 
 import pytest
 
 from qbittorrentapi import APINames
 from qbittorrentapi._version_support import v
-from qbittorrentapi.exceptions import APIError, Conflict409Error
-from qbittorrentapi.rss import RSSitemsDictionary
+from qbittorrentapi.exceptions import (
+    APIError,
+    Conflict409Error,
+    InvalidRequest400Error,
+)
+from qbittorrentapi.rss import RSSitemsDictionary, RSSRulesDictionary
 from tests.utils import eventually, retry
 
 FOLDER_ONE = "testFolderOne"
@@ -323,3 +328,42 @@ def test_rss_clone_rule(client, clone_rule_func):
     finally:
         client.rss_remove_rule(rule_name=rule_name)
         client.rss_remove_rule(rule_name=clone_name)
+
+
+@pytest.mark.skipif_before_api_version("2.16.2")
+@pytest.mark.parametrize(
+    "export_rules_func, import_rules_func",
+    [
+        ("rss_export_rules", "rss_import_rules"),
+        ("rss.export_rules", "rss.import_rules"),
+    ],
+)
+@pytest.mark.parametrize("encode", [False, True])
+def test_rss_export_import_rules(client, export_rules_func, import_rules_func, encode):
+    rule_name = ITEM_ONE + "ExportRule"
+    rule_def = {"enabled": True, "affectedFeeds": [RSS_URL], "addPaused": True}
+    try:
+        client.rss_set_rule(rule_name=rule_name, rule_def=rule_def)
+        for attempt in eventually():
+            with attempt:
+                exported = client.func(export_rules_func)()
+                assert isinstance(exported, RSSRulesDictionary)
+                assert rule_name in exported
+
+        client.rss_remove_rule(rule_name=rule_name)
+        for attempt in eventually():
+            with attempt:
+                assert rule_name not in client.rss_rules()
+
+        client.func(import_rules_func)(rules=dumps(exported) if encode else exported)
+        for attempt in eventually():
+            with attempt:
+                assert client.rss_rules()[rule_name]["affectedFeeds"] == [RSS_URL]
+    finally:
+        client.rss_remove_rule(rule_name=rule_name)
+
+
+@pytest.mark.skipif_before_api_version("2.16.2")
+def test_rss_import_rules_invalid(client):
+    with pytest.raises(InvalidRequest400Error):
+        client.rss_import_rules(rules=b"not json")

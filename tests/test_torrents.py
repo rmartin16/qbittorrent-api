@@ -1578,6 +1578,70 @@ def test_edit_category(
         client.torrents_remove_categories(categories=name)
 
 
+@pytest.mark.skipif_before_api_version("2.16.2")
+@pytest.mark.parametrize(
+    "create_cat_func, edit_cat_func",
+    [
+        ("torrents_create_category", "torrents_edit_category"),
+        ("torrent_categories.create_category", "torrent_categories.edit_category"),
+    ],
+)
+def test_category_share_limits(client, create_cat_func, edit_cat_func):
+    name = "sharelimitscategory"
+    try:
+        client.func(create_cat_func)(
+            name=name,
+            save_path="/tmp/sharelimits",
+            ratio_limit=1.5,
+            seeding_time_limit=120,
+            inactive_seeding_time_limit=60,
+            share_limit_action="Stop",
+            share_limits_mode="MatchAll",
+        )
+        for attempt in eventually():
+            with attempt:
+                category = client.torrents_categories()[name]
+                assert category.ratio_limit == 1.5
+                assert category.seeding_time_limit == 120
+                assert category.inactive_seeding_time_limit == 60
+                assert category.share_limit_action == "Stop"
+                assert category.share_limits_mode == "MatchAll"
+
+        # save_path is optional for edits; omitting it must leave it unchanged
+        client.func(edit_cat_func)(
+            name=name,
+            ratio_limit=-1,
+            seeding_time_limit=-2,
+            share_limit_action="Remove",
+            share_limits_mode="MatchAny",
+        )
+        for attempt in eventually():
+            with attempt:
+                category = client.torrents_categories()[name]
+                assert category.ratio_limit == -1
+                assert category.seeding_time_limit == -2
+                assert category.inactive_seeding_time_limit == 60
+                assert category.share_limit_action == "Remove"
+                assert category.share_limits_mode == "MatchAny"
+                assert mkpath(category.savePath) == mkpath("/tmp/sharelimits")
+    finally:
+        client.torrents_remove_categories(categories=name)
+
+
+@pytest.mark.skipif_before_api_version("2.16.2")
+@pytest.mark.parametrize(
+    "share_limits",
+    [{"ratio_limit": -3}, {"share_limits_mode": "Bogus"}],
+)
+def test_category_share_limits_invalid(client, share_limits):
+    name = "badsharelimitscategory"
+    try:
+        with pytest.raises(InvalidRequest400Error):
+            client.torrents_create_category(name=name, **share_limits)
+    finally:
+        client.torrents_remove_categories(categories=name)
+
+
 @pytest.mark.parametrize(
     "remove_cat_func",
     ["torrents_remove_categories", "torrent_categories.remove_categories"],
