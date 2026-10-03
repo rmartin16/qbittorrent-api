@@ -86,38 +86,6 @@ jobs:
         with:
           attest-build-provenance-github: ${{ inputs.attest }}
 
-  Tests-qBittorrent:
-    name: Release Test ${{ needs.verify.outputs.python-latest-version }} - ${{ matrix.QBT_VER }}
-    needs: [ verify, package ]
-    strategy:
-      matrix:
-        QBT_VER:
-          - v5.3.0rc1
-          - v5.1.4
-          - v5.0.5
-          - v4.6.7
-          - v4.4.4
-          - v4.3.9
-          - v4.3.5
-          - v4.3.4.1
-          - v4.3.3
-          - v4.3.2
-          - v4.3.1
-          - v4.3.0.1
-          - v4.2.5
-          - v4.2.0
-          - v4.1.6
-          - v4.1.0
-    uses: ./.github/workflows/test.yml
-    secrets: inherit
-    with:
-      python-version: ${{ needs.verify.outputs.python-latest-version }}
-      qbittorrent-version: ${{ matrix.QBT_VER }}
-      qbittorrent-host: ${{ needs.verify.outputs.qbittorrent-host }}
-      qbittorrent-username: ${{ needs.verify.outputs.qbittorrent-username }}
-      qbittorrent-password: ${{ needs.verify.outputs.qbittorrent-password }}
-      is-qbt-dev: false
-
   Tests-qBittorrent-dev:
     name: Release Test ${{ needs.verify.outputs.python-latest-version }} - ${{ matrix.QBT_VER }}
     needs: [ verify, package ]
@@ -146,6 +114,38 @@ jobs:
     with:
       python-version: ${{ matrix.PYTHON_VER }}
       qbittorrent-version: ${{ needs.verify.outputs.qbittorrent-latest-version }}
+      qbittorrent-host: ${{ needs.verify.outputs.qbittorrent-host }}
+      qbittorrent-username: ${{ needs.verify.outputs.qbittorrent-username }}
+      qbittorrent-password: ${{ needs.verify.outputs.qbittorrent-password }}
+      is-qbt-dev: false
+
+  Tests-qBittorrent:
+    name: Release Test ${{ needs.verify.outputs.python-latest-version }} - ${{ matrix.QBT_VER }}
+    needs: [ verify, package ]
+    strategy:
+      matrix:
+        QBT_VER:
+          - v5.3.0rc1
+          - v5.1.4
+          - v5.0.5
+          - v4.6.7
+          - v4.4.4
+          - v4.3.9
+          - v4.3.5
+          - v4.3.4.1
+          - v4.3.3
+          - v4.3.2
+          - v4.3.1
+          - v4.3.0.1
+          - v4.2.5
+          - v4.2.0
+          - v4.1.6
+          - v4.1.0
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+    with:
+      python-version: ${{ needs.verify.outputs.python-latest-version }}
+      qbittorrent-version: ${{ matrix.QBT_VER }}
       qbittorrent-host: ${{ needs.verify.outputs.qbittorrent-host }}
       qbittorrent-username: ${{ needs.verify.outputs.qbittorrent-username }}
       qbittorrent-password: ${{ needs.verify.outputs.qbittorrent-password }}
