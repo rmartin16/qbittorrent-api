@@ -335,6 +335,57 @@ class RSSAPIMixIn(AppAPIMixIn):
 
     rss_removeRule = rss_remove_rule
 
+    def rss_export_rules(self, **kwargs: APIKwargsT) -> RSSRulesDictionary:
+        """
+        Export all RSS auto-download rules.
+
+        This method was introduced with qBittorrent v5.3.0 (Web API v2.16.2).
+
+        The result can be passed to :meth:`~RSSAPIMixIn.rss_import_rules`.
+        """
+        return self._get_cast(
+            _name=APINames.RSS,
+            _method="exportRules",
+            response_class=RSSRulesDictionary,
+            version_introduced="2.16.2",
+            **kwargs,
+        )
+
+    rss_exportRules = rss_export_rules
+
+    def rss_import_rules(
+        self,
+        rules: Mapping[str, JsonValueT] | bytes | str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """
+        Import RSS auto-download rules.
+
+        Rules are added alongside the existing rules; an imported rule replaces an
+        existing rule with the same name.
+
+        This method was introduced with qBittorrent v5.3.0 (Web API v2.16.2).
+
+        :raises InvalidRequest400Error: if the rules cannot be parsed
+
+        :param rules: rules keyed by rule name, as returned by
+            :meth:`~RSSAPIMixIn.rss_export_rules`; or the JSON encoding of them
+        """
+        if rules is not None and not isinstance(rules, (bytes, str)):
+            rules = dumps(rules)
+        if isinstance(rules, str):
+            rules = rules.encode()
+        files = {"rules": ("rss-downloader-rules.json", rules or b"")}
+        self._post(
+            _name=APINames.RSS,
+            _method="importRules",
+            files=files,
+            version_introduced="2.16.2",
+            **kwargs,
+        )
+
+    rss_importRules = rss_import_rules
+
     def rss_matching_articles(
         self,
         rule_name: str | None = None,
@@ -540,6 +591,22 @@ class RSS(ClientCache[RSSAPIMixIn]):
     def rules(self) -> RSSRulesDictionary:
         """Implements :meth:`~RSSAPIMixIn.rss_rules`."""
         return self._client.rss_rules()
+
+    def export_rules(self, **kwargs: APIKwargsT) -> RSSRulesDictionary:
+        """Implements :meth:`~RSSAPIMixIn.rss_export_rules`."""
+        return self._client.rss_export_rules(**kwargs)
+
+    exportRules = export_rules
+
+    def import_rules(
+        self,
+        rules: Mapping[str, JsonValueT] | bytes | str | None = None,
+        **kwargs: APIKwargsT,
+    ) -> None:
+        """Implements :meth:`~RSSAPIMixIn.rss_import_rules`."""
+        return self._client.rss_import_rules(rules=rules, **kwargs)
+
+    importRules = import_rules
 
     def matching_articles(
         self,

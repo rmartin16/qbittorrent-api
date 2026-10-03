@@ -428,6 +428,42 @@
     "version_removed": ""
   },
   {
+    "api_method": "exportRules",
+    "client_aliases": [
+      "rss_exportRules"
+    ],
+    "interface": "rss.export_rules",
+    "interface_aliases": [
+      "rss.exportRules"
+    ],
+    "interface_kind": "method",
+    "namespace": "rss",
+    "primary": "rss_export_rules",
+    "torrent_method": "",
+    "torrent_method_aliases": [],
+    "torrent_method_kind": "",
+    "version_introduced": "2.16.2",
+    "version_removed": ""
+  },
+  {
+    "api_method": "importRules",
+    "client_aliases": [
+      "rss_importRules"
+    ],
+    "interface": "rss.import_rules",
+    "interface_aliases": [
+      "rss.importRules"
+    ],
+    "interface_kind": "method",
+    "namespace": "rss",
+    "primary": "rss_import_rules",
+    "torrent_method": "",
+    "torrent_method_aliases": [],
+    "torrent_method_kind": "",
+    "version_introduced": "2.16.2",
+    "version_removed": ""
+  },
+  {
     "api_method": "items",
     "client_aliases": [],
     "interface": "rss.items",
