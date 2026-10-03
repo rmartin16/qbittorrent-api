@@ -1,5 +1,8 @@
 Change Log
 ==========
+### v2026.10.0 (03 oct 2026)
+- Advertise support for qBittorrent v5.2.4 (#686)
+
 ### v2026.8.1 (16 aug 2026)
 - Add support for ``app/rotateAPIKey`` and ``app/deleteAPIKey`` (#658)
 - Add support for ``torrents/SSLParameters`` and ``torrents/setSSLParameters`` (#658)
