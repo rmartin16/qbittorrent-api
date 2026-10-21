@@ -1,7 +1,7 @@
 Change Log
 ==========
-### Unreleased
-- Advertise support for qBittorrent v5.3.0
+### v2026.10.1 (21 oct 2026)
+- Advertise support for qBittorrent v5.3.0 (#689)
 - Existing changes that are now supported in qBittorrent:
   - Add support for ``app/getFreeSpaceAtPath`` (#659)
   - Add support for ``rss/cloneRule`` (#659)
