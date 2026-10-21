@@ -1,5 +1,19 @@
 Change Log
 ==========
+### v2026.10.1 (21 oct 2026)
+- Advertise support for qBittorrent v5.3.0 (#689)
+- Existing changes that are now supported in qBittorrent:
+  - Add support for ``app/getFreeSpaceAtPath`` (#659)
+  - Add support for ``rss/cloneRule`` (#659)
+  - Add support for ``rss/exportRules`` and ``rss/importRules`` (#686)
+  - Add support for ``torrents/downloadFile`` (#659)
+  - Add support for ``transfer/getSpeedLimits`` and ``transfer/setSpeedLimits`` (#659)
+  - Add support for ``transfer/pauseSession`` and ``transfer/resumeSession`` (#678)
+  - Add ``share_limits_mode`` for ``torrents/add`` (#659)
+  - Add ``ignore_dotfiles`` for ``torrentcreator/addTask`` (#678)
+  - Add ``ratio_limit``, ``seeding_time_limit``, ``inactive_seeding_time_limit``, ``share_limits_mode``, and ``share_limit_action`` for ``torrents/createCategory`` and ``torrents/editCategory`` (#686)
+  - ``save_path`` is no longer required for ``torrents/editCategory`` (#686)
+
 ### v2026.10.0 (03 oct 2026)
 - Advertise support for qBittorrent v5.2.4 (#686)
 
