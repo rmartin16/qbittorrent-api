@@ -44,13 +44,13 @@ dev = [
     "build==1.6.1",
     "check-manifest==0.51",
     "coverage[toml]==7.16.2",
-    "mypy==2.3.1",
+    "mypy==2.4.0",
     "pre-commit==4.6.2",
     "pytest==9.1.1",
-    "tox==4.64.4",
-    "tox-uv==1.36.0",
+    "tox==4.65.0",
+    "tox-uv==1.36.1",
     "twine==7.0.0",
-    "types-requests==2.33.0.20260906",
+    "types-requests==2.33.0.20261006",
 ]
 
 docs = [
