@@ -16,6 +16,7 @@ permissions:
 env:
   BRANCH_PREFIX: "autoupdates/pre-commit"
   FORCE_COLOR: "1"
+  UV_LOCKED: "1"
 
 defaults:
   run:
@@ -30,7 +31,7 @@ jobs:
       hook-repos: ${{ steps.hooks.outputs.repos }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Get Pre-commit Hooks
         id: hooks
@@ -50,7 +51,7 @@ jobs:
         hook-repo: ${{ fromJson(needs.pre-commit-hooks.outputs.hook-repos) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
           token: ${{ secrets.PAT }}
@@ -60,25 +61,28 @@ jobs:
           git config user.email "nobody@example.org"
           git config user.name "pre-commit updates"
 
-      - name: Set up Python
-        uses: actions/setup-python@v7.0.0
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          python-version: 3.X
+          version-file: uv.lock
 
       - name: Install pre-commit
-        run: python -m pip install . --group dev
+        run: uv sync
 
       - name: Update pre-commit hooks
         id: update
         run: |
-          pre-commit autoupdate --repo ${{ matrix.hook-repo }} | tee update.log
-          echo "vers-bump-str=$(grep -ohE '([^ ]+ -> [^ ]+)' update.log | sed 's/->/to/')" >> ${GITHUB_OUTPUT}
-          pre-commit install-hooks
+          # revs are frozen to commit SHAs; the version is in the trailing "# frozen: vX" comment
+          OLD_VER=$(grep -A1 -F "repo: ${{ matrix.hook-repo }}" .pre-commit-config.yaml | grep -oP 'frozen: \K\S+')
+          uv run pre-commit autoupdate --freeze --repo ${{ matrix.hook-repo }} | tee update.log
+          NEW_VER=$(grep -oE -- '-> [^ ]+' update.log | cut -c4-)
+          echo "vers-bump-str=${OLD_VER} to ${NEW_VER}" >> ${GITHUB_OUTPUT}
+          uv run pre-commit install-hooks
 
       - name: Run pre-commit
         # pre-commit returns non-zero when files are changed and fails the job
         continue-on-error: true
-        run: pre-commit run --all-files
+        run: uv run pre-commit run --all-files
 
       - name: PR Needed?
         id: pr
@@ -94,7 +98,7 @@ jobs:
       - name: Create Pull Request
         id: created-pr
         if: steps.pr.outputs.needed == 'true'
-        uses: peter-evans/create-pull-request@v8.1.1
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.PAT }}
           title: "Bump pre-commit hook for ${{ steps.pr.outputs.hook-name }} from ${{ steps.update.outputs.vers-bump-str }}"
