@@ -21,3 +21,13 @@ updates:
       uv:
         patterns:
           - "*"
+
+  - package-ecosystem: "pre-commit"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      time: "08:00"
+    groups:
+      pre-commit:
+        patterns:
+          - "*"
