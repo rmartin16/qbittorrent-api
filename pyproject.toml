@@ -64,7 +64,6 @@ docs = [
 
 [tool.uv]
 constraint-dependencies = [
-    # filelock ReadWriteLock advisory (Dependabot alert #20); no patched release supports Python 3.10
     "filelock >=4.2.1 ; python_version >= '3.11'",
 ]
 
