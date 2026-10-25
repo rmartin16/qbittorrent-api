@@ -7,6 +7,9 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 
+[manifest]
+constraints = [{ name = "filelock", marker = "python_full_version >= '3.11'", specifier = ">=4.2.1" }]
+
 [[package]]
 name = "accessible-pygments"
 version = "0.0.5"

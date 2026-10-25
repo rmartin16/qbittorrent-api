@@ -62,6 +62,12 @@ docs = [
     "sphinx-autodoc-typehints ==3.1.0 ; python_version >= '3.11'",
 ]
 
+[tool.uv]
+constraint-dependencies = [
+    # filelock ReadWriteLock advisory (Dependabot alert #20); no patched release supports Python 3.10
+    "filelock >=4.2.1 ; python_version >= '3.11'",
+]
+
 [tool.setuptools.dynamic]
 readme = {file = ["README.md", "CHANGELOG.md", "LICENSE"], content-type = "text/markdown"}
 
