@@ -16,8 +16,9 @@ build:
     create_environment:
       # install the uv version pinned in uv.lock and create the environment RTD builds the docs in
       - asdf plugin add uv
-      - asdf install uv "$(sed -n '/^name = "uv"$/{n;s/version = "\(.*\)"/\1/p}' uv.lock)"
-      - asdf global uv "$(sed -n '/^name = "uv"$/{n;s/version = "\(.*\)"/\1/p}' uv.lock)"
+      # RTD re-splits commands and mangles quoting, so this avoids quotes and escapes
+      - asdf install uv $(grep -A1 -x name.=..uv. uv.lock | grep -o [0-9][0-9.]*)
+      - asdf global uv $(grep -A1 -x name.=..uv. uv.lock | grep -o [0-9][0-9.]*)
       - uv venv --python "3.12" "${READTHEDOCS_VIRTUALENV_PATH}"
     install:
       - UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv sync --locked --group docs --group dev
