@@ -14,13 +14,13 @@ build:
       # much more Git history to accurately determine the SCM version
       - git fetch --unshallow
     create_environment:
-      # install uv and create the environment RTD builds the docs in
+      # install the uv version pinned in uv.lock and create the environment RTD builds the docs in
       - asdf plugin add uv
-      - asdf install uv latest
-      - asdf global uv latest
+      - asdf install uv "$(sed -n '/^name = "uv"$/{n;s/version = "\(.*\)"/\1/p}' uv.lock)"
+      - asdf global uv "$(sed -n '/^name = "uv"$/{n;s/version = "\(.*\)"/\1/p}' uv.lock)"
       - uv venv --python "3.12" "${READTHEDOCS_VIRTUALENV_PATH}"
     install:
-      - UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv sync --group docs --group dev
+      - UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv sync --locked --group docs --group dev
     pre_build:
       - UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv run tox -e docs-lint
 
