@@ -741,17 +741,23 @@ def test_sanitize_headers():
     assert sanitized["X-Custom"] == "not a secret"
 
 
-def test_verbose_logging_redacts_api_key(caplog):
+def test_verbose_logging_redacts_api_key(caplog, api_version):
     client = Client(
         api_key="qbt_secret_api_key",
         VERBOSE_RESPONSE_LOGGING=True,
         VERIFY_WEBUI_CERTIFICATE=False,
     )
     # an invalid API key is rejected with a 403 (which is not retried under API key
-    # auth); the request is still logged before the error is raised
+    # auth), or with a 401 starting in API v2.17.0 (qBittorrent PR #25210); the
+    # request is still logged before the error is raised
+    expected_error = (
+        exceptions.Unauthorized401Error
+        if v(api_version) >= v("2.17.0")
+        else exceptions.Forbidden403Error
+    )
     with (
         caplog.at_level(logging.DEBUG, logger="qbittorrentapi"),
-        pytest.raises(exceptions.Forbidden403Error),
+        pytest.raises(expected_error),
     ):
         client.torrents_rename(torrent_hash="asdf", new_torrent_name="erty")
     assert "Request Headers" in caplog.text
