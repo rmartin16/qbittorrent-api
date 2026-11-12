@@ -623,7 +623,9 @@ class Request:
             # 403, then trying again won't work because it is likely the credentials
             # are no longer valid. Furthermore, it leads to infinite recursion.
             # Likewise, API key auth has no login endpoint to (re-)establish a session,
-            # so re-authenticating cannot resolve a 403; surface it directly.
+            # so re-authenticating cannot resolve a 403; surface it directly. (Since
+            # Web API v2.17.0, an invalid API key gets a 401 instead, which is never
+            # caught here and so is never retried either.)
             if api_namespace == APINames.Authorization or self._api_key:
                 raise
             logger.debug("Login may have expired...attempting new login")

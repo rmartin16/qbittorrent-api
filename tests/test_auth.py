@@ -169,25 +169,25 @@ def test_api_key_auth_log_out_is_noop(monkeypatch):
     post.assert_not_called()
 
 
-def test_api_key_no_relogin_retry_on_403(monkeypatch):
+@pytest.mark.parametrize("error", [Unauthorized401Error, Forbidden403Error])
+def test_api_key_no_relogin_retry_on_auth_error(monkeypatch, error):
     client = Client(
         host="localhost:8080",
         api_key="qbt_test_key",
         VERIFY_WEBUI_CERTIFICATE=False,
     )
-    monkeypatch.setattr(
-        client,
-        "_request_manager",
-        MagicMock(side_effect=Forbidden403Error, spec=client._request_manager),
-    )
+    request_manager = MagicMock(side_effect=error, spec=client._request_manager)
+    monkeypatch.setattr(client, "_request_manager", request_manager)
     log_in = MagicMock(spec=client.auth_log_in)
     monkeypatch.setattr(client, "auth_log_in", log_in)
 
-    # a 403 on a normal endpoint must propagate without attempting re-authentication
-    with pytest.raises(Forbidden403Error):
+    # an invalid API key is rejected with a 403 (or a 401 since Web API v2.17.0);
+    # either must propagate without re-sending or attempting re-authentication
+    with pytest.raises(error):
         client._auth_request(
             http_method="get",
             api_namespace=APINames.Application,
             api_method="version",
         )
+    request_manager.assert_called_once()
     log_in.assert_not_called()
